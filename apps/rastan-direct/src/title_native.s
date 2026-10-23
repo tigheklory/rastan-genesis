@@ -13,6 +13,7 @@
     .extern staged_scroll_y_bg
     .extern staged_scroll_y_fg
     .extern genesistan_hud_activate_frontend
+    .extern genesistan_presentation_mark_ready_after_publish
     .extern vdp_set_vram_write_addr
 
     .equ VDP_DATA, 0x00C00000
@@ -76,6 +77,12 @@ genesistan_title_present_once:
     clr.w   0x0004(%a5)
     move.w  #1, 0x0002(%a5)
     move.w  #0x00D0, 0x002C(%a5)
+    /* RG-017: the title is now the complete presentation owner.  Override an
+     * inherited gameplay/demo HOLD only after the native title planes,
+     * palette, SAT/HUD state, scroll and retained dwell state are prepared.
+     * The existing fixed-order VBlank publication remains the only code that
+     * consumes this request and enables display output. */
+    bsr     genesistan_presentation_mark_ready_after_publish
     rts
 
     .section .rodata,"a"

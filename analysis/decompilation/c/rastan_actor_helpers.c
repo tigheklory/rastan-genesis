@@ -5,6 +5,34 @@
  */
 #include "rastan_arcade_types.h"
 
+extern uint8_t g_difficulty_002f; /* A5+0x002F */
+
+/* ORIGINAL ARCADE PC: 0x000453D6 actor-template difficulty adjustment.
+ * Provenance: RECONSTRUCTED_FROM_68000. Status: COMPLETE.
+ * Record type 12 is exempt. Difficulty 0 lowers each cfg_28 byte independently
+ * when it is at least 2; difficulty 1 leaves both bytes unchanged; difficulty
+ * 2 raises only the low byte; difficulty 3+ raises both bytes. */
+void arcade_453d6(ActorRecord *a4)
+{
+    uint8_t hi;
+    uint8_t lo;
+
+    if (a4->rec_type == 12)
+        return;
+    hi = (uint8_t)(a4->cfg_28 >> 8);
+    lo = (uint8_t)a4->cfg_28;
+    if (g_difficulty_002f == 0) {
+        if (hi >= 2) --hi;
+        if (lo >= 2) --lo;
+    } else if (g_difficulty_002f == 2) {
+        ++lo;
+    } else if (g_difficulty_002f >= 3) {
+        ++hi;
+        ++lo;
+    }
+    a4->cfg_28 = (uint16_t)(((uint16_t)hi << 8) | lo);
+}
+
 /*
  * ORIGINAL ARCADE PC: 0x0004543E  actor_record_loader_4543e
  * Provenance: GHIDRA_RAW (normalized). Status: COMPLETE.

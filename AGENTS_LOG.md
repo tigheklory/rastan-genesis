@@ -1,5 +1,63 @@
 # AGENTS Log
 
+## [AUDIO-010 — Cody — Independent regression verification of AUDIO-009]
+
+* **AUDIO-010 verdict: AUDIO-009 REJECTED.** The reported Audio Composer suite independently passes
+  37/37, but a new isolated real-HTTP/fault/concurrency suite passes only 33/40. Verified corrections:
+  traversal/absolute/separator/symlink rejection, invalid-route and FM6 rejection, server-derived arcade
+  evidence, immutable baseline, exact static routes, corrected Genesis PSG model, five `$82` descriptor
+  forms plus ordinary counted form, YM keyed totals (Scene 1 = 6), Lawrence VGM `$4F`/four PCM blocks/398
+  stream starts/174 snapshots, and honest zero-body Z80 C/coverage classification.
+* Material failures: a plausible valid request persists client-authored `approval_status:approved`;
+  eight concurrent saves all returned 200 but produced only three total snapshots/current revision 3;
+  interruption after snapshot let retry overwrite r1 instead of creating r2; a failed manifest write
+  remained profile r2 vs manifest r1 after restart. Double-digit revisions list lexicographically and
+  there is no revision retrieval/identifier endpoint. Individual `os.replace()` calls are not an atomic
+  multi-file transaction.
+* Current accepted baseline Build 0473/tag/source/ROM verified; current concurrent counter 477 observed
+  and untouched. No Composer/analyzer/generated canonical data/user profile/production ASM/ROM/build/
+  counter/tag/original input/Palette Composer change; no server left running. OPEN-039 updated and remains
+  open; AUDIO-003 not started. Minimum next correction: server-owned approval transition, serialized
+  collision-proof no-replace revisions, interruption journal/restart reconciliation, numeric listing and
+  validated retrieval, then add all seven regressions to the official suite. Report:
+  `docs/design/Cody_AUDIO010_audio009_regression_verification.md`; evidence:
+  `analysis/audio/verification/audio010_*`. Repeating **AUDIO-010**.
+
+## [PROMPT RG-012 — Cody — Writer-Triggered Native Audit and PC090OJ/PC080SN Producer Decompilation]
+
+* Static-only RG-012 completed against accepted Build 0472; artifact/source/tag remain verified,
+  counter remains 472, and Build 0473 was not produced. No production assembly/remap/HUD code,
+  gameplay, trace, profiling route or instrumentation was used.
+* Existing palette/tile/Plane row+column/SAT-ready/score publication is producer/event driven. The
+  principal steady actor-side candidate is Level-B generic family validation, but base,
+  discriminator, compositor and palette-policy writers include runtime transforms and are not
+  closed enough for a creation-only handle. Universal handle: NOT SAFE; narrow bat handle:
+  PLAUSIBLE — MORE DECOMP NEEDED. PC080SN descriptor/tileset comparisons are event-bound
+  compatibility guards; the future gain is a higher scene/page producer cut, not another dirty bit.
+* Four bounded retained producers were completed: `0x4382E`, `0x453D6`, `0x468D0` move STUB_ONLY
+  to COMPLETE; `0x504FA` moves PARTIAL to COMPLETE. Coverage is now 139 COMPLETE / 10 PARTIAL /
+  0 STUB_ONLY. The current address map, Ghidra exports and generated tables were reused; no new
+  analysis workflow was created. Report:
+  `docs/design/Cody_RG012_writer_triggered_native_audit_and_producer_decompilation.md`.
+
+## [PROMPT RG-011 — Cody — Native Sprite Finalizer Cleanup and Change-Detection Audit]
+
+* **Phase 1 closed without a build.** Accepted Build 0472 remains byte/source/tag verified
+  (`5b855e16...`, `4d5aadb0...`, `accepted/build-0472`); counter remains 472. The proposed duplicate
+  bbox/source derivation is absent: Build 0410 already removed Build 0409's second reconstruction and
+  the current finalizer constructs one live bbox pointer. Generated frame verification, a byte-exact
+  4,096-record bbox rebuild, and all 123 finalized-variant source identities pass. No production
+  source, ROM, gameplay, trace, or Build 0473.
+* **Phase 2 read-only audit:** five concrete findings ranked: generated aggregate frame bounds (HIGH),
+  stable-family classification and fixed-family palette-line resolution (MEDIUM), reverse residency
+  and frontend-HUD polling (DO NOT TOUCH without further proof/scope). Palette/tile/Plane/SAT ready
+  publication is already event/dirty driven; moving sprites, scroll, exact edge clipping, and dynamic
+  VRAM residency remain legitimate per-frame work. No new dirty flag is recommended because no new
+  A/B writer set was proven. A bat-versus-Lizardman profile should reuse existing cost-bucket symbols
+  before any optimization. Reports: `docs/design/Cody_RG011_native_sprite_finalizer_cleanup.md` and
+  `docs/design/Cody_RG011_change_detection_audit.md`. Normal HUD, absent full HUD, bat gameplay,
+  Plane A/B behavior, audio, Phase D/E, and concurrent work untouched. RG-011: COMPLETE — NO BUILD.
+
 ## [AUDIO-009 — Andy — Correct verified audio-foundation & Audio Composer defects]
 
 * CORRECTIVE implementation + regression testing driven by Cody's AUDIO-008 audit (source of truth). NO production ROM/ASM/build-number/baseline/capture/Lawrence-VGM/Palette-Composer change. Baseline Build 0472, counter 472 unchanged. AUDIO-003 still NOT complete (never claimed). Deliverable: `docs/design/Andy_AUDIO009_audio_foundation_corrections.md`; OPEN-039 updated (remains OPEN). Repeating **AUDIO-009**.
@@ -53138,6 +53196,33 @@ TIGHE ONLY
   Palette Composer, and unrelated work remained unstaged. Updated report:
   `docs/design/Cody_RG009_build0471_frontend_stall.md`.
 
+## 2026-10-22 — RG-013 static dead-state and bat lifecycle analysis
+
+- Build 0472 remains the accepted baseline; its normal ROM hash, counter 472, and annotated
+  `accepted/build-0472` tag peeling to source `4d5aadb0e92387617594404f9e757597c87517a3` were verified.
+- Static 0x41DAE/0x45DFA replacement-ABI analysis proves the original renderer clobbers
+  D0/D1/D2/D3/D5/D7/A0/A1 and preserves D4/D6/A2-A6. A caller-specific outer save around native
+  dispatch + finalization can replace the nested 15-register and 13-register preservation with one
+  7-register frame: 42 longword transfers and 364 calculated 68000 cycles avoided per gameplay
+  presentation pass. The public VBlank finalizer ABI remains separate and unchanged.
+- Reverse-residency miss helper needs only D0/D2, not its current seven-register mask: 10 longword
+  transfers and 80 calculated cycles avoidable per residency replacement. D5/A1 per-actor and D6
+  per-piece preservation were proven live and must remain. No SR/CCR removal was selected.
+- Completed static reconstructions of 0x45B18 and 0x45BE8 close fixed-slot Large/Small Bat creation,
+  template, activation, death/impact, clear and reuse. Bat death becomes base 0x0275/selector A8,
+  then 0x4092E fully clears; it does not become a family-12 reward/drop. Rec_types 0A/0B are aliased
+  by boss creators, so a persistent rec_type handle is rejected. A selector-guarded direct fast path
+  is safe but ranks below the broad preservation reduction.
+- The supplied RG-013 text physically ended mid-constraint after `Do NOT change: finalizer;
+  clipping`. Static work was recorded, but no production source/remap was modified, no MAME or
+  gameplay was run, and Build 0473 was not produced or consumed. Report:
+  `docs/design/Cody_RG013_static_dead_state_and_bat_specialization.md`.
+
+### MAME Exit Summary (2026-10-22 10:06:22)
+- Final PC: 0x03B2A2
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
 ## 2026-10-22 — RG-014 Build 0473 retained-cut preservation candidate
 
 - Exact ROM-producing source `f6e975b864af2aca7bdf24b0a40a9db43bd62f59` consolidates the
@@ -53168,6 +53253,11 @@ TIGHE ONLY
   deterministic `_invincible` rope result `795/795/795`, median `13,267.083 ms`.
 - Immutable `accepted/build-0473` points exactly to ROM-producing source `f6e975b8`, not a report
   or bookkeeping commit. Build 0474 had not been produced or consumed at acceptance lock time.
+
+### MAME Exit Summary (2026-10-22 12:28:57)
+- Final PC: 0x03A1AA
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
 
 ## 2026-10-22 — RG-015 Build 0474 death/respawn presentation rejected
 
@@ -53215,3 +53305,20 @@ TIGHE ONLY
 - Established `_invincible` rope is deterministic `795/795/795`, median `13,267.083 ms`, identical
   to accepted Build 0473. Build 0477 is AWAITING TIGHE HARDWARE ACCEPTANCE; no tag created. Report:
   `docs/design/Cody_build0477_ready_continue_visibility.md`.
+
+## [AUDIO-012 — Andy — webVGM playback integration for the Audio Composer]
+
+* **FINAL STATE (consolidated; full narrative in `docs/design/Andy_AUDIO012_webvgm_audio_composer_integration.md`).** The Rastan Audio Composer now has working in-browser audio: (1) the 9 original YM2151 captures (deterministic first-party capture→VGM conversion, `tools/audio/ym2151_capture_to_vgm.py`) and Lawrence's reference VGM play via wothke's real **webVGM** engine, run as a LOCAL, git-ignored copy in `tools/audio_composer/engine/` (never committed — the repo redistributes nothing; `fetch_engine.sh` re-fetches it); (2) **▶ Play Genesis (authored)** renders the user's own routing to a REAL YM2612(FM1-5)+SN76489(PSG) VGM via `tools/audio/render_genesis_vgm.py` and plays it in the same engine, so routing choices are audible and A/B-able against the original. PSG volume tracks the source carrier TL, and a per-channel volume slider (0-100, 0=mute) lets the user balance FM↔PSG. All additive, read-only, isolated from the AUDIO-011 profile-integrity code; baseline Build 0473 / counter 477 untouched; no production/driver/ROM/Palette-Composer change. `verify_playback.py` = 39 pass / 0 fail / 5 unavailable (browser-audio-only items). Provisional converter (OPM→OPN2 op-ordering by index, DT2 dropped, fixed octave ref) — high fidelity still needs AUDIO-003. User accepts by listening. Detailed chronology below.
+* **UPDATE 2026-10-22 (PSG volume + per-channel mix):** fixed PSG blaring (was pinned to atten 0) — PSG attenuation now derived from the source carrier TL (+ tunable PSG_HEADROOM≈6dB); FM volume already = original carrier TL. Added a **per-channel volume** slider (0..100, stored in `instrument_overrides[ch].level`, sent as `levels` to `/api/render_genesis`): FM trims carrier TL, PSG trims attenuation, 0 mutes. User can now balance FM↔PSG per voice; master volume is the webVGM player's own slider. Tests R11/R12 added; verify_playback.py 39 pass/0 fail/5 unavailable.
+* **UPDATE 2026-10-22 (Stage 1 authored renderer):** added `tools/audio/render_genesis_vgm.py` — applies the user's `approved_routing` to the original YM2151 capture and emits a REAL YM2612(FM1-5)+SN76489(PSG) VGM (actual 0x52/0x53/0x50 register commands, NO oscillator/WAV), playable in the same webVGM engine via a new **▶ Play Genesis (authored)** button. `POST /api/render_genesis` (read-only, routing from request not profiles, in-memory token cache `/engine_media/authored/<token>.vgm`, FM6 rejected). OPM→OPN2 translation: operator params bit-compatible (DT/MUL,TL,AR,D1R,D2R,SL/RR,FB,algo) mapped 1:1; pitch KC/KF→fnum/block @7.67MHz; PSG voice→square (pitch→divider, keyon/off→atten); noise per selector. Routing determines output; moving a voice FM↔PSG changes the render (tested). **PROVISIONAL/labeled** (OPM op-ordering mapped by index, DT2 dropped, fixed PSG dynamics, fixed octave ref) — NOT the final converter; high-fidelity still needs AUDIO-003. Tests R1-R10 added (real YM2612+PSG emission, routing-driven output, duration preserved, FM6 reject, no profile/asset writes); verify_playback.py now 37 pass/0 fail/5 unavailable. User verifies audibly (no headless render). No production/driver change.
+* **UPDATE 2026-10-22:** Tighe clarified this is a personal, NON-redistributed tool. Private local use of GPL/MAME code carries no distribution obligation, so I wired real playback: wothke's prebuilt webVGM (`backend_vgm.js` asm.js + `scriptprocessor_player.min.js` + `VGMPlay.ini`) fetched into **git-ignored** `tools/audio_composer/engine/` (local only, never committed/redistributed; `fetch_engine.sh` committed for reproducibility). The Composer now plays **in-browser, in-Composer** via an isolated iframe host (`engine/webvgm_player.html`, mirroring wothke's own init) for the Lawrence VGM + all 9 converted arcade VGMs, served through clean `/engine_media/*.vgm` routes. Could not audibly verify headlessly (no browser/audio) — user verifies by listening. `verify_playback.py` now 27 pass/0 fail/5 unavailable (engine files + media routes served; the 5 are browser-audio/mute-API items). The original §3 licensing analysis stands re: *redistribution* (hence local+git-ignored, not vendored into the committed repo).
+
+* Audio Composer browser-playback implementation. NO production ROM/ASM/build/counter/tag, original capture/ROM/Lawrence-VGM, Palette Composer, or AUDIO-011 profile-integrity change. Baseline Build 0473, counter 477 unchanged. Deliverable: `docs/design/Andy_AUDIO012_webvgm_audio_composer_integration.md`; OPEN-039 updated (remains OPEN). Repeating **AUDIO-012**.
+* **LICENSING GATE — webVGM import STOPPED (per §2/§15).** Inspected upstream `github.com/wothke/vgmplay-0.40.9` HEAD `5c8c39c` (read-only scratch clone, nothing vendored, deleted). The YM2151 (`ym2151.c`), YM2612/FM (`fm.c`/`fm2612.c`/`ym2612.c`) and SN76489 (`sn76496.c`/`sn764intf.c`) cores — exactly the ones Rastan needs — are **MAME-licensed (non-commercial: "may not be sold, nor used in a commercial product"), GPL-incompatible**; the glue is GPL/LGPL-"2.1" (the "unusual version wording"). Redistribution compatibility into the repo **cannot be established** → did NOT copy it. Also **no emscripten** here → cannot rebuild a clean core; only prebuilt binaries embedding the NC cores would be possible. **In-Composer chip emulation = UNAVAILABLE; NOT claimed complete; no fake/oscillator playback added.**
+* **Delivered (license-clean):** NEW `tools/audio/ym2151_capture_to_vgm.py` — deterministic first-party converter (capture `sample` col IS the 44100 Hz VGM timebase; waits = exact deltas; same-timestamp order preserved; YM2151 `0x54` writes; VGM 1.51, 4 MHz clock) → `build/audio/capture_vgm/*.vgm` for all 9 tracks (Aggressive World 16,189 writes/52.4 s). NEW `verify_capture_vgm.py` independent round-trip = **86/86**.
+* **Composer integration (read-only, ISOLATED from profile/approval/manifest/revision — AUDIO-011's domain untouched):** GET `/api/playback_sources`, `/api/engine_status`, `/api/vgm?src=lawrence|capture&id=…` (strict capture-id allowlist, no traversal); serves the UNMODIFIED Lawrence VGM + the converted arcade VGMs for **Open/Download → play in the user's existing webVGM** (working path to sound). NEW `player_adapter.js` = engine-agnostic contract + honest `NullEngine` (no fabricated audio); timing spec'd from the audio clock, never setInterval. Optional USER-SUPPLIED authorized engine in git-ignored `tools/audio_composer/engine/` auto-enables real transport. Transport buttons present but DISABLED with the licensing reason (not decorative).
+* **Tests:** `verify_playback.py` **26 pass / 0 fail / 6 unavailable** (engine-dependent: real init, pause/resume, stop/restart, loop, per-chip mute/solo, §11 real-PCM render — honestly marked, not faked); confirms no profile/production-asset/counter change + existing endpoints 200. Existing AUDIO-009 suite still **37/37**; Palette Composer untouched. §11 actual-audio render UNAVAILABLE (no core; not fabricated). Recommendation: user-supplied local engine, or build ymfm(BSD)+MIT-SN76489 to WASM with emscripten (needs authorization).
+* **UPDATE 2026-10-22 (arcade pitch match):** the Genesis render sounded ~1.9 semitones LOW vs the arcade. Cause: `opm_hz` derived pitch at concert tuning (A440) without compensating for Rastan's YM2151 running at 4.0 MHz vs the ~3.58 MHz standard tuning assumes. Added `PITCH_CLOCK_RATIO = 4000000/3579545 ≈ 1.1174` (+192 cents) applied in `opm_hz`, so both FM and PSG (both derive Hz from it) shift up to the arcade's sharp pitch. The YM2612/PSG output conversions were already clock-correct (each inverts its own chip clock); only the YM2151 source clock was uncompensated. verify_playback.py still 39/0/5; tunable by ear.
+* **UPDATE 2026-10-22 (EXACT arcade pitch):** the ratio fix above was still ~1 semitone low (the A440 approximation anchored A to the wrong OPM semitone). Replaced `opm_hz` with the YM2151's own `phaseinc_rom[768]` table (copied verbatim from the same OPM core webVGM uses) evaluated at the real 4.0 MHz clock: `Hz = phaseinc_rom[i]·clock·2^(octave−28)`, i = semitone·64 + KF. The render now lands on the IDENTICAL frequency the emulator produces for the arcade capture — verified A4 = 491.62 Hz, reproduced to 0.4 cents on YM2612 / 3.5 cents on PSG (chip quantization only). PITCH_CLOCK_RATIO removed. Ground-truth A/B = play the arcade capture VGM (real OPM @4MHz in webVGM) vs the Genesis render in the same player. verify_playback.py 39/0/5.
+* **UPDATE 2026-10-22 (per-song mappings + UI trim):** (1) Each song now keeps its OWN independent channel mapping — the frontend stores `PROF.track_routings[track_id] = {approved_routing, proposals, noise_mode, instrument_overrides}` and swaps the active working set on track selection; persisted via the server's existing unknown-field round-trip (NO server schema/profile-code change, legacy flat routing auto-migrates to its track's slot). Selecting a track also syncs the playback source so original-vs-authored A/B is the same song. (2) Removed **Lawrence McCormick's VGM** from the tool: dropped from `playback_sources`, removed `/api/lawrence`, `src=lawrence`, `/engine_media/lawrence.vgm`, `lawrence_reference()`, and the UI checkbox/panel (the raw VGM file + RG-005 analysis on disk are untouched). (3) Commented out the right-hand column (Conflicts/Instrument/PSG-model/Audition) per request — HTML wrapped in `<!-- -->`, grid → 2 columns, all JS render targets guarded for null. Tests updated (P1 per-song round-trip + Lawrence-removed assertions); verify_playback.py 36 pass/0 fail/5 unavailable. No production/counter change (477).
+* **UPDATE 2026-10-22 (per-channel volume BOOST):** the per-channel volume slider now ranges 0–200 (was 0–100): <100 attenuates, 100 = original, >100 boosts, 0 mutes. Boost lowers the FM carrier TL / PSG attenuation toward the chip max (clamped at TL 0 / atten 0 — a voice already at max can't exceed it). render_genesis_vgm.py `level_offsets` now allows negative offsets (boost) with emit-time clamping; FM carrier TL clamp is max(0,min(127,…)). Test R11b added (200% lowers PSG attenuation vs default); verify_playback.py 37 pass/0 fail/5 unavailable. No production/counter change (477).

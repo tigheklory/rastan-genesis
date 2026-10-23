@@ -172,14 +172,14 @@ extern void arcade_41cfa(ActorRecord *a4);   /* PARTIAL: config-table (0x41D26) 
 extern void arcade_4103a(ActorRecord *a4);   /* STUB: consume/advance current marker cell */
 extern void arcade_41bee(ActorRecord *a4);   /* STUB: post-materialization setup */
 extern void arcade_45418(ActorRecord *a4);   /* helper: sets +0x29 from 0x4542E[state-0x13] */
-extern void arcade_453d6(ActorRecord *a4);   /* difficulty tune of cfg_28/cfg_29 */
+extern void arcade_453d6(ActorRecord *a4);   /* COMPLETE: difficulty tune of cfg_28/cfg_29 */
 extern void arcade_3a0ec(uint8_t sound_id);  /* sound trigger */
 extern void arcade_4734a(ActorRecord *a4);   /* STUB: airborne vertical/hover pre-step */
 extern void arcade_41f9c_arc(ActorRecord *a4);/* STUB: jump/arc position helper (0x41F9C) */
 extern void arcade_43f4e_burst(ActorRecord *a4);/* PARTIAL: state-0x1B 5-child burst (A5+0x3C8) */
 extern void arcade_447f0(ActorRecord *a4);   /* STUB: child activate/init (from burst) */
-extern void arcade_4382e(ActorRecord *a4);   /* helper: state 0x13 anim-frame reload */
-extern void arcade_468d0(ActorRecord *a4);   /* PARTIAL: component facing vs camera */
+extern void arcade_4382e(ActorRecord *a4);   /* COMPLETE: state 0x13 anim-frame reload */
+extern void arcade_468d0(ActorRecord *a4);   /* COMPLETE: component facing vs camera */
 extern int8_t arcade_41f9c(uint8_t in);      /* returns rotated component index (state 0x19) */
 extern uint32_t collision_map_lookup_53a2e(void); /* returns stored collision cell address */
 

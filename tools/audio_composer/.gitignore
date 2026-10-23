@@ -1,0 +1,3 @@
+# AUDIO-012: user-supplied, authorized local VGM engine (e.g. a webVGM build).
+# NOT redistributed in this repo (webVGM/VGMPlay cores are MAME/GPL-family). Keep local only.
+engine/

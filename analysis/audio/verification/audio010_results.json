@@ -1,0 +1,705 @@
+{
+  "immutable_input_hashes_after": {
+    "audio/Inglebard Agressive World Handmade Genesis version/LM-Main Stage Theme (1).vgm": "b786794eedb319c71716bb481e0836647ecf002de7bb5bd8761d173fa948580d",
+    "audio/rastan_music_dump/conversion_attempts/01 - Credit_ym2151_writes.csv": "b9d59474ba0af40fd0356c6fc8489e89cad692175f1a0e43e74b658582a8599e",
+    "audio/rastan_music_dump/conversion_attempts/02 - Broken The Promises (Opening)_ym2151_writes.csv": "6e82d5ecb29b0b11017250aa6a6bdf55e9c77097cf3659cf129356234913ecd2",
+    "audio/rastan_music_dump/conversion_attempts/03 - Aggressive World (Scene 1)_ym2151_writes.csv": "2a4bf9a511c74eae5eb5a38369db99347a3f4dc96e0c534aca12fd1c40783de1",
+    "audio/rastan_music_dump/conversion_attempts/04 - Bad Bible (Name Regist)_ym2151_writes.csv": "ffc81d9271f2477e8d5ff08cda56fae2146e9a7f742311b2ca2203dac7513cf2",
+    "audio/rastan_music_dump/conversion_attempts/05 - Re-In-Carnation (Scene 2)_ym2151_writes.csv": "62559b73ae3281d7d6d5f0e8b4978536af96e120c2e0793667787a308e055c10",
+    "audio/rastan_music_dump/conversion_attempts/06 - The Devil Boss Carnival (Scene 3 Boss)_ym2151_writes.csv": "61b11fc9b0e14f6c5896715b3867bc562d853ee1e13a30038f47b565f7a74b5c",
+    "audio/rastan_music_dump/conversion_attempts/07 - Scene Clear_ym2151_writes.csv": "44a86467042476f30d0278793b2d280a9799157ac1bc70e75ff6bb621cdd86b1",
+    "audio/rastan_music_dump/conversion_attempts/08 - Final Destroy (Scene 3 Round 6 Boss)_ym2151_writes.csv": "b29c1f9b54525a78802e507c0e038043b4950538889bffed803e35e6153394b5",
+    "audio/rastan_music_dump/conversion_attempts/09 - The Man Of Saga (Ending)_ym2151_writes.csv": "f97293613e06e0104f801bd051f521a4c36e72c74a750b277f182ba6f5646b7a",
+    "build/regions/adpcm.bin": "65a82d3669a2d52b00e019dedef858e3778ecd1e8526326beaf0c100df29311f",
+    "build/regions/audiocpu.bin": "db0e2d4954bcb0d558f6b6dd194badccdeb29c62282051ff47b687548701e478"
+  },
+  "immutable_input_hashes_before": {
+    "audio/Inglebard Agressive World Handmade Genesis version/LM-Main Stage Theme (1).vgm": "b786794eedb319c71716bb481e0836647ecf002de7bb5bd8761d173fa948580d",
+    "audio/rastan_music_dump/conversion_attempts/01 - Credit_ym2151_writes.csv": "b9d59474ba0af40fd0356c6fc8489e89cad692175f1a0e43e74b658582a8599e",
+    "audio/rastan_music_dump/conversion_attempts/02 - Broken The Promises (Opening)_ym2151_writes.csv": "6e82d5ecb29b0b11017250aa6a6bdf55e9c77097cf3659cf129356234913ecd2",
+    "audio/rastan_music_dump/conversion_attempts/03 - Aggressive World (Scene 1)_ym2151_writes.csv": "2a4bf9a511c74eae5eb5a38369db99347a3f4dc96e0c534aca12fd1c40783de1",
+    "audio/rastan_music_dump/conversion_attempts/04 - Bad Bible (Name Regist)_ym2151_writes.csv": "ffc81d9271f2477e8d5ff08cda56fae2146e9a7f742311b2ca2203dac7513cf2",
+    "audio/rastan_music_dump/conversion_attempts/05 - Re-In-Carnation (Scene 2)_ym2151_writes.csv": "62559b73ae3281d7d6d5f0e8b4978536af96e120c2e0793667787a308e055c10",
+    "audio/rastan_music_dump/conversion_attempts/06 - The Devil Boss Carnival (Scene 3 Boss)_ym2151_writes.csv": "61b11fc9b0e14f6c5896715b3867bc562d853ee1e13a30038f47b565f7a74b5c",
+    "audio/rastan_music_dump/conversion_attempts/07 - Scene Clear_ym2151_writes.csv": "44a86467042476f30d0278793b2d280a9799157ac1bc70e75ff6bb621cdd86b1",
+    "audio/rastan_music_dump/conversion_attempts/08 - Final Destroy (Scene 3 Round 6 Boss)_ym2151_writes.csv": "b29c1f9b54525a78802e507c0e038043b4950538889bffed803e35e6153394b5",
+    "audio/rastan_music_dump/conversion_attempts/09 - The Man Of Saga (Ending)_ym2151_writes.csv": "f97293613e06e0104f801bd051f521a4c36e72c74a750b277f182ba6f5646b7a",
+    "build/regions/adpcm.bin": "65a82d3669a2d52b00e019dedef858e3778ecd1e8526326beaf0c100df29311f",
+    "build/regions/audiocpu.bin": "db0e2d4954bcb0d558f6b6dd194badccdeb29c62282051ff47b687548701e478"
+  },
+  "method": "real loopback HTTP with isolated profile storage; AUDIO-008 independent raw parsers reused",
+  "summary": {
+    "failed": 7,
+    "failures": [
+      "plausible client cannot fabricate approval",
+      "revision list is numerically ordered",
+      "revision can be retrieved through API",
+      "invalid revision identifier rejected",
+      "same-profile concurrent saves are serialized",
+      "interruption cannot overwrite an existing revision on retry",
+      "restart reconciles failed manifest write"
+    ],
+    "passed": 33,
+    "total": 40
+  },
+  "task": "AUDIO-010",
+  "tests": [
+    {
+      "category": "profile_security",
+      "expected": 400,
+      "name": "plain traversal",
+      "observed": 400,
+      "pass": true,
+      "remaining_severity": "none"
+    },
+    {
+      "category": "profile_security",
+      "expected": 400,
+      "name": "encoded traversal",
+      "observed": 400,
+      "pass": true,
+      "remaining_severity": "none"
+    },
+    {
+      "category": "profile_security",
+      "expected": 400,
+      "name": "absolute path",
+      "observed": 400,
+      "pass": true,
+      "remaining_severity": "none"
+    },
+    {
+      "category": "profile_security",
+      "expected": 400,
+      "name": "path separator",
+      "observed": 400,
+      "pass": true,
+      "remaining_severity": "none"
+    },
+    {
+      "category": "profile_security",
+      "expected": 400,
+      "name": "backslash separator",
+      "observed": 400,
+      "pass": true,
+      "remaining_severity": "none"
+    },
+    {
+      "category": "profile_security",
+      "expected": 400,
+      "name": "invalid characters",
+      "observed": 400,
+      "pass": true,
+      "remaining_severity": "none"
+    },
+    {
+      "category": "profile_security",
+      "expected": 400,
+      "name": "symlink escape",
+      "observed": 400,
+      "pass": true,
+      "remaining_severity": "none"
+    },
+    {
+      "category": "profile_security",
+      "expected": {
+        "persisted": false,
+        "status": 403
+      },
+      "name": "invalid routing rejected without persistence",
+      "observed": {
+        "persisted": false,
+        "status": 403
+      },
+      "pass": true,
+      "remaining_severity": "none"
+    },
+    {
+      "category": "profile_security",
+      "expected": 403,
+      "name": "FM6 music routing rejected",
+      "observed": 403,
+      "pass": true,
+      "remaining_severity": "none"
+    },
+    {
+      "category": "profile_security",
+      "expected": "server must not accept client-authored approved state",
+      "name": "plausible client cannot fabricate approval",
+      "observed": {
+        "post_status": 200,
+        "stored_approval_status": "approved"
+      },
+      "pass": false,
+      "remaining_severity": "high"
+    },
+    {
+      "category": "profile_security",
+      "expected": "forged evidence discarded",
+      "name": "arcade evidence is server-derived",
+      "observed": {
+        "command_id": null,
+        "provenance": "server-derived from build/audio/fm_psg_analysis + ym2151_track_reports; capture-derived, AUDIO-003 not decoded; occupancy != audible polyphony."
+      },
+      "pass": true,
+      "remaining_severity": "none"
+    },
+    {
+      "category": "profile_security",
+      "expected": 400,
+      "name": "baseline immutable",
+      "observed": 400,
+      "pass": true,
+      "remaining_severity": "none"
+    },
+    {
+      "category": "profile_security",
+      "expected": 404,
+      "name": "unknown JavaScript path is 404",
+      "observed": 404,
+      "pass": true,
+      "remaining_severity": "none"
+    },
+    {
+      "category": "profile_security",
+      "expected": 400,
+      "name": "malformed JSON is 400",
+      "observed": 400,
+      "pass": true,
+      "remaining_severity": "none"
+    },
+    {
+      "category": "revision",
+      "expected": "12 immutable ordered snapshots",
+      "name": "new and repeated saves preserve prior snapshots",
+      "observed": {
+        "r1": "revision-1",
+        "r12": "revision-12",
+        "snapshot_count": 12
+      },
+      "pass": true,
+      "remaining_severity": "none"
+    },
+    {
+      "category": "revision",
+      "expected": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "name": "revision list is numerically ordered",
+      "observed": [
+        1,
+        10,
+        11,
+        12,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "pass": false,
+      "remaining_severity": "medium"
+    },
+    {
+      "category": "revision",
+      "expected": 200,
+      "name": "revision can be retrieved through API",
+      "observed": 404,
+      "pass": false,
+      "remaining_severity": "medium"
+    },
+    {
+      "category": "revision",
+      "expected": 400,
+      "name": "invalid revision identifier rejected",
+      "observed": 404,
+      "pass": false,
+      "remaining_severity": "medium"
+    },
+    {
+      "category": "revision",
+      "expected": 12,
+      "name": "manifest matches current after clean saves",
+      "observed": {
+        "current": 12,
+        "manifest": 12
+      },
+      "pass": true,
+      "remaining_severity": "none"
+    },
+    {
+      "category": "revision",
+      "expected": {
+        "current_revision": 9,
+        "snapshot_count": 9,
+        "statuses": [
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200
+        ]
+      },
+      "name": "same-profile concurrent saves are serialized",
+      "observed": {
+        "current_revision": 3,
+        "snapshot_count": 3,
+        "statuses": [
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200
+        ]
+      },
+      "pass": false,
+      "remaining_severity": "high"
+    },
+    {
+      "category": "crash_safety",
+      "expected": "r1 preserved and retry creates r2",
+      "name": "interruption cannot overwrite an existing revision on retry",
+      "observed": {
+        "interrupted_status": null,
+        "r1_after": "second-after-restart",
+        "r1_before": "first-before-interruption",
+        "r2_exists": false,
+        "retry_status": 200
+      },
+      "pass": false,
+      "remaining_severity": "high"
+    },
+    {
+      "category": "crash_safety",
+      "expected": "profile and manifest reconciled on restart",
+      "name": "restart reconciles failed manifest write",
+      "observed": {
+        "failed_request_status": null,
+        "manifest_revision": 1,
+        "profile_revision": 2
+      },
+      "pass": false,
+      "remaining_severity": "high"
+    },
+    {
+      "category": "revision",
+      "expected": "all fields preserved",
+      "name": "v1 migration preserves notes approvals and unknown fields",
+      "observed": {
+        "profile": {
+          "approval_status": "approved",
+          "approved_routing": {
+            "0": "ym2612_fm3"
+          },
+          "arcade_channel_count": 8,
+          "arcade_evidence": {},
+          "conflicts": [],
+          "display_name": "legacy",
+          "future_extension": {
+            "kept": true
+          },
+          "immutable": false,
+          "instrument_overrides": {},
+          "migrated_from": [
+            "audio_composer/v1"
+          ],
+          "modified": "2026-10-22T14:56:32Z",
+          "music_destinations": [
+            "ym2612_fm1",
+            "ym2612_fm2",
+            "ym2612_fm3",
+            "ym2612_fm4",
+            "ym2612_fm5",
+            "psg_tone1",
+            "psg_tone2",
+            "psg_tone3",
+            "psg_noise",
+            "unassigned"
+          ],
+          "noise_mode": "fixed_1024",
+          "notes": "legacy notes",
+          "parent": "baseline_current",
+          "profile_id": "legacy",
+          "proposals": {},
+          "reserved_dac": "ym2612_fm6_dac",
+          "revision": 1,
+          "revision_id": "legacy.r1.20261022T145632Z",
+          "schema": "audio_composer/v2",
+          "source": {
+            "analysis_version": "AUDIO-002/004 capture-derived; AUDIO-003 NOT decoded",
+            "capture_dir": "audio/rastan_music_dump/conversion_attempts",
+            "rom": "build/regions/audiocpu.bin (b04-19.49)"
+          },
+          "time_dependent_routing": [],
+          "track_id": null
+        },
+        "status": 200
+      },
+      "pass": true,
+      "remaining_severity": "none"
+    },
+    {
+      "category": "psg",
+      "expected": {
+        "noise_channels": 1,
+        "tone_channels": 3
+      },
+      "name": "PSG exposes three tone channels and one noise channel",
+      "observed": {
+        "noise_channels": 1,
+        "tone_channels": 3
+      },
+      "pass": true,
+      "remaining_severity": "none"
+    },
+    {
+      "category": "psg",
+      "expected": {
+        "stereo_per_channel": false,
+        "tone_divider_bits": 10
+      },
+      "name": "PSG is mono with a 10-bit divider",
+      "observed": {
+        "stereo_per_channel": false,
+        "tone_divider_bits": 10
+      },
+      "pass": true,
+      "remaining_severity": "none"
+    },
+    {
+      "category": "psg",
+      "expected": "selectors 0/1/2 fixed and 3 tone3-clocked",
+      "name": "noise selector explicitly models fixed and tone3-clocked modes",
+      "observed": {
+        "0": "clock/512 (fixed)",
+        "1": "clock/1024 (fixed)",
+        "2": "clock/2048 (fixed)",
+        "3": "driven by TONE CHANNEL 3 frequency (COUPLES noise pitch to tone 3)"
+      },
+      "pass": true,
+      "remaining_severity": "none"
+    },
+    {
+      "category": "psg",
+      "expected": "both explicitly unresolved",
+      "name": "unverified taps and divider-zero are not presented as proven",
+      "observed": {
+        "divider_zero": "AUDIO-009: a written divider of 0 is a documented edge case. On the Sega VDP PSG n=0 is widely documented to behave as n=1 (not n=0x400 as on some TI parts). Marked UNRESOLVED-for-this-target until confirmed against an authoritative Genesis hardware/test-vector source; the Composer does not emit n=0.",
+        "shift_register_status": "UNRESOLVED taps/period for this target: the Genesis/Sega VDP PSG is commonly cited as 16-bit vs the TI 15-bit, but exact XOR taps and the periodic-noise period are NOT yet pinned to an authoritative hardware or known-good emulator test vector in this repo. Do not assert fidelity."
+      },
+      "pass": true,
+      "remaining_severity": "none"
+    },
+    {
+      "category": "psg",
+      "expected": "warning only for tone3_clocked",
+      "name": "tone3/noise dependency is conditional",
+      "observed": {
+        "fixed": [],
+        "tone3_clocked": [
+          {
+            "certainty": "structural",
+            "channels": [
+              "0",
+              "1"
+            ],
+            "detail": "psg_tone3 and psg_noise are both assigned AND the noise selector is tone3_clocked (freq-select 3): tone 3 and noise pitch are COUPLED \u2014 not independent. Use a fixed noise rate (512/1024/2048) to decouple them.",
+            "noise_mode": "tone3_clocked",
+            "severity": "warning",
+            "type": "tone3_noise_coupling"
+          }
+        ]
+      },
+      "pass": true,
+      "remaining_severity": "none"
+    },
+    {
+      "category": "psg",
+      "expected": {
+        "approved_routing": {},
+        "proposals": {}
+      },
+      "name": "Composer does not auto-assign routing",
+      "observed": {
+        "approved_routing": {},
+        "proposals": {}
+      },
+      "pass": true,
+      "remaining_severity": "none"
+    },
+    {
+      "category": "z80_descriptors",
+      "expected": [
+        3,
+        10,
+        13,
+        33,
+        38
+      ],
+      "name": "all five $82 descriptors are channel/control identifiers",
+      "observed": {
+        "generated": [
+          "0x03",
+          "0x0A",
+          "0x0D",
+          "0x21",
+          "0x26"
+        ],
+        "independent": [
+          [
+            3,
+            10656,
+            130
+          ],
+          [
+            10,
+            11104,
+            130
+          ],
+          [
+            13,
+            11216,
+            130
+          ],
+          [
+            33,
+            12880,
+            130
+          ],
+          [
+            38,
+            12992,
+            130
+          ]
+        ]
+      },
+      "pass": true,
+      "remaining_severity": "none"
+    },
+    {
+      "category": "z80_descriptors",
+      "expected": "entry_count equals parsed two-byte records",
+      "name": "ordinary counted descriptor form remains valid",
+      "observed": {
+        "command": 0,
+        "descriptor": 10288,
+        "entries": [
+          {
+            "first": 140,
+            "subsequence": 10400
+          },
+          {
+            "first": 144,
+            "subsequence": 10432
+          },
+          {
+            "first": 148,
+            "subsequence": 10464
+          },
+          {
+            "first": 152,
+            "subsequence": 10496
+          },
+          {
+            "first": 156,
+            "subsequence": 10528
+          },
+          {
+            "first": 160,
+            "subsequence": 10560
+          },
+          {
+            "first": 164,
+            "subsequence": 10592
+          },
+          {
+            "first": 168,
+            "subsequence": 10624
+          },
+          {
+            "first": 142,
+            "subsequence": 10416
+          },
+          {
+            "first": 146,
+            "subsequence": 10448
+          },
+          {
+            "first": 150,
+            "subsequence": 10480
+          },
+          {
+            "first": 154,
+            "subsequence": 10512
+          },
+          {
+            "first": 158,
+            "subsequence": 10544
+          },
+          {
+            "first": 162,
+            "subsequence": 10576
+          },
+          {
+            "first": 166,
+            "subsequence": 10608
+          },
+          {
+            "first": 170,
+            "subsequence": 10640
+          },
+          {
+            "first": 130,
+            "subsequence": 10656
+          }
+        ],
+        "entry_count": 17,
+        "form": "entry_list",
+        "lead": 17
+      },
+      "pass": true,
+      "remaining_severity": "none"
+    },
+    {
+      "category": "ym2151",
+      "expected": {
+        "mismatches": [],
+        "scene1": 6
+      },
+      "name": "independent key-on/off parse matches generated keyed totals",
+      "observed": {
+        "mismatches": [],
+        "scene1": 6
+      },
+      "pass": true,
+      "remaining_severity": "none"
+    },
+    {
+      "category": "vgm",
+      "expected": {
+        "block_sizes": [
+          4818,
+          4814,
+          4817,
+          4813
+        ],
+        "stream_starts": 398
+      },
+      "name": "Lawrence VGM independently has four PCM blocks and 398 stream starts",
+      "observed": {
+        "block_sizes": [
+          4818,
+          4814,
+          4817,
+          4813
+        ],
+        "stream_starts": 398
+      },
+      "pass": true,
+      "remaining_severity": "none"
+    },
+    {
+      "category": "vgm",
+      "expected": 174,
+      "name": "Lawrence VGM independently has 174 patch snapshots",
+      "observed": 174,
+      "pass": true,
+      "remaining_severity": "none"
+    },
+    {
+      "category": "vgm",
+      "expected": {
+        "active": true,
+        "stream_starts": 398
+      },
+      "name": "generated DAC report agrees with independent stream accounting",
+      "observed": {
+        "active": true,
+        "direct_sample_writes": 0,
+        "enabled_seen": true,
+        "note": "direct_sample_writes counts only 0x2A/0x8n writes; stream_starts counts DAC-stream playback triggers (0x93/0x95). A VGM can play all its DAC via streams with direct_sample_writes == 0, so DAC activity = active, not direct_sample_writes.",
+        "stream_starts": 398,
+        "stream_stops": 1
+      },
+      "pass": true,
+      "remaining_severity": "none"
+    },
+    {
+      "category": "vgm",
+      "expected": [
+        "0x4F",
+        "0x50",
+        "0x66"
+      ],
+      "name": "$4F consumes exactly two bytes",
+      "observed": [
+        "0x4F",
+        "0x50",
+        "0x66"
+      ],
+      "pass": true,
+      "remaining_severity": "none"
+    },
+    {
+      "category": "z80_c_coverage",
+      "expected": "declarations present, zero bodies",
+      "name": "Z80 C is explicitly a zero-body declaration index",
+      "observed": {
+        "body_marker_present": false,
+        "declarations": 12
+      },
+      "pass": true,
+      "remaining_severity": "none"
+    },
+    {
+      "category": "z80_c_coverage",
+      "expected": 0,
+      "name": "coverage vocabulary does not claim semantic C completion",
+      "observed": {
+        "semantic_complete_rows": 0
+      },
+      "pass": true,
+      "remaining_severity": "none"
+    },
+    {
+      "category": "z80_c_coverage",
+      "expected": true,
+      "name": "PC060HA latch $1B and $82 corrections are documented",
+      "observed": true,
+      "pass": true,
+      "remaining_severity": "none"
+    },
+    {
+      "category": "scope",
+      "expected": {
+        "changed": []
+      },
+      "name": "original ROM captures and Lawrence VGM remain byte-identical",
+      "observed": {
+        "changed": []
+      },
+      "pass": true,
+      "remaining_severity": "none"
+    }
+  ]
+}

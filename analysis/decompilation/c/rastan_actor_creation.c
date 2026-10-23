@@ -8,6 +8,7 @@
 extern void actor_family_loader_4544e(ActorRecord *a4, uint8_t variant_752);
 extern void actor_palette_45684(ActorRecord *a4, uint8_t variant_752, int boss_mode);
 extern void actor_record_loader_4543e(ActorRecord *a4);
+extern void actor_retire(ActorRecord *a4); /* 0x4092E */
 
 /* Actor storage blocks (A5-relative). Sizes are the render-pass slot counts. */
 extern ActorRecord blk_2c8[9];   /* A5+0x2C8 field-schedule / ground pool */
@@ -158,6 +159,54 @@ void scripted_activate_45cfc(ActorRecord *a4)
     a4->active = 1;    /* +0x00 */
     a4->state  = 3;    /* +0x05 */
     a4->timer  = 1;    /* +0x1C */
+}
+
+/*
+ * ORIGINAL ARCADE PC: 0x00045B18 / 0x00045BE8  scripted bat group.
+ * Provenance: RECONSTRUCTED_FROM_68000. Status: COMPLETE.
+ *
+ * The four bat records are fixed slots.  Every used slot is first passed
+ * through 0x4092E, so no prior record identity survives.  Outside round 2 the
+ * A5+0x06C8 slot is the Large Bat (rec_type 0x0A); A5+0x09C8 is always a Small
+ * Bat (0x0B), with extra Small Bats at A5+0x0988 from round 4 and A5+0x0948
+ * from round 6.  The record-type template loader establishes base/selector;
+ * 0x45CFC activates state 3; 0x45BE8 establishes coordinates and sets only
+ * palette byte bit 7.  Because the full clear precedes it, palette-policy bit
+ * 6 remains zero (embedded policy) and compositor remains the explicit zero.
+ */
+static void bat_place_45be8(ActorRecord *a4, uint16_t x, uint16_t y)
+{
+    a4->x = a4->field_32 = x;
+    a4->y = a4->field_30 = (uint16_t)(y + 0x14);
+    a4->pal_attr |= 0x80;
+}
+
+static void bat_create_fixed(ActorRecord *a4, uint8_t rec_type,
+                             uint8_t comp, uint8_t comp_index,
+                             uint16_t x, uint16_t y)
+{
+    actor_retire(a4);                 /* 0x4092E: clears +0x00..+0x3F */
+    a4->comp_index = comp_index;
+    a4->rec_type = rec_type;
+    a4->comp = comp;
+    actor_record_loader_4543e(a4);
+    scripted_activate_45cfc(a4);
+    bat_place_45be8(a4, x, y);
+}
+
+void scripted_bat_group_create_45b18(ActorRecord *large_slot,
+                                     ActorRecord *small_slots,
+                                     uint8_t round, uint16_t tick,
+                                     uint16_t x, uint16_t y)
+{
+    /* Round 2 deliberately uses rec_type 0x12/comp 1, not Large Bat. */
+    bat_create_fixed(large_slot, round == 2 ? 0x12 : 0x0A,
+                     round == 2 ? 1 : 0, (uint8_t)tick, x, y);
+    bat_create_fixed(&small_slots[0], 0x0B, 0, (uint8_t)(tick + 1), x, y);
+    if (round >= 4)
+        bat_create_fixed(&small_slots[-1], 0x0B, 0, (uint8_t)(tick + 2), x, y);
+    if (round >= 6)
+        bat_create_fixed(&small_slots[-2], 0x0B, 0, (uint8_t)(tick + 3), x, y);
 }
 
 /*

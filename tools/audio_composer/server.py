@@ -7,7 +7,7 @@ auditable Genesis FM/PSG routing decisions. Modeled on tools/graphics_editor/ (r
 
 HARD RULES honored here:
   * NO production Z80/68000 ASM, ROM, build-number, or driver change. Nothing is rebuilt.
-  * Original arcade captures, ROMs, and Lawrence's VGM are READ-ONLY; saving a profile touches only
+  * Original arcade captures and ROMs are READ-ONLY; saving a profile touches only
     analysis/audio/decision_profiles/.
   * NO instrument is auto-assigned to FM or PSG. The server never stores a proposal as an approved
     decision; only an explicit user approval does.
@@ -19,7 +19,7 @@ HARD RULES honored here:
 """
 import json, os, re, csv, glob, time, tempfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import urlparse, parse_qs, quote, unquote
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 HERE = os.path.dirname(__file__)
@@ -30,6 +30,86 @@ MCI = os.path.join(ROOT, "build/audio/music_command_inventory.json")
 VGM = os.path.join(ROOT, "build/audio/vgm_analysis")
 PROF_DIR = os.path.join(ROOT, "analysis/audio/decision_profiles")
 os.makedirs(PROF_DIR, exist_ok=True)
+
+# ---- AUDIO-012 PLAYBACK (read-only; isolated from all profile/approval/manifest/revision code) ----
+CAPVGM = os.path.join(ROOT, "build/audio/capture_vgm")          # first-party capture->VGM artifacts
+LAWRENCE_VGM = os.path.join(ROOT, "audio/Inglebard Agressive World Handmade Genesis version",
+                            "LM-Main Stage Theme (1).vgm")
+# Optional, USER-SUPPLIED, git-ignored local emulation engine (e.g. a webVGM build the user is authorized
+# to use). NOT redistributed in this repo: the webVGM/VGMPlay cores are MAME-licensed / GPL-family and
+# were NOT imported (see docs/design/Andy_AUDIO012_webvgm_audio_composer_integration.md).
+ENGINE_DIR = os.path.join(HERE, "engine")
+ENGINE_FILE_RE = re.compile(r"^[A-Za-z0-9._-]{1,64}$")
+
+
+def playback_sources():
+    """Read-only list of playable sources (original-arcade capture VGMs). NO routing/profile interaction."""
+    caps = []
+    for stem, nice in CAPTURE_TRACKS:
+        vp = os.path.join(CAPVGM, stem + ".vgm")
+        caps.append({"id": stem, "name": nice, "kind": "original_arcade_ym2151",
+                     "vgm_available": os.path.exists(vp),
+                     "vgm_url": "/api/vgm?src=capture&id=" + quote(stem),
+                     "engine_media_url": "/engine_media/capture/" + quote(stem) + ".vgm",
+                     "provenance": "first-party deterministic conversion of the ORIGINAL ARCADE YM2151 "
+                                   "capture (tools/audio/ym2151_capture_to_vgm.py); NOT an auto-converted "
+                                   "Genesis version."})
+    return {
+        "engine": engine_status(),
+        "sources": {
+            "original_arcade_ym2151": {"label": "Original Arcade — YM2151", "tracks": caps},
+        },
+    }
+
+
+_RENDER_MOD = None
+GENESIS_CACHE = {}          # token -> vgm bytes (in-memory, session-scoped; never touches profiles/ROM)
+
+
+def _render_mod():
+    global _RENDER_MOD
+    if _RENDER_MOD is None:
+        import importlib.util
+        p = os.path.join(ROOT, "tools/audio/render_genesis_vgm.py")
+        spec = importlib.util.spec_from_file_location("render_genesis_vgm", p)
+        _RENDER_MOD = importlib.util.module_from_spec(spec); spec.loader.exec_module(_RENDER_MOD)
+    return _RENDER_MOD
+
+
+def render_genesis(track_id, approved_routing, noise_mode="fixed_1024", levels=None):
+    """Render an authored Genesis (YM2612+PSG) VGM from a capture + routing + per-channel volume. Returns
+    (token, stats) or (None, error). All inputs come from the request, NOT from any stored profile."""
+    if track_id not in [s for s, _ in CAPTURE_TRACKS]:
+        return None, "unknown track"
+    cap = os.path.join(CAP, track_id + "_ym2151_writes.csv")
+    if not os.path.exists(cap):
+        return None, "capture not found"
+    rm = _render_mod()
+    vgm, stats = rm.render(rm.read_capture(cap), approved_routing or {}, noise_mode or "fixed_1024", levels or {})
+    import hashlib
+    token = hashlib.sha256((track_id + json.dumps(approved_routing, sort_keys=True) + str(noise_mode)
+                            + json.dumps(levels or {}, sort_keys=True)).encode()).hexdigest()[:16]
+    GENESIS_CACHE[token] = vgm
+    return token, stats
+
+
+def engine_status():
+    """Report whether a USER-SUPPLIED local engine is present. The repo bundles NO emulation core."""
+    present = os.path.isdir(ENGINE_DIR) and any(
+        os.path.isfile(os.path.join(ENGINE_DIR, f)) for f in (os.listdir(ENGINE_DIR) if os.path.isdir(ENGINE_DIR) else []))
+    return {
+        "bundled_engine": False,
+        "local_engine_present": present,
+        "reason": "No chip-emulation core is bundled. The named engine (wothke webVGM / VGMPlay 0.40.9) "
+                  "uses MAME-licensed YM2151/YM2612/SN76489 cores (non-commercial, GPL-incompatible) and "
+                  "could not be redistributed into this repo; there is also no emscripten toolchain here "
+                  "to rebuild a clean alternative. See the AUDIO-012 report.",
+        "how_to_enable_real_playback": "Place an authorized local VGM engine build in tools/audio_composer/"
+                  "engine/ (git-ignored, not redistributed). The player adapter will use it automatically. "
+                  "Otherwise, open/download the VGM and play it in your existing webVGM.",
+        "entry_candidates": sorted(f for f in (os.listdir(ENGINE_DIR) if os.path.isdir(ENGINE_DIR) else [])
+                                   if ENGINE_FILE_RE.match(f)),
+    }
 
 SCHEMA = "audio_composer/v2"          # AUDIO-009: v1 -> v2 migration (noise selector, revisions, server evidence)
 LEGACY_SCHEMAS = ("audio_composer/v1",)
@@ -202,26 +282,6 @@ def inventory():
     }
 
 
-def lawrence_reference():
-    files = sorted(glob.glob(os.path.join(VGM, "*.json")))
-    if not files:
-        return {"available": False, "note": "RG-005 VGM analysis not found under build/audio/vgm_analysis/."}
-    d = loadj(files[0], {})
-    return {
-        "available": True,
-        "attribution": "Lawrence McCormick (Inglebard Gaming) — Genesis arrangement, REFERENCE ONLY. "
-                       "Not the conversion target; not loaded as converter defaults; PCM/patches not copied.",
-        "file": d.get("file"),
-        "header": d.get("header"),
-        "fm_channels": d.get("fm_channels"),
-        "psg_channels": d.get("psg_channels"),
-        "fm_channels_active": d.get("fm_channels_active"),
-        "psg_channels_active": d.get("psg_channels_active"),
-        "dac": d.get("dac"),
-        "peak_simultaneous_voices": d.get("peak_simultaneous_voices"),
-    }
-
-
 # ---- decision profile schema + conflict validator -------------------------------------------------------
 def default_profile(pid, track_id=None):
     arcade_channels = 8
@@ -384,14 +444,14 @@ class Hd(BaseHTTPRequestHandler):
         # AUDIO-009 (Cody finding #6/LOW): serve ONLY the exact known static files, not any *.js/*.css path.
         if u.path == "/app.js":
             return self._s(200, open(os.path.join(HERE, "app.js"), "rb").read(), "application/javascript")
+        if u.path == "/player_adapter.js":                 # AUDIO-012 playback adapter (first-party)
+            return self._s(200, open(os.path.join(HERE, "player_adapter.js"), "rb").read(), "application/javascript")
         if u.path == "/style.css":
             return self._s(200, open(os.path.join(HERE, "style.css"), "rb").read(), "text/css")
         if u.path == "/api/inventory":
             return self._s(200, json.dumps(inventory()).encode())
         if u.path == "/api/psg_model":
             return self._s(200, json.dumps(psg_model()).encode())
-        if u.path == "/api/lawrence":
-            return self._s(200, json.dumps(lawrence_reference()).encode())
         if u.path == "/api/audition":
             return self._s(200, json.dumps({
                 "available": False,
@@ -402,6 +462,48 @@ class Hd(BaseHTTPRequestHandler):
                     "endpoints": ["/api/render/original", "/api/render/ym2612", "/api/render/psg",
                                   "/api/render/full", "/api/render/lawrence_vgm"],
                     "requires": ["AUDIO-003 sequence decode", "validated emulator render stage"]}}).encode())
+        # ---- AUDIO-012 PLAYBACK endpoints (read-only; NO profile/approval/manifest/revision interaction) ----
+        if u.path == "/api/playback_sources":
+            return self._s(200, json.dumps(playback_sources()).encode())
+        if u.path == "/api/engine_status":
+            return self._s(200, json.dumps(engine_status()).encode())
+        if u.path == "/api/vgm":
+            src = q.get("src", [""])[0]
+            if src == "capture":
+                cid = q.get("id", [""])[0]
+                if cid not in [s for s, _ in CAPTURE_TRACKS]:   # strict allowlist; no path from client
+                    return self._s(400, b'{"error":"unknown capture id"}')
+                vp = os.path.join(CAPVGM, cid + ".vgm")
+                if not os.path.exists(vp):
+                    return self._s(404, json.dumps({"error": "capture VGM not generated; run "
+                                    "tools/audio/ym2151_capture_to_vgm.py"}).encode())
+                return self._s(200, open(vp, "rb").read(), "application/octet-stream")
+            return self._s(400, b'{"error":"src must be capture"}')
+        if u.path.startswith("/engine/"):                 # optional USER-SUPPLIED local engine (git-ignored)
+            fn = u.path[len("/engine/"):]
+            if not ENGINE_FILE_RE.match(fn):
+                return self._s(400, b'{"error":"bad engine filename"}')
+            fp = os.path.realpath(os.path.join(ENGINE_DIR, fn))
+            if os.path.dirname(fp) != os.path.realpath(ENGINE_DIR) or not os.path.isfile(fp):
+                return self._s(404, b'{"error":"engine file not present (none bundled)"}')
+            ct = {"wasm": "application/wasm", "js": "application/javascript", "html": "text/html",
+                  "css": "text/css", "ini": "text/plain", "woff": "font/woff", "json": "application/json"
+                  }.get(fn.rsplit(".", 1)[-1], "application/octet-stream")
+            return self._s(200, open(fp, "rb").read(), ct)
+        # clean .vgm media URLs so wothke's engine picks the VGM loader by extension
+        if u.path.startswith("/engine_media/capture/") and u.path.endswith(".vgm"):
+            cid = unquote(u.path[len("/engine_media/capture/"):-4])
+            if cid not in [s for s, _ in CAPTURE_TRACKS]:
+                return self._s(400, b'{"error":"unknown capture id"}')
+            vp = os.path.join(CAPVGM, cid + ".vgm")
+            if not os.path.exists(vp):
+                return self._s(404, b'{"error":"capture VGM not generated"}')
+            return self._s(200, open(vp, "rb").read(), "application/octet-stream")
+        if u.path.startswith("/engine_media/authored/") and u.path.endswith(".vgm"):
+            tok = u.path[len("/engine_media/authored/"):-4]
+            if not re.match(r"^[0-9a-f]{1,32}$", tok) or tok not in GENESIS_CACHE:
+                return self._s(404, b'{"error":"authored render not found (POST /api/render_genesis first)"}')
+            return self._s(200, GENESIS_CACHE[tok], "application/octet-stream")
         if u.path == "/api/profiles":
             return self._s(200, json.dumps(profile_manifest()).encode())
         if u.path == "/api/profile":
@@ -432,6 +534,25 @@ class Hd(BaseHTTPRequestHandler):
             track = body.get("track")
             noise_mode = body.get("noise_mode", "fixed_1024")
             return self._s(200, json.dumps({"conflicts": validate_routing(routing, track, noise_mode)}).encode())
+        if u.path == "/api/render_genesis":
+            # AUDIO-012 STAGE 1: render the authored routing to a Genesis YM2612+PSG VGM. Read-only; the
+            # routing comes from the request body, NOT from any stored profile; nothing is persisted.
+            tid = body.get("track") or body.get("track_id")
+            routing = {str(k): v for k, v in (body.get("approved_routing") or {}).items()}
+            # never let music target FM6/DAC (defense-in-depth; validator also rejects it)
+            for ch, dest in list(routing.items()):
+                if dest in (RESERVED_DAC, "ym2612_fm6", "ym2612_fm6_dac"):
+                    return self._s(403, json.dumps({"error": "FM6 is DAC-reserved; cannot render music there"}).encode())
+            if not any(d in FM_MUSIC or d.startswith("psg_") for d in routing.values()):
+                return self._s(400, json.dumps({"error": "no FM/PSG assignments to render"}).encode())
+            levels = {str(k): v for k, v in (body.get("levels") or {}).items()}
+            tok, stats = render_genesis(tid, routing, body.get("noise_mode", "fixed_1024"), levels)
+            if tok is None:
+                return self._s(400, json.dumps({"error": stats}).encode())
+            return self._s(200, json.dumps({"ok": True, "media_url": "/engine_media/authored/%s.vgm" % tok,
+                                            "download_url": "/engine_media/authored/%s.vgm" % tok,
+                                            "stats": stats, "stage": "PROVISIONAL (YM2151->YM2612/PSG "
+                                            "register translation; not ROM-sequence fidelity)"}).encode())
         if u.path == "/api/profile":
             pid = (body.get("profile_id") or "").strip()
             if pid == "baseline_current":
@@ -564,5 +685,5 @@ if __name__ == "__main__":
     ensure_baseline()
     port = int(sys.argv[1]) if len(sys.argv) > 1 else 8781
     print("Rastan Audio Composer (Phase 1) -> http://localhost:%d  "
-          "(arcade captures + Lawrence VGM READ-ONLY; no ROM/build change)" % port)
+          "(arcade captures READ-ONLY; no ROM/build change)" % port)
     ThreadingHTTPServer(("127.0.0.1", port), Hd).serve_forever()

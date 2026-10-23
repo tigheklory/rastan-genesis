@@ -66,6 +66,31 @@
 
 extern short A5[];
 
+typedef struct SceneScrollInit504fa {
+    unsigned short scroll_y_and_x;
+    unsigned short scroll_pair;
+    unsigned short direction;
+    unsigned short field_10ba;
+    unsigned short camera_x;
+    unsigned short camera_y;
+} SceneScrollInit504fa;
+
+extern const SceneScrollInit504fa scene_scroll_table_50850[];
+
+/* ORIGINAL ARCADE PC: 0x000504FA scene scroll-state initializer.
+ * Provenance: RECONSTRUCTED_FROM_68000. Status: COMPLETE.
+ * The 12-byte record is selected directly by progression A5+0x013E. */
+void scene_scroll_init_504fa(void)
+{
+    const SceneScrollInit504fa *r = &scene_scroll_table_50850[(unsigned short)A5[0x013e / 2]];
+    A5[0x10ae / 2] = A5[0x10ec / 2] = (short)r->scroll_y_and_x;
+    A5[0x10b0 / 2] = A5[0x10ee / 2] = (short)r->scroll_pair;
+    A5[0x10b8 / 2] = (short)r->direction;
+    A5[0x10ba / 2] = (short)r->field_10ba;
+    A5[0x10be / 2] = (short)r->camera_x;
+    A5[0x10c0 / 2] = (short)r->camera_y;
+}
+
 /* Vertical scroll step dispenser (0x51880): cap the pending motion at 4 px/frame. */
 unsigned short y_scroll_step(unsigned short pending /*A5+0x1266 or 0x1268*/)
 {

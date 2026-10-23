@@ -1214,6 +1214,51 @@ Final response must include "Open/Closed Issues Impact" section with:
   isolated temp). Correction notices added to RG-005/RG-006/AUDIO-001/002/004. Production: NONE; counter
   472→472; Palette Composer untouched. AUDIO-003 still NOT complete. Evidence:
   `docs/design/Andy_AUDIO009_audio_foundation_corrections.md`. Recommend Cody re-verify.
+- **AUDIO-010 (2026-10-22, Cody, independent regression verification — NOT closing):** **AUDIO-009
+  REJECTED** pending bounded Audio Composer corrections. The reported suite independently reruns clean at
+  **37/37**, and the path-containment, invalid-route/FM6 rejection, server-derived evidence, PSG model,
+  `$82` descriptors, YM keyed totals (Scene 1 = 6), VGM `$4F`/398 streams/174 snapshots, and honest Z80
+  C/coverage changes are verified. A separate real-HTTP/fault/concurrency harness passes **33/40** and
+  exposes material gaps: a plausible valid request can persist client-authored `approval_status:approved`;
+  eight concurrent saves returned 200 but collapsed to three total snapshots/current revision 3; failure
+  between snapshot/current allowed retry to overwrite r1; failed manifest write remained current r2 vs
+  manifest r1 after restart. Revision listing is lexicographic and no revision retrieval endpoint exists.
+  Required before re-audit: server-owned approval transition, serialized collision-proof revision
+  allocation with no-replace snapshots, journal/restart reconciliation, numeric list + validated retrieval,
+  and official regressions for all seven failures. OPEN-039 remains open; AUDIO-003 not started by this
+  audit; no Composer fix, profile/canonical-data/ASM/ROM/build/counter/tag/Palette change. Evidence:
+  `docs/design/Cody_AUDIO010_audio009_regression_verification.md` and
+  `analysis/audio/verification/audio010_*`. Repeating **AUDIO-010**.
+- **AUDIO-012 STAGE-1 RENDERER (2026-10-22, Andy):** authored-routing playback now works — `▶ Play Genesis`
+  renders the user's `approved_routing` applied to the original YM2151 capture into a REAL YM2612(FM1-5)+PSG
+  VGM (`tools/audio/render_genesis_vgm.py`; `POST /api/render_genesis` → `/engine_media/authored/<token>.vgm`;
+  read-only, routing from request not profiles, FM6 rejected). OPM→OPN2 operator params are bit-compatible
+  (translated 1:1), pitch KC/KF→fnum/block @7.67MHz, PSG voices→square. Routing determines the sound; FM↔PSG
+  moves are audibly different. PROVISIONAL/labeled (OPM op-order by index, DT2 dropped, fixed PSG dynamics,
+  fixed octave ref) — NOT the production converter; high fidelity still needs AUDIO-003. Renderer tests
+  R1-R10; verify_playback.py 37/0/5. User accepts by listening.
+- **AUDIO-012 UPDATE (2026-10-22, Andy):** Tighe clarified the tool is personal and NOT redistributed, so
+  local webVGM integration is fine (GPL/MAME govern distribution, not private local use). Real in-Composer
+  playback is now WIRED: wothke's prebuilt webVGM is fetched into git-ignored `tools/audio_composer/engine/`
+  (local only; `fetch_engine.sh` committed; nothing redistributed in the repo) and played via an isolated
+  iframe host for the Lawrence VGM + all 9 converted arcade VGMs through `/engine_media/*.vgm` routes.
+  `verify_playback.py` 27/0/5. Audible output verified by the user listening (not headlessly). The original
+  licensing note below applies only to committing/redistributing the engine, which is why it stays local.
+- **AUDIO-012 (2026-10-22, Andy, playback integration — NOT closing):** attempted webVGM/VGMPlay playback
+  in the Audio Composer. **Licensing gate STOPPED the import** (per task §2/§15): upstream
+  `github.com/wothke/vgmplay-0.40.9` @ `5c8c39c` — the required YM2151/YM2612/SN76489 cores are
+  MAME-licensed (non-commercial, GPL-incompatible); redistribution compatibility cannot be established, and
+  there is no emscripten here to rebuild a clean core. **Nothing third-party vendored; in-Composer chip
+  emulation UNAVAILABLE; completion NOT claimed; no fake playback.** Delivered license-clean:
+  `tools/audio/ym2151_capture_to_vgm.py` (deterministic capture→VGM, 9/9 tracks → `build/audio/capture_vgm/`,
+  verified 86/86 by `verify_capture_vgm.py`), and Composer playback endpoints (`/api/playback_sources`,
+  `/api/vgm`, `/api/engine_status`; read-only, isolated from AUDIO-011 profile/approval/manifest/revision
+  code) that serve the unmodified Lawrence VGM + converted arcade VGMs for Open/Download into the user's
+  existing webVGM. Engine-agnostic `player_adapter.js` (+NullEngine; optional user-supplied git-ignored
+  local engine auto-enables real transport). `verify_playback.py` 26 pass/0 fail/6 unavailable (engine-
+  dependent, honestly marked); AUDIO-009 suite still 37/37; Palette Composer + production untouched; counter
+  477→477. Recommend: user-supplied local engine, or build ymfm(BSD)+MIT-SN76489 to WASM (needs emscripten +
+  authorization). Evidence: `docs/design/Andy_AUDIO012_webvgm_audio_composer_integration.md`.
 - **Evidence:** `docs/design/Andy_native_genesis_audio_architecture_research.md`,
   `docs/design/Andy_audio001_z80_ghidra_decompilation.md`,
   `docs/design/Andy_audio002_original_audio_asset_inventory.md`.

@@ -82,6 +82,10 @@ local attract_demo_death_seen = false
 local attract_second_title_frame = nil
 local first_title_palette = nil
 local second_title_palette = nil
+local display_on = false
+local unsafe_display_on_writes = 0
+local second_title_display_enable_writes = 0
+local second_title_display_disable_writes = 0
 
 local function palette_snapshot()
   local result = {}
@@ -120,16 +124,24 @@ local function install_exec_observer(address, name)
     end)
 end
 
-local function finish_attract(reason)
+local function finish_attract(result, reason)
   if finished then return end
   finished = true
   local actual_cram = read_actual_cram()
   local out = assert(io.open(output_path, "w"))
-  out:write(string.format("route=attract\nresult=%s\nframe=%d\n", reason, frame))
+  out:write(string.format("route=attract\nresult=%s\nreason=%s\nframe=%d\n", result, reason, frame))
   out:write(string.format("state=%04X/%04X/%04X\nscene=%02X\ntileset=%02X\n",
     r16(0xff0000), r16(0xff0002), r16(0xff0004),
     r8(symbols.genesistan_current_scene_id),
     r8(symbols.genesistan_current_pc080sn_tileset_id)))
+  out:write(string.format(
+    "display=%s\npresentation_readiness=%02X\nsecond_title_display_enable_writes=%d\n" ..
+    "second_title_display_disable_writes=%d\nsecond_title_visibility=%s\nunsafe_display_on_writes=%d\n",
+    display_on and "ON" or "OFF", r8(symbols.genesistan_presentation_readiness),
+    second_title_display_enable_writes, second_title_display_disable_writes,
+    second_title_display_enable_writes > 0 and display_on and
+      r8(symbols.genesistan_presentation_readiness) == 0 and "PASS" or "FAIL",
+    unsafe_display_on_writes))
   out:write(string.format("demo_seen=%s\ndemo_death_seen=%s\n",
     attract_demo_seen and "YES" or "NO", attract_demo_death_seen and "YES" or "NO"))
   if first_title_palette then
@@ -154,6 +166,33 @@ local function finish_attract(reason)
   out:close()
   machine:exit()
 end
+
+-- Observe the actual Genesis VDP register-1 writes.  Semantic state and CRAM
+-- can be correct while the display-enable bit remains clear, which is the
+-- RG-017 failure that the previous RG-004 route could not distinguish.
+attract_taps[#attract_taps + 1] = program:install_write_tap(
+  0x00c00004, 0x00c00007, "rg004_vdp_ctrl", function(_, data, mask)
+    mask = mask or 0xffffffff
+    local function control_word(word)
+      if (word & 0xff00) == 0x8100 then
+        local next_on = (word & 0x0040) ~= 0
+        if next_on and r8(symbols.genesistan_presentation_readiness) == 1 then
+          unsafe_display_on_writes = unsafe_display_on_writes + 1
+        end
+        if attract_second_title_frame then
+          if next_on then
+            second_title_display_enable_writes = second_title_display_enable_writes + 1
+          else
+            second_title_display_disable_writes = second_title_display_disable_writes + 1
+          end
+        end
+        display_on = next_on
+      end
+    end
+    if mask == 0xffffffff then control_word((data >> 16) & 0xffff) end
+    control_word(data & 0xffff)
+    return data
+  end)
 
 local function finish()
   if finished then return end
@@ -277,11 +316,17 @@ emu.register_frame_done(function()
         second_title_palette = palette_snapshot()
         attract_event("SECOND_TITLE")
       elseif frame >= attract_second_title_frame + 5 then
-        finish_attract("PASS_SECOND_TITLE_REACHED")
+        if second_title_display_enable_writes > 0 and display_on and
+           r8(symbols.genesistan_presentation_readiness) == 0 and
+           unsafe_display_on_writes == 0 then
+          finish_attract("PASS", "SECOND_TITLE_VISIBLE")
+        else
+          finish_attract("FAIL", "SECOND_TITLE_REACHED_DISPLAY_OFF")
+        end
         return
       end
     end
-    if frame >= 20000 then finish_attract("FAIL_MAX_FRAMES"); return end
+    if frame >= 20000 then finish_attract("FAIL", "MAX_FRAMES"); return end
     return
   end
 

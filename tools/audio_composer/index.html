@@ -31,18 +31,37 @@
   <aside id="left">
     <h3>Tracks <span class="dim">(original arcade)</span></h3>
     <div id="tracklist"></div>
-    <h3>Reference</h3>
-    <div id="refbox">
-      <label><input type="checkbox" id="showlawrence"> Show Lawrence McCormick VGM</label>
-      <div id="lawrence" class="dim"></div>
-    </div>
   </aside>
   <section id="center">
+    <h3>Playback <span class="dim">(AUDIO-012)</span></h3>
+    <div id="player">
+      <div class="prow">
+        <select id="playsrc" title="playback source"></select>
+        <button id="pb-open">Open / Download VGM</button>
+      </div>
+      <div class="prow">
+        <button id="pb-genesis" title="render your authored routing to a Genesis YM2612+PSG VGM and play it">▶ Play Genesis (authored)</button>
+        <span id="pb-genesis-info" class="dim"></span>
+      </div>
+      <div class="prow" id="transport">
+        <button id="pb-play" disabled>▶ Play</button>
+        <button id="pb-pause" disabled>❚❚ Pause</button>
+        <button id="pb-stop" disabled>■ Stop</button>
+        <button id="pb-restart" disabled>⟲ Restart</button>
+        <label class="dim"><input type="checkbox" id="pb-loop" disabled> loop</label>
+        <input id="pb-vol" type="range" min="0" max="100" value="80" disabled title="volume">
+      </div>
+      <div class="prow"><input id="pb-seek" type="range" min="0" max="1000" value="0" disabled style="flex:1" title="position">
+        <span id="pb-time" class="dim">0:00 / 0:00</span></div>
+      <div id="pb-chans" class="dim"></div>
+      <div id="pb-status" class="pbstatus"></div>
+    </div>
     <h3 id="trkhdr">Original YM2151 channels <span class="dim">(select a track)</span></h3>
     <div id="archannels"></div>
     <h3>Genesis routing <span class="dim">(FM1–5 · PSG tone 1–3 · noise · FM6=DAC reserved)</span></h3>
     <div id="routing"></div>
   </section>
+  <!-- Right-hand column commented out per request (not needed). Re-enable by uncommenting.
   <aside id="right">
     <h3>Conflicts</h3>
     <div id="conflicts"></div>
@@ -53,7 +72,9 @@
     <h3>Audition</h3>
     <div id="audition" class="dim"></div>
   </aside>
+  -->
 </div>
 <footer id="foot"></footer>
-<script src="/app.js?v=1"></script>
+<script src="/player_adapter.js?v=1"></script>
+<script src="/app.js?v=4"></script>
 </body></html>

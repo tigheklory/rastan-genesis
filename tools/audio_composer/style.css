@@ -19,7 +19,7 @@ select,input{background:var(--panel2);color:var(--ink);border:1px solid var(--li
 .hide{display:none}
 #helpbox{background:var(--panel);border-bottom:1px solid var(--line);padding:8px 16px}
 #helpbox ol{margin:6px 0 6px 18px;padding:0}
-#main{display:grid;grid-template-columns:260px 1fr 320px;gap:10px;padding:10px;align-items:start}
+#main{display:grid;grid-template-columns:260px 1fr;gap:10px;padding:10px;align-items:start}
 @media(max-width:1100px){#main{grid-template-columns:1fr}}
 aside,section{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px;min-width:0}
 h3{margin:4px 0 8px;font-size:13px;border-bottom:1px solid var(--line);padding-bottom:4px}
@@ -66,5 +66,13 @@ h3{margin:4px 0 8px;font-size:13px;border-bottom:1px solid var(--line);padding-b
 kbd{background:#2a3140;border:1px solid var(--line);border-radius:4px;padding:0 4px;font-size:11px}
 footer{padding:8px 14px;color:var(--dim);font-size:11px;border-top:1px solid var(--line)}
 .unavail{color:var(--warn);border:1px dashed var(--warn);border-radius:6px;padding:8px}
+#player{border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--panel2);margin-bottom:8px}
+.prow{display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap}
+.prow select{flex:1;min-width:120px}
+.pbstatus{font-size:12px;margin-top:4px}
+.pbstatus.unavail{color:var(--warn);border:1px dashed var(--warn);border-radius:6px;padding:6px}
+.pbstatus.okmsg{color:var(--ok)}
+.chvol{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--dim);margin-top:3px}
+.chvol input{flex:1}
 table.lw{width:100%;border-collapse:collapse;font-size:11px}
 table.lw td,table.lw th{border:1px solid var(--line);padding:2px 4px;text-align:left}

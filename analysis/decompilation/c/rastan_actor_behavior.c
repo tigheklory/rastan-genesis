@@ -315,6 +315,22 @@ void actor_boss_component_4684e(ActorRecord *a4)
     }
 }
 
+/* ORIGINAL ARCADE PC: 0x000468D0 component-facing initialization.
+ * Provenance: RECONSTRUCTED_FROM_68000. Status: COMPLETE.
+ * The component faces right (1) iff its wrapped X is below the camera/player
+ * screen-X reference; equality and greater positions face left (0). */
+void arcade_468d0(ActorRecord *a4)
+{
+    a4->facing = ((a4->x & 0x01FF) < G.camera_x_10be) ? 1 : 0;
+}
+
+/* ORIGINAL ARCADE PC: 0x0004382E state-0x13 animation reload.
+ * Provenance: RECONSTRUCTED_FROM_68000. Status: COMPLETE. */
+void arcade_4382e(ActorRecord *a4)
+{
+    a4->anim_frame_cd = (G.round == 2) ? 4 : 0;
+}
+
 /* =====================================================================
  * H5 dedicated state handlers — the ground-actor MARKER-CHAIN state machine.
  * Common shape: recheck target marker (0x40E74); if present, consume/advance
