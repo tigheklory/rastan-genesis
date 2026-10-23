@@ -116,6 +116,7 @@
   }
  ],
  "required_symbols": [
+  "z80_write_command",
   "genesistan_hook_tilemap_plane_a",
   "genesistan_hook_tilemap_plane_a_selector0_native",
   "genesistan_hook_tilemap_plane_a_selector12_native",
