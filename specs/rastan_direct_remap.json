@@ -1409,18 +1409,21 @@
   },
   {
    "arcade_pc": "0x055968",
+   "opaque_to_shift_reflow": true,
    "original_bytes": "206D10A0323C0010227C0010D080267C0010D0402453610000322B4810A0588B5489534166EE",
    "replacement_bytes": "4ef9{symbol:genesistan_hook_tilemap_plane_a_selector0_native}4e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
    "note": "Build 0242 byte-neutral selector-0 Plane A native route: preserve the original BSR at arcade_pc 0x055950 and replace the 0x055968 strip-tail body with a same-length JMP to genesistan_hook_tilemap_plane_a_selector0_native, which RTSes to the BSR return at 0x055954. No copied-program bytes are inserted or removed."
   },
   {
    "arcade_pc": "0x055990",
+   "opaque_to_shift_reflow": true,
    "original_bytes": "206D10A47210227C0010D080267C0010D04024536100006E588B5489534166F2",
    "replacement_bytes": "4eb9{symbol:genesistan_hook_tilemap_plane_a_selector12_native}4e714e714e714e714e714e714e714e714e714e714e714e714e71",
    "note": "Build 0245 native selector-1/2 Plane A route: preserve the original BSR at arcade_pc 0x05595A and replace the 0x055990 selector-1/2 strip-tail body with a same-length JSR to genesistan_hook_tilemap_plane_a_selector12_native, which RTSes to the BSR return at 0x05595E. The helper retains the arcade semantic selector state (a5@0x10A8), strip index (a5@0x10CA), strip group (a5@0x10CC), descriptor pointer/word rebuild tables, and scroll-derived resident window, then replaces the complete PC080SN C-window/collision tail with direct Genesis final-format Plane A staging plus collision-map side-channel. No copied-program bytes are inserted or removed."
   },
   {
    "arcade_pc": "0x055AB4",
+   "opaque_to_shift_reflow": true,
    "original_bytes": "33ED10EE00C2000033ED10EC00C4000033ED10B000C2000233ED10AE00C400024E75",
    "replacement_bytes": "33ED10EE{symbol:staged_scroll_y_bg}33ED10EC{symbol:staged_scroll_x_bg}33ED10B0{symbol:staged_scroll_y_fg}33ED10AE{symbol:staged_scroll_x_fg}4E75",
    "note": "Rewrite PC080SN scroll register write function: redirect all four MOVE.W destinations from hardware (0xC20000/0xC40000/0xC20002/0xC40002) to Genesis staged scroll variables. Same opcodes, same A5-relative sources, same RTS. Fixes scroll for ALL callers including gameplay."
@@ -1433,6 +1436,7 @@
   },
   {
    "arcade_pc": "0x0561B6",
+   "opaque_to_shift_reflow": true,
    "original_bytes": "323C1000203C00000020207C00C08000227C00C0000020C022C0534166F8",
    "replacement_bytes": "4EB9{symbol:genesistan_hook_cwindow_clear}4E714E714E714E714E714E714E714E714E714E714E714E71",
    "note": "Replace PC080SN C-window fill loop with JSR to Genesis-side staged buffer clear hook. Hook fills staged_bg_buffer and staged_fg_buffer with LUT-translated blank tile and marks all rows dirty."
@@ -1457,12 +1461,14 @@
   },
   {
    "arcade_pc": "0x041DAE",
+   "opaque_to_shift_reflow": true,
    "original_bytes": "49ED050843F900D001C8426D02144A2C0000670000F4102C00011C2C00201E2C0002740D6100B280D9FC00000040526D02140C6D0002021466D449ED05C843F900D00300426D02144A2C0000670000CE102C00011C2C00201E2C000274046100B246D9FC00000040526D02140C6D0006021466D449ED02C8426D021443F900D004604A2C0000670000A84A2C0005670000A04A2C00036600D178102C00011C2C00201E2C0002740A0C6D00080214660274136100B1F2D9FC00000040526D02140C6D0009021466BA49ED074843F900D00170426D02144A2C000067724A2C0036666C102C00011C2C00201E2C000274016100B1B4D9FC00000040526D02140C6D000B021466D04E75303C0180740D334000025089534266F66000FF0E303C01807404334000025089534266F66000FF34303C0180740A0C6D0008021466027413334000025089534266F66000FF6A303C01807401334000025089534266F66094",
    "replacement_bytes": "4EB9{symbol:genesistan_pc090oj_hook_target_41dae}4E754E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E71",
    "note": "PC090OJ Strategy A function-body replacement at April-6 target fn 0x41DAE (helper genesistan_pc090oj_hook_target_41dae). 352-byte span covering main-loop + 4 sub-loop fallbacks. Helper emits Block-A 18-sprite frame to SAT slots 0..17 + sub-loops. See Andy_pc090oj_implementation_spec.md \u00a78.6. Build 0192: the Genesis default helper wrongly copies the player block A5+0x11B2 -> records 0..17 (and A5+0x0170 -> 18..21), an exact duplicate of the canonical player that hook_target_41f5e stages to records 120..137/92..95; arcade 0x041DAE/0x045DFA do NOT copy A5+0x11B2 and arcade records 0..17 are empty at Stage 1. The hook body now GAMEPLAY-GATES (genesistan_current_scene_id==1) a SKIP of this spurious low copy; non-gameplay scenes keep the emit. Result: player SAT slots 18->6, total SAT 28->15, VINT rate 0.484->0.588; Rastan unchanged. Byte-neutral jsr replacement here is unchanged; the skip lives in the hook body (pc090oj_hooks.s). Follow-up: faithful arcade 0x041DAE/0x045DFA (records 57/96/140/46) deferred."
   },
   {
    "arcade_pc": "0x041F5E",
+   "opaque_to_shift_reflow": true,
    "original_bytes": "41ED11B2701243F900D003C06100000E41ED0170700443F900D002E04A50670E32D832D832D832D8534066F04E75337C01800002508960F0",
    "replacement_bytes": "4EB9{symbol:genesistan_pc090oj_hook_target_41f5e}4E754E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E71",
    "note": "PC090OJ Strategy A function-body replacement at April-6 target fn 0x41F5E (helper genesistan_pc090oj_hook_target_41f5e). Intercepts April-6 caller 0x03A854 and the target itself. Helper emits Block-B 4-sprite copy to SAT slots 18..21. See Andy_pc090oj_implementation_spec.md \u00a78.6. Build 0193 (Fable cycle pass): the helper's block-copy family (.Lpc090oj_family_apply_record) no longer syncs each record inline (decode+SAT under 15-reg movem, 22 records/frame = 6.5 ms in the arcade main-loop bucket) and no longer clears its candidate; it now takes an unchanged-tuple fast path (skip value-identical writes -- same invariant as the Build 0177 shadow compare) and for changed tuples sets the record candidate like every other producer, so the proven VBlank mark->process path syncs it exactly once before the same service's sprite commit. VRAM-visible SAT/tile output per service unchanged; 41f5e hook cost 6.54->1.76 ms, total VINT service 26.55->21.67 ms, rate 0.588->0.769 (~46 Hz)."
@@ -1475,6 +1481,7 @@
   },
   {
    "arcade_pc": "0x059F5E",
+   "opaque_to_shift_reflow": true,
    "original_bytes": "323C0008207C00D00048428020C020C0534166F8323C0004207C0010C17030FC008030FC000030FC000030FC0000534166EC4E75",
    "replacement_bytes": "4EB9{symbol:genesistan_pc090oj_hook_target_59f5e}4E754E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E71",
    "note": "PC090OJ Strategy A function-body replacement at April-6 target fn 0x59F5E (helper genesistan_pc090oj_hook_target_59f5e). Intercepts April-6 caller 0x03A8E4 plus 3 non-ledger callers (0x051266, 0x0519A0, 0x055E18). Helper clears SAT slots 0..7 (the 0xD00048+ region). See Andy_pc090oj_implementation_spec.md \u00a78.6."
@@ -1493,18 +1500,21 @@
   },
   {
    "arcade_pc": "0x054052",
+   "opaque_to_shift_reflow": true,
    "original_bytes": "227C0010D1D2343C000632FC000332FC000032FC000032FC0000534266EC343C0004227C0010D1B232FC000332FC000032FC000032FC0000534266EC227C0010D1F2343C000632FC000332FC000032FC000032FC0000534266EC227C00D00000343C000432FC000332FC000032FC000032FC0000534266EC4E75",
    "replacement_bytes": "4EB9{symbol:genesistan_pc090oj_hook_slot_init_54052}4E754E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E71",
    "note": "PC090OJ Strategy A function-body replacement at INDEPENDENT writer fn 0x54052 (helper genesistan_pc090oj_hook_slot_init_54052). Intercepts 2 ledger callers (0x0501F4, 0x051260). Helper preserves the original function's Taito C-chip text-RAM clears at 0x10D1B2/0x10D1D2/0x10D1F2 (replicated verbatim) and emits sprite-slot init to SAT slots 72..75. See Andy_pc090oj_implementation_spec.md \u00a78.6."
   },
   {
    "arcade_pc": "0x056114",
+   "opaque_to_shift_reflow": true,
    "original_bytes": "30100C40FFFF670A32D832D832D832D860EE4E75",
    "replacement_bytes": "4EB9{symbol:genesistan_pc090oj_hook_copy_56114}4E754E714E714E714E714E714E71",
    "note": "PC090OJ Strategy A function-body replacement at INDEPENDENT writer fn 0x56114 (helper genesistan_pc090oj_hook_copy_56114). Intercepts 2 ledger callers (0x05604C, 0x056076). Helper copies 4 word-pairs from source descriptor list (terminated by 0xFFFF) into SAT slots 64..67. See Andy_pc090oj_implementation_spec.md \u00a78.6."
   },
   {
    "arcade_pc": "0x056440",
+   "opaque_to_shift_reflow": true,
    "original_bytes": "227C00D00000D3FC00000170303C0009323C0008610000346100FD464E75",
    "replacement_bytes": "4EB9{symbol:genesistan_pc090oj_hook_zero_fill_56440}4E754E714E714E714E714E714E714E714E714E714E714E71",
    "note": "PC090OJ Strategy A function-body replacement at INDEPENDENT writer fn 0x56440 (helper genesistan_pc090oj_hook_zero_fill_56440). Intercepts 2 ledger callers (0x055F0E, 0x055FFA). Inline helper 0x5648A is reached only from inside 0x56440 (single internal caller); body replacement renders it unreachable dead code. Build 0458 preserves the complete semantic consequence of the original final BSR 0x0561A0: retire transient-item state; zero retained A5+0x10AE/0x10B0/0x10EC/0x10EE and the matching native staged scroll words; then clear both final Genesis staged planes. RG-003/RG-004 restore the scene-0 PC080SN pattern/base-palette owner and stage a clean native frontend SAT before that retained scroll-zero-then-plane-clear sequence. READY selection, next-life control flow, plane text/block production, and gameplay re-entry remain arcade-owned."
@@ -1529,6 +1539,7 @@
   },
   {
    "arcade_pc": "0x059AD4",
+   "opaque_to_shift_reflow": true,
    "original_bytes": "C2FC0020D0C1EB484246227C00200000D2C032180C41FFFF671E3401360102410F00EE49024200F0E54A0243000FE14BE74BD641D64232830C46000F67065246548960CE4E75",
    "replacement_bytes": "4EB9{symbol:genesistan_palette_hook_59ad4}4E754E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E71",
    "note": "Build 55 palette translator function-body replacement at 0x59AD4 (helper genesistan_palette_hook_59ad4). Helper reproduces source-row and bank semantics, converts arcade raw colors to xBGR-555 then to Genesis CRAM, stages low banks 0..3, and sets palette_dirty."

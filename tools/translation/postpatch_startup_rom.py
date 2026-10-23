@@ -118,7 +118,9 @@ CANONICAL_OPCODE_REPLACE_COUNT = 228  # RG-003 reclassifies frontend teardown 0x
 # Plane A, invincible Plane A, Plane B) to the native helper image.
 # Build 0453 adds the complete generated item logical map and native pattern /
 # icon packages (+0x3000 bytes in the linked Genesis-owned helper image).
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x29CEB8
+# AUDIO-015 adds the aligned cartridge-resident native music section before
+# the high crash section; all bytes remain represented in the address map.
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x2AEEB8
 
 # DIAGNOSTIC_SYMBOLS — symbols allowed for bookmarks_v2 helper_symbol resolution.
 #
@@ -1551,6 +1553,7 @@ def main() -> int:
                 + len(bytes.fromhex(str(_op["original_bytes"]).replace(" ", ""))),
             )
             for _op in spec.get("opcode_replace", [])
+            if bool(_op.get("opaque_to_shift_reflow", False))
         ]
         for _rep in spec["shift_replacements"]:
             _resolved_rep = dict(_rep)
