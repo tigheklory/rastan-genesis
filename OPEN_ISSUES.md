@@ -1267,6 +1267,18 @@ Final response must include "Open/Closed Issues Impact" section with:
   dependent, honestly marked); AUDIO-009 suite still 37/37; Palette Composer + production untouched; counter
   477→477. Recommend: user-supplied local engine, or build ymfm(BSD)+MIT-SN76489 to WASM (needs emscripten +
   authorization). Evidence: `docs/design/Andy_AUDIO012_webvgm_audio_composer_integration.md`.
+- **AUDIO-013 (2026-10-22, Cody, forced-tone repair — NOT closing):** established three concrete
+  defects in the existing bring-up path: `_bootstrap` never called `z80_init_and_start`; the hand-built
+  Z80 `CALL` operands were stale after routine growth; and cold-start bus/reset/upload sequencing did
+  not follow the Genesis bus contract. The final correction wires the existing initializer, derives
+  every Z80 call operand from labels, requests and acknowledges the bus with reset released, uploads
+  while BUSREQ holds the Z80, then resets/releases/delays/starts it. Build 0483 passes the canonical,
+  R1-S1, seven-epoch, 30-second and RG-017 attract-return gates. Genesis MAME observes the exact
+  263-byte ROM driver in Z80 RAM (matching SHA-256), marker `0x5A`, changing heartbeat, intended Z80
+  PCs, and YM2612 patch/frequency/key traffic. Tighe audibly verified the forced tone on real Genesis
+  hardware in both Builds 0482 and 0483. This proves the existing Z80/YM2612 bring-up path only;
+  production music, SFX, PCM/FM6 DAC and channel arbitration remain unimplemented, so OPEN-039 stays
+  OPEN. Evidence: `docs/design/Cody_AUDIO013_z80_forced_tone_diagnosis.md`.
 - **Evidence:** `docs/design/Andy_native_genesis_audio_architecture_research.md`,
   `docs/design/Andy_audio001_z80_ghidra_decompilation.md`,
   `docs/design/Andy_audio002_original_audio_asset_inventory.md`.

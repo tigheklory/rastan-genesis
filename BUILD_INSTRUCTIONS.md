@@ -37,6 +37,16 @@ operational recipe.
 
 The m68k toolchain is vendored at `tools/local/toolchain/m68k-elf/bin/` (the Makefile uses it).
 
+### Audio profile and local assets
+
+Current Audio Composer decisions reside in
+`analysis/audio/decision_profiles/music-test.json`. The intended production-audio build will
+regenerate music locally from arcade ROMs supplied by the builder and committed conversion tools.
+Original captured streams and generated/authored Genesis audio assets are local/generated artifacts,
+not required distributable repository assets. The local analysis and audition tools under
+`tools/audio/` and `tools/audio_composer/` are available now; deterministic MAME
+capture-to-production-build integration is planned but is not yet implemented.
+
 ---
 
 ## 1. What the palette JSON actually is

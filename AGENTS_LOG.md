@@ -53357,3 +53357,57 @@ TIGHE ONLY
 - Exact ROM-producing source is `aab0eac15a9a332331cea5f773252a3010059dd8`. Immutable
   `accepted/build-0478` points exactly to that source, not later regression or bookkeeping commits.
 - No ROM was built and no build number was consumed for acceptance bookkeeping; counter remains 478.
+
+### MAME Exit Summary (2026-10-22 23:02:04)
+- Final PC: 0x0759B6
+- Stack Pointer (SP): 0x00FEFFF4
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-22 23:05:08)
+- Final PC: 0x0759B6
+- Stack Pointer (SP): 0x00FEFFF4
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-22 23:08:47)
+- Final PC: 0x03A1AA
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-22 23:11:58)
+- Final PC: 0x03A1AA
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-22 23:14:00)
+- Final PC: 0x03A1AA
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+## 2026-10-22 — AUDIO-013 existing Z80 forced-tone diagnosis and repair
+
+- Formalized Tighe's real-Genesis acceptance of Build 0478 without consuming a build. Normal ROM
+  SHA-256 remains `989842a323b2e27ad8461425271291c38840cc4e949bfcca160bf0124286634c`;
+  annotated `accepted/build-0478` dereferences exactly to ROM-producing source
+  `aab0eac15a9a332331cea5f773252a3010059dd8`. Remote push was attempted and failed because the
+  configured SSH remote rejected authentication; the local immutable tag is intact.
+- AUDIO-013 proved why the existing tone had been silent: cold boot never called
+  `z80_init_and_start`; the hand-authored driver contained stale `CALL` operands; and initialization
+  did not satisfy Genesis BUSREQ/reset/upload ordering. The repair calls the existing initializer,
+  derives Z80 targets from labels, and uses the established request/acknowledge, bus-held upload,
+  reset/release/delay/start sequence. No second driver, mailbox, telemetry path, PSG fallback,
+  production music/SFX/PCM, gameplay or graphics change was introduced.
+- Builds 0479 and 0480 are rejected/consumed startup-deadlock diagnostics. Builds 0481 and 0482 are
+  preserved intermediate families. Final Build 0483 exact source
+  `e0b122fca18d942a3ccd28ed246fdcee94192580`; normal ROM
+  `dist/rastan-direct/rastan_direct_video_test_build_0483.bin`, SHA-256
+  `aefad54c6494db7af916764c1e745edf1ef2b1c0f56db29d34ec7c16290202fb`, 2,739,896 bytes;
+  counter 483; complete seven-ROM family verified. No candidate tag was created.
+- Genesis NTSC MAME observes the exact 263-byte ROM driver in Z80 RAM (matching SHA-256
+  `cfc2621a4ebc375bbc03d3f1edda8ee26d3a8c751949b286f07d47e354d578b0`), marker `5A`, changing
+  heartbeat, intended Z80 execution and YM2612 patch/frequency/key traffic. Canonical, R1-S1,
+  seven-epoch, fixed-30-second and RG-017 natural attract-return gates pass; the second title is
+  visible at frame 7,216 with exact CRAM and zero unsafe display enables.
+- Tighe audibly verified the forced tone on real Genesis hardware in **both Build 0482 and Build
+  0483**. This accepts only the narrow existing Z80/YM2612 bring-up repair. OPEN-039 remains OPEN;
+  production audio is not implemented. Report:
+  `docs/design/Cody_AUDIO013_z80_forced_tone_diagnosis.md`.

@@ -43,3 +43,15 @@ Goal when revisiting:
 
 Priority:
 LOW (until architecture is correct)
+
+---
+
+## 2026-10-22 — Deferred reproducible original-audio capture
+
+- [ ] **Automate the original Rastan MAME YM2151 register capture as part of the reproducible
+  audio-build pipeline.** Use original arcade ROM files supplied locally by the builder; run a
+  deterministic MAME capture; reproduce the inputs consumed by the committed Python conversion
+  tools; apply the Audio Composer decisions in
+  `analysis/audio/decision_profiles/music-test.json`, including independent per-song mappings; and
+  generate native Genesis audio assets locally. The manual capture already exists. This deferred
+  work must not download, require redistribution of, or commit original/captured Taito music data.

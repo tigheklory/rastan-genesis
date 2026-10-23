@@ -91,6 +91,14 @@ b04-20.76
 
 Do not commit anything under `roms/`; the directory is intentionally ignored by Git.
 
+> **Audio note:** current Audio Composer decisions are in
+> `analysis/audio/decision_profiles/music-test.json`. Future production audio is intended to be
+> regenerated locally from your supplied arcade ROMs with the committed conversion tools. Original
+> captures and generated/authored Genesis audio assets remain local/generated rather than required
+> distributable repository files. Local analysis/audition tools are available now, but automatic
+> MAME capture-to-production-build integration is not yet implemented; see
+> [BUILD_INSTRUCTIONS.md](BUILD_INSTRUCTIONS.md#audio-profile-and-local-assets).
+
 ## 4. Verify the exact source ROM images
 
 First ask MAME to validate the set:
