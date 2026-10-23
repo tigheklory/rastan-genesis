@@ -30,8 +30,8 @@ def verify_driver(data: bytes) -> None:
         or data[timer_rearm + 14 : timer_rearm + 19] != b"\x3E\x27\x1E\x0A\xC3"
     ):
         raise ValueError("Timer B lacks clear/unload -> C9 -> load/enable rearm sequence")
-    if b"\xFE\x19" not in data:
-        raise ValueError("driver does not classify authentic R1-S1 wire command 0x19")
+    if b"\xFE\x25" not in data:
+        raise ValueError("driver does not classify live player-appearance/respawn command 0x25")
 
 
 def verify_stream(path: Path) -> tuple[int, int]:

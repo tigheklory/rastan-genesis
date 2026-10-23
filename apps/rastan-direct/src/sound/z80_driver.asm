@@ -87,7 +87,7 @@ command_pop:
         ld      a,b
         or      a
         jp      z,music_stop            ; command $00: original all-channel stop
-        cp      $19                     ; authentic R1-S1 Aggressive World selector (arcade 0x055E30)
+        cp      $25                     ; live player-appearance/respawn music-start intent
         ret     nz                      ; unsupported authentic commands remain consumed
 music_start:
         ld      hl,STARTP

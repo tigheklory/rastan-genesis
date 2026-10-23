@@ -151,8 +151,9 @@ def main() -> int:
     report = {
         "schema": "rastan-genesis-native-audio/v1",
         "track": TRACK,
-        "authentic_wire_command": "0x19",
-        "original_song_selector": "0x19",
+        "authentic_wire_command": "0x25",
+        "wire_command_semantics": "live player-appearance/respawn music-start intent",
+        "original_track_command_mapping": "unresolved; 0x055E30/0x19 is dead under the original queue gate",
         "profile_revision": profile.get("revision"),
         "profile_revision_id": profile.get("revision_id"),
         "routing": routing,
