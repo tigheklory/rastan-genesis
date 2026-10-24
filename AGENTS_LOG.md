@@ -53674,3 +53674,31 @@ reached the stage decoder.
 - Finding for follow-up: the stage-decode config operand is not relocated (reads 0x5FF9F literal) while
   the startup operand is (0x5FFE4); proper long-term fix is to declare that operand for relocation in
   the semantic remapper (out of RG-018 scope). Selection still NOT a playability claim (Tighe validates).
+
+### MAME Exit Summary (2026-10-24 12:09:18)
+- Final PC: 0x03A1AA
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+## RG-019 — Subround selection corrected + PROVEN (Andy, Build 0495, 2026-10-24)
+
+Tighe's BlastEm test showed all RG-018 ROMs started R1-S1. Root-caused and fixed, with functional proof.
+
+- **Why RG-018 failed:** it patched Genesis 0x5FFE5 (address-map relocation of arcade 0x5FF9F, the byte
+  the STARTUP/invincible decoder reads). But the STAGE decoder (arcade 0x04527E/0x04529C -> Genesis
+  0x45482/0x454A0) has an UNRELOCATED operand and reads the literal 0x5FF9E/0x5FF9F (= arcade 0x5FF58
+  padding, 0xFF) -> always R1. So the 0x5FFE5 patch was never read by the stage decoder.
+- **Cheat 0x5FFFD is a red herring (proven on ORIGINAL ARCADE):** patching ROM 0x5FFFD=0xFA (R6) left
+  the stage index 0x10D242 at 0x0000 (no change) -- 0x5FFFD is a difficulty-table byte. Patching arcade
+  0x5FF9F=0xFA moved stage index to 0x0073 (R6). The round counter 0x10C118 stays 01 even on the arcade;
+  the authoritative result is the STAGE INDEX 0x10D242 (RG-018's probe watched the wrong variable).
+- **Fix:** build_subround_variant.py patches the literal 0x5FF9F (what the stage decoder reads; 0xFF
+  padding), already in place since commit dafc5be0; RG-019 proves it and strengthens validation.
+- **Proof (Genesis MAME, Build 0495):** new run_subround_functional_verify.sh + rewritten
+  subround_start_probe.lua latch the live stage index 0x00FF1242 at appearance. ALL 18 + canonical PASS
+  with distinct correct indices (R1-S1 0x00 ... R6-S3 0x89) and distinct spawn px; canonical stays
+  0x0000. MAME agreed with BlastEm on the failing build (both R1), lending credibility.
+- **New numbered build 0495** (canonical SHA 55b1cae5...); 18 variants regenerated from it, static +
+  functional checks pass. Proper long-term fix (relocate the stage-decoder operand so it reads 0x5FFE4)
+  noted as out-of-scope follow-up.
+- Selection PROVEN; later-stage playability remains Tighe's hardware call. Push still blocked (SSH).
