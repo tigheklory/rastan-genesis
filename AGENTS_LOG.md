@@ -53731,3 +53731,34 @@ for all 18 subrounds and a phased implementation plan.
   verify/regression; performance guardrail = offline conversion + display-off scene loads only (68000 is
   cycle-constrained). Unresolved items listed with the exact evidence needed.
 - Deliverable: docs/design/Andy_RG020_native_stage_audit_cody_handoff.md. No code changed; push blocked (SSH).
+
+### MAME Exit Summary (2026-10-24 14:38:36)
+- Final PC: 0x03A1AA
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-24 14:42:57)
+- Final PC: 0x03A1AA
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-24 14:47:12)
+- Final PC: 0x03A1AA
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-24 14:52:37)
+- Final PC: 0x03A1AA
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+## RG-021 — Native stage graphics / level data (Cody, Build 0499, 2026-10-24)
+
+- Baseline Build 0495 / handoff `14310d96`; exact ROM-producing source `d7cb40bbbe6ec0ccf7a8d6ae965efad4c7193ae6`.
+- Candidate normal ROM `dist/rastan-direct/rastan_direct_video_test_build_0499.bin`, SHA-256 `215e8759c84ba8dd340b21146ac6221281e5305cf1bcffca06f12e387553d2b0`, 3,399,352 bytes. Builds 0496–0498 are preserved rejected diagnostics; 0499 is NOT ACCEPTED pending Tighe.
+- Extended the one offline/native PC080SN package architecture through R1 records 21–22 and all R2 records 23–45: per-round fixed Plane B, eight zero-drop Plane-A epochs, no runtime search/allocator/fallback/shadow renderer. Corrected fixed-B installation clobbering the selected A-package counts.
+- Genesis NTSC MAME: S1-2/S1-3/S2-1/S2-2/S2-3 select the correct package/round with zero A/B misses; S1-2, S1-3 and S2-1 have nonblank published Plane A/B name tables by terminal real-MD VDP reads. Seven-ROM family and all 18 subround variants pass.
+- Later classification: R3/R5/R6 are Mode B (`scene_id=0`); R4 is Mode A (`scene_id=1`, content absent). Rounds 3–6 were not converted.
+- Rope performance: Build 0495 `795/795/795` = 13,267.083 ms; Build 0499 `795/795/795` = 13,267.083 ms; deterministic, zero change.
+- Palette Composer and `specs/palette_decisions.json` untouched. R2 retains arcade palette conversion pending RG-022; audio source untouched. Hardware must verify castle art/collision, boss-room visuals and live post-boss progression, R2 visuals, palettes, and normal R1 regression.
+- Report: `docs/design/Cody_build0499_native_stage_graphics_and_level_data.md`; requested task index: `docs/design/Cody_RG021_native_stage_implementation.md`.
