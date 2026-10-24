@@ -18,6 +18,19 @@
 - Standard family: canonical, `_d`, `_s`, `_do`, `_c`, `_full_hud`, `_invincible` all generated and configuration-verified.
 - Optional selector family: all 18 `_S1-1` through `_S6-3` artifacts generated; each differs from canonical only at the established selector byte `0x05FF9F`.
 
+| Build 0499 artifact | SHA-256 |
+|---|---|
+| normal | `215e8759c84ba8dd340b21146ac6221281e5305cf1bcffca06f12e387553d2b0` |
+| `_d` | `3947e54835941284de8b215e5d77856bf831faa217942d9afa9fa5b46815b9de` |
+| `_s` | `1bb156e3a3dad4c785a27aa53039ae2e7dcb45c34d16d5b973f85e0b2ea54726` |
+| `_do` | `b475da65afa3fe9c049f30384c6205b1f2fc6fb6d98f66e849ad65ea56fd0537` |
+| `_c` | `9b71f7cb33c046370c49df5ddc8b5fce7d02becad8485fe509587ea3bf70e0d4` |
+| `_full_hud` | `5f46bb335caa9cec9a67db4311955219fbdbf7c56f5c2d98a7a56f2357abccbc` |
+| `_invincible` | `bb7ec613375473574413de3bb51554ce93ab3985967f69cf074bf7a285629b6c` |
+| `_S1-2` | `05a5d9d40f0fb4cfd6a6e67782fce61bf649144cacc76d972f1ae83d21a09700` |
+| `_S1-3` | `1e24c4623e227c37430282bd90666ddc25ab88a39b09e915b267abc4681232b2` |
+| `_S2-1` | `fc8cda1884649b15cb8be4880ddf6c351ddf9513a59d4ab5dea302bcc3d81419` |
+
 Intermediate numbered artifacts are preserved:
 
 | Build | SHA-256 | Size | Status / reason |
