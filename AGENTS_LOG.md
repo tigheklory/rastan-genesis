@@ -53656,3 +53656,21 @@ never overwritten.
   BlastEm/hardware validation, per the task; these ROMs are a mechanism to expose incomplete later-stage
   functionality, not a claim that later stages are playable.
 - Design note: docs/design/Andy_RG018_buildtime_subround_variants.md. Push still blocked (origin SSH).
+
+## RG-018 correction — stage selector reads UNRELOCATED operand; patch 0x5FF9F (Andy, 2026-10-24)
+
+Tighe observed all 18 variants still booted to R1-S1. Root cause found: the address map correctly maps
+arcade 0x5FF9F -> Genesis 0x5FFE5 (where the config byte lives; the invincible variant patches it), but
+that byte is only read by the STARTUP decoder (0x3B21E, operand relocated to 0x5FFE4). The STAGE decoder
+(0x45482/0x454A0: movew 0x5ff9e / btst #3,#5 0x5ff9f) reads the UNRELOCATED literal 0x5FF9E/0x5FF9F,
+which reverse-maps to arcade 0x5FF58 padding (0xFF) -> always Round 1. So the 0x5FFE5 patch never
+reached the stage decoder.
+- Fix: build_subround_variant.py + verify_subround_variants.py now patch the literal 0x5FF9F (the stage
+  decoder's actual read; 0xFF padding, safe), detected by the unrelocated `movew 0x5ff9e` read form in
+  the ROM, with fallback to the address-map location if a future build relocates the operand.
+- Regenerated all 18; verifier ALL PASS. Probe CONFIRMS selection: S1-1 round1/stage 0x00, S3-1
+  round3/0x2E, S3-2 round3/0x3E (castle), S2-3 round2/0x2D (boss), S6-1 round6/0x73 -- stage index =
+  round*23 + 22*boss + 16*castle, so round AND subround select through the original decode.
+- Finding for follow-up: the stage-decode config operand is not relocated (reads 0x5FF9F literal) while
+  the startup operand is (0x5FFE4); proper long-term fix is to declare that operand for relocation in
+  the semantic remapper (out of RG-018 scope). Selection still NOT a playability claim (Tighe validates).

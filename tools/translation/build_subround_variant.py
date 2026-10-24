@@ -25,9 +25,20 @@ import hashlib
 import json
 from pathlib import Path
 
-ARCADE_SELECTOR_PC = 0x05FF9F        # low byte of the startup config word at 0x05FF9E
+ARCADE_SELECTOR_PC = 0x05FF9F        # low byte of the config word at arcade 0x05FF9E
 DEFAULT_SELECTOR = 0xFF              # R1 Outside, not invincible (canonical default)
 SUBROUNDS = {1: "Outside", 2: "Castle", 3: "Boss"}
+
+# The Genesis stage decoder (translated arcade 0x04527E/0x04529C) reads its config
+# operand as the UNRELOCATED literal 0x5FF9E/0x5FF9F -- `movew 0x5ff9e,d0` and
+# `btst #3/#5,0x5ff9f`. (The startup/invincible decoder's operand WAS relocated, to
+# 0x5FFE4, which is why the invincible variant patches 0x5FFE5 and why a naive address-
+# map translation of 0x5FF9F -> 0x5FFE5 does NOT reach the stage decoder.)  So the byte
+# the stage decoder actually reads is the literal Genesis offset 0x5FF9F, which is 0xFF
+# padding on the canonical ROM.  We detect that read form in the ROM and patch there;
+# if a future build relocates the operand, we fall back to the address-map location.
+STAGE_DECODE_READ_OPCODES = (b"\x30\x39\x00\x05\xff\x9e", b"\x32\x39\x00\x05\xff\x9e")
+LITERAL_READ_OFFSET = 0x0005FF9F
 
 
 def selector_value(round_no: int, subround: int) -> int:
@@ -67,9 +78,14 @@ def main() -> int:
 
     value = selector_value(args.round, args.subround)
     amap = json.loads(args.address_map.read_text())
-    off = genesis_offset(amap, ARCADE_SELECTOR_PC)
+    relocated = genesis_offset(amap, ARCADE_SELECTOR_PC)   # address-map config location
 
     data = bytearray(args.rom.read_bytes())
+    # Patch the byte the stage decoder actually reads.
+    if any(op in bytes(data) for op in STAGE_DECODE_READ_OPCODES):
+        off, read_form = LITERAL_READ_OFFSET, "unrelocated_stage_decode_operand"
+    else:
+        off, read_form = relocated, "relocated_config"
     if off >= len(data):
         raise SystemExit(f"selector offset 0x{off:06X} beyond ROM size {len(data)}")
     current = data[off]
@@ -96,6 +112,8 @@ def main() -> int:
         "subround_name": SUBROUNDS[args.subround],
         "arcade_selector_pc": f"0x{ARCADE_SELECTOR_PC:05X}",
         "genesis_offset": f"0x{off:06X}",
+        "read_form": read_form,
+        "address_map_relocated_offset": f"0x{relocated:06X}",
         "selector_value": f"0x{value:02X}",
         "sha256": sha,
     }, indent=2))

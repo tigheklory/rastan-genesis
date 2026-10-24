@@ -32,19 +32,31 @@ bit 3 = Boss, bit 5 = Castle, bit 6 = invincible (the existing invincible varian
 `0xFF` = Round 1 Outside. The selector **values** (0xFF, 0xDF, 0xF7, 0xFE, …) match the cheat items and
 the task table exactly; only the cheat's *write address* differs from the game's *read address*.
 
-**Genesis equivalent:** arcade `0x05FF9F` maps through the maintained address map
-(`build/rastan-direct/address_map.json`, whole-maincpu copy, +0x200) to **Genesis ROM offset
-`0x05FFE5`**. The accepted invincible variant already patches this exact byte (`0xFF → 0xBF`), proving
-the Genesis build reads it and that a single-byte patch there is effective and is never overwritten.
+**Genesis equivalent — important subtlety.** The address map
+(`build/rastan-direct/address_map.json`) maps arcade `0x05FF9F` to Genesis ROM offset **`0x05FFE5`**,
+and the accepted invincible variant patches exactly that byte (`0xFF → 0xBF`). But `0x05FFE5` is only
+read by the *startup* config decoder (translated arcade `0x03AFEE` → Genesis `0x3B21E`:
+`movew 0x5ffe4,d0`), whose absolute operand WAS relocated. The **stage decoder** (translated arcade
+`0x04527E`/`0x04529C` → Genesis `0x45482`/`0x454A0`) still reads the **unrelocated literal** operand:
+`movew 0x5ff9e,d1`, `btst #3,0x5ff9f`, `btst #5,0x5ff9f`. Genesis `0x5FF9E` reverse-maps to arcade
+`0x5FF58` (`0xFF` padding), so the stage decoder reads `0xFF` and always computes Round 1 — regardless
+of the relocated config byte. **Therefore the byte the stage decoder actually reads is the literal
+Genesis offset `0x05FF9F`** (verified empirically: patching it yields the selected round/subround; see
+§6). An initial implementation patched the address-map location `0x05FFE5` and all variants still booted
+to R1-S1, which exposed this operand-relocation gap. The generator now patches the literal read offset
+`0x05FF9F` (detecting the unrelocated `movew 0x5ff9e` read form in the ROM; it falls back to the
+address-map location if a future build relocates the operand). That byte is `0xFF` padding on the
+canonical ROM, so the single-byte patch is safe.
 
 ## 2. Implementation (smallest build-time semantic override)
 
-`tools/translation/build_subround_variant.py` copies the parent canonical ROM and patches the one
-relocated selector byte (looked up via the address map, not hard-coded) with the derived selector. It
-refuses to patch a parent whose byte is not the default `0xFF`, and asserts only that byte changes
-(Round 1 Outside = `0xFF` = default → a byte-identical variant, which is correct). This patches the
-original startup selection mechanism — no new gameplay code, no teleport; the chosen subround
-initializes through the game's own stage decode.
+`tools/translation/build_subround_variant.py` copies the parent canonical ROM and patches the single
+byte the stage decoder reads (the literal `0x05FF9F`; see §1), with the derived selector. It refuses to
+patch a parent whose byte is not the default `0xFF`, and asserts only that byte changes (Round 1 Outside
+= `0xFF` = default → a byte-identical variant, which is correct). This drives the game's own stage-decode
+mechanism — no new gameplay code, no teleport; the chosen subround initializes through the original
+stage setup. (It is the "smallest equivalent build-time semantic override" the task allows when the
+address-map-relocated data location is not what the decoder reads.)
 
 The variants are derived from the current numbered canonical ROM, so they inherit its build number and
 embedded crash-handler stamp automatically (only `0x05FFE5` differs).
@@ -80,8 +92,8 @@ _invincible` per subround.
 
 `tools/translation/verify_subround_variants.py` (run by `test-subrounds`): **ALL CHECKS PASS**.
 - Selector values match the MAME cheat items exactly (all 18) and the pure derivation.
-- Arcade `0x05FF9F` → Genesis `0x05FFE5` resolves via the address map; canonical byte is the default `0xFF`.
-- Every variant changes only `0x05FFE5` to the correct value (R1-1 byte-identical to canonical).
+- The stage decoder's read offset (literal `0x05FF9F`) is detected in the ROM; canonical byte is `0xFF`.
+- Every variant changes only `0x05FF9F` to the correct value (R1-1 byte-identical to canonical).
 - No other byte of the canonical ROM is modified; all 18 generated; correct names + shared build number.
 - Invalid round/subround inputs rejected; derivation is deterministic.
 
@@ -93,17 +105,25 @@ Confirmed operationally: parent build number stayed 0494 (no number consumed); c
 `tools/mame/scripts/subround_start_probe.lua` boots a variant on **GENESIS NTSC**, runs the normal
 coin/start sequence, and samples the decoded round (`a5@0x118`) and stage index (`a5@0x1242`).
 
-**Result: inconclusive by automation.** For every probed variant (S1-1, S3-1, S6-1) the sampled round
-read 1 and the stage index read 0 within 300–1500 frames — including the stage index being 0 for R1,
-where the decode would yield 23. That means the probe is not sampling the stage-select decode's effect
-(wrong location for the Genesis port, or the decode path — gated by `a5@0x104` at `0x45288`/`0x452BA` —
-is not exercised on the current start), **not** that the patch is wrong. The selector byte is verified
-correct per §1 and the invincible-variant precedent. Per the task, this is an area where automated
-Genesis observation is not capable, so **stage playability is deferred to Tighe's BlastEm / real
-hardware validation**. These ROMs are a mechanism to expose incomplete later-stage functionality; a
-correctly generated ROM and selector value is **not** a claim that the later stage is playable.
+**Result: CONFIRMED.** After patching the correct read offset (`0x05FF9F`, §1), the probe observes the
+game's own stage decoder selecting the chosen round and subround:
 
-Where useful, compare against ORIGINAL ARCADE MAME with the equivalent level-select cheat.
+| Variant | observed round | stage index `a5@0x1242` | meaning |
+|---|---|---|---|
+| S1-1 | 1 | `0x00` | R1 Outside (round*23 = 0) |
+| S3-1 | 3 | `0x2E` (46) | R3 Outside |
+| S3-2 | 3 | `0x3E` (62 = 46 + 16) | R3 **Castle** |
+| S2-3 | 2 | `0x2D` (45 = 23 + 22) | R2 **Boss** |
+| S6-1 | 6 | `0x73` (115) | R6 Outside |
+
+The stage index matches `round_bits*23 + 22·boss + 16·castle` exactly, so both the round and the
+subround are selected through the original decode. This confirms the selector reaches the game's stage
+setup (not a teleport).
+
+**Scope caveat preserved:** confirming the decoder selects the stage is NOT a claim that each later
+stage is fully playable — later-stage graphics/enemies/scrolling may still be incomplete. **Tighe
+performs gameplay validation in BlastEm and on real Genesis hardware.** Compare against ORIGINAL ARCADE
+MAME with the equivalent level-select cheat where useful.
 
 ## 7. Scaffolding and scope
 
@@ -116,9 +136,16 @@ Where useful, compare against ORIGINAL ARCADE MAME with the equivalent level-sel
   sound-command mappings, death/respawn/GAME OVER, the seven-ROM release, and native VDP work. The
   variants use the normal gameplay music-selection mechanism (no Z80 engine change, no hardcoded music).
 
-## 8. Open items
-- The automated stage-init probe is inconclusive; Tighe's BlastEm/hardware check will confirm whether
-  each selected subround actually loads, and will expose which later stages are incomplete.
+## 8. Open items and findings
+- **Stage selection confirmed in MAME (§6).** Remaining validation is Tighe's BlastEm/hardware play
+  test, which will expose which later stages are graphically/behaviorally incomplete.
+- **Operand-relocation gap (finding).** The stage decoder (`0x45482`/`0x454A0`) reads its config operand
+  as the unrelocated literal `0x5FF9E`/`0x5FF9F`, while the startup decoder's operand WAS relocated to
+  `0x5FFE4`. The config word therefore effectively lives at two Genesis locations, and the stage decoder
+  reads `0xFF` padding on the stock canonical — which is why the port always started at R1 before these
+  ROMs. RG-018 drives the decoder's actual read byte (`0x5FF9F`); the proper long-term fix is to declare
+  that operand for relocation so the decoder reads the same config the startup does (a semantic-remapper
+  change, out of RG-018 scope). The generator auto-falls back to the address-map location if that fix
+  lands.
 - Cheat-XML address `0x05FFFD` vs the game's traced read address `0x05FF9F`: the implementation follows
-  the game's read address (verified); if `0x05FFFD` turns out to drive selection in some path, that is a
-  follow-up, but the invincible variant confirms `0x05FF9F`/`0x05FFE5` is the live, read, patchable byte.
+  the game's traced stage-decode read (verified in §6). `0x05FFFD` appears to be a cheat-file anomaly.

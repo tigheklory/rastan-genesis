@@ -23,7 +23,8 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 from build_subround_variant import (  # noqa: E402
-    ARCADE_SELECTOR_PC, DEFAULT_SELECTOR, SUBROUNDS, genesis_offset, selector_value,
+    ARCADE_SELECTOR_PC, DEFAULT_SELECTOR, LITERAL_READ_OFFSET, STAGE_DECODE_READ_OPCODES,
+    SUBROUNDS, genesis_offset, selector_value,
 )
 
 LABEL_RE = re.compile(r"Round\s+(\d)(?:\s+(Castle|Boss))?\s*$", re.I)
@@ -58,8 +59,10 @@ def main() -> int:
 
     import json
     amap = json.loads(args.address_map.read_text())
-    off = genesis_offset(amap, ARCADE_SELECTOR_PC)
+    relocated = genesis_offset(amap, ARCADE_SELECTOR_PC)
     canon = args.canonical.read_bytes()
+    # The stage decoder reads the unrelocated literal operand; patch there.
+    off = LITERAL_READ_OFFSET if any(op in canon for op in STAGE_DECODE_READ_OPCODES) else relocated
     fails: list[str] = []
 
     def ck(name: str, cond: bool, extra: str = "") -> None:
