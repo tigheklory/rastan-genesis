@@ -53702,3 +53702,32 @@ Tighe's BlastEm test showed all RG-018 ROMs started R1-S1. Root-caused and fixed
   functional checks pass. Proper long-term fix (relocate the stage-decoder operand so it reads 0x5FFE4)
   noted as out-of-scope follow-up.
 - Selection PROVEN; later-stage playability remains Tighe's hardware call. Push still blocked (SSH).
+
+## RG-020 — Native stage coverage audit + Cody handoff (Andy, analysis only, 2026-10-24)
+
+Analysis/architecture deliverable for Cody (no production code, no new ROM). Established native coverage
+for all 18 subrounds and a phased implementation plan.
+
+- **Architecture verdict:** backgrounds + palettes are STAGE-1-ONLY; sprites are broadly covered.
+  compile_pc080sn_genesis.py converts Round 1 only (hardcoded BOUNDARY_ROUND1_EPOCH_RECORDS, records
+  0-20, stage_index=0); scene_load.s dispatches only stage1_* preload packages; palette_decisions.json
+  = 23 Stage-1 decisions (mostly provisional); PC090OJ frame table is a universal index (sprites render
+  across rounds). Fixing later rounds is an offline DATA-coverage problem, not a renderer rewrite.
+- **Two proven later-round BG failure modes (emulator init, this audit, scene_id @ 0x00FFC63C):**
+  Mode A = selected but content absent (R2-S1 scene_id=1/seg=0x18; R4-S1 scene_id=1/seg=0x46 -> blank
+  layers, gameplay runs); Mode B = scene not recognized (R3-S1 scene_id=0/seg=0x2F -> blank screen,
+  arcade strip-source outside genesistan_scene_a0_ranges).
+- **R1-S2 (Phase A):** castle Plane-A reuses a small-cave residency/epoch lacking castle metatiles;
+  palette has no castle family (provisional); impassable point UNRESOLVED (3 candidates: readiness latch,
+  BG collision side-channel 0x559B2, segment transition) -- needs Tighe's location + camera-scroll note.
+- **R1-S3 (Phase B):** boss records 21-22 are unconverted (epochs stop at 20) -> wrong Layer A. Post-boss
+  "freeze" is NOT a 68000 lockup: sprites+HUD animate and Re-In-Carnation ($27) later fires, proving the
+  game-state/sound machine advanced -> it is a native scene-load/content failure for the post-boss scene.
+- **R2-S1 (Phase C):** selection works; Round-2 PC080SN content never generated. Defines the reusable
+  per-round approach: parameterize the compiler per round, add per-round scene packages/dispatch/
+  residency ranges + scene_a0_ranges, per-round palette decisions (Tighe authors in Composer) -- data
+  only, reuse the round-agnostic renderer/DMA.
+- Phased worklist A/B/C/D with per-item problem/root-cause/arcade-ref/genesis-ref/correction/deps/perf/
+  verify/regression; performance guardrail = offline conversion + display-off scene loads only (68000 is
+  cycle-constrained). Unresolved items listed with the exact evidence needed.
+- Deliverable: docs/design/Andy_RG020_native_stage_audit_cody_handoff.md. No code changed; push blocked (SSH).
