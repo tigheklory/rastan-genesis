@@ -53628,3 +53628,31 @@ authentic music commands. Accepted Build 0492 R1-S1 behavior preserved.
   register-stream↔.vgz correlation follow-up. SFX still deferred. OPEN-039 OPEN.
 - **Push still blocked** in this environment (origin SSH, no key); commits are local.
 - **Design note:** `docs/design/Andy_AUDIO015_multisong_dispatch_and_diagnostic.md` (Build 0494 section).
+
+## RG-018 — Build-time starting-subround test ROM variants (Andy, 2026-10-24)
+
+Added optional build-time generation of 18 starting-subround test ROMs (6 rounds × 3 subrounds) from
+the current numbered canonical ROM. `make release` is unchanged; no build number consumed; canonical
+never overwritten.
+
+- **Mechanism (traced):** the original stage decoder at 0x04527E/0x04529C reads the packed selector at
+  arcade 0x05FF9F (round=(~byte&7)+1, bit3=Boss, bit5=Castle); default 0xFF = R1 Outside. Maps via the
+  address map to Genesis ROM offset 0x05FFE5 (the exact byte the accepted invincible variant already
+  patches, proving it is read and effective). Selector values match the MAME cheat items/task table.
+  NOTE: the cheat XML writes 0x05FFFD, not 0x05FF9F; implementation follows the game's traced READ
+  address 0x05FF9F (confirmed by the invincible-variant precedent).
+- **Tools:** tools/translation/build_subround_variant.py (address-map-driven single-byte patch of a
+  copy of the parent canonical ROM), tools/translation/verify_subround_variants.py (selector↔cheat,
+  one-byte-only patch, naming, all-18, invalid-input rejection, determinism — ALL PASS),
+  tools/mame/scripts/subround_start_probe.lua (diagnostic).
+- **Makefile:** `test-subround ROUND=r SUBROUND=s` and `test-subrounds` (all 18 + verify). Added to
+  .PHONY; resolve the parent build tag at use time; require the canonical ROM to exist.
+- **Generated:** 18 ROMs `rastan_direct_video_test_build_0494_S<r>-<s>.bin` (parent 0494, SHA
+  99d2ccd2...). Each differs from canonical only at 0x05FFE5 (S1-1 is byte-identical = default).
+- **Stage-init probe: INCONCLUSIVE by automation** — round var read 1 / stage index 0 for S1-1/S3-1/S6-1
+  (stage index 0 even for R1, so the probe is not sampling the decode's effect, OR the decode path
+  gated by a5@0x104 is not exercised on the current Genesis start). This is NOT evidence the patch is
+  wrong (selector verified correct + invincible precedent). Stage playability deferred to Tighe's
+  BlastEm/hardware validation, per the task; these ROMs are a mechanism to expose incomplete later-stage
+  functionality, not a claim that later stages are playable.
+- Design note: docs/design/Andy_RG018_buildtime_subround_variants.md. Push still blocked (origin SSH).

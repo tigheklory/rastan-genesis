@@ -278,7 +278,7 @@ FULL_HUD_BUILD_FLAGS := PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) RASTAN_
 INVINCIBLE_BUILD_FLAGS := PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) RASTAN_GAMEPLAY_HUD_SPRITES=2 RASTAN_DIAG_CPU_BAR=0 RASTAN_DIAG_SCORE_METRIC=0 RASTAN_VBLANK_DISPLAY_OFF=0 RASTAN_MODE_RACK_ADVANCE=0 RASTAN_INVINCIBLE=1
 
 .DELETE_ON_ERROR:
-.PHONY: all clean release FORCE_ASM_REBUILD dual-build diag-variant score-variant do-variant cheat-variant full-hud-variant invincible-variant verify-variant-set
+.PHONY: all clean release FORCE_ASM_REBUILD dual-build diag-variant score-variant do-variant cheat-variant full-hud-variant invincible-variant verify-variant-set test-subround test-subrounds
 
 # Every build produces SEVEN ROMs sharing one build number:
 #   ..._NNNN.bin     release (all diag/variant flags off) -- owns the counter/gates/ledger
@@ -1016,3 +1016,51 @@ $(OUT_DIR)/fg_tile_cache.o: $(PC080SN_BOUNDARY_PACKAGES) \
 .PHONY: pc080sn-compile
 pc080sn-compile: $(MAINCPU_REGION) $(PC080SN_REGION)
 	$(PYTHON) "$(ROOT)/tools/translation/compile_pc080sn_genesis.py"
+
+# ---- RG-018: build-time starting-subround test ROM variants -----------------
+# Optional. These derive from the CURRENT numbered canonical ROM by patching the
+# single relocated startup selector byte (arcade 0x05FF9F -> Genesis ROM, via the
+# address map). They do NOT rebuild, renumber, or overwrite the canonical ROM, and
+# do NOT emit _d/_s/_do/_c/_full_hud/_invincible per subround. `make release` is
+# unaffected (these targets are never invoked by it).
+SUBROUND_BUILDER   := $(ROOT)/tools/translation/build_subround_variant.py
+SUBROUND_VERIFY    := $(ROOT)/tools/translation/verify_subround_variants.py
+SUBROUND_ADDR_MAP  := $(ROOT)/build/rastan-direct/address_map.json
+SUBROUND_CHEAT_XML := $(ROOT)/tools/mame/cheat/output.xml
+
+# Resolve the current parent build tag + canonical ROM at use time (not parse time).
+define SUBROUND_RESOLVE
+	n=$$(if [ -f "$(NUMBERED_COUNTER)" ]; then cat "$(NUMBERED_COUNTER)"; else echo 0; fi); \
+	tag=$$(printf "%04d" "$$n"); \
+	parent="$(NUMBERED_DIST_DIR)/$(NUMBERED_PREFIX)_$${tag}.bin"; \
+	if [ ! -s "$$parent" ]; then \
+		echo "ERROR: parent canonical ROM $$parent not found; run 'make -C apps/rastan-direct release' first" >&2; \
+		exit 1; \
+	fi; \
+	if [ ! -s "$(SUBROUND_ADDR_MAP)" ]; then \
+		echo "ERROR: address map $(SUBROUND_ADDR_MAP) not found; build the canonical ROM first" >&2; \
+		exit 1; \
+	fi
+endef
+
+# make test-subround ROUND=1 SUBROUND=2
+test-subround:
+	@if [ -z "$(ROUND)" ] || [ -z "$(SUBROUND)" ]; then \
+		echo "usage: make test-subround ROUND=<1-6> SUBROUND=<1=Outside|2=Castle|3=Boss>" >&2; exit 2; fi
+	@$(SUBROUND_RESOLVE); \
+	out="$(NUMBERED_DIST_DIR)/$(NUMBERED_PREFIX)_$${tag}_S$(ROUND)-$(SUBROUND).bin"; \
+	$(PYTHON) "$(SUBROUND_BUILDER)" --rom "$$parent" --address-map "$(SUBROUND_ADDR_MAP)" \
+		--round "$(ROUND)" --subround "$(SUBROUND)" --output "$$out"
+
+# make test-subrounds  -> all 18 variants for the current parent build, then verify
+test-subrounds:
+	@$(SUBROUND_RESOLVE); \
+	for r in 1 2 3 4 5 6; do for s in 1 2 3; do \
+		out="$(NUMBERED_DIST_DIR)/$(NUMBERED_PREFIX)_$${tag}_S$${r}-$${s}.bin"; \
+		$(PYTHON) "$(SUBROUND_BUILDER)" --rom "$$parent" --address-map "$(SUBROUND_ADDR_MAP)" \
+			--round "$$r" --subround "$$s" --output "$$out" >/dev/null || exit 1; \
+	done; done; \
+	echo "generated 18 subround variants for build $$tag"; \
+	$(PYTHON) "$(SUBROUND_VERIFY)" --canonical "$$parent" --address-map "$(SUBROUND_ADDR_MAP)" \
+		--cheat-xml "$(SUBROUND_CHEAT_XML)" --dist-dir "$(NUMBERED_DIST_DIR)" \
+		--prefix "$(NUMBERED_PREFIX)_$${tag}" --require-all
