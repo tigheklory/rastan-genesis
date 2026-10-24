@@ -337,9 +337,13 @@ async function refreshProfiles() {
 async function loadProfile(pid) {
   PROF = await getJSON("/api/profile?p=" + encodeURIComponent(pid) + (TRACK ? "&track=" + encodeURIComponent(TRACK.track_id) : ""));
   PROF.track_routings = PROF.track_routings || {};
-  // migrate a legacy single flat routing into its track's per-song slot
-  if (!Object.keys(PROF.track_routings).length && PROF.track_id && PROF.approved_routing &&
-      Object.keys(PROF.approved_routing).length) {
+  // Migrate the active track's top-level routing into its per-song slot whenever that
+  // slot is MISSING (not only when track_routings is entirely empty).  The old
+  // "only if empty" guard is why Scene Clear / Final Boss were lost: once any songs
+  // were in track_routings, a track whose decisions lived only at top level was never
+  // migrated, and selectTrack->applyTrackRouting then wiped the working copy.
+  if (PROF.track_id && !(PROF.track_routings[PROF.track_id]) &&
+      PROF.approved_routing && Object.keys(PROF.approved_routing).length) {
     PROF.track_routings[PROF.track_id] = {
       approved_routing: PROF.approved_routing, proposals: PROF.proposals || {},
       noise_mode: PROF.noise_mode || "fixed_1024", instrument_overrides: PROF.instrument_overrides || {},

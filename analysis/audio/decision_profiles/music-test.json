@@ -4,15 +4,15 @@
  "display_name": "music-test",
  "immutable": false,
  "parent": "baseline_current",
- "track_id": "09 - The Man Of Saga (Ending)",
+ "track_id": "08 - Final Destroy (Scene 3 Round 6 Boss)",
  "source": {
   "rom": "build/regions/audiocpu.bin (b04-19.49)",
   "capture_dir": "audio/rastan_music_dump/conversion_attempts",
   "analysis_version": "AUDIO-002/004 capture-derived; AUDIO-003 NOT decoded"
  },
  "arcade_evidence": {
-  "track_id": "09 - The Man Of Saga (Ending)",
-  "musical_name": "Ending",
+  "track_id": "08 - Final Destroy (Scene 3 Round 6 Boss)",
+  "musical_name": "Final Boss",
   "command_id": null,
   "channels_ever_keyed": [
    0,
@@ -20,27 +20,24 @@
    2,
    3,
    4,
-   5,
-   6,
-   7
+   5
   ],
-  "peak_simultaneously_keyed": 8,
+  "peak_simultaneously_keyed": 6,
   "sustained_channels_heuristic": [
+   0,
    1,
    2,
    3,
    4,
-   5,
-   6,
-   7
+   5
   ],
   "channels": [
    {
     "ch": 0,
-    "role": "sporadic_or_sfx_candidate",
-    "keyon": 18,
-    "distinct_pitches": 17,
-    "algorithm": 1,
+    "role": "musical",
+    "keyon": 348,
+    "distinct_pitches": 31,
+    "algorithm": 2,
     "feedback": 7,
     "carrier_operators": 1,
     "psg_candidacy_inferred": "keep_fm"
@@ -48,18 +45,18 @@
    {
     "ch": 1,
     "role": "musical",
-    "keyon": 34,
-    "distinct_pitches": 20,
-    "algorithm": 3,
-    "feedback": 6,
+    "keyon": 347,
+    "distinct_pitches": 27,
+    "algorithm": 2,
+    "feedback": 7,
     "carrier_operators": 1,
     "psg_candidacy_inferred": "keep_fm"
    },
    {
     "ch": 2,
     "role": "musical",
-    "keyon": 38,
-    "distinct_pitches": 35,
+    "keyon": 169,
+    "distinct_pitches": 29,
     "algorithm": 1,
     "feedback": 7,
     "carrier_operators": 1,
@@ -68,18 +65,18 @@
    {
     "ch": 3,
     "role": "musical",
-    "keyon": 64,
-    "distinct_pitches": 11,
-    "algorithm": 3,
-    "feedback": 5,
+    "keyon": 127,
+    "distinct_pitches": 38,
+    "algorithm": 1,
+    "feedback": 7,
     "carrier_operators": 1,
     "psg_candidacy_inferred": "keep_fm"
    },
    {
     "ch": 4,
     "role": "musical",
-    "keyon": 38,
-    "distinct_pitches": 37,
+    "keyon": 365,
+    "distinct_pitches": 22,
     "algorithm": 1,
     "feedback": 7,
     "carrier_operators": 1,
@@ -88,83 +85,87 @@
    {
     "ch": 5,
     "role": "musical",
-    "keyon": 77,
-    "distinct_pitches": 14,
-    "algorithm": 1,
+    "keyon": 364,
+    "distinct_pitches": 24,
+    "algorithm": 5,
     "feedback": 7,
-    "carrier_operators": 1,
-    "psg_candidacy_inferred": "keep_fm"
+    "carrier_operators": 3,
+    "psg_candidacy_inferred": "marginal"
    },
    {
     "ch": 6,
-    "role": "musical",
-    "keyon": 66,
-    "distinct_pitches": 34,
-    "algorithm": 1,
-    "feedback": 7,
-    "carrier_operators": 1,
-    "psg_candidacy_inferred": "keep_fm"
+    "role": "idle",
+    "keyon": 0,
+    "distinct_pitches": 0,
+    "algorithm": null,
+    "feedback": null,
+    "carrier_operators": null,
+    "psg_candidacy_inferred": "unknown"
    },
    {
     "ch": 7,
-    "role": "musical",
-    "keyon": 67,
-    "distinct_pitches": 34,
-    "algorithm": 1,
-    "feedback": 7,
-    "carrier_operators": 1,
-    "psg_candidacy_inferred": "keep_fm"
+    "role": "idle",
+    "keyon": 0,
+    "distinct_pitches": 0,
+    "algorithm": null,
+    "feedback": null,
+    "carrier_operators": null,
+    "psg_candidacy_inferred": "unknown"
    }
   ],
   "provenance": "server-derived from build/audio/fm_psg_analysis + ym2151_track_reports; capture-derived, AUDIO-003 not decoded; occupancy != audible polyphony."
  },
  "proposals": {
   "0": {
-   "dest": "psg_tone1",
-   "rationale": "user proposal (unaudited)",
-   "evidence": "capture-derived role"
-  },
-  "1": {
    "dest": "ym2612_fm1",
    "rationale": "user proposal (unaudited)",
    "evidence": "capture-derived role"
   },
-  "2": {
+  "1": {
    "dest": "ym2612_fm2",
    "rationale": "user proposal (unaudited)",
    "evidence": "capture-derived role"
   },
-  "3": {
-   "dest": "ym2612_fm3",
+  "2": {
+   "dest": "psg_tone1",
    "rationale": "user proposal (unaudited)",
    "evidence": "capture-derived role"
   },
-  "4": {
+  "3": {
    "dest": "ym2612_fm4",
    "rationale": "user proposal (unaudited)",
    "evidence": "capture-derived role"
   },
-  "5": {
+  "4": {
    "dest": "ym2612_fm5",
+   "rationale": "user proposal (unaudited)",
+   "evidence": "capture-derived role"
+  },
+  "5": {
+   "dest": "ym2612_fm3",
    "rationale": "user proposal (unaudited)",
    "evidence": "capture-derived role"
   }
  },
  "approved_routing": {
-  "0": "psg_tone1",
-  "1": "ym2612_fm1",
-  "2": "ym2612_fm2",
-  "3": "ym2612_fm3",
-  "4": "ym2612_fm4",
-  "5": "ym2612_fm5"
+  "0": "ym2612_fm1",
+  "1": "ym2612_fm2",
+  "2": "psg_tone1",
+  "3": "ym2612_fm4",
+  "4": "ym2612_fm5",
+  "5": "ym2612_fm3"
  },
  "noise_mode": "fixed_1024",
- "instrument_overrides": {},
+ "instrument_overrides": {
+  "2": {
+   "level": 136
+  }
+ },
  "time_dependent_routing": [],
  "conflicts": [],
- "notes": "",
+ "notes": "\nAUDIO-015: recovered Scene Clear (from r8) and Final Boss (from r13 top level) into track_routings after the persistence bug; approvals preserved as stored.",
  "approval_status": "draft",
- "revision": 11,
+ "revision": 14,
  "reserved_dac": "ym2612_fm6_dac",
  "music_destinations": [
   "ym2612_fm1",
@@ -179,8 +180,8 @@
   "unassigned"
  ],
  "arcade_channel_count": 8,
- "revision_id": "music-test.r11.20261022T220736Z",
- "modified": "2026-10-22T22:07:36Z",
+ "revision_id": "music-test.r14.20261023T204126Z",
+ "modified": "2026-10-23T20:41:26Z",
  "track_routings": {
   "09 - The Man Of Saga (Ending)": {
    "approved_routing": {
@@ -477,6 +478,98 @@
    },
    "noise_mode": "fixed_1024",
    "instrument_overrides": {}
+  },
+  "07 - Scene Clear": {
+   "approved_routing": {
+    "0": "ym2612_fm1",
+    "1": "ym2612_fm2",
+    "2": "ym2612_fm3",
+    "3": "ym2612_fm4",
+    "4": "ym2612_fm5",
+    "5": "psg_noise"
+   },
+   "proposals": {
+    "0": {
+     "dest": "ym2612_fm1",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    },
+    "1": {
+     "dest": "ym2612_fm2",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    },
+    "2": {
+     "dest": "ym2612_fm3",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    },
+    "3": {
+     "dest": "ym2612_fm4",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    },
+    "4": {
+     "dest": "ym2612_fm5",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    },
+    "5": {
+     "dest": "psg_noise",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    }
+   },
+   "noise_mode": "fixed_1024",
+   "instrument_overrides": {}
+  },
+  "08 - Final Destroy (Scene 3 Round 6 Boss)": {
+   "approved_routing": {
+    "0": "ym2612_fm1",
+    "1": "ym2612_fm2",
+    "2": "psg_tone1",
+    "3": "ym2612_fm4",
+    "4": "ym2612_fm5",
+    "5": "ym2612_fm3"
+   },
+   "proposals": {
+    "0": {
+     "dest": "ym2612_fm1",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    },
+    "1": {
+     "dest": "ym2612_fm2",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    },
+    "2": {
+     "dest": "psg_tone1",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    },
+    "3": {
+     "dest": "ym2612_fm4",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    },
+    "4": {
+     "dest": "ym2612_fm5",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    },
+    "5": {
+     "dest": "ym2612_fm3",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    }
+   },
+   "noise_mode": "fixed_1024",
+   "instrument_overrides": {
+    "2": {
+     "level": 136
+    }
+   }
   }
  }
 }

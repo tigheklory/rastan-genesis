@@ -1,0 +1,489 @@
+{
+ "schema": "audio_composer/v2",
+ "profile_id": "music-test",
+ "display_name": "music-test",
+ "immutable": false,
+ "parent": "baseline_current",
+ "track_id": "02 - Broken The Promises (Opening)",
+ "source": {
+  "rom": "build/regions/audiocpu.bin (b04-19.49)",
+  "capture_dir": "audio/rastan_music_dump/conversion_attempts",
+  "analysis_version": "AUDIO-002/004 capture-derived; AUDIO-003 NOT decoded"
+ },
+ "arcade_evidence": {
+  "track_id": "02 - Broken The Promises (Opening)",
+  "musical_name": "Opening",
+  "command_id": null,
+  "channels_ever_keyed": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7
+  ],
+  "peak_simultaneously_keyed": 8,
+  "sustained_channels_heuristic": [
+   1,
+   2
+  ],
+  "channels": [
+   {
+    "ch": 0,
+    "role": "sporadic_or_sfx_candidate",
+    "keyon": 4,
+    "distinct_pitches": 2,
+    "algorithm": 1,
+    "feedback": 7,
+    "carrier_operators": 1,
+    "psg_candidacy_inferred": "keep_fm"
+   },
+   {
+    "ch": 1,
+    "role": "musical",
+    "keyon": 48,
+    "distinct_pitches": 3,
+    "algorithm": 1,
+    "feedback": 7,
+    "carrier_operators": 1,
+    "psg_candidacy_inferred": "keep_fm"
+   },
+   {
+    "ch": 2,
+    "role": "musical",
+    "keyon": 48,
+    "distinct_pitches": 3,
+    "algorithm": 1,
+    "feedback": 7,
+    "carrier_operators": 1,
+    "psg_candidacy_inferred": "keep_fm"
+   },
+   {
+    "ch": 3,
+    "role": "sparse",
+    "keyon": 2,
+    "distinct_pitches": 2,
+    "algorithm": 1,
+    "feedback": 7,
+    "carrier_operators": 1,
+    "psg_candidacy_inferred": "keep_fm"
+   },
+   {
+    "ch": 4,
+    "role": "sparse",
+    "keyon": 2,
+    "distinct_pitches": 2,
+    "algorithm": 1,
+    "feedback": 7,
+    "carrier_operators": 1,
+    "psg_candidacy_inferred": "keep_fm"
+   },
+   {
+    "ch": 5,
+    "role": "sparse",
+    "keyon": 2,
+    "distinct_pitches": 2,
+    "algorithm": 1,
+    "feedback": 7,
+    "carrier_operators": 1,
+    "psg_candidacy_inferred": "keep_fm"
+   },
+   {
+    "ch": 6,
+    "role": "sparse",
+    "keyon": 2,
+    "distinct_pitches": 1,
+    "algorithm": 5,
+    "feedback": 7,
+    "carrier_operators": 3,
+    "psg_candidacy_inferred": "marginal"
+   },
+   {
+    "ch": 7,
+    "role": "sparse",
+    "keyon": 2,
+    "distinct_pitches": 2,
+    "algorithm": 1,
+    "feedback": 7,
+    "carrier_operators": 1,
+    "psg_candidacy_inferred": "keep_fm"
+   }
+  ],
+  "provenance": "server-derived from build/audio/fm_psg_analysis + ym2151_track_reports; capture-derived, AUDIO-003 not decoded; occupancy != audible polyphony."
+ },
+ "proposals": {
+  "0": {
+   "dest": "psg_tone1",
+   "rationale": "user proposal (unaudited)",
+   "evidence": "capture-derived role"
+  },
+  "1": {
+   "dest": "ym2612_fm1",
+   "rationale": "user proposal (unaudited)",
+   "evidence": "capture-derived role"
+  },
+  "2": {
+   "dest": "ym2612_fm2",
+   "rationale": "user proposal (unaudited)",
+   "evidence": "capture-derived role"
+  },
+  "3": {
+   "dest": "ym2612_fm3",
+   "rationale": "user proposal (unaudited)",
+   "evidence": "capture-derived role"
+  },
+  "4": {
+   "dest": "ym2612_fm4",
+   "rationale": "user proposal (unaudited)",
+   "evidence": "capture-derived role"
+  },
+  "5": {
+   "dest": "ym2612_fm5",
+   "rationale": "user proposal (unaudited)",
+   "evidence": "capture-derived role"
+  },
+  "6": {
+   "dest": "psg_tone2",
+   "rationale": "user proposal (unaudited)",
+   "evidence": "capture-derived role"
+  },
+  "7": {
+   "dest": "psg_tone3",
+   "rationale": "user proposal (unaudited)",
+   "evidence": "capture-derived role"
+  }
+ },
+ "approved_routing": {
+  "0": "psg_tone1",
+  "1": "ym2612_fm1",
+  "2": "ym2612_fm2",
+  "3": "ym2612_fm3",
+  "4": "ym2612_fm4",
+  "5": "ym2612_fm5",
+  "6": "psg_tone2",
+  "7": "psg_tone3"
+ },
+ "noise_mode": "fixed_1024",
+ "instrument_overrides": {},
+ "time_dependent_routing": [],
+ "conflicts": [],
+ "notes": "",
+ "approval_status": "draft",
+ "revision": 12,
+ "reserved_dac": "ym2612_fm6_dac",
+ "music_destinations": [
+  "ym2612_fm1",
+  "ym2612_fm2",
+  "ym2612_fm3",
+  "ym2612_fm4",
+  "ym2612_fm5",
+  "psg_tone1",
+  "psg_tone2",
+  "psg_tone3",
+  "psg_noise",
+  "unassigned"
+ ],
+ "arcade_channel_count": 8,
+ "revision_id": "music-test.r12.20261023T195952Z",
+ "modified": "2026-10-23T19:59:52Z",
+ "track_routings": {
+  "09 - The Man Of Saga (Ending)": {
+   "approved_routing": {
+    "0": "psg_tone1",
+    "1": "ym2612_fm1",
+    "2": "ym2612_fm2",
+    "3": "ym2612_fm3",
+    "4": "ym2612_fm4",
+    "5": "ym2612_fm5"
+   },
+   "proposals": {
+    "0": {
+     "dest": "psg_tone1",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    },
+    "1": {
+     "dest": "ym2612_fm1",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    },
+    "2": {
+     "dest": "ym2612_fm2",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    },
+    "3": {
+     "dest": "ym2612_fm3",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    },
+    "4": {
+     "dest": "ym2612_fm4",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    },
+    "5": {
+     "dest": "ym2612_fm5",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    }
+   },
+   "noise_mode": "fixed_1024",
+   "instrument_overrides": {}
+  },
+  "03 - Aggressive World (Scene 1)": {
+   "approved_routing": {
+    "0": "psg_tone1",
+    "1": "ym2612_fm1",
+    "2": "ym2612_fm2",
+    "3": "ym2612_fm3",
+    "4": "ym2612_fm4",
+    "5": "ym2612_fm5"
+   },
+   "proposals": {
+    "0": {
+     "dest": "psg_tone1",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    },
+    "1": {
+     "dest": "ym2612_fm1",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    },
+    "2": {
+     "dest": "ym2612_fm2",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    },
+    "3": {
+     "dest": "ym2612_fm3",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    },
+    "4": {
+     "dest": "ym2612_fm4",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    },
+    "5": {
+     "dest": "ym2612_fm5",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    }
+   },
+   "noise_mode": "fixed_1024",
+   "instrument_overrides": {}
+  },
+  "01 - Credit": {
+   "approved_routing": {
+    "6": "ym2612_fm1",
+    "7": "ym2612_fm2"
+   },
+   "proposals": {
+    "6": {
+     "dest": "ym2612_fm1",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    },
+    "7": {
+     "dest": "ym2612_fm2",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    }
+   },
+   "noise_mode": "fixed_1024",
+   "instrument_overrides": {}
+  },
+  "02 - Broken The Promises (Opening)": {
+   "approved_routing": {
+    "0": "psg_tone1",
+    "1": "ym2612_fm1",
+    "2": "ym2612_fm2",
+    "3": "ym2612_fm3",
+    "4": "ym2612_fm4",
+    "5": "ym2612_fm5",
+    "6": "psg_tone2",
+    "7": "psg_tone3"
+   },
+   "proposals": {
+    "0": {
+     "dest": "psg_tone1",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    },
+    "1": {
+     "dest": "ym2612_fm1",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    },
+    "2": {
+     "dest": "ym2612_fm2",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    },
+    "3": {
+     "dest": "ym2612_fm3",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    },
+    "4": {
+     "dest": "ym2612_fm4",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    },
+    "5": {
+     "dest": "ym2612_fm5",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    },
+    "6": {
+     "dest": "psg_tone2",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    },
+    "7": {
+     "dest": "psg_tone3",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    }
+   },
+   "noise_mode": "fixed_1024",
+   "instrument_overrides": {}
+  },
+  "04 - Bad Bible (Name Regist)": {
+   "approved_routing": {
+    "0": "ym2612_fm1",
+    "1": "ym2612_fm2",
+    "2": "ym2612_fm3",
+    "3": "ym2612_fm4",
+    "4": "ym2612_fm5",
+    "5": "psg_tone3"
+   },
+   "proposals": {
+    "0": {
+     "dest": "ym2612_fm1",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    },
+    "1": {
+     "dest": "ym2612_fm2",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    },
+    "2": {
+     "dest": "ym2612_fm3",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    },
+    "3": {
+     "dest": "ym2612_fm4",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    },
+    "4": {
+     "dest": "ym2612_fm5",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    },
+    "5": {
+     "dest": "psg_tone3",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    }
+   },
+   "noise_mode": "fixed_1024",
+   "instrument_overrides": {}
+  },
+  "05 - Re-In-Carnation (Scene 2)": {
+   "approved_routing": {
+    "0": "ym2612_fm1",
+    "1": "ym2612_fm2",
+    "2": "ym2612_fm3",
+    "3": "ym2612_fm4",
+    "4": "ym2612_fm5",
+    "5": "psg_noise"
+   },
+   "proposals": {
+    "0": {
+     "dest": "ym2612_fm1",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    },
+    "1": {
+     "dest": "ym2612_fm2",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    },
+    "2": {
+     "dest": "ym2612_fm3",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    },
+    "3": {
+     "dest": "ym2612_fm4",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    },
+    "4": {
+     "dest": "ym2612_fm5",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    },
+    "5": {
+     "dest": "psg_noise",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    }
+   },
+   "noise_mode": "fixed_1024",
+   "instrument_overrides": {}
+  },
+  "06 - The Devil Boss Carnival (Scene 3 Boss)": {
+   "approved_routing": {
+    "0": "ym2612_fm1",
+    "1": "psg_tone1",
+    "2": "ym2612_fm2",
+    "3": "ym2612_fm3",
+    "4": "ym2612_fm4",
+    "5": "ym2612_fm5"
+   },
+   "proposals": {
+    "0": {
+     "dest": "ym2612_fm1",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    },
+    "1": {
+     "dest": "psg_tone1",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    },
+    "2": {
+     "dest": "ym2612_fm2",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    },
+    "3": {
+     "dest": "ym2612_fm3",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    },
+    "4": {
+     "dest": "ym2612_fm4",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    },
+    "5": {
+     "dest": "ym2612_fm5",
+     "rationale": "user proposal (unaudited)",
+     "evidence": "capture-derived role"
+    }
+   },
+   "noise_mode": "fixed_1024",
+   "instrument_overrides": {}
+  }
+ }
+}

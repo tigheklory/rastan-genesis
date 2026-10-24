@@ -602,6 +602,34 @@ class Hd(BaseHTTPRequestHandler):
             merged.setdefault("approved_routing", {})
             if merged.get("approval_status") == "approved" and not merged["approved_routing"]:
                 merged["approval_status"] = "draft"
+
+            # AUDIO-015 persistence fix: track_routings is the authoritative per-song
+            # store the ROM compiler reads.  The top-level approved_routing/proposals/
+            # noise_mode/instrument_overrides are only the ACTIVE track's working copy.
+            # Previously the server trusted the client to fold the active track into
+            # track_routings; a client load bug could leave a saved song's decisions at
+            # top level only, so it never reached track_routings (Scene Clear/Final Boss).
+            # The server now folds the active track every save so a save ALWAYS persists
+            # that song's decisions into its per-song entry.  It does not clobber an
+            # existing non-empty entry with an empty working copy (guards against a wiped
+            # working copy overwriting good saved data).
+            tr = merged.get("track_routings")
+            if not isinstance(tr, dict):
+                tr = {}
+            active = merged.get("track_id")
+            if active:
+                active_entry = {
+                    "approved_routing": merged.get("approved_routing", {}),
+                    "proposals": merged.get("proposals", {}),
+                    "noise_mode": merged.get("noise_mode", "fixed_1024"),
+                    "instrument_overrides": merged.get("instrument_overrides", {}),
+                }
+                prior = tr.get(active)
+                prior_has = isinstance(prior, dict) and prior.get("approved_routing")
+                if active_entry["approved_routing"] or not prior_has:
+                    tr[active] = active_entry
+            merged["track_routings"] = tr
+
             merged["conflicts"] = conflicts
             merged["reserved_dac"] = RESERVED_DAC
             merged["revision"] = (prev.get("revision", 0) + 1) if isinstance(prev, dict) else 1

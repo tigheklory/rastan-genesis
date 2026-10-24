@@ -126,9 +126,122 @@ call sites. Future SFX architecture should provide:
 **Do not** integrate the SGDK sound driver or begin PCM work until authored music is finished and
 Tighe directs it.
 
-## 7. Status
+## 7. Status (Build 0493)
 - Build 0492 accepted baseline, tagged `accepted/build-0492`.
 - Build 0493: all seven authored songs decode (diagnostic); one proven authentic mapping (`0x25`);
   six authentic BGM commands remain UNRESOLVED and are labeled as such.
-- **OPEN-039 remains OPEN**: authentic BGM command→song resolution for the six non-`$25` songs
-  (AUDIO-002/009 register-stream↔`.vgz` correlation) and the deferred native SFX work.
+
+---
+
+# Build 0494 — Nine songs, Composer persistence repair, and authentic Credit/Scene-2 mappings
+
+**Date:** 2026-10-24 · **ROM SHA:** `99d2ccd2b3e9dd08d5a7e31c2195a0c8acd58024040702b83965fa58691de677`.
+
+## 8. Audio Composer persistence bug — cause, permanent fix, recovery
+
+**Symptom:** two authored songs — **07 Scene Clear** and **08 Final Destroy** — never reached the ROM
+(`track_routings` held only 7). Their routings survived only as the *active-track* top-level working
+copy in revision snapshots (07 in `music-test.r8.json`, 08 in `music-test.r13.json` / current).
+
+**Cause:** `track_routings` is the authoritative per-song store the ROM compiler reads. The server
+(`tools/audio_composer/server.py`) never maintained it — it trusted the client. The client
+(`tools/audio_composer/app.js`) folded the active track into `track_routings` on save/switch
+(`stashTrackRouting`), **but** `loadProfile` only migrated a top-level routing into `track_routings`
+when that map was **entirely empty**. Once any song was in `track_routings`, a track whose decisions
+lived only at top level was never migrated, and `selectTrack → applyTrackRouting` then **wiped** the
+working copy (loading an absent per-song entry as `{}`). So 07/08 — the last songs authored, whose
+per-song entries were never created — were dropped on the next load/save cycle.
+
+**Permanent fix (two layers):**
+1. **Server (authoritative):** `/api/profile` now folds the active track's top-level decisions into
+   `track_routings[track_id]` on **every** save, so a save always persists that song. It will not
+   clobber an existing non-empty per-song entry with an empty working copy.
+2. **Client:** `loadProfile` migrates the active track's top-level routing into `track_routings`
+   whenever that per-song entry is **missing** (not only when the whole map is empty), so selecting a
+   top-level-only song can no longer wipe it.
+
+**Regression test:** `tools/audio_composer/verify_audio_composer.py` tests 22a/b/c (save → switch →
+reload persists both songs; an emptied working copy does not clobber a saved routing). Full suite:
+**40 passed, 0 failed**.
+
+**Recovery (no manufactured approvals):** `tools/audio_composer/recover_lost_track_routings.py` folds
+07's saved top-level routing from r8 and 08's from the current profile into `track_routings`, using the
+stored `approved_routing` (the user-approved channels) / `proposals` / `noise_mode` /
+`instrument_overrides` verbatim. `approval_status` is a profile-level field, not per-channel; the
+per-channel approvals ARE `approved_routing`, so recovering it preserves real approval semantics. The
+full profile + all revisions were backed up first to
+`analysis/audio/decision_profiles/_backup_pre_migration_*`. `track_routings` now holds **all nine**
+authored songs (new revision r14); nothing was discarded or overwritten.
+
+## 9. Complete nine-track inventory and verified command mapping table
+
+| ID | Composer track | Authentic command | Status | Diagnostic selector | Decode |
+|---|---|---|---|---|---|
+| 1 | 01 - Credit | **`0x04`** (coin / credit screen) | **PROVEN** | `0xD0` | PASS |
+| 2 | 02 - Broken The Promises (Opening) | — | UNRESOLVED | `0xD1` | PASS |
+| 3 | 03 - Aggressive World (Scene 1) | **`0x25`** (appearance, spawn column) | **PROVEN** (hw-accepted) | `0xD2` | PASS |
+| 4 | 04 - Bad Bible (Name Regist) | — | UNRESOLVED | `0xD3` | PASS |
+| 5 | 05 - Re-In-Carnation (Scene 2) | **`0x27`** (R1-S2 castle, substate 9) | **PROVEN** | `0xD4` | PASS |
+| 6 | 06 - The Devil Boss Carnival (Scene 3 Boss) | — | UNRESOLVED | `0xD5` | PASS |
+| 7 | 07 - Scene Clear | — | UNRESOLVED | `0xD6` | PASS |
+| 8 | 08 - Final Destroy (Final Boss) | — | UNRESOLVED | `0xD7` | PASS |
+| 9 | 09 - The Man Of Saga (Ending) | — | UNRESOLVED | `0xD8` | PASS |
+
+### Newly resolved authentic mappings (from the R1 music sequencer at `0x055DDC`)
+
+The R1 music/segment sequencer steps substate `a5+0x13AA` from 1 to 13 — these are the "segments":
+- **Substate 1** → `$00` (stop) + **`$19`** = Aggressive World (R1-S1 outdoor).
+- Substates 2–8 → scroll/counter work, **no** music command (substate 8 ends the outdoor phase).
+- **Substate 9** (R1-S2 castle, entered via `0x03A848` setting `13AA=9` / `1394=1`) → **`$27`** =
+  **Re-In-Carnation (Scene 2)**.
+
+- **`$27` → Re-In-Carnation (Scene 2):** the authentic castle music-change, proven by the sequencer
+  control flow plus Tighe's observation that the castle plays Re-In-Carnation. Unlike `$19`, the
+  substate-9 send has **no `a5+0x34` sound-enable precondition**, so it is delivered on Genesis
+  (`$19` was not — Build 0487). Wired to production dispatch → fixes "Scene 2 does not begin in the
+  castle." (Finding #2.)
+- **`$04` → Credit:** emitted at the credit state (`state0=1`/`state2=1`) right after coin; a 2-channel
+  cue matching Credit's 2 keyed channels; already delivered to the Z80 ring on Genesis. Wired →
+  fixes "Credit does not play at coin." (Finding #3.) The runtime gate shows the driver now activates
+  at frame 120 (the `$04` Credit start) ahead of the `$25` appearance.
+- `$19` → Aggressive World is the authentic Scene-1 command but is not delivered on Genesis (the
+  removed sound-IRQ `a5+0x34` handshake), so Aggressive keeps the hardware-accepted `$25` appearance
+  trigger from Build 0492.
+
+### Still UNRESOLVED (documented evidence gap)
+Opening, Name Registration, Scene 3 Boss, Scene Clear, Final Destroy, Ending: no authentic command is
+proven. `build/audio/music_command_inventory.json` records command→song as UNRESOLVED and channel
+counts do not disambiguate. Their contexts are unreachable in Genesis automation (the translated 68000
+core stalls the player at `player_x=0xA7`), so the rigorous resolver is the AUDIO-002/009 follow-up
+(match each command's installed sub-sequence register stream to the captured `.vgz`). Until then they
+are diagnostic-only; no assignment is invented.
+
+## 10. Segment 8 restart fix (shared, not segment-specific)
+
+Build 0492 gated `$25` on `player_state==3`, fixing the segment-5/12 restarts. A residual restart ~2/3
+through segment 8 remained: a mid-stage `player_state==3` re-appearance that passes the state gate. A
+genuine (re)appearance always occurs at the **stage spawn column** (`player_x==0x20`; ORIGINAL ARCADE
+appearance and R1-S1 respawn are both `0x20`), whereas a mid-stage re-appearance is at a large
+`player_x`. The `$25` publish gate now also requires `player_x <= 0x28` (spawn column): the stage song
+(re)starts only at a true spawn. This is the second half of the same shared rule — not a segment-8
+workaround — and preserves the accepted appearance/respawn start, death continuation, and GAME OVER
+stop. **Evidence gap:** segment 8 is unreachable in automation, so the exact `player_x` of the residual
+event is inferred from its mid-stage position; final confirmation is Tighe's hardware audition.
+
+## 11. Build 0494 validation
+- Static gate: `AUDIO_NATIVE_STATIC_PASS driver=564 songs=9 dispatch=3 diagnostic=9 ticks=22433
+  events=204777` (proven `0x04`,`0x25`,`0x27`; diagnostic covers all 9).
+- Canonical coverage invariant updated `0x30FEB8 → 0x335EB8` (+0x27000 for the two recovered songs) —
+  a declared-coverage update like the 7-song one, not a disabled check. All production gates pass.
+- Diagnostic harness: 9/9 songs decode (incl. recovered 07 `0xD6`, 08 `0xD7`).
+- GENESIS NTSC runtime gate: `result=PASS`, accepted R1-S1 behavior preserved, driver activates at the
+  Credit `$04`, `banked_mismatches=0`, no invalid access.
+- Composer workflow: `AUDIO_NATIVE_PROFILE_WORKFLOW_PASS … unchanged=8` — all nine independently
+  editable; Edit→Save→Build→Hear intact.
+- Composer persistence suite: 40 passed, 0 failed.
+
+## 12. Status
+- **OPEN-039 remains OPEN**: authentic command→song for the six UNRESOLVED songs (register-stream↔`.vgz`
+  correlation), Tighe's hardware audition of the `$04`/`$27`/spawn-column fixes, and deferred native SFX.
+- Fixed permanently: the Composer `track_routings` persistence bug (future edits reliably reach the
+  build). All nine authored arrangements now compile and are independently editable and selectable.

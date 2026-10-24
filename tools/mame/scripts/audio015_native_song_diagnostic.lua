@@ -54,7 +54,7 @@ end
 local results = {}
 local frame = 0
 local state = "boot"
-local order, idx = {0xD0, 0xD1, 0xD2, 0xD3, 0xD4, 0xD5, 0xD6}, 0
+local order, idx = {0xD0, 0xD1, 0xD2, 0xD3, 0xD4, 0xD5, 0xD6, 0xD7, 0xD8}, 0
 local phase_frame = 0
 local table_count, table_rows = 0, {}
 local cur_before, active_seen, cur_min, cur_max = 0, false, nil, nil
@@ -103,8 +103,8 @@ emu.register_frame_done(function()
   frame = frame + 1
   if state == "boot" then
     table_count, table_rows = read_table()
-    -- Wait until the 68000 has installed the full song table (8 rows).
-    if table_count >= 8 and frame > settle_frames then
+    -- Wait until the 68000 has installed the full song table (3 proven + 9 diagnostic).
+    if table_count >= 12 and frame > settle_frames then
       state = "run"
       start_song()
     end

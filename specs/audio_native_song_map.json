@@ -6,8 +6,22 @@
       "wire_command": "0x25",
       "track": "03 - Aggressive World (Scene 1)",
       "status": "proven",
-      "semantics": "player appearance/reappearance after death-form filtering at the shared 68000 semantic bridge",
-      "evidence": "Build 0488 ORIGINAL ARCADE timing plus Build 0489 death/respawn command-state proof"
+      "semantics": "player appearance/reappearance at the stage spawn column after death-form filtering at the shared 68000 semantic bridge",
+      "evidence": "Build 0488 ORIGINAL ARCADE timing plus Build 0489 death/respawn command-state proof; hardware-accepted Build 0492"
+    },
+    {
+      "wire_command": "0x04",
+      "track": "01 - Credit",
+      "status": "proven",
+      "semantics": "coin-insert / credit screen music",
+      "evidence": "ORIGINAL ARCADE command-timing (states/traces/audio015_arcade_gameover): 0x04 emitted at the credit state (state0=1,state2=1) immediately after coin; 0x04 is a 2-channel cue and Credit is the 2-keyed-channel coin song; 0x04 is delivered to the Z80 ring on Genesis (native runtime gate command_values EF,04,...). Pending Tighe Genesis hardware audition."
+    },
+    {
+      "wire_command": "0x27",
+      "track": "05 - Re-In-Carnation (Scene 2)",
+      "status": "proven",
+      "semantics": "Round 1 Subround 2 (castle interior) music change",
+      "evidence": "ORIGINAL ARCADE R1 music sequencer at 0x055DDC: substate a5+0x13AA==9 (the castle phase, entered via 0x03A848 setting 13AA=9 / 1394=1) sends command 0x27 via jsr 0x3A0EC; the castle plays Re-In-Carnation (Scene 2). The substate-9 send has no sound-enable (a5+0x34) precondition, so unlike 0x19 it is delivered on Genesis. Pending Tighe Genesis hardware audition."
     }
   ],
   "diagnostic_selection_doc": [
@@ -27,7 +41,9 @@
     { "select_command": "0xD3", "track": "04 - Bad Bible (Name Regist)",                 "status": "diagnostic" },
     { "select_command": "0xD4", "track": "05 - Re-In-Carnation (Scene 2)",               "status": "diagnostic" },
     { "select_command": "0xD5", "track": "06 - The Devil Boss Carnival (Scene 3 Boss)",  "status": "diagnostic" },
-    { "select_command": "0xD6", "track": "09 - The Man Of Saga (Ending)",                "status": "diagnostic" }
+    { "select_command": "0xD6", "track": "07 - Scene Clear",                              "status": "diagnostic" },
+    { "select_command": "0xD7", "track": "08 - Final Destroy (Scene 3 Round 6 Boss)",     "status": "diagnostic" },
+    { "select_command": "0xD8", "track": "09 - The Man Of Saga (Ending)",                 "status": "diagnostic" }
   ],
   "unresolved_authentic_mappings_doc": [
     "Candidate authentic BGM commands observed by context but NOT corroborated against musical",

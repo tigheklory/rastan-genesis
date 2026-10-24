@@ -18,6 +18,8 @@
     .equ ARCADE_OUTER_STATE,  0x00FF0000
     .equ ARCADE_PHASE_STATE,  0x00FF0002
     .equ ARCADE_PLAYER_STATE, 0x00FF10E8
+    .equ ARCADE_PLAYER_X,     0x00FF10BE
+    .equ SPAWN_COLUMN_X,      0x0028
 
 z80_request_bus:
     move.w  #0x0100, Z80_BUSREQ
@@ -102,15 +104,22 @@ z80_write_command:
        The arcade sound CPU distinguished these internally; the native ring
        must preserve that distinction with one shared rule.  Publish $25 only
        in the genuine-appearance form (gameplay outer == 2 AND player_state
-       == 3); consume every other $25.  This both keeps the authentic start /
-       post-READY respawn restart and removes the death restart and the
-       spurious segment-5/8/12 restarts without any per-segment gate. */
+       == 3 AND player_x at the spawn column); consume every other $25.  This
+       keeps the authentic start / post-READY respawn restart and removes the
+       death restart and the spurious segment restarts without any per-segment
+       gate.  A genuine (re)appearance always occurs at the stage spawn column
+       (ORIGINAL ARCADE appearance and R1-S1 respawn are both player_x == 0x20);
+       the residual restart ~2/3 through segment 8 is a mid-stage
+       player_state==3 re-appearance at a large player_x, so requiring the spawn
+       column suppresses it while preserving the accepted spawn/respawn start. */
     cmpi.b  #0x25, %d0
     bne.s   .Lnot_appearance
     cmpi.w  #0x0002, ARCADE_OUTER_STATE
     bne.s   .Lcommand_consumed
     cmpi.w  #0x0003, ARCADE_PLAYER_STATE
     bne.s   .Lcommand_consumed
+    cmpi.w  #SPAWN_COLUMN_X, ARCADE_PLAYER_X
+    bhi.s   .Lcommand_consumed
     bra.s   .Lpublish
 .Lnot_appearance:
     /* Original command $1E is the authentic GAME OVER music cue (song-table

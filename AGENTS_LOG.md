@@ -53588,3 +53588,43 @@ playback-engine change; all work is in generated registry data + tooling.
   unauthored track) not made by this task; it does not affect the compiled 7 songs (compiler uses
   `track_routings`). Left uncommitted and untouched for Tighe to resolve.
 - **Design note:** `docs/design/Andy_AUDIO015_multisong_dispatch_and_diagnostic.md`. OPEN-039 OPEN.
+
+### MAME Exit Summary (2026-10-23 20:47:17)
+- Final PC: 0x03B2C4
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+## AUDIO-015 — Composer persistence fix + nine-song + Credit/Scene-2 mappings (Andy, Build 0494, 2026-10-24)
+
+Root-caused and permanently fixed the Audio Composer persistence bug that dropped Scene Clear (07) and
+Final Boss (08), recovered both, completed the nine-song native library, and wired two newly-proven
+authentic music commands. Accepted Build 0492 R1-S1 behavior preserved.
+
+- **Persistence bug:** `track_routings` (the per-song store the ROM compiler reads) was maintained only
+  by the client; `loadProfile` migrated a top-level routing into it ONLY when the map was entirely
+  empty, so once any songs were present a top-level-only song (07/08) was never migrated and
+  `selectTrack` wiped its working copy. Fixed in `server.py` (fold active track into `track_routings`
+  on every save, never clobbering a good entry with an empty one) and `app.js` (migrate when the
+  per-song entry is missing). Regression tests 22a/b/c added to `verify_audio_composer.py` (40/40 pass).
+- **Recovery:** `tools/audio_composer/recover_lost_track_routings.py` folded 07 (from r8) and 08 (from
+  current top level) into `track_routings` using stored approvals verbatim (no manufactured approvals);
+  full profile+revisions backed up to `_backup_pre_migration_*` first. `track_routings` now has all 9
+  (revision r14).
+- **Authentic mappings (from R1 sequencer 0x055DDC):** substate 1 → `$19` Aggressive; substate 9
+  (R1-S2 castle, set by 0x03A848) → `$27`. Wired PROVEN dispatch `$27`→Re-In-Carnation (Scene 2, fixes
+  castle music) and `$04`→Credit (coin, fixes Credit-at-coin). `$19` stays unused on Genesis (sound-IRQ
+  handshake), so Aggressive keeps the accepted `$25` appearance trigger.
+- **Segment-8 restart:** refined the shared `$25` gate to also require the spawn column
+  (`player_x <= 0x28`); a genuine (re)appearance is always at `player_x==0x20`, the residual segment-8
+  restart is a mid-stage `player_state==3` re-appearance at a large `player_x`. Shared rule, not a
+  segment-8 workaround; preserves accepted appearance/respawn/death/GAME OVER. Evidence gap: segment 8
+  unreachable in automation → Tighe hardware audition is final confirmation.
+- **Build 0494:** SHA `99d2ccd2b3e9dd08d5a7e31c2195a0c8acd58024040702b83965fa58691de677`, full 7-ROM
+  family. Canonical coverage invariant updated 0x30FEB8→0x335EB8 (+0x27000 for the 2 recovered songs),
+  a declared-coverage update (not a disabled check). Static gate songs=9 dispatch=3 diagnostic=9;
+  diagnostic harness 9/9 decode; runtime gate PASS (accepted behavior preserved); Composer workflow
+  PASS (9 independently editable).
+- Six songs' authentic commands remain UNRESOLVED (documented); diagnostic-only until the
+  register-stream↔.vgz correlation follow-up. SFX still deferred. OPEN-039 OPEN.
+- **Push still blocked** in this environment (origin SSH, no key); commits are local.
+- **Design note:** `docs/design/Andy_AUDIO015_multisong_dispatch_and_diagnostic.md` (Build 0494 section).

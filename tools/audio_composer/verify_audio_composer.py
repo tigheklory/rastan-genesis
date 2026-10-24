@@ -179,6 +179,34 @@ try:
        set(special) == {"0x03", "0x0A", "0x0D", "0x21", "0x26"}, special)
     ck("18b. no descriptor reports count==130", all(c.get("count") != 130 for c in mci["commands"].values()))
 
+    # ---- 22: AUDIO-015 track_routings persistence — saving a song ALWAYS folds it in ----
+    # Regression for the Scene Clear / Final Boss loss: a save must persist the active
+    # song's decisions into its per-song track_routings entry, and switching songs must
+    # never drop a previously saved one.
+    gpost("/api/profile", {"profile_id": "t_persist", "track_id": "03 - Aggressive World (Scene 1)",
+                           "approved_routing": {"0": "ym2612_fm1", "1": "psg_tone1"}})
+    _, p1 = gget("/api/profile?p=t_persist")
+    ck("22a. first save folds active song into track_routings",
+       p1.get("track_routings", {}).get("03 - Aggressive World (Scene 1)", {}).get("approved_routing")
+       == {"0": "ym2612_fm1", "1": "psg_tone1"}, sorted(p1.get("track_routings", {})))
+    # switch to a second song and save it (client carries the accumulated track_routings)
+    gpost("/api/profile", {"profile_id": "t_persist", "track_id": "07 - Scene Clear",
+                           "approved_routing": {"0": "ym2612_fm2", "1": "psg_noise"},
+                           "track_routings": p1.get("track_routings", {})})
+    _, p2 = gget("/api/profile?p=t_persist")
+    tr2 = p2.get("track_routings", {})
+    ck("22b. second song saved AND first song survives the switch",
+       tr2.get("07 - Scene Clear", {}).get("approved_routing") == {"0": "ym2612_fm2", "1": "psg_noise"}
+       and tr2.get("03 - Aggressive World (Scene 1)", {}).get("approved_routing")
+       == {"0": "ym2612_fm1", "1": "psg_tone1"}, sorted(tr2))
+    # a save whose working copy was wiped must NOT clobber a good saved entry
+    gpost("/api/profile", {"profile_id": "t_persist", "track_id": "07 - Scene Clear",
+                           "approved_routing": {}, "track_routings": tr2})
+    _, p3 = gget("/api/profile?p=t_persist")
+    ck("22c. empty working copy does not clobber a saved routing",
+       p3.get("track_routings", {}).get("07 - Scene Clear", {}).get("approved_routing")
+       == {"0": "ym2612_fm2", "1": "psg_noise"}, p3.get("track_routings", {}).get("07 - Scene Clear"))
+
     # ---- 19: VGM $4F command length (synthetic VGM) ----
     V = load(os.path.join(ROOT, "tools/audio/vgm_genesis_analysis.py"), "vgm_an")
     buf = bytearray(0x40)
