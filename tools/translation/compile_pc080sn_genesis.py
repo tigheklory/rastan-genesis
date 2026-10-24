@@ -106,7 +106,16 @@ BOUNDARY_ROUND1_EPOCH_RECORDS = (
     tuple(range(4, 11)),       # epoch 2: records 4-10
     tuple(range(11, 13)),      # epoch 3: records 11-12
     tuple(range(13, 16)),      # epoch 4: records 13-15
-    tuple(range(16, 21)),      # epoch 5: Round-1 Phase 2 records 16-20
+    tuple(range(16, 23)),      # epoch 5: castle + boss tail, records 16-22
+)
+
+# RG-021: Round 2 uses the same native package format and runtime installer.  These
+# are physical map-record numbers, not a second renderer or a runtime parser.  The
+# grouping is the exhaustive minimum contiguous partition at the established
+# 676-pattern Plane-A capacity (see the compiler proof below).
+BOUNDARY_ROUND2_EPOCH_RECORDS = (
+    tuple(range(23, 34)),
+    tuple(range(34, 46)),
 )
 BOUNDARY_PHASE1_EPOCH_CAPACITY = 676
 
@@ -345,38 +354,44 @@ def be32(v): return bytes([(v >> 24) & 0xFF, (v >> 16) & 0xFF,
 
 
 def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_index: int = 0, reuse=None):
-    """Compile the zero-drop Round-1 gameplay ownership model through Phase 2.
+    """Compile the zero-drop native gameplay ownership model for Rounds 1 and 2.
 
-    Plane B is the exact descriptor-0..55 vocabulary and is loaded once. Plane A owns six
-    complete-residency semantic epochs for records 0..20. All allocation is deterministic and
-    offline; a missing legal pattern is a compiler failure, never a runtime blank/fallback decision.
+    Each round owns an exact, offline Plane-B vocabulary and a deterministic set of
+    complete-residency Plane-A epochs.  Runtime work remains a bounded package install
+    at the retained arcade record/scene boundary; there is no per-frame conversion,
+    search, allocator, fallback, or chip-shaped shadow.
     """
-    all_records = decode_plane_b_progression(mc, stage_index)
-    records = all_records[:21]
-    if [record["segment"] for record in records] != list(range(21)):
-        raise SystemExit("Round-1 Phase-2 record contract changed: expected records 0..20")
+    if stage_index != 0:
+        raise SystemExit("the canonical multi-round package must begin at stage_index=0")
+    round_records = [decode_plane_b_progression(mc, first) for first in (0, 23)]
+    records = round_records[0] + round_records[1]
+    if [record["segment"] for record in records] != list(range(46)):
+        raise SystemExit("Round-1/2 record contract changed: expected records 0..45")
 
     def u16(addr): return int.from_bytes(mc[addr:addr + 2], "big")
     def u24(addr): return int.from_bytes(mc[addr:addr + 4], "big") & 0xFFFFFF
     def tile_bytes(code): return patterns[code * TILE_BYTES:(code + 1) * TILE_BYTES]
 
-    # Level 1 owns descriptors 0..55. Descriptor 56 starts the next stage and is intentionally
-    # excluded. Exact pattern bytes, not code identity, are the physical VRAM allocation unit.
-    b_codes = []
-    for descriptor in range(56):
-        src = u24(PLANE_B_DESC_TABLE + descriptor * PLANE_B_DESC_STRIDE + 2)
-        for row in range(PLANE_B_ROWS):
-            for column in range(PLANE_B_COLS):
-                code = u16(src + row * 0x20 + column * 2) & 0x3FFF
-                if code:
-                    b_codes.append(code)
-    b_codes = sorted(set(b_codes))
-    b_blobs = sorted({tile_bytes(code) for code in b_codes})
-    if len(b_blobs) != 854:
-        raise SystemExit(f"fixed Plane B vocabulary changed: {len(b_blobs)} != proven 854")
-    b_repr = {}
-    for code in b_codes:
-        b_repr.setdefault(tile_bytes(code), code)
+    # Exact pattern bytes, not source-code identity, are the physical VRAM unit.
+    # A round's descriptor cursor is decoded from original arcade progression; the
+    # resulting vocabulary is swapped only at scene entry.
+    def plane_b_codes_for(decoded_records):
+        descriptors = set()
+        for record in decoded_records:
+            count = 4 if record["descriptor_action"] == "scene_fill_4" else (
+                2 if record["descriptor_action"] == "horizontal_2" else 0)
+            descriptors.update(range(record["descriptor_before"],
+                                     record["descriptor_before"] + count))
+        codes = set()
+        for descriptor in descriptors:
+            src = u24(PLANE_B_DESC_TABLE + descriptor * PLANE_B_DESC_STRIDE + 2)
+            for row in range(PLANE_B_ROWS):
+                for column in range(PLANE_B_COLS):
+                    code = u16(src + row * 0x20 + column * 2) & 0x3FFF
+                    if code:
+                        codes.add(code)
+        return sorted(codes), sorted(descriptors)
+
     # Build 0342 clean repack: the static Plane-B corpus is split across the three legal pattern ranges
     # (Layer A takes the contiguous middle window). Order the corpus by ORIGINAL ARCADE SOURCE TILE CODE
     # (b_repr), not byte-sort and not historical Genesis slot numbers, so the permanent layout is logical.
@@ -385,13 +400,30 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
     #   range 3: slots 1920..1983 (0xF000..0xF7DF, the unused Window region)
     PLANE_B_RANGES = ((1, 662), (1664, 1791), (1920, 1983))
     b_slot_seq = [s for lo, hi in PLANE_B_RANGES for s in range(lo, hi + 1)]
-    if len(b_slot_seq) != len(b_blobs):
-        raise SystemExit(f"Plane-B ranges hold {len(b_slot_seq)} slots != {len(b_blobs)} patterns")
-    b_blobs_ordered = sorted(b_blobs, key=lambda blob: b_repr[blob])
-    b_slot = {blob: b_slot_seq[index] for index, blob in enumerate(b_blobs_ordered)}
-    b_map = [(code, b_slot[tile_bytes(code)]) for code in b_codes]
-    b_uploads = [(b_repr[blob], b_slot[blob]) for blob in b_blobs_ordered]
-    b_last = max(b_slot.values())
+    round_b = []
+    for round_index, decoded in enumerate(round_records):
+        b_codes, descriptors = plane_b_codes_for(decoded)
+        b_blobs = sorted({tile_bytes(code) for code in b_codes})
+        b_repr = {}
+        for code in b_codes:
+            b_repr.setdefault(tile_bytes(code), code)
+        if len(b_blobs) > len(b_slot_seq):
+            raise SystemExit(f"Round {round_index + 1} Plane B needs {len(b_blobs)} patterns, "
+                             f"capacity is {len(b_slot_seq)}")
+        b_blobs_ordered = sorted(b_blobs, key=lambda blob: b_repr[blob])
+        b_slot = {blob: b_slot_seq[index] for index, blob in enumerate(b_blobs_ordered)}
+        round_b.append({
+            "round": round_index + 1,
+            "descriptors": descriptors,
+            "codes": b_codes,
+            "blobs": b_blobs,
+            "slot": b_slot,
+            "map": [(code, b_slot[tile_bytes(code)]) for code in b_codes],
+            "uploads": [(b_repr[blob], b_slot[blob]) for blob in b_blobs_ordered],
+            "last": max(b_slot.values()),
+        })
+    if len(round_b[0]["blobs"]) != 854 or len(round_b[1]["blobs"]) != 460:
+        raise SystemExit("Round-1/2 fixed Plane-B vocabulary contract changed")
 
     # Layer A is one contiguous window pinned between Plane-B range 1 and the sprite region.
     a_slot_first = 663
@@ -406,7 +438,7 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
     # both and from every nametable/SAT/HScroll region (all pattern tile indices < 2048).
     _a_range = set(range(a_slot_first, a_slot_last + 1))
     _sprite_range = set(range(SPRITE_TILE_BASE, GLOBAL_SLOT_LAST + 1))
-    _b_range = set(b_slot.values())
+    _b_range = {slot for entry in round_b for slot in entry["slot"].values()}
     if _b_range & _a_range:
         raise SystemExit(f"Plane-B/Plane-A slot overlap: {sorted(_b_range & _a_range)[:8]}")
     if _b_range & _sprite_range:
@@ -433,14 +465,15 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
 
     # Exhaustively prove the minimum contiguous complete-residency segmentation at the hardware
     # cap. This keeps the build-time policy tied to original arcade data rather than hand arithmetic.
-    minimum_cache = {}
-    def minimum_partitions(first):
-        if first == len(records):
+    def minimum_partitions_for(first_record, last_record):
+      minimum_cache = {}
+      def minimum_partitions(first):
+        if first == last_record:
             return 0, [()]
         if first in minimum_cache:
             return minimum_cache[first]
         best, ways, union = len(records) + 1, [], set()
-        for last in range(first, len(records)):
+        for last in range(first, last_record):
             union |= record_pattern_sets[last]
             if len(union) > a_slot_count:
                 break
@@ -452,30 +485,33 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
                 ways.extend((((first, last),) + tail) for tail in tails)
         minimum_cache[first] = (best, ways)
         return minimum_cache[first]
+      return minimum_partitions(first_record)
 
-    minimum_epoch_count, minimum_segmentations = minimum_partitions(0)
-    requested_segmentation = tuple((epoch[0], epoch[-1])
-                                   for epoch in BOUNDARY_ROUND1_EPOCH_RECORDS)
+    minimum_by_round = [minimum_partitions_for(0, 23),
+                        minimum_partitions_for(23, 46)]
+    minimum_epoch_count, minimum_segmentations = minimum_by_round[0]
+    epoch_record_groups = BOUNDARY_ROUND1_EPOCH_RECORDS + BOUNDARY_ROUND2_EPOCH_RECORDS
     # Build 0342: the requested segmentation must be a VALID contiguous complete-residency partition at the
     # 676 capacity (every epoch union <= cap, boundaries preserved for the two streamed transitions). It is
     # intentionally NOT the global minimum (4): keeping records 0-2|3 separate preserves both proven streamed
     # transitions. Validate contiguity/coverage + per-epoch fit; report the true minimum for the record.
-    _flat = [r for epoch in BOUNDARY_ROUND1_EPOCH_RECORDS for r in epoch]
+    _flat = [r for epoch in epoch_record_groups for r in epoch]
     if _flat != list(range(len(records))):
         raise SystemExit(f"requested segmentation is not a contiguous cover of records 0..{len(records)-1}")
-    for epoch in BOUNDARY_ROUND1_EPOCH_RECORDS:
+    for epoch in epoch_record_groups:
         _u = set()
         for r in epoch:
             _u |= record_pattern_sets[r]
         if len(_u) > a_slot_count:
             raise SystemExit(f"epoch {epoch} union {len(_u)} exceeds Plane-A cap {a_slot_count}")
-    print(f"NOTE Round-1 segmentation: requested {len(BOUNDARY_ROUND1_EPOCH_RECORDS)} epochs at cap "
-          f"{a_slot_count}; global minimum is {minimum_epoch_count} epochs.")
+    print(f"NOTE native segmentation: requested {len(epoch_record_groups)} epochs at cap "
+          f"{a_slot_count}; per-round minima are "
+          f"{minimum_by_round[0][0]}/{minimum_by_round[1][0]} epochs.")
 
     record_to_epoch = [None] * len(records)
     epoch_code_blob = []
     epoch_pattern_sets = []
-    for epoch_index, epoch_records in enumerate(BOUNDARY_ROUND1_EPOCH_RECORDS):
+    for epoch_index, epoch_records in enumerate(epoch_record_groups):
         code_blob = {}
         for record_index in epoch_records:
             for code, blob in record_code_blob[record_index].items():
@@ -490,7 +526,7 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
     if any(epoch is None for epoch in record_to_epoch):
         raise SystemExit("incomplete Round-1 record-to-epoch table")
 
-    expected_epoch_counts = [283, 334, 640, 584, 640, 283]
+    expected_epoch_counts = [283, 334, 640, 584, 640, 542, 630, 544]
     epoch_counts = [len(pattern_set) for pattern_set in epoch_pattern_sets]
     if epoch_counts != expected_epoch_counts:
         # Build 0316: offline Palette Composer Layer-A reindexing legitimately changes exact-pattern dedup,
@@ -591,13 +627,14 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
                               for index in range(len(transition_specs))]
     package_specs = [
         {"kind": "stable", "epoch": index, "records": list(records_),
-         "name": f"epoch_{index}", "code_blob": code_blob}
+         "name": f"epoch_{index}", "round": (1 if records_[0] < 23 else 2),
+         "code_blob": code_blob}
         for index, (records_, code_blob) in enumerate(
-            zip(BOUNDARY_ROUND1_EPOCH_RECORDS, epoch_code_blob))]
+            zip(epoch_record_groups, epoch_code_blob))]
     package_specs.extend({
         "kind": "transition", "epoch": spec["out_epoch"],
         "records": [spec["out_record"], spec["in_record"]],
-        "name": spec["name"], "code_blob": spec["code_blob"]}
+        "name": spec["name"], "round": 1, "code_blob": spec["code_blob"]}
         for spec in transition_specs)
     transition_by_out_epoch = {
         spec["out_epoch"]: package_id for spec, package_id in
@@ -617,13 +654,20 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
             allocation_order.append(transition_by_in_epoch[stable_id])
     packages = [None] * len(package_specs)
     previous = {}
+    previous_round = None
     all_a_only = set()
+    round_a_only = {1: set(), 2: set()}
     for package_index in allocation_order:
         spec = package_specs[package_index]
+        if spec["round"] != previous_round:
+            previous = {}
+            previous_round = spec["round"]
+        b_slot = round_b[spec["round"] - 1]["slot"]
         code_blob = spec["code_blob"]
         plane_a = sorted(code_blob)
         a_only = sorted(set(code_blob.values()) - set(b_slot))
         all_a_only.update(a_only)
+        round_a_only[spec["round"]].update(a_only)
         retained = {blob: previous[blob] for blob in a_only if blob in previous}
         free = [slot for slot in range(a_slot_first, a_slot_last + 1)
                 if slot not in retained.values()]
@@ -655,10 +699,22 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
             "droppedA": 0, "droppedB": 0,
         }
 
-    pattern_id = {blob: index for index, blob in enumerate(sorted(all_a_only))}
+    # Preserve every existing Round-1 identity number byte-for-byte. Round-2-only
+    # identities append after that stable namespace.
+    legacy_r1_identities = set()
+    for code_blob in record_code_blob[:21]:
+        legacy_r1_identities.update(set(code_blob.values()) - set(round_b[0]["slot"]))
+    for spec in transition_specs:
+        legacy_r1_identities.update(set(spec["code_blob"].values()) - set(round_b[0]["slot"]))
+    pattern_order = (sorted(legacy_r1_identities) +
+                     sorted(all_a_only - legacy_r1_identities))
+    pattern_id = {blob: index for index, blob in enumerate(pattern_order)}
     for package in packages:
         package["identities"] = sorted(
             (slot, pattern_id[blob]) for blob, slot in package["assigned"].items())
+
+    # The four proven streamed overlap contracts are Round-1 contracts.
+    b_slot = round_b[0]["slot"]
 
     # Exact object-level regression identities. The record-2 rope is the original vertical cell
     # column; the record-3 waterfall is the attr 0x1A..0x1D body visible at the B->C boundary.
@@ -768,7 +824,7 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
     # never overlap an actual Level-1 A/B code mapping.
     scratch_word = 0x1600
     scratch_words = len(pattern_id) + a_slot_count
-    occupied_codes = set(b_codes)
+    occupied_codes = {code for entry in round_b for code in entry["codes"]}
     occupied_codes.update(code for record in records
                           for code in seg_fg_tiles(mc, record["segment"]) - {0})
     scratch_overlap = sorted(occupied_codes & set(range(scratch_word, scratch_word + scratch_words)))
@@ -834,17 +890,26 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
             "identity_bytes": identity_bytes,
             "end": package_end,
         })
-    fixed_b_offset = data_base + len(data)
-    fixed_b_map_bytes = len(b_map) * BOUNDARY_PAIR_BYTES
-    fixed_b_upload_offset = fixed_b_offset + fixed_b_map_bytes
-    fixed_b_upload_bytes = len(b_uploads) * BOUNDARY_PAIR_BYTES
-    fixed_b_end = fixed_b_upload_offset + fixed_b_upload_bytes
-    for section_name, section_start in (
-            ("fixed-B map", fixed_b_offset), ("fixed-B upload", fixed_b_upload_offset)):
-        if section_start % BOUNDARY_WORD_ALIGNMENT:
-            raise SystemExit(f"{section_name} section is odd: {section_start}")
-    for code, slot in b_map: data += be16(code) + be16(slot)
-    for code, slot in b_uploads: data += be16(code) + be16(slot)
+    fixed_b_layouts = []
+    for entry in round_b:
+        fixed_b_offset = data_base + len(data)
+        fixed_b_map_bytes = len(entry["map"]) * BOUNDARY_PAIR_BYTES
+        fixed_b_upload_offset = fixed_b_offset + fixed_b_map_bytes
+        fixed_b_upload_bytes = len(entry["uploads"]) * BOUNDARY_PAIR_BYTES
+        fixed_b_end = fixed_b_upload_offset + fixed_b_upload_bytes
+        for section_name, section_start in (
+                ("fixed-B map", fixed_b_offset), ("fixed-B upload", fixed_b_upload_offset)):
+            if section_start % BOUNDARY_WORD_ALIGNMENT:
+                raise SystemExit(f"Round {entry['round']} {section_name} section is odd: {section_start}")
+        for code, slot in entry["map"]: data += be16(code) + be16(slot)
+        for code, slot in entry["uploads"]: data += be16(code) + be16(slot)
+        fixed_b_layouts.append({
+            "round": entry["round"], "offset": fixed_b_offset,
+            "map_count": len(entry["map"]), "map_bytes": fixed_b_map_bytes,
+            "upload_offset": fixed_b_upload_offset,
+            "upload_count": len(entry["uploads"]), "upload_bytes": fixed_b_upload_bytes,
+            "end": fixed_b_end,
+        })
     binary = bytearray()
     for first, variants in record_table: binary += be16(first) + be16(variants)
     binary += desc + data
@@ -856,12 +921,16 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
     for layout in package_layout:
         if layout["descriptor_offset"] + BOUNDARY_PACKAGE_DESC_BYTES > data_base:
             raise SystemExit(f"package {layout['package']} descriptor exceeds descriptor table")
-        if not (data_base <= layout["data_offset"] <= layout["end"] <= fixed_b_offset):
+        if not (data_base <= layout["data_offset"] <= layout["end"] <= fixed_b_layouts[0]["offset"]):
             raise SystemExit(f"package {layout['package']} data span exceeds A-package section")
     (outdir / "boundary_packages.bin").write_bytes(binary)
 
-    reseed_mask = sum(1 << index for index, record in enumerate(records)
-                      if record["scene_reinit"] and index != 0)
+    reseed_masks = []
+    for word in range(2):
+        reseed_masks.append(sum(1 << (index - word * 32)
+                                for index, record in enumerate(records)
+                                if word * 32 <= index < (word + 1) * 32
+                                and record["scene_reinit"] and index not in (0, 23)))
     sprite_cells = (GLOBAL_SLOT_LAST - SPRITE_TILE_BASE + 1) // 4
     (outdir / "boundary_constants.inc").write_text(
         "/* generated by compile_pc080sn_genesis.py --boundary-experiment */\n"
@@ -883,32 +952,39 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
         f".equ FG_BOUNDARY_SLOT_COUNT, {a_slot_count}\n"
         f".equ FG_BOUNDARY_PATTERN_IDENTITIES, {len(pattern_id)}\n"
         f".equ FG_BOUNDARY_SCRATCH_WORD, {scratch_word}\n"
-        f".equ FG_BOUNDARY_FIXED_B_OFFSET, {fixed_b_offset}\n"
-        f".equ FG_BOUNDARY_FIXED_B_MAP_COUNT, {len(b_map)}\n"
-        f".equ FG_BOUNDARY_FIXED_B_MAP_BYTES, {fixed_b_map_bytes}\n"
-        f".equ FG_BOUNDARY_FIXED_B_UPLOAD_OFFSET, {fixed_b_upload_offset}\n"
-        f".equ FG_BOUNDARY_FIXED_B_UPLOAD_COUNT, {len(b_uploads)}\n"
-        f".equ FG_BOUNDARY_FIXED_B_UPLOAD_BYTES, {fixed_b_upload_bytes}\n"
-        f".equ FG_BOUNDARY_FIXED_B_TOTAL_BYTES, {fixed_b_end - fixed_b_offset}\n"
+        + "".join(
+            f".equ FG_BOUNDARY_FIXED_B_R{item['round']}_OFFSET, {item['offset']}\n"
+            f".equ FG_BOUNDARY_FIXED_B_R{item['round']}_MAP_COUNT, {item['map_count']}\n"
+            f".equ FG_BOUNDARY_FIXED_B_R{item['round']}_UPLOAD_COUNT, {item['upload_count']}\n"
+            f".equ FG_BOUNDARY_FIXED_B_R{item['round']}_TOTAL_BYTES, {item['end'] - item['offset']}\n"
+            for item in fixed_b_layouts)
+        +
+        "/* established Round-1 gate/debugger aliases */\n"
+        f".equ FG_BOUNDARY_FIXED_B_OFFSET, {fixed_b_layouts[0]['offset']}\n"
+        f".equ FG_BOUNDARY_FIXED_B_MAP_COUNT, {fixed_b_layouts[0]['map_count']}\n"
+        f".equ FG_BOUNDARY_FIXED_B_UPLOAD_COUNT, {fixed_b_layouts[0]['upload_count']}\n"
+        f".equ FG_BOUNDARY_FIXED_B_TOTAL_BYTES, {fixed_b_layouts[0]['end'] - fixed_b_layouts[0]['offset']}\n"
         f".equ FG_BOUNDARY_BINARY_LEN, {len(binary)}\n"
-        f".equ FG_BOUNDARY_FIXED_B_SLOT_LAST, {b_last}\n"
+        f".equ FG_BOUNDARY_FIXED_B_SLOT_LAST, {max(entry['last'] for entry in round_b)}\n"
         f".equ FG_BOUNDARY_SPRITE_TILE_BASE, {SPRITE_TILE_BASE}\n"
         f".equ FG_BOUNDARY_SPRITE_CELLS, {sprite_cells}\n"
-        f".equ FG_BOUNDARY_RESEED_MASK, 0x{reseed_mask:08X}\n")
+        f".equ FG_BOUNDARY_RESEED_MASK_LO, 0x{reseed_masks[0]:08X}\n"
+        f".equ FG_BOUNDARY_RESEED_MASK_HI, 0x{reseed_masks[1]:08X}\n")
 
     report = {
-        "model": "fixed Level-1 Plane B plus six stable Plane-A epochs and four bounded transition-overlap packages",
+        "model": "per-round fixed Plane B plus eight stable Plane-A epochs and four bounded Round-1 transition-overlap packages",
         "trace_inputs": 0,
         "records": len(record_table), "packages": len(packages),
         "stable_epochs": stable_package_count,
-        "round1_records_through_phase2": [record["segment"] for record in records],
+        "round1_records": [record["segment"] for record in round_records[0]],
+        "round2_records": [record["segment"] for record in round_records[1]],
         "record_to_epoch": record_to_epoch,
         "record_to_package": record_to_package,
         "minimum_contiguous_epoch_count_at_cap": minimum_epoch_count,
         "minimum_contiguous_segmentations": [
             [[first, last] for first, last in segmentation]
             for segmentation in minimum_segmentations],
-        "selected_epoch_records": [list(epoch) for epoch in BOUNDARY_ROUND1_EPOCH_RECORDS],
+        "selected_epoch_records": [list(epoch) for epoch in epoch_record_groups],
         "plane_a_epoch_counts": epoch_counts,
         "plane_a_transition_metrics": [
             {
@@ -921,11 +997,13 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
                 "new": len(epoch_pattern_sets[index + 1] - epoch_pattern_sets[index]),
             }
             for index in range(len(epoch_pattern_sets) - 1)],
-        "plane_b_epochs": 1, "plane_b_variants": 0,
-        "plane_b_descriptor_first": 0, "plane_b_descriptor_last": 55,
-        "plane_b_descriptor_56_excluded_as_stage2": True,
-        "plane_b_codes": len(b_codes), "plane_b_patterns": len(b_blobs),
-        "plane_b_slot_first": 1, "plane_b_slot_last": b_last,
+        "plane_b_epochs": 2, "plane_b_variants": 0,
+        "plane_b_rounds": [{
+            "round": entry["round"], "descriptor_first": entry["descriptors"][0],
+            "descriptor_last": entry["descriptors"][-1], "descriptor_count": len(entry["descriptors"]),
+            "codes": len(entry["codes"]), "patterns": len(entry["blobs"]),
+            "slot_first": 1, "slot_last": entry["last"], "dropped": 0,
+        } for entry in round_b],
         "plane_b_dropped": 0,
         "plane_a_slot_first": a_slot_first, "plane_a_slot_last": a_slot_last,
         "plane_a_slot_capacity": a_slot_count,
@@ -999,15 +1077,11 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
             "package_data_offset": data_base,
             "pair_bytes": BOUNDARY_PAIR_BYTES,
             "package_layout": package_layout,
-            "fixed_b_map_offset": fixed_b_offset,
-            "fixed_b_map_bytes": fixed_b_map_bytes,
-            "fixed_b_upload_offset": fixed_b_upload_offset,
-            "fixed_b_upload_bytes": fixed_b_upload_bytes,
-            "fixed_b_end": fixed_b_end,
+            "fixed_b_layouts": fixed_b_layouts,
             "padding_bytes": 0,
         },
         "allocation_identity": "exact 32-byte PC080SN pattern bytes",
-        "reseed_record_mask": f"0x{reseed_mask:08X}",
+        "reseed_record_masks": [f"0x{mask:08X}" for mask in reseed_masks],
         "packages_detail": [{k: v for k, v in p.items()
                              if k not in {"map", "uploads", "identities", "assigned",
                                           "code_blob"}} |
@@ -1033,12 +1107,13 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
         slotmap = {}
         for code, slot in p["map"]:
             slotmap[str(slot)] = [code, tile_bytes(code).hex()]
-        for code, slot in b_map:
+        for code, slot in round_b[p["round"] - 1]["map"]:
             slotmap.setdefault(str(slot), [code, tile_bytes(code).hex()])
         dbg["packages"].append(slotmap)
     (outdir / "slot_patterns_debug.json").write_text(json.dumps(dbg))
 
-    print(f"boundary compile: fixed B {len(b_blobs)} patterns, six stable A epochs "
+    print(f"boundary compile: fixed B {[len(e['blobs']) for e in round_b]} patterns, "
+          f"eight stable A epochs "
           f"{epoch_counts}, transition peaks {[r['peak_patterns'] for r in transition_gate_reports]}, "
           f"A cap {a_slot_count}, sprites {sprite_cells} cells, "
           f"{len(binary)} bytes, plane drops 0")

@@ -82,6 +82,7 @@ fg_cache_reset:
     move.w  #0xFFFF, fg_boundary_active_record
     move.w  #0xFFFF, fg_boundary_active_variant
     move.w  #0xFFFF, fg_boundary_active_package
+    move.w  #0xFFFF, fg_boundary_active_round
     bsr     fg_boundary_install
 .Lcache_reset_done:
     movem.l (%sp)+, %d0-%d1
@@ -94,9 +95,16 @@ fg_boundary_advance_segment:
     movem.l %d0-%d1, -(%sp)
     moveq   #0, %d0
     move.w  0x013E(%a5), %d0
-    cmpi.w  #32, %d0
+    cmpi.w  #64, %d0
     bhs.s   .Ladvance_install_now
-    move.l  #FG_BOUNDARY_RESEED_MASK, %d1
+    cmpi.w  #32, %d0
+    blo.s   .Ladvance_reseed_mask_low
+    subi.w  #32, %d0
+    move.l  #FG_BOUNDARY_RESEED_MASK_HI, %d1
+    bra.s   .Ladvance_reseed_mask_ready
+.Ladvance_reseed_mask_low:
+    move.l  #FG_BOUNDARY_RESEED_MASK_LO, %d1
+.Ladvance_reseed_mask_ready:
     btst    %d0, %d1
     beq.s   .Ladvance_install_now
     move.b  #1, fg_boundary_reseed_pending
@@ -246,9 +254,37 @@ fg_boundary_install:
     bne     .Linstall_done
     moveq   #0, %d0
     move.w  0x013E(%a5), %d0
+    /* A gameplay-scene activation can precede the retained controller's
+     * descriptor-cursor seed.  On that first install only, select the package
+     * from the authoritative stage index; subsequent installs continue to
+     * follow the retained cursor and its exact progression events.  Without
+     * this ordering rule Round 2 briefly installed a Round-1 A vocabulary and
+     * blanked names before the first cursor advance corrected the package. */
+    cmpi.w  #0xFFFF, fg_boundary_active_package
+    bne.s   .Linstall_record_selected
+    move.w  0x1242(%a5), %d0
+.Linstall_record_selected:
+    /* The retained scene fill advances a5+0x013E one record beyond a boss
+     * seed before first appearance.  Stage index a5+0x1242 is the round owner;
+     * clamp only that post-fill cursor to the owning round's last compiled
+     * record.  This is original state interpretation, not a gameplay rewrite. */
+    moveq   #1, %d1
+    cmpi.w  #23, 0x1242(%a5)
+    blo.s   .Linstall_pending_round_ready
+    moveq   #2, %d1
+    cmpi.w  #46, %d0
+    bne.s   .Linstall_round_record_ready
+    moveq   #45, %d0
+    bra.s   .Linstall_round_record_ready
+.Linstall_pending_round_ready:
+    cmpi.w  #23, %d0
+    bne.s   .Linstall_round_record_ready
+    moveq   #22, %d0
+.Linstall_round_record_ready:
     cmpi.w  #FG_BOUNDARY_RECORDS, %d0
     bhs     .Linstall_disable
     move.w  %d0, fg_boundary_pending_record
+    move.w  %d1, fg_boundary_pending_round
 
     lea     fg_boundary_packages, %a4
     move.w  %d0, %d1
@@ -320,8 +356,12 @@ fg_boundary_install:
 
     /* The first gameplay install reclaims frontend slots and installs the fixed Level-1
      * Plane-B vocabulary. This is the only residency/name-table work performed for Plane B. */
+    move.w  fg_boundary_pending_round, %d0
+    cmp.w   fg_boundary_active_round, %d0
+    bne.s   .Linstall_initial_round
     cmpi.w  #0xFFFF, fg_boundary_active_package
     bne     .Linstall_build_translation
+.Linstall_initial_round:
 
     lea     fg_boundary_active_lut, %a0
     move.w  #(FG_BOUNDARY_LUT_WORDS - 1), %d7
@@ -330,12 +370,29 @@ fg_boundary_install:
     dbra    %d7, .Linstall_initial_clear_lut
     /* FG_BOUNDARY_FIXED_B_OFFSET is > signed d16 in Build 0308.  Use an explicit 68000
      * long add; a large displacement LEA lets GNU as emit a 68020 full extension word. */
+    /* D5/D6 still own the selected Plane-A package's map/upload counts.  The
+     * fixed-B walk needs both registers temporarily; preserve the generated A
+     * contract so .Linstall_maps consumes the complete package rather than a
+     * coincidental fixed-B-sized prefix. */
+    movem.l %d5-%d6, -(%sp)
     movea.l %a4, %a0
-    adda.l  #FG_BOUNDARY_FIXED_B_OFFSET, %a0
-    move.l  #FG_BOUNDARY_FIXED_B_TOTAL_BYTES, %d0
+    cmpi.w  #2, fg_boundary_pending_round
+    beq.s   .Linstall_fixed_b_round2
+    adda.l  #FG_BOUNDARY_FIXED_B_R1_OFFSET, %a0
+    move.l  #FG_BOUNDARY_FIXED_B_R1_TOTAL_BYTES, %d0
+    move.w  #FG_BOUNDARY_FIXED_B_R1_MAP_COUNT, %d6
+    move.w  #FG_BOUNDARY_FIXED_B_R1_UPLOAD_COUNT, %d5
+    bra.s   .Linstall_fixed_b_selected
+.Linstall_fixed_b_round2:
+    adda.l  #FG_BOUNDARY_FIXED_B_R2_OFFSET, %a0
+    move.l  #FG_BOUNDARY_FIXED_B_R2_TOTAL_BYTES, %d0
+    move.w  #FG_BOUNDARY_FIXED_B_R2_MAP_COUNT, %d6
+    move.w  #FG_BOUNDARY_FIXED_B_R2_UPLOAD_COUNT, %d5
+.Linstall_fixed_b_selected:
     bsr     .Linstall_require_package_range
     movea.l %a0, %a2
-    move.w  #(FG_BOUNDARY_FIXED_B_MAP_COUNT - 1), %d7
+    move.w  %d6, %d7
+    subq.w  #1, %d7
 .Linstall_fixed_b_map_loop:
     move.w  (%a2)+, %d0                 /* arcade code */
     move.w  (%a2)+, %d1                 /* fixed Genesis slot */
@@ -343,7 +400,8 @@ fg_boundary_install:
     move.w  %d1, 0(%a0,%d0.w)
     dbra    %d7, .Linstall_fixed_b_map_loop
 
-    move.w  #(FG_BOUNDARY_FIXED_B_UPLOAD_COUNT - 1), %d7
+    move.w  %d5, %d7
+    subq.w  #1, %d7
 .Linstall_fixed_b_upload_loop:
     moveq   #0, %d2
     move.w  (%a2)+, %d2                 /* representative arcade code */
@@ -356,6 +414,7 @@ fg_boundary_install:
     moveq   #16, %d1
     bsr     vdp_dma_words_to_vram
     dbra    %d7, .Linstall_fixed_b_upload_loop
+    movem.l (%sp)+, %d5-%d6
     bra     .Linstall_maps
 
 .Linstall_build_translation:
@@ -567,6 +626,7 @@ fg_boundary_install:
     move.w  fg_boundary_pending_record, fg_boundary_active_record
     move.w  fg_boundary_pending_variant, fg_boundary_active_variant
     move.w  fg_boundary_pending_package, fg_boundary_active_package
+    move.w  fg_boundary_pending_round, fg_boundary_active_round
     addq.l  #1, fg_boundary_epoch_transitions
     tst.b   genesistan_scene_present_pending
     bne.s   .Linstall_leave_display_off
@@ -581,6 +641,7 @@ fg_boundary_install:
     move.w  #0xFFFF, fg_boundary_active_record
     move.w  #0xFFFF, fg_boundary_active_variant
     move.w  #0xFFFF, fg_boundary_active_package
+    move.w  #0xFFFF, fg_boundary_active_round
 .Linstall_done:
     movem.l (%sp)+, %d0-%d7/%a0-%a4
     rts
@@ -695,5 +756,7 @@ fg_boundary_pending_record:             .space 2
 fg_boundary_pending_variant:            .space 2
 fg_boundary_pending_package:            .space 2
 fg_boundary_pending_identity_count:     .space 2
+fg_boundary_active_round:               .space 2
+fg_boundary_pending_round:              .space 2
 fg_boundary_reseed_pending:             .space 1
     .align 2

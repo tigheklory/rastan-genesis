@@ -180,6 +180,8 @@ genesistan_palette_hook_59ad4:
      * NOT a permanent mapping; the arcade owns the timing (D1 = frame index). */
     cmpi.b  #1, genesistan_current_scene_id
     bne.s   .L59_not_water
+    cmpi.w  #23, 0x1242(%a5)
+    bhs.s   .L59_not_water
     cmpi.w  #0x001A, %d0
     blo.s   .L59_not_water
     cmpi.w  #0x001D, %d0
@@ -196,6 +198,8 @@ genesistan_palette_hook_59ad4:
      * change, so a static sky costs no per-frame CRAM commit. */
     cmpi.b  #1, genesistan_current_scene_id
     bne.s   .L59_dest_ok
+    cmpi.w  #23, 0x1242(%a5)
+    bhs.s   .L59_dest_ok
     cmpi.w  #2, %d0
     bne     .L59_done
 .L59_dest_ok:
@@ -332,7 +336,10 @@ genesistan_palette_hook_45dae:
      * R1/P1 (scene 1) Lines 0/1/3 are Test-owned, so skip the whole copy; frontend / other scenes
      * are unaffected. */
     cmpi.b  #1, genesistan_current_scene_id
-    beq.s   .L45_done
+    bne.s   .L45_native_round_ok
+    cmpi.w  #23, 0x1242(%a5)
+    blo.s   .L45_done
+.L45_native_round_ok:
 
     lea     staged_palette_words, %a2
     move.w  %d0, %d4
@@ -440,6 +447,8 @@ genesistan_palette_hook_3ba64:
      * unaffected (they keep full arcade palette staging). */
     cmpi.b  #1, genesistan_current_scene_id
     bne.s   .L3ba64_line_store
+    cmpi.w  #23, 0x1242(%a5)
+    bhs.s   .L3ba64_line_store
     cmpi.w  #2, %d6
     bne     .L3ba64_next
 .L3ba64_line_store:

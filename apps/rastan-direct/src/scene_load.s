@@ -191,6 +191,12 @@ load_scene_tiles:
     cmpi.w  #1, %d5
     bne.s   .Lload_scene_no_cache_reset
     bsr     fg_cache_reset
+    /* RG-021: only Round 1 has Tighe-authored native Test palette assets.
+     * Later rounds retain the original finite arcade palette conversion until
+     * Palette Composer exports an approved round/scene family; never substitute
+     * Round-1 colors as if they were approved for Round 2. */
+    cmpi.w  #23, 0x1242(%a5)
+    bhs.s   .Lload_scene_no_cache_reset
     bsr     vdp_install_test_lines
 .Lload_scene_no_cache_reset:
 

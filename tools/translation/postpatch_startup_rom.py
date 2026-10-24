@@ -122,8 +122,9 @@ CANONICAL_OPCODE_REPLACE_COUNT = 228  # RG-003 reclassifies frontend teardown 0x
 # the high crash section; all bytes remain represented in the address map.
 # Build 0494 expands the native music library from 7 to all 9 authored songs
 # (recovered Scene Clear + Final Boss), growing the aligned audio section by
-# +0x27000 (0x30FEB8 -> 0x335EB8).
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x335EB8
+# +0x27000 (0x30FEB8 -> 0x335EB8); RG-021 adds the Round-2 native
+# PC080SN package corpus (+0x8000).
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x33DEB8
 
 # DIAGNOSTIC_SYMBOLS — symbols allowed for bookmarks_v2 helper_symbol resolution.
 #

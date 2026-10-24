@@ -11,9 +11,19 @@ ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 PREFIX=${1:-}
 [ -n "$PREFIX" ] || { echo "usage: $0 <dist/.../rastan_direct_video_test_build_NNNN> [S-list]" >&2; exit 2; }
 SCRIPT="$ROOT/tools/mame/scripts/subround_start_probe.lua"
+SYMBOLS=${SUBROUND_SYMBOLS:-"$ROOT/apps/rastan-direct/out/symbol.txt"}
 MACHINE="${MAME_GENESIS_MACHINE:-genesis}"
 OUTDIR="$ROOT/states/traces/subround_functional_$(basename "$PREFIX")"
 mkdir -p "$OUTDIR"
+
+symaddr() { awk -v n="$1" '$3==n { print "0x"$1; exit }' "$SYMBOLS"; }
+SCENE_ADDR=$(symaddr genesistan_current_scene_id)
+READY_ADDR=$(symaddr genesistan_presentation_readiness)
+ACTIVE_RECORD_ADDR=$(symaddr fg_boundary_active_record)
+ACTIVE_PACKAGE_ADDR=$(symaddr fg_boundary_active_package)
+ACTIVE_ROUND_ADDR=$(symaddr fg_boundary_active_round)
+MISS_A_ADDR=$(symaddr fg_boundary_miss_a)
+MISS_B_ADDR=$(symaddr fg_boundary_miss_b)
 
 # S-list: space-separated R-S pairs (default: canonical + all 18).
 LIST=${2:-"0-0 1-1 1-2 1-3 2-1 2-2 2-3 3-1 3-2 3-3 4-1 4-2 4-3 5-1 5-2 5-3 6-1 6-2 6-3"}
@@ -25,7 +35,11 @@ for rs in $LIST; do
          exp=$(python3 -c "print((($r-1)*23)+(22 if $s==3 else 0)+(16 if $s==2 else 0))"); fi
     [ -s "$cart" ] || { echo "MISSING $cart"; fails=$((fails+1)); continue; }
     od="$OUTDIR/$label"; mkdir -p "$od"
-    EXPECT_STAGE=$exp MAX_FRAMES=1400 TRACE_DIR="$od" timeout 180s "${MAME_BIN:-mame}" "$MACHINE" \
+    EXPECT_STAGE=$exp MAX_FRAMES=1400 TRACE_DIR="$od" \
+    SCENE_ADDR="$SCENE_ADDR" READY_ADDR="$READY_ADDR" ACTIVE_RECORD_ADDR="$ACTIVE_RECORD_ADDR" \
+    ACTIVE_PACKAGE_ADDR="$ACTIVE_PACKAGE_ADDR" ACTIVE_ROUND_ADDR="$ACTIVE_ROUND_ADDR" \
+    MISS_A_ADDR="$MISS_A_ADDR" MISS_B_ADDR="$MISS_B_ADDR" \
+    timeout 180s "${MAME_BIN:-mame}" "$MACHINE" \
         -cart "$cart" -video none -sound none -nothrottle -skip_gameinfo \
         -autoboot_script "$SCRIPT" >"$od/o" 2>"$od/e" || true
     line=$(cat "$od/probe.tsv" 2>/dev/null || echo "NO-OUTPUT")

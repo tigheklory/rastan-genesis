@@ -26,11 +26,11 @@ printf '%s\n' "$TRACE_DIR" > "$ROOT/build/rastan-direct/phase1_epoch_gate_latest
 
 # One representative production handoff for each generated Phase-1 residency epoch/transition.
 # Keep these package expectations synchronized with boundary_report.json's authoritative
-# record_to_package array: [0,0,0,6,7,2,2,2,2,2,2,8,3,9,4,4,5,5,5,5,5].
+# record_to_package array begins [0,0,0,8,9,2,2,2,2,2,2,10,3,11,4,4,5...].
 # record:epoch:package
-#   0 -> epoch0/pkg0 ; 3 -> epoch1/pkg6 (rope transition) ; 4 -> epoch2/pkg7 (waterfall transition) ;
-#   5 -> epoch2/pkg2 (stable) ; 11 -> epoch3/pkg8 ; 13 -> epoch4/pkg9
-cases=("0:0:0" "3:1:6" "4:2:7" "5:2:2" "11:3:8" "13:4:9")
+#   0 -> epoch0/pkg0 ; 3 -> epoch1/pkg8 (rope transition) ; 4 -> epoch2/pkg9 (waterfall transition) ;
+#   5 -> epoch2/pkg2 (stable) ; 11 -> epoch3/pkg10 ; 13 -> epoch4/pkg11
+cases=("0:0:0" "3:1:8" "4:2:9" "5:2:2" "11:3:10" "13:4:11")
 for entry in "${cases[@]}"; do
     IFS=: read -r record epoch package <<< "$entry"
     case_dir="$TRACE_DIR/epoch_${epoch}_record_${record}"
@@ -63,7 +63,7 @@ done
 
 {
     echo "result=PASS"
-    echo "epochs_tested=7"
+    echo "round1_cases_tested=6"
     echo "records_tested=0,3,4,5,11,13"
     echo "plane_a_full_lut_checks=PASS"
     echo "plane_b_fixed_lut_checks=PASS"

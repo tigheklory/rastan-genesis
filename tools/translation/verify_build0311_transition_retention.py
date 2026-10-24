@@ -35,19 +35,39 @@ def main() -> int:
     binary = args.packages.read_bytes()
     patterns = args.patterns.read_bytes()
 
-    # Build 0398: six stable epochs, the two original streamed overlap packages, and the
+    # RG-021: eight stable epochs (six Round 1, two Round 2), the two original streamed overlap packages, and the
     # Segment-10 -> 11 / record-12 -> 13 overlaps. Stable packages 3 and 4 are locked to their
     # accepted Build-0397 map/upload/identity payloads.
-    assert const["FG_BOUNDARY_EPOCHS"] == 6
-    assert const["FG_BOUNDARY_PACKAGES"] == 10
+    assert const["FG_BOUNDARY_EPOCHS"] == 8
+    assert const["FG_BOUNDARY_PACKAGES"] == 12
     assert const["FG_BOUNDARY_TRANSITION_HANDOFF_COLUMN"] == 45
     assert len(binary) == const["FG_BOUNDARY_BINARY_LEN"]
-    assert report["record_to_epoch"] == [0, 0, 0, 1, 2, 2, 2, 2, 2, 2, 2, 3, 3, 4, 4, 4,
-                                          5, 5, 5, 5, 5]
-    assert report["record_to_package"] == [0, 0, 0, 6, 7, 2, 2, 2, 2, 2, 2, 8, 3, 9, 4, 4,
-                                            5, 5, 5, 5, 5]
+    assert report["record_to_epoch"] == ([0, 0, 0, 1, 2, 2, 2, 2, 2, 2, 2, 3, 3, 4, 4, 4] +
+                                          [5] * 7 + [6] * 11 + [7] * 12)
+    assert report["record_to_package"] == ([0, 0, 0, 8, 9, 2, 2, 2, 2, 2, 2, 10, 3, 11, 4, 4] +
+                                            [5] * 7 + [6] * 11 + [7] * 12)
 
     layout = {item["package"]: item for item in report["binary_contract"]["package_layout"]}
+
+    # RG-021 adds boss-tail and Round-2 data by appending to the established
+    # identity namespace. Every pre-boss Round-1 stable/transition payload must
+    # remain byte-for-byte identical; package 5 is intentionally expanded from
+    # records 16-20 to 16-22.
+    locked_payloads = {
+        0: "9a4c320cb62c0a28140d03555aae5fba633ac308028b1f66817ad6db80285553",
+        1: "116c203da698ca360490479979839f570f4ba3f01f934e9ca2f39dcf8e1a8212",
+        2: "8184e109e8d181c5bd27cd5acdec501505d6b7bb9e126e96d740adaff2f32760",
+        3: "616389bb1016326afa76929590fc44180148894c81e2b88e37b97b12026da446",
+        4: "2666dd7251959d364b119d1a55de24d010dbdb96ea79a943f1a487f736d8f648",
+        8: "b8606eba7bcab115cba693ab8e67f8f485d00cb9bd18cf8f4b14b8e6fd016415",
+        9: "819968dcca7f2c91a463d5474e481ef6626bc73d87988c1e17e182cc46f97223",
+        10: "4bd3c8a2ddb7606e67c985b6bc3b1ae65fc0368706554216d1672d6a46a55fae",
+        11: "8e4130e3754c8c8922037e0b56ba5d0ee9863de33f298400f137c12d781606a3",
+    }
+    for package, expected_sha in locked_payloads.items():
+        item = layout[package]
+        payload = binary[item["data_offset"]:item["end"]]
+        assert hashlib.sha256(payload).hexdigest() == expected_sha
 
     stable11 = layout[3]
     stable11_payload = binary[stable11["data_offset"]:stable11["end"]]
@@ -57,7 +77,7 @@ def main() -> int:
     stable13_payload = binary[stable13["data_offset"]:stable13["end"]]
     assert hashlib.sha256(stable13_payload).hexdigest() == (
         "2666dd7251959d364b119d1a55de24d010dbdb96ea79a943f1a487f736d8f648")
-    accepted_overlap8 = layout[8]
+    accepted_overlap8 = layout[10]
     accepted_overlap8_payload = binary[accepted_overlap8["data_offset"]:accepted_overlap8["end"]]
     assert hashlib.sha256(accepted_overlap8_payload).hexdigest() == (
         "4bd3c8a2ddb7606e67c985b6bc3b1ae65fc0368706554216d1672d6a46a55fae")
@@ -141,7 +161,7 @@ def main() -> int:
             assert gate["incoming_only_required_patterns"] == incoming_only
 
     print("BUILD0311_TRANSITION_GATE PASS: rope 12 retained; waterfall 224 retained; "
-          "peaks 394/478/607/346 <= 676; stable packages 3/4 and overlap 8 locked; "
+          "peaks 395/479/607/346 <= 676; stable packages 3/4 and overlap 8 locked; "
           "missing=0; collisions=0")
     return 0
 

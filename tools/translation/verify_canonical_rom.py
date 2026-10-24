@@ -132,8 +132,9 @@ CANONICAL_OPCODE_REPLACE_COUNT = 228  # RG-003 moves frontend teardown 0x03AD4C 
 # pattern/icon packages to the Genesis-owned helper image.
 # AUDIO-015 aligned native-audio ROM section plus relocated high crash tail.
 # Build 0494 expands the native music library from 7 to all 9 authored songs
-# (recovered Scene Clear + Final Boss): +0x27000 (0x30FEB8 -> 0x335EB8).
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x335EB8
+# (recovered Scene Clear + Final Boss): +0x27000 (0x30FEB8 -> 0x335EB8);
+# RG-021 Round-2 native PC080SN package corpus: +0x8000.
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x33DEB8
 
 # Build 0277: arcade_pc 0x051DF8 is a BRA.S to the semantic entry at
 # arcade_pc 0x051E00.  The target is also the start of a shrinking shift
