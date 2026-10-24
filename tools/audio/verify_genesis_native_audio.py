@@ -85,9 +85,46 @@ def main() -> int:
         raise ValueError("unexpected native audio library schema")
     if not manifest.get("fm6_reserved"):
         raise ValueError("Audio Composer profile does not reserve YM2612 FM6/DAC")
-    dispatch_commands = [int(row["wire_command"], 0) for row in manifest["dispatch"]]
-    if dispatch_commands != [0x25]:
-        raise ValueError(f"unproven or missing live dispatch mapping: {dispatch_commands}")
+
+    # Proven authentic dispatch: every row proven, in the arcade BGM range, and
+    # the hardware-accepted appearance mapping 0x25 must remain present.
+    dispatch_commands = []
+    for row in manifest["dispatch"]:
+        if row.get("status") != "proven":
+            raise ValueError(f"dispatch entry not proven: {row}")
+        command = int(row["wire_command"], 0)
+        if not 0x00 <= command <= 0x2B:
+            raise ValueError(f"proven dispatch command 0x{command:02X} outside arcade BGM range")
+        dispatch_commands.append(command)
+    if 0x25 not in dispatch_commands:
+        raise ValueError("accepted appearance mapping 0x25 is missing from dispatch")
+    if len(dispatch_commands) != len(set(dispatch_commands)):
+        raise ValueError("duplicate proven dispatch command")
+
+    # Diagnostic selection: a reserved 0xC0-0xDF selector for EVERY authored song,
+    # disjoint from the proven commands.  These are never emitted by the game.
+    diagnostic = manifest.get("diagnostic_selection", [])
+    diag_commands = []
+    diag_tracks = set()
+    authored_tracks = {song["track"] for song in manifest["songs"]}
+    for row in diagnostic:
+        if row.get("status") != "diagnostic":
+            raise ValueError(f"diagnostic entry not labeled diagnostic: {row}")
+        command = int(row["select_command"], 0)
+        if not 0xC0 <= command <= 0xDF:
+            raise ValueError(f"diagnostic selector 0x{command:02X} outside reserved 0xC0-0xDF")
+        diag_commands.append(command)
+        diag_tracks.add(row["track"])
+    if diag_tracks != authored_tracks:
+        raise ValueError(
+            "diagnostic selection must cover every authored song; "
+            f"missing={sorted(authored_tracks - diag_tracks)}"
+        )
+    if len(diag_commands) != len(set(diag_commands)):
+        raise ValueError("duplicate diagnostic selector")
+    if set(diag_commands) & set(dispatch_commands):
+        raise ValueError("diagnostic selector collides with a proven dispatch command")
+
     ticks = events = 0
     for song in manifest["songs"]:
         intro_ticks, intro_events = verify_stream(Path(song["intro"]))
@@ -100,7 +137,7 @@ def main() -> int:
         "AUDIO_NATIVE_STATIC_PASS "
         f"driver={len(driver)} init=0x{driver[2] | (driver[3] << 8):04X} "
         f"songs={len(manifest['songs'])} dispatch={len(dispatch_commands)} "
-        f"ticks={ticks} events={events}"
+        f"diagnostic={len(diag_commands)} ticks={ticks} events={events}"
     )
     return 0
 

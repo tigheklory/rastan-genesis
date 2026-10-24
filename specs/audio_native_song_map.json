@@ -9,5 +9,32 @@
       "semantics": "player appearance/reappearance after death-form filtering at the shared 68000 semantic bridge",
       "evidence": "Build 0488 ORIGINAL ARCADE timing plus Build 0489 death/respawn command-state proof"
     }
+  ],
+  "diagnostic_selection_doc": [
+    "Reserved synthetic selectors in the arcade-ignored command range 0xC0-0xDF (the original",
+    "sound CPU dispatches only 0x00-0x2B as music and ignores 0x2C-0xDF), so the running game",
+    "never emits them and production behavior is unchanged.  They exist ONLY so an explicitly",
+    "labeled diagnostic harness (tools/mame/run_audio015_native_song_diagnostic.sh) can exercise",
+    "every authored stream.  They are NOT authentic gameplay triggers; build/audio/",
+    "music_command_inventory.json records command->song as UNRESOLVED and no authentic BGM",
+    "command->song mapping other than the appearance-driven 0x25 is proven.  Do not present a",
+    "diagnostic selector as an authentic in-game music event."
+  ],
+  "diagnostic_selection": [
+    { "select_command": "0xD0", "track": "01 - Credit",                                 "status": "diagnostic" },
+    { "select_command": "0xD1", "track": "02 - Broken The Promises (Opening)",           "status": "diagnostic" },
+    { "select_command": "0xD2", "track": "03 - Aggressive World (Scene 1)",              "status": "diagnostic" },
+    { "select_command": "0xD3", "track": "04 - Bad Bible (Name Regist)",                 "status": "diagnostic" },
+    { "select_command": "0xD4", "track": "05 - Re-In-Carnation (Scene 2)",               "status": "diagnostic" },
+    { "select_command": "0xD5", "track": "06 - The Devil Boss Carnival (Scene 3 Boss)",  "status": "diagnostic" },
+    { "select_command": "0xD6", "track": "09 - The Man Of Saga (Ending)",                "status": "diagnostic" }
+  ],
+  "unresolved_authentic_mappings_doc": [
+    "Candidate authentic BGM commands observed by context but NOT corroborated against musical",
+    "content, therefore NOT wired into production dispatch:",
+    "  - 0x04 emitted at the credit state (ORIGINAL ARCADE trace states/traces/audio015_arcade_gameover,",
+    "    st0=1/st2=1 immediately after coin) is a 2-channel cue; candidate for '01 - Credit' but unproven.",
+    "Resolving these requires matching each command's installed sub-sequence register stream to the",
+    "captured .vgz identity (the AUDIO-002/AUDIO-009 command->song follow-up that remains open)."
   ]
 }

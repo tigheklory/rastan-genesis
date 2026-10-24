@@ -50,12 +50,34 @@ def main() -> int:
         command = int(row["wire_command"], 0)
         if row.get("status") != "proven":
             raise ValueError(f"live dispatch entry is not proven: {row}")
+        if not 0x00 <= command <= 0x2B:
+            raise ValueError(f"proven dispatch command 0x{command:02X} is outside the arcade BGM range 0x00-0x2B")
         if command in seen_commands:
             raise ValueError(f"duplicate wire command 0x{command:02X}")
         if row["track"] not in tracks:
             raise ValueError(f"dispatch track is not authored: {row['track']}")
         seen_commands.add(command)
         dispatch_by_track.setdefault(row["track"], []).append(row)
+
+    # Diagnostic selectors live in the arcade-ignored command range 0xC0-0xDF.
+    # The running game never emits them, so production playback is unchanged;
+    # they exist only so a labeled diagnostic harness can exercise every stream.
+    diagnostic = mapping.get("diagnostic_selection", [])
+    diagnostic_by_track: dict[str, dict] = {}
+    for row in diagnostic:
+        command = int(row["select_command"], 0)
+        if row.get("status") != "diagnostic":
+            raise ValueError(f"diagnostic entry is not labeled diagnostic: {row}")
+        if not 0xC0 <= command <= 0xDF:
+            raise ValueError(f"diagnostic selector 0x{command:02X} is outside the reserved 0xC0-0xDF range")
+        if command in seen_commands:
+            raise ValueError(f"diagnostic selector 0x{command:02X} collides with a dispatch command")
+        if row["track"] not in tracks:
+            raise ValueError(f"diagnostic track is not authored: {row['track']}")
+        if row["track"] in diagnostic_by_track:
+            raise ValueError(f"duplicate diagnostic selector for track {row['track']}")
+        seen_commands.add(command)
+        diagnostic_by_track[row["track"]] = row
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
     compiled = []
@@ -92,6 +114,10 @@ def main() -> int:
             "loop_ticks": details["loop_ticks"],
             "has_loop": details["has_source_loop"],
             "wire_commands": [r["wire_command"] for r in dispatch_by_track.get(track, [])],
+            "diagnostic_command": (
+                diagnostic_by_track[track]["select_command"]
+                if track in diagnostic_by_track else None
+            ),
         })
 
     lines = [
@@ -115,17 +141,24 @@ def main() -> int:
             f"    .long {asm_symbol(song['track'], 'start')}",
             f"    .long {asm_symbol(song['track'], 'loop') if song['has_loop'] else 0}",
         ]
+    # The Z80 dispatch table the driver scans holds proven authentic rows first,
+    # then the diagnostic selectors.  Both are matched identically by the driver;
+    # the diagnostic commands are simply never emitted by the running game.
+    table_rows = (
+        [(int(row["wire_command"], 0), row["track"]) for row in dispatch]
+        + [(int(row["select_command"], 0), row["track"]) for row in diagnostic]
+    )
     lines += [
         "genesistan_audio_song_dispatch_count:",
-        f"    .byte {len(dispatch)}",
+        f"    .byte {len(table_rows)}",
         "    .balign 2",
         "genesistan_audio_song_dispatch:",
     ]
     by_track = {song["track"]: song for song in compiled}
-    for row in dispatch:
-        song = by_track[row["track"]]
+    for command, track in table_rows:
+        song = by_track[track]
         lines += [
-            f"    .byte {int(row['wire_command'], 0)}, {song['id']}",
+            f"    .byte 0x{command:02X}, {song['id']}",
             "    .word 0",
             f"    .long {asm_symbol(song['track'], 'start')}",
             f"    .long {asm_symbol(song['track'], 'loop') if song['has_loop'] else 0}",
@@ -153,11 +186,16 @@ def main() -> int:
         "authored_track_count": len(compiled),
         "songs": compiled,
         "dispatch": dispatch,
+        "diagnostic_selection": diagnostic,
+        "song_table_rows": len(table_rows),
         "unmapped_command_policy": mapping["unmapped_command_policy"],
         "fm6_reserved": profile.get("reserved_dac") == "ym2612_fm6_dac",
     }
     args.manifest.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
-    print(f"AUDIO_NATIVE_LIBRARY_PASS songs={len(compiled)} dispatch={len(dispatch)}")
+    print(
+        f"AUDIO_NATIVE_LIBRARY_PASS songs={len(compiled)} "
+        f"dispatch={len(dispatch)} diagnostic={len(diagnostic)} table_rows={len(table_rows)}"
+    )
     return 0
 
 

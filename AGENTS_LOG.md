@@ -53553,3 +53553,38 @@ playback correct. New accepted development baseline.
   `audio/rastan_music_dump/*.vgz` and the compiled `apps/rastan-direct/out/audio_assets.o` are already
   tracked and already on origin from prior history; purging them from GitHub requires a destructive
   history rewrite + force-push, which was NOT performed without explicit authorization.
+
+### MAME Exit Summary (2026-10-23 20:07:59)
+- Final PC: 0x03A1AA
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+## AUDIO-015 — Seven-song dispatch complete + diagnostic selection (Andy, Build 0493, 2026-10-23)
+
+Completed the seven-song native implementation on the accepted Build 0492 baseline. No driver or
+playback-engine change; all work is in generated registry data + tooling.
+
+- **Build 0492 baseline:** committed; tag `accepted/build-0492` at ROM-producing commit `158ddac7`
+  (SHA `feb610c0…b582f065`). NOTE: push to origin is blocked in this environment (origin is SSH, no
+  key/agent available); commit `d6a24ee4` + the tag are local and need credentials to push. The
+  accepted *source* commit `158ddac7` is already on origin.
+- **Verified mapping table:** only `0x25`→Aggressive World is a proven authentic mapping (hw-accepted).
+  `build/audio/music_command_inventory.json` records command→song as UNRESOLVED; channel counts do not
+  disambiguate. The other six authored songs' authentic BGM commands are labeled UNRESOLVED. `0x04` at
+  the credit state is recorded as a candidate for Credit but NOT corroborated and NOT wired.
+- **Diagnostic selection:** `specs/audio_native_song_map.json` gains a `diagnostic_selection` block —
+  reserved selectors `0xD0-0xD6` (one per authored song) in the arcade-ignored `0xC0-0xDF` range, which
+  the running game never emits. `compile_genesis_native_library.py` emits them into the Z80 song table;
+  `verify_genesis_native_audio.py` enforces proven-vs-diagnostic separation. New labeled harness
+  `tools/mame/run_audio015_native_song_diagnostic.sh` (+ lua) injects each selector and confirms decode.
+- **Build 0493:** SHA `b998e5641bd553de5a7807ef86a973b8dcc1939528edc5f1af6f1d0e9ab941ae`, full 7-ROM
+  family, all gates pass (`AUDIO_NATIVE_STATIC_PASS … dispatch=1 diagnostic=7`).
+- **Validation:** diagnostic harness 7/7 songs decode (ACTIVE + in-window stream advance); GENESIS NTSC
+  runtime gate `result=PASS` (accepted R1-S1 `0x25` appearance preserved, no corruption); Composer
+  workflow test `AUDIO_NATIVE_PROFILE_WORKFLOW_PASS` (edit→save→build→only that song regenerates).
+- **SFX:** future native-SFX architecture DOCUMENTED only (not implemented), per directive.
+- **FLAG for Tighe:** `analysis/audio/decision_profiles/music-test.json` +
+  `profile_manifest.json` had an unexplained working-tree edit (Composer active `track_id` 09→08, an
+  unauthored track) not made by this task; it does not affect the compiled 7 songs (compiler uses
+  `track_routings`). Left uncommitted and untouched for Tighe to resolve.
+- **Design note:** `docs/design/Andy_AUDIO015_multisong_dispatch_and_diagnostic.md`. OPEN-039 OPEN.
