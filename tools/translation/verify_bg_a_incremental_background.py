@@ -90,7 +90,9 @@ def static_contract() -> None:
         fail("selector-0 residency context selection is inside the cell loop")
     if sel0.count("cmpi.b  #1, genesistan_current_scene_id") != 1:
         fail("selector-0 must select scene/LUT context exactly once per column")
-    require(sel12, ("movea.l %d6, %a0",
+    require(sel12, ("PC080SN_DESC_REBUILD_PTR_TABLE",
+                    "PC080SN_DESC_REBUILD_WORD_TABLE",
+                    "subi.l  #PC080SN_DESC_SECOND_WORD_BASE, %d2",
                     ".Lplane_a_sel12_shared_loop",
                     ".Lplane_a_native_metatile_record_from_d2",
                     "0x20(%a4,%d0.w)", "cmpi.w  #32",

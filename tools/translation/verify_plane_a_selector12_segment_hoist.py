@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Verify selector-1/2 arcade row and rebuilt-pointer semantics.
+"""Verify selector-1/2 arcade row and rebuilt-metatile semantics.
 
-The original 0x55990 producer consumes the sixteen rebuilt pointers at 0x10D040
-in destination-column order.  Each pointer already includes the live strip
-group.  The native producer must consume those pointers directly while keeping
-collision unconditional and visual output resident-row-only.
+Original 0x55904 rebuilds parallel tables: descriptor word0 at 0x10D080 and
+0x200 + descriptor word1 (a metatile-data pointer) at 0x10D040.  Original
+0x55A14 consumes those two products directly.  The native producer must remove
+only the Genesis copy relocation from the pointer, use word1 to select the
+native metatile record, and preserve word0 independently as the attribute.
 """
 
 from __future__ import annotations
@@ -15,6 +16,7 @@ from pathlib import Path
 from verify_plane_a_selector0_segment_hoist import (
     DESC_END,
     DESC_START,
+    be16,
     output,
     record_for,
 )
@@ -62,7 +64,10 @@ def require_source_contract() -> None:
     block = source[start:end]
     required = (
         ".Lplane_a_sel12_shared_loop:",
-        "movea.l %d6, %a0",
+        "PC080SN_DESC_REBUILD_PTR_TABLE",
+        "PC080SN_DESC_REBUILD_WORD_TABLE",
+        "subi.l  #PC080SN_DESC_SECOND_WORD_BASE, %d2",
+        "move.w  10(%sp), %d0",
         ".Lplane_a_native_metatile_record_from_d2",
         "0x20(%a4,%d0.w)",
         "fg_cache_resolve",
@@ -104,19 +109,36 @@ def main() -> None:
                 raise SystemExit("FAIL selector-2 forward destination row")
             destination_cases += 2
 
-    # Runtime selection: all rebuilt-pointer positions and descriptor-range
-    # boundaries.  A3 entry N must feed destination column block N directly.
-    source_bases = (
-        DESC_START - 4, DESC_START, DESC_START + 4, 0x1691C, 0x18BDC,
-        0x2C49C, DESC_END - 8, DESC_END - 4, DESC_END, DESC_END + 4,
-    )
+    # Rebuild/consumer contract over every source descriptor.  A3 is the
+    # relocated metatile pointer 0x200+word1, not the descriptor's address;
+    # A1 is the independent word0 attribute.  Prove that reversing exactly
+    # that relocation selects the same generated semantic record and output
+    # as the original descriptor for every subcell and residency context.
     selection_cases = 0
-    for base in source_bases:
-        sources = tuple(base + segment * 4 for segment in range(16))
-        for block in range(16):
-            if sources[block] != base + block * 4:
-                raise SystemExit("FAIL selector-1/2 rebuilt-pointer order")
-            selection_cases += 1
+    for descriptor in range(DESC_START, DESC_END, 4):
+        attr = be16(maincpu, descriptor)
+        word1 = be16(maincpu, descriptor + 2)
+        rebuilt_pointer = 0x200 + word1
+        recovered_word1 = rebuilt_pointer - 0x200
+        if recovered_word1 != word1:
+            raise SystemExit("FAIL selector-1/2 rebuilt metatile pointer")
+        expected = record_for(maincpu, index, records, descriptor)
+        if expected is None:
+            actual = None
+        else:
+            record_id = be16(index, recovered_word1)
+            offset = (record_id - 1) * 64
+            actual = (attr, records[offset:offset + 64])
+        for row_in in range(4):
+            for col_in in range(4):
+                for context in (0, 7):
+                    if output(expected, row_in, col_in, context) != output(
+                            actual, row_in, col_in, context):
+                        raise SystemExit(
+                            "FAIL selector-1/2 rebuilt metatile output "
+                            f"descriptor={descriptor:#x} row={row_in} col={col_in}"
+                        )
+                    selection_cases += 1
 
     # Output contract: every descriptor and every row/column subcell under two
     # representative dynamic package contexts.  The shared record must produce
@@ -169,7 +191,7 @@ def main() -> None:
     print(
         "PASS selector-1/2 runtime equivalence: "
         f"{destination_cases} arcade destination-row cases; "
-        f"{selection_cases} rebuilt-pointer/order/boundary cases; "
+        f"{selection_cases} rebuilt-metatile/attribute cases; "
         f"{output_cases} descriptor/subcell/context "
         f"cases; {residency_cases} row/top residency cases "
         f"({resident_cases} resident, {nonresident_cases} nonresident); "

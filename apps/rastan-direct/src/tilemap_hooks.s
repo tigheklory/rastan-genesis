@@ -570,6 +570,7 @@ genesistan_hook_tilemap_plane_a_selector12_native:
     move.w  %d0, 2(%sp)             /* visible top logical row */
 
     lea     PC080SN_DESC_REBUILD_PTR_TABLE, %a3
+    lea     PC080SN_DESC_REBUILD_WORD_TABLE, %a1
     lea     genesistan_pc080sn_tile_vram_lut, %a2
     lea     staged_fg_buffer, %a6
 
@@ -577,6 +578,7 @@ genesistan_hook_tilemap_plane_a_selector12_native:
     moveq   #0, %d4                 /* descriptor segment */
 .Lplane_a_sel12_segment_loop:
     move.l  (%a3)+, %d6
+    move.w  (%a1)+, 10(%sp)        /* exact parallel arcade attribute word */
     btst    #0, %d6
     bne     .Lplane_a_sel12_next_segment
     cmpi.l  #0x00000200, %d6
@@ -584,22 +586,18 @@ genesistan_hook_tilemap_plane_a_selector12_native:
     cmpi.l  #0x0005FFFC, %d6
     bhi     .Lplane_a_sel12_next_segment
 
-    /* 0x55990 already gives selector 1/2 the sixteen rebuilt descriptor
-     * pointers in A3 order.  That order is the destination column-block axis;
-     * each pointer has already advanced by the live strip group at 0x558C6.
-     * Consume it directly.  Re-deriving a descriptor from logical row/column
-     * here was a selector-0 interpretation and destroyed the arcade's
-     * block-coordinate transpose/reversal. */
-    movea.l %d6, %a0
-    cmpa.l  #PC080SN_DESC_ARCADE_START, %a0
-    blo.s   .Lplane_a_sel12_shared_blank
-    cmpa.l  #PC080SN_DESC_ARCADE_END, %a0
-    bhs.s   .Lplane_a_sel12_shared_blank
-    suba.l  #PC080SN_DESC_ARCADE_START, %a0
-    adda.l  #PC080SN_DESC_GENESIS_START, %a0
-    move.w  (%a0), %d6
-    moveq   #0, %d2
-    move.w  2(%a0), %d2
+    /* Original 0x55904 does not put descriptor-entry pointers in A3.  It reads
+     * each live descriptor once, stores word0 in the parallel A1 table, and
+     * stores (0x200 + word1) in A3: the actual metatile-data pointer consumed
+     * by 0x55A14.  The native rebuild preserves that contract and relocates
+     * A3 by the whole-maincpu +0x200 copy delta.  Build 0502 incorrectly
+     * treated this already-resolved metatile pointer as another descriptor and
+     * dereferenced it a second time, selecting unrelated visual and collision
+     * records throughout selector-1/2 stages.  Undo only the copy relocation
+     * to recover the canonical word1 used by the generated native index; take
+     * the attribute from the exact parallel word table. */
+    move.l  %d6, %d2
+    subi.l  #PC080SN_DESC_SECOND_WORD_BASE, %d2
     btst    #0, %d2
     bne.s   .Lplane_a_sel12_shared_blank
     cmpi.l  #0x0005FDFC, %d2
@@ -615,7 +613,7 @@ genesistan_hook_tilemap_plane_a_selector12_native:
     andi.w  #0x003F, %d0
     cmpi.w  #32, %d0
     bhs.s   .Lplane_a_sel12_shared_no_attr
-    move.w  %d6, %d0
+    move.w  10(%sp), %d0
     bsr     .Lplane_a_native_attr_from_word
     move.w  %d0, 6(%sp)
     bra.s   .Lplane_a_sel12_shared_ready
