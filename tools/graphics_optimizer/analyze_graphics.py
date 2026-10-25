@@ -209,7 +209,13 @@ def decode_palettes(mc: bytes, banks, scene):
 def decode_plane_a(mc, gfx, segments):
     cells = []
     for segment in segments:
-        cells.extend(plane_a_decoder.reconstruct_segment(mc, gfx, segment, "visible"))
+        # The selector stream is the arcade authority for how the retained
+        # descriptor map is assembled into PC080SN coordinates.  In
+        # particular, selector 1 transposes/reverses 4x4 block coordinates;
+        # the metatile's internal orientation remains unchanged.
+        selector = compiler.decode_record_selector(mc, segment)
+        cells.extend(plane_a_decoder.reconstruct_segment(
+            mc, gfx, segment, "visible", selector=selector))
     uses = {}
     for cell in cells:
         bank = cell.attr & 0x1ff

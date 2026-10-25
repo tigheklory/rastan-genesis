@@ -535,11 +535,25 @@ genesistan_hook_tilemap_plane_a_selector12_native:
     lsl.w   #3, %d0
     move.w  %d0, 4(%sp)             /* source row byte offset */
 
+    /* Arcade selector 1 writes rows from the bottom upward.  FUN_00055696
+     * forms C08000 + 3F00 - (group*0x400 + strip*0x100), so its collision
+     * and name destination row is 63-(group*4+strip).  The complemented
+     * strip above selects the source row inside the 4x4 metatile only; it is
+     * not the destination row.  Selector 2 uses the forward destination from
+     * FUN_0005572e, group*4+strip. */
     moveq   #0, %d0
     move.w  ARCADE_PC080SN_STRIP_GROUP_OFFSET(%a5), %d0
     andi.w  #0x000F, %d0
     lsl.w   #2, %d0
-    add.w   %d1, %d0
+    moveq   #0, %d2
+    move.w  ARCADE_PC080SN_STRIP_INDEX_OFFSET(%a5), %d2
+    andi.w  #0x0003, %d2
+    add.w   %d2, %d0
+    cmpi.w  #1, ARCADE_PC080SN_SELECTOR_OFFSET(%a5)
+    bne.s   .Lplane_a_sel12_logical_row_ready
+    neg.w   %d0
+    addi.w  #63, %d0
+.Lplane_a_sel12_logical_row_ready:
     andi.w  #0x003F, %d0
     move.w  %d0, 0(%sp)             /* logical row */
 

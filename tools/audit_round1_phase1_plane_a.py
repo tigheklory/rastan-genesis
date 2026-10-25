@@ -110,7 +110,26 @@ class Cell:
     family: str
 
 
-def reconstruct_segment(maincpu: bytes, gfx: bytes, segment: int, category: str) -> list[Cell]:
+def arcade_plane_a_destination(source_row: int, source_column: int,
+                               selector: int) -> tuple[int, int]:
+    """Map retained source cells to the PC080SN destination used by the arcade.
+
+    Selector 0 publishes vertical columns and therefore keeps the source map
+    coordinates.  Selector 1 publishes horizontal rows from PC080SN row 63
+    upward.  FUN_00055a14 preserves the 4x4 metatile's internal coordinates,
+    so this is a transpose/reversal of *block coordinates*, not a rotation of
+    the completed 64x64 image.
+    """
+    if selector == 1:
+        source_block_row, row_in_block = divmod(source_row, 4)
+        source_block_column, column_in_block = divmod(source_column, 4)
+        return ((15 - source_block_column) * 4 + row_in_block,
+                source_block_row * 4 + column_in_block)
+    return source_row, source_column
+
+
+def reconstruct_segment(maincpu: bytes, gfx: bytes, segment: int, category: str,
+                        selector: int = 0) -> list[Cell]:
     result = []
     for world_row in range(ROWS_PER_SEGMENT):
         table_index, descriptor_row = divmod(world_row, 4)
@@ -126,11 +145,13 @@ def reconstruct_segment(maincpu: bytes, gfx: bytes, segment: int, category: str)
             tile_word = be16(maincpu, descriptor_offset)
             code = tile_word & 0x3FFF
             raw = tile_bytes(gfx, code)
+            destination_row, destination_column = arcade_plane_a_destination(
+                world_row, segment_column, selector)
             result.append(Cell(
                 segment=segment,
-                segment_column=segment_column,
-                world_column=segment * TILES_PER_SEGMENT + segment_column,
-                world_row=world_row,
+                segment_column=destination_column,
+                world_column=segment * TILES_PER_SEGMENT + destination_column,
+                world_row=destination_row,
                 attr=attr,
                 descriptor=descriptor,
                 descriptor_offset=descriptor_offset,

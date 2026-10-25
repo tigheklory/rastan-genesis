@@ -41,6 +41,12 @@ def straddles_front(block: int, group: int, strip: int) -> bool:
     return start <= front < start + 3
 
 
+def destination_row(selector: int, group: int, strip: int) -> int:
+    """Exact PC080SN destination row from 0x556DC/0x5576E arithmetic."""
+    forward = ((group & 15) * 4 + (strip & 3)) & 63
+    return (63 - forward) & 63 if selector == 1 else forward
+
+
 def select_0425_block(row: int, block: int, sources: tuple[int, ...],
                       group: int, strip: int) -> list[int]:
     start = block * 4
@@ -66,6 +72,8 @@ def require_source_contract() -> None:
         "0x20(%a4,%d0.w)",
         "fg_cache_resolve",
         "ARCADE_COLLISION_MAP_BASE",
+        "addi.w  #63, %d0",
+        ".Lplane_a_sel12_logical_row_ready:",
     )
     for token in required:
         if token not in block:
@@ -87,6 +95,19 @@ def main() -> None:
     maincpu = args.maincpu.read_bytes()
     index = args.index.read_bytes()
     records = args.records.read_bytes()
+
+    # Selector 1's complemented strip is a source-metatile row selector only.
+    # Prove the independent destination coordinate for all ring states against
+    # the original 0x55696 (reverse) and 0x5572E (forward) formulas.
+    destination_cases = 0
+    for group in range(16):
+        for strip in range(4):
+            linear = group * 4 + strip
+            if destination_row(1, group, strip) != 63 - linear:
+                raise SystemExit("FAIL selector-1 reverse destination row")
+            if destination_row(2, group, strip) != linear:
+                raise SystemExit("FAIL selector-2 forward destination row")
+            destination_cases += 2
 
     # Runtime selection: all rows, live fronts, block/strip rollovers, source
     # rebases and descriptor-range boundary fragments. Safe blocks must share;
@@ -165,6 +186,7 @@ def main() -> None:
 
     print(
         "PASS selector-1/2 runtime equivalence: "
+        f"{destination_cases} arcade destination-row cases; "
         f"{selection_cases} selection/front/wrap/rebase cases "
         f"({seam_cases} seam fallbacks); {output_cases} descriptor/subcell/context "
         f"cases; {residency_cases} row/top residency cases "

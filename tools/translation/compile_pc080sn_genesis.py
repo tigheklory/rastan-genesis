@@ -198,6 +198,16 @@ def decode_stage_progression(mc: bytes, stage_index: int = 0):
     return [(r["segment"], r["selector"]) for r in decode_stage_records(mc, stage_index)]
 
 
+def decode_record_selector(mc: bytes, segment: int) -> int:
+    """Return the arcade direction selector for one physical map record."""
+    if not 0 <= segment <= MAX_SEGMENT:
+        raise ValueError(f"map record outside 0..{MAX_SEGMENT}: {segment}")
+    selector = mc[STREAM + mc[SEED_TABLE + segment]]
+    if selector not in DIR_BYTES:
+        raise ValueError(f"map record {segment} has invalid selector {selector:#x}")
+    return selector
+
+
 def decode_plane_b_progression(mc: bytes, stage_index: int = 0):
     """Decode exact descriptor-cursor mechanics without inventing a Plane-B Y envelope.
 
@@ -541,22 +551,30 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
     source_table_bases = tuple(gen.FG_SRC_BASE + index * gen.FG_SRC_STRIDE
                                for index in range(gen.FG_SEG_COUNT))
 
-    def record_map(record_index):
+    def record_map(record_index, selector):
         cells = [[0] * 64 for _ in range(64)]
-        for row in range(64):
-            table_index, descriptor_row = divmod(row, 4)
+        for source_row in range(64):
+            table_index, descriptor_row = divmod(source_row, 4)
             table_base = source_table_bases[table_index] + record_index * 0x40
-            for column in range(64):
-                descriptor_column, descriptor_subcolumn = divmod(column, 4)
+            for source_column in range(64):
+                descriptor_column, descriptor_subcolumn = divmod(source_column, 4)
                 entry = table_base + descriptor_column * 4
                 descriptor = u16(entry + 2)
                 if descriptor:
-                    cells[row][column] = (
+                    destination_row = source_row
+                    destination_column = source_column
+                    if selector == 1:
+                        destination_row = ((15 - descriptor_column) * 4 +
+                                           descriptor_row)
+                        destination_column = (table_index * 4 +
+                                              descriptor_subcolumn)
+                    cells[destination_row][destination_column] = (
                         u16(descriptor + descriptor_row * 8 + descriptor_subcolumn * 2)
                         & 0x3FFF)
         return cells
 
-    record_maps = [record_map(index) for index in range(len(records))]
+    record_maps = [record_map(index, decode_record_selector(mc, index))
+                   for index in range(len(records))]
     transition_specs = []
     for definition in BOUNDARY_TRANSITION_DEFS:
         outgoing = record_maps[definition["out_record"]]
