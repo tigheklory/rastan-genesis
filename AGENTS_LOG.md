@@ -53825,3 +53825,26 @@ the editor to load it per subround.
   where banks overlap. verify_subround_palette_coverage.py = 28/28 PASS. R1 + approvals untouched.
 - Remaining: per-subround sprite/enemy roster (sprite corpus still R1-P1; panel labels it pending).
   Push still blocked (SSH).
+
+## PROMPT-ID-0001 — Arcade palette & map-orientation audit (Andy, investigation only, 2026-10-25)
+
+Forensic investigation (NO fixes; no production code/palette/map/ROM changed). Two R1-S1-centric
+assumptions in the shared Plane-A decode explain the reports:
+- ROTATION (R1-S2 records 17 & 21, and all castles): decode_stage_records shows 17/21 are the ONLY
+  selector=1 (vertical) records in R1; record_map/reconstruct_segment/analyze_graphics.decode_plane_a
+  assemble EVERY record with the horizontal layout. Rotating record 17 90deg CCW yields the correct
+  vertical-climb castle (ladder vertical, windows in a row). PROVEN. Same record_map feeds Cody's native
+  Genesis pipeline -> HIGH-confidence SHARED cause of the Genesis vertical-chain climb failure (Cody's
+  rec17/selector1/scroll 0x100->0x166/climb-rejected diagnostic fits the rotated geometry). R2 also has
+  selector-1 records 43/44 (R2-S2) -> rotation is systemic to castles.
+- PALETTE (R2-S1): gen_subround_layera_corpus.py decodes the fixed startup base 0x4EAF6 (verified = live
+  R1 bank3 = editor R1 capture). Could NOT reproduce R2 divergence: the _Sx-y ROMs set the stage index
+  but not the round counter (RG-019 quirk), so MAME R1 vs R2 palette RAM is byte-identical. The exact R2
+  mechanism is UNRESOLVED pending a genuine round-2 playthrough palette-RAM dump (specified). Root cause:
+  generator uses the R1-fixed palette source for later rounds (an R1-centric residency assumption).
+- R2-S3 "incomplete": FALSE ALARM — 4096/4096 cells, complete boss room with legitimate dark wall space.
+- Recommendations: (A) Cody fixes selector-1 orientation in record_map (likely fixes the climb), Andy
+  regenerates the editor corpus; (B) Andy fixes the generator palette source after the round-2 dump.
+  NOT implemented pending Tighe review.
+- Report: docs/design/Andy_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0001_arcade_palette_and_map_orientation_audit.md
+  Evidence: analysis/rg_audit_0001_evidence/ (rec17 as-decoded vs CCW-correct, rec45 complete). Push blocked (SSH).
