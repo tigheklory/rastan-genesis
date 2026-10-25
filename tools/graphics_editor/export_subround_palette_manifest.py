@@ -29,19 +29,90 @@ Rules the build must honor:
 Deterministic: stable key order; no timestamps; identical inputs -> identical bytes.
 """
 from __future__ import annotations
-import json
+import argparse, json, struct
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 MAP = ROOT / "specs/palette_subround_map.json"
 REG = ROOT / "specs/palette_decisions.json"
 OUT = ROOT / "build/palette_export/palette_scene_manifest.json"
+CRAM_DIR = ROOT / "build/palette_export/cram"
+ORACLE = ROOT / "analysis/graphics_optimizer/arcade_graphics_oracle/contexts.json"
+POLICY_DIR = ROOT / "analysis/graphics_optimizer/editor_policy"
+AUTHORABLE_LINES = (0, 1, 3)   # Line 2 is reserved (arcade Plane B) and never exported
+
+# scene_key -> editing context id (R1-S1 outdoor authors on the existing r01.p01 context)
+def scene_context(scene_key):
+    return "context:gameplay.r01.p01" if scene_key == "PAL-R1-S1-PLANEA-OUTDOOR" else scene_key
+
+def _ctx_chain(contexts, cid):
+    by = {c["id"]: c for c in contexts}
+    out = []; c = by.get(cid)
+    while c:
+        out.insert(0, c); c = by.get(c["parent"]) if c.get("parent") else None
+    return out
+
+def _eff_cram(pol, contexts, scope, line, i):
+    tpl = pol.get("target_palette_lines") or [[None]*16]*4
+    cram = tpl[line][i] if line < len(tpl) and i < len(tpl[line]) else None
+    for c in _ctx_chain(contexts, scope):
+        t = (pol.get("context_policies", {}).get(c["id"]) or {}).get("tpl", {}).get(str(line))
+        if t and str(i) in t:
+            cram = t[str(i)]
+    return cram
+
+def full_contexts(smap):
+    """The raw oracle contexts PLUS the subround scene contexts (mirrors server build_oracle), so the
+    exporter resolves per-scene overrides exactly as the editor does."""
+    base = json.loads(ORACLE.read_text()).get("contexts", []) if ORACLE.is_file() else []
+    ids = {c["id"] for c in base}
+    extra = []
+    for sr in smap.get("subrounds", []):
+        for env in sr.get("environments", []):
+            if env.get("family") != "PLANEA":
+                continue
+            sk = env["scene_key"]
+            if sk == "PAL-R1-S1-PLANEA-OUTDOOR" or sk in ids:
+                continue
+            parent = "context:gameplay.r01.p01" if sr["key"] == "R1-S1" else "context:gameplay"
+            extra.append({"id": sk, "parent": parent})
+    return base + extra
+
+def _emit_cram(scene_key, pol, contexts):
+    """Write build/palette_export/cram/<scene_key>.bin, ONLY when the scene has its OWN authored
+    lines (context_policies[scope].tpl non-empty) — never from inherited/shared base alone, so one
+    scene's palette is never substituted for another. Returns the relative path, or None (arcade
+    fallback). Format: lines {0,1,3} x 16 big-endian CRAM words (unauthored entry -> 0x0000)."""
+    scope = scene_context(scene_key)
+    own = (pol.get("context_policies", {}).get(scope) or {}).get("tpl") or {}
+    if not any(own.get(str(l)) for l in AUTHORABLE_LINES):
+        return None
+    words = []
+    for line in AUTHORABLE_LINES:
+        for i in range(16):
+            v = _eff_cram(pol, contexts, scope, line, i)
+            words.append(int(v, 16) & 0xFFFF if v is not None else 0)
+    CRAM_DIR.mkdir(parents=True, exist_ok=True)
+    (CRAM_DIR / f"{scene_key}.bin").write_bytes(b"".join(struct.pack(">H", w) for w in words))
+    return f"build/palette_export/cram/{scene_key}.bin"
 
 
 def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--profile", default=None,
+                    help="editor_policy profile id whose authored per-scene Lines 0/1/3 become CRAM blobs")
+    args = ap.parse_args()
     smap = json.loads(MAP.read_text())
     reg = json.loads(REG.read_text())
     fams = smap["families"]
+
+    pol = None
+    contexts = []
+    if args.profile:
+        pfile = POLICY_DIR / f"{args.profile}.json"
+        if pfile.is_file():
+            pol = json.loads(pfile.read_text())
+            contexts = full_contexts(smap)
 
     # index decisions by the scene_keys they declare applicability for
     by_scene: dict[str, list] = {}
@@ -77,7 +148,7 @@ def main() -> int:
                                "genesis_lines": fam_meta.get("genesis_lines", []),
                                "scene_applicability": d.get("scene_applicability", {})} for d in decs],
                 "cram_lines": fam_meta.get("genesis_lines", []),
-                "cram_asset": None,
+                "cram_asset": (_emit_cram(sk, pol, contexts) if (pol is not None and fam_meta.get("authorable")) else None),
                 "shared_from": None,
             })
 
