@@ -53806,3 +53806,22 @@ native integration points (scene_load.s/tilemap_hooks.s/palette_hooks.s) or Audi
 - Rope performance remains deterministic: `795/795/795`, median 13,267.083 ms, zero change from Build 0499 and accepted Build 0472.
 - The exact R1-S2 obstruction and live boss-defeat transition remain hardware observations; no boss progression fix is claimed. Rounds 3–6 and RG-022 palette authoring remain separate. Concurrent Andy/audio/Palette Composer work was preserved.
 - Report: `docs/design/Cody_build0500_native_plane_stage_assembly.md`; task index: `docs/design/Cody_RG023_native_plane_stage_assembly.md`.
+
+## RG-022 follow-up — editor now loads REAL per-subround graphics (Andy, 2026-10-25)
+
+Tighe reported selecting R1-S2 didn't load castle tiles (first pass was metadata-only). Fixed by
+generating the per-subround Layer-A authoring corpus from Cody's committed ARCADE decoders and wiring
+the editor to load it per subround.
+- gen_subround_layera_corpus.py: reuses analyze_graphics.decode_plane_a(mc,gfx,segments) for the exact
+  plane_a_uses rows + arcade palette banks (startup base 0x4EAF6+bank*32, 0RGB->rgb8 via _pal5).
+  Generated R1-S2 castle (rec 16-21), R1-S3 boss (22), R2 S1/S2/S3 (23-45), R1-S1 caves ->
+  analysis/graphics_optimizer/subround_corpus/.
+- server.py: build_layera/plane_bank_colors/layera_map/layera_pattern_detail now scene-aware;
+  /api/layera, /api/layera_map (clamp 0->138), /api/layera_pattern accept ?scene=.
+- app.js: ACTIVE_SCENE + per-scene cache invalidation + record-band dropdowns + window.loadSubroundScene.
+- Subround panel PLANEA envs get a "Load into editor" button.
+- Tests 13/14 (server-backed): castle/boss/R2 load real arcade tiles that fully resolve (castle rec16
+  3648 resolved/0 unresolved; boss 4096; R2 3086) with their own banks; colors match the R1 capture
+  where banks overlap. verify_subround_palette_coverage.py = 28/28 PASS. R1 + approvals untouched.
+- Remaining: per-subround sprite/enemy roster (sprite corpus still R1-P1; panel labels it pending).
+  Push still blocked (SSH).

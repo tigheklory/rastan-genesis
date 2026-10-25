@@ -953,7 +953,26 @@ def tile_indices8(code):
     return px
 
 
-def plane_bank_colors():
+SUBROUND_CORPUS = os.path.join(ROOT, "analysis/graphics_optimizer/subround_corpus")
+def _scene_corpus_dir(scene):
+    """Return the per-subround corpus dir for a PLANEA scene_key, or None (-> R1-P1 default)."""
+    if not scene:
+        return None
+    d = os.path.join(SUBROUND_CORPUS, scene)
+    return d if os.path.isfile(os.path.join(d, "plane_a_uses.json")) else None
+
+
+def plane_bank_colors(scene=None):
+    """Layer-A source palette banks (arcade RGB8), keyed by hex id. For a subround scene with its
+    own corpus, load that scene's arcade banks (records 16-45 castle/boss/R2); else Round-1 P1."""
+    sd = _scene_corpus_dir(scene)
+    if sd:
+        p = loadj(os.path.join(sd, "plane_palette_banks.json"), {"banks": {}})
+        return {bid: bb["arcade_rgb8"] for bid, bb in p.get("banks", {}).items() if bb.get("arcade_rgb8")}
+    return _plane_bank_colors_r1p1()
+
+
+def _plane_bank_colors_r1p1():
     """11 Layer-A source palette banks (arcade RGB8), keyed by hex id (0x003..0x01D).
 
     AUTHORITY: original-arcade palette RAM 0x200000 captured at R1/P1 gameplay
@@ -968,15 +987,17 @@ def plane_bank_colors():
     return {bid: [e["arcade_rgb8"] for e in bb["entries"]] for bid, bb in p.get("banks", {}).items()}
 
 
-_LAYERA = None
-def build_layera():
-    """Complete R1/P1 Layer-A corpus: every physical pattern + every logical usage from the frozen census.
-    physical_pattern (sha256 of the 32 raw tile bytes) is authoritative identity; ~1:1 with tile_code."""
-    global _LAYERA
-    if _LAYERA is not None:
-        return _LAYERA
-    pa = loadj(os.path.join(ANALYZER, "plane_a_uses.json"), [])
-    all_banks = plane_bank_colors()
+_LAYERA = {}
+def build_layera(scene=None):
+    """Layer-A corpus for a scene: every physical pattern + every logical usage.  Default (scene=None)
+    is the frozen Round-1 Phase-1 census; a subround scene_key loads its per-subround arcade corpus
+    (RG-022).  physical_pattern (sha256 of the 32 raw tile bytes) is authoritative identity."""
+    key = scene or "__r1p1__"
+    if key in _LAYERA:
+        return _LAYERA[key]
+    sd = _scene_corpus_dir(scene)
+    pa = loadj(os.path.join(sd, "plane_a_uses.json") if sd else os.path.join(ANALYZER, "plane_a_uses.json"), [])
+    all_banks = plane_bank_colors(scene)
     used_bank_ids = sorted({u["palette_bank_hex"] for u in pa},
                            key=lambda h: int(h, 16))                       # 11 banks actually used by Layer A
     byhash = {}
@@ -1015,18 +1036,18 @@ def build_layera():
             "coordinate_samples": u.get("coordinate_samples", [])[:8],
             "source_address": u.get("source_address"),
             "used_indices": used_idx, "n_colors": len(used_idx)})
-    _LAYERA = {"patterns": patterns, "usages": usages, "hash2pid": hash2pid,
+    _LAYERA[key] = {"patterns": patterns, "usages": usages, "hash2pid": hash2pid,
                "banks": {b: all_banks[b] for b in used_bank_ids if b in all_banks},
-               "bank_ids": used_bank_ids,
+               "bank_ids": used_bank_ids, "scene": scene,
                "counts": {"physical_patterns": len(patterns), "logical_usages": len(usages),
                           "palette_banks": len(used_bank_ids),
                           "multi_palette_patterns": sum(1 for p in patterns if p["multi_palette"])}}
-    return _LAYERA
+    return _LAYERA[key]
 
 
-def layera_pattern_detail(pid):
+def layera_pattern_detail(pid, scene=None):
     """Full detail for one physical pattern: pixels, every logical usage, and every palette variant."""
-    la = build_layera()
+    la = build_layera(scene)
     pat = next((p for p in la["patterns"] if p["pattern_id"] == pid), None)
     if pat is None:
         return None
@@ -1072,16 +1093,17 @@ def _maincpu():
     return _MAINCPU
 
 
-def layera_map(seg):
+def layera_map(seg, scene=None):
     """Reconstruct one R1/P1 Layer-A segment's COMPLETE assembled backing tilemap (64x64) from the arcade
     maincpu tables. Every nonblank cell resolves to its exact logical usage (tile_code + palette_bank).
     The complete vertical domain is exposed (not just the 30-row screen viewport) so terrain in the lower
     rows is editable; the normal viewport is reported for optional highlight only."""
-    if seg in _MAPCACHE:
-        return _MAPCACHE[seg]
+    _ckey=(seg,scene)
+    if _ckey in _MAPCACHE:
+        return _MAPCACHE[_ckey]
     m = _maincpu()
     be = lambda o: int.from_bytes(m[o:o + 2], "big")
-    la = build_layera()
+    la = build_layera(scene)
     bybank = {}
     for u in la["usages"]:
         bybank.setdefault((u["tile_code"], u["palette_bank"]), u)
@@ -1118,7 +1140,7 @@ def layera_map(seg):
            "resolved": sum(1 for c in cells if c["uid"]),
            "unresolved": sum(1 for c in cells if not c["uid"]),
            "tiles": tiles, "cells": cells}
-    _MAPCACHE[seg] = out
+    _MAPCACHE[_ckey] = out
     return out
 
 
@@ -1396,18 +1418,21 @@ class Hd(BaseHTTPRequestHandler):
         if u.path == "/api/oracle":
             return self._s(200, json.dumps(build_oracle()).encode())
         if u.path == "/api/layera":
-            la = build_layera()
+            scene = (q.get("scene", [""])[0] or None)
+            la = build_layera(scene)
             return self._s(200, json.dumps({
                 "counts": la["counts"], "bank_ids": la["bank_ids"], "banks": la["banks"],
                 "reserved_lines": RESERVED_LINES, "editable_lines": EDITABLE_LINES,
-                "line_owners": LINE_OWNERS, "patterns": la["patterns"]}).encode())
+                "line_owners": LINE_OWNERS, "patterns": la["patterns"], "scene": scene}).encode())
         if u.path == "/api/layera_pattern":
-            d = layera_pattern_detail(q.get("pid", [""])[0])
+            scene = (q.get("scene", [""])[0] or None)
+            d = layera_pattern_detail(q.get("pid", [""])[0], scene)
             return self._s(200 if d else 404, json.dumps(d or {"error": "pattern not found"}).encode())
         if u.path == "/api/layera_map":
             try:
-                seg = max(0, min(15, int(q.get("seg", ["0"])[0])))
-                return self._s(200, json.dumps(layera_map(seg)).encode())
+                scene = (q.get("scene", [""])[0] or None)
+                seg = max(0, min(138, int(q.get("seg", ["0"])[0])))   # records 0-138 (castle/boss/R2)
+                return self._s(200, json.dumps(layera_map(seg, scene)).encode())
             except Exception as e:
                 return self._s(500, json.dumps({"error": str(e)}).encode())
         if u.path == "/api/hitmap":

@@ -136,3 +136,5 @@ canvas{max-width:100%}
 .srp-envtab th,.srp-envtab td{border:1px solid #2a2a2a;padding:2px 5px;text-align:left;vertical-align:top}
 .srp-key{font-family:monospace;color:#bcd}
 .srp-note{color:#888;margin-top:4px;font-style:italic}
+.srp-load{background:#2a3a2a;color:#cfc;border:1px solid #3a5a3a;padding:2px 6px;cursor:pointer;font-size:11px}
+.srp-load:hover{background:#345a34}

@@ -445,17 +445,20 @@ function validate(){const V=$('#valid');V.innerHTML='';let err=0;
  const maps=Object.keys(POL.usage_palette_mappings).length;V.appendChild(el('div','vitem '+(err?'ERROR':'PASS'),`usages mapped: ${maps} · errors: ${err}`));}
 // ================= LAYER A workspace =================
 let LA=null,LAP=new Set(),LADET=null,LAUSAGE=null,LAZOOM=4,LAPAGE=0,LASRC=null;
+let ACTIVE_SCENE=null,LA_SCENE=undefined,SCENE_RECORDS=null;
+function sceneQS(pfx){return ACTIVE_SCENE?(pfx+'scene='+encodeURIComponent(ACTIVE_SCENE)):'';}
 let LAVIEW='library',LAMAPSEG=null,LAMAP=null,LAMAPZOOM=1,LAMAPMODE='arcade',LAMAPGRID=false,LAMAPSEL=null;
 const LAFILT={q:'',seg:'',bank:'',pal:'',map:'',anim:''};
 const LAPP=200;
+window.loadSubroundScene=function(sceneKey,records){ACTIVE_SCENE=sceneKey||null;SCENE_RECORDS=(records&&records.length===2)?records:null;LA=null;LAMAP=null;LADET=null;LAUSAGE=null;LAP.clear();LAMAPSEG=SCENE_RECORDS?SCENE_RECORDS[0]:0;LAVIEW='map';TAB='layera';document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x.dataset.t==='layera'));window._layerActive=true;renderLayerA($('#list'));};
 async function renderLayerA(L){
- if(!LA){L.innerHTML='<div class="dim">Loading Layer-A corpus…</div>';LA=await j('/api/layera');}
+ if(!LA||LA_SCENE!==ACTIVE_SCENE){L.innerHTML='<div class="dim">Loading Layer-A corpus…</div>';LA=await j('/api/layera'+sceneQS('?'));LA_SCENE=ACTIVE_SCENE;}
  if(!POL.plane_usage_palette_mappings)POL.plane_usage_palette_mappings={};
  L.innerHTML='';const c=LA.counts;
  // Segment Map | Tile Library view toggle; auto-open the scope's segment on entry
  const seg=scopeSegment();if(seg!=null&&LAMAPSEG==null){LAMAPSEG=seg;LAVIEW='map';}
  const vt=el('div','groupbar');['map','library'].forEach(v=>{const b=el('button','mini'+(LAVIEW===v?' on':''),v==='map'?'Segment Map':'Tile Library');b.onclick=()=>{LAVIEW=v;renderLayerA($('#list'));};vt.appendChild(b);});L.appendChild(vt);
- if(LAVIEW==='map'){const ms=el('div','line');ms.appendChild(el('span','lbl','Segment'));const s=el('select');for(let i=0;i<16;i++)s.appendChild(new Option('segment '+i,i));s.value=(LAMAPSEG!=null?LAMAPSEG:seg!=null?seg:0);s.onchange=()=>{LAMAPSEG=+s.value;LAMAP=null;renderSegMap();};ms.appendChild(s);L.appendChild(ms);
+ if(LAVIEW==='map'){const ms=el('div','line');ms.appendChild(el('span','lbl','Segment'));const s=el('select');{const _r=SCENE_RECORDS||[0,15];for(let i=_r[0];i<=_r[1];i++)s.appendChild(new Option((ACTIVE_SCENE?'record ':'segment ')+i,i));}s.value=(LAMAPSEG!=null?LAMAPSEG:(SCENE_RECORDS?SCENE_RECORDS[0]:(seg!=null?seg:0)));s.onchange=()=>{LAMAPSEG=+s.value;LAMAP=null;renderSegMap();};ms.appendChild(s);L.appendChild(ms);
   const mv=el('div','zoombar');['arcade','genesis'].forEach(m=>{const b=el('button','mini'+(LAMAPMODE===m?' on':''),m==='arcade'?'Arcade':'Genesis');b.onclick=()=>{LAMAPMODE=m;renderSegMap();};mv.appendChild(b);});L.appendChild(mv);
   const zz=el('div','zoombar');zz.appendChild(el('span','dim','map zoom '));[1,2,4].forEach(z=>{const b=el('button','mini'+(LAMAPZOOM===z?' on':''),z+'×');b.onclick=()=>{LAMAPZOOM=z;renderSegMap();};zz.appendChild(b);});
    const gl=el('label','dim');const gk=el('input');gk.type='checkbox';gk.checked=LAMAPGRID;gk.onchange=()=>{LAMAPGRID=gk.checked;renderSegMap();};gl.appendChild(gk);gl.appendChild(el('span',null,' tile boundaries'));zz.appendChild(gl);L.appendChild(zz);}
@@ -470,7 +473,7 @@ async function renderLayerA(L){
  L.appendChild(pbar);
  const q=el('input');q.placeholder='search id / code / hash / usage';q.value=LAFILT.q;q.style.width='96%';q.oninput=()=>{LAFILT.q=q.value;LAPAGE=0;renderLAGrid();};L.appendChild(q);
  const mk=(lbl,key,opts)=>{const w=el('div','line');w.appendChild(el('span','lbl',lbl));const s=el('select');s.appendChild(new Option('(all)',''));opts.forEach(o=>s.appendChild(new Option(o[1],o[0])));s.value=LAFILT[key];s.onchange=()=>{LAFILT[key]=s.value;LAPAGE=0;renderLAGrid();};w.appendChild(s);L.appendChild(w);};
- mk('Segment','seg',[...Array(16)].map((_,i)=>[''+i,'seg '+i]));
+ mk('Segment','seg',(()=>{const _r=SCENE_RECORDS||[0,15],o=[];for(let i=_r[0];i<=_r[1];i++)o.push([''+i,(ACTIVE_SCENE?'rec ':'seg ')+i]);return o;})());
  mk('Bank','bank',LA.bank_ids.map(b=>[b,b]));
  mk('Pal use','pal',[['single','single-palette'],['multi','multi-palette']]);
  mk('Mapping','map',[['unmapped','unmapped'],['partial','partial'],['mapped','mapped']]);
@@ -484,8 +487,8 @@ async function renderLayerA(L){
  else if(LADET)renderLADetail();else renderLAGrid();
 }
 async function renderSegMap(){const seg=(LAMAPSEG!=null?LAMAPSEG:scopeSegment()||0);const C=$('#center');
- if(!LAMAP||LAMAP.seg!==seg){C.innerHTML='<div class="dim">Assembling segment '+seg+' map from arcade data…</div>';LAMAP=await j('/api/layera_map?seg='+seg);}
- C.innerHTML='';const head=el('div','labar');head.appendChild(el('b',null,`Segment ${seg} (R1/P1 record ${seg}) — ${LAMAPMODE} map`));
+ if(!LAMAP||LAMAP.seg!==seg||LAMAP._scene!==ACTIVE_SCENE){C.innerHTML='<div class="dim">Assembling record '+seg+' map from arcade data…</div>';LAMAP=await j('/api/layera_map?seg='+seg+sceneQS('&'));LAMAP._scene=ACTIVE_SCENE;}
+ C.innerHTML='';const head=el('div','labar');head.appendChild(el('b',null,`${ACTIVE_SCENE?ACTIVE_SCENE+' ':'R1/P1 '}record ${seg} — ${LAMAPMODE} map`));
  head.appendChild(el('span','dim',`  complete ${LAMAP.cols}×${LAMAP.rows} backing tilemap · nonblank ${LAMAP.nonblank_cells} · resolved ${LAMAP.resolved} · blank ${LAMAP.blank_cells} · unresolved ${LAMAP.unresolved}`));C.appendChild(head);
  const Z=LAMAPZOOM,W=LAMAP.cols*8*Z,H=LAMAP.nrows*8*Z;const cv=el('canvas');cv.width=W;cv.height=H;cv.className='segcanvas';C.appendChild(cv);
  const ctx=cv.getContext('2d');const img=ctx.createImageData(LAMAP.cols*8,LAMAP.nrows*8);const D=img.data;
@@ -541,7 +544,7 @@ function mapInspect(k,seg){const P=$('#props');P.innerHTML='';const occ=LAMAP.ce
 function laGenPalByUsage(uid,bankId){const mm=planeMap(uid);if(!mm)return null;const bank=LA.banks[bankId];if(!bank)return null;
  const pal=bank.map(x=>x.slice());   // start from arcade bank; overlay this usage's context-effective mapping
  Object.entries(mm.index_map||{}).forEach(([si,ti])=>{const g=cramToRGB(tcram(mm.line,ti));if(g)pal[+si]=g;});return pal;}
-async function openLAPatternUsage(pid,uid){LADET=await j('/api/layera_pattern?pid='+pid);LAUSAGE=(LADET.usages.find(x=>x.usage_id===uid))||LADET.usages[0]||null;LASRC=null;
+async function openLAPatternUsage(pid,uid){LADET=await j('/api/layera_pattern?pid='+pid+sceneQS('&'));LAUSAGE=(LADET.usages.find(x=>x.usage_id===uid))||LADET.usages[0]||null;LASRC=null;
  // jump to library detail so the full editor is available
  LAVIEW='library';renderLayerA($('#list'));}
 function pickLayerTarget(uid,srcIndex){const mm=planeMap(uid);if(!mm||mm.index_map[srcIndex]==null){$('#status').textContent='pixel src i'+srcIndex+' is not mapped yet (map it in the tile detail).';return;}
@@ -568,7 +571,7 @@ function renderLAGrid(){LADET=null;const C=$('#center');C.innerHTML='';
   card.appendChild(el('div','laId',p.pattern_id));card.appendChild(el('div','dim',p.n_uses+'u · '+p.n_palettes+'p'+(p.multi_palette?' ✳':'')));
   card.onclick=()=>openLAPattern(p.pattern_id);grid.appendChild(card);});
  C.appendChild(grid);}
-async function openLAPattern(pid){LADET=await j('/api/layera_pattern?pid='+pid);LAUSAGE=LADET.usages[0]||null;LASRC=null;renderLADetail();}
+async function openLAPattern(pid){LADET=await j('/api/layera_pattern?pid='+pid+sceneQS('&'));LAUSAGE=LADET.usages[0]||null;LASRC=null;renderLADetail();}
 function renderLADetail(){const C=$('#center');C.innerHTML='';const p=LADET.pattern;
  const back=el('button','mini','‹ back to grid');back.onclick=()=>renderLAGrid();C.appendChild(back);
  C.appendChild(txt(`PHYSICAL PATTERN ${p.pattern_id}${p.multi_palette?'   [MULTI-PALETTE]':''}\ntile code(s): ${p.tile_codes.map(x=>'0x'+x.toString(16).toUpperCase()).join(', ')}\ncontent hash: ${p.pattern_hash.slice(0,24)}…\nused indices: ${p.used_indices.join(', ')} (${p.n_colors} colors)\nsegments: ${p.segments.join(', ')}\nbanks: ${p.palette_banks.join(', ')} · uses: ${p.n_uses} · status: ${p.animation_status}`));

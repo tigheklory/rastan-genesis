@@ -95,6 +95,33 @@ def main() -> int:
     famPB = smap["families"].get("PLANEB", {})
     ck("12. Plane B (Line 2) is not authorable", famPB.get("authorable") is False)
 
+    # 13+: the editor actually LOADS real arcade graphics per subround (not just metadata).
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("ged_server", ROOT / "tools/graphics_editor/server.py")
+    srv = importlib.util.module_from_spec(spec)
+    try:
+        spec.loader.exec_module(srv)
+    except SystemExit:
+        pass
+    r1 = srv.build_layera(None)
+    for sr in subs:
+        if sr["native"] != "native_converted":
+            continue
+        for env in sr["environments"]:
+            if env["family"] != "PLANEA" or (sr["key"] == "R1-S1" and env["env"] == "OUTDOOR"):
+                continue
+            sk = env["scene_key"]
+            la = srv.build_layera(sk)
+            patterns_ok = la["counts"]["physical_patterns"] > 0
+            distinct = la["bank_ids"] != r1["bank_ids"]  # a later scene uses different banks
+            lo = (env.get("records") or sr["record_band"])[0]
+            mp = srv.layera_map(lo, sk)
+            map_ok = mp["resolved"] > 0 and mp["unresolved"] == 0
+            ck(f"13. {sk}: loads real arcade tiles (patterns>0, record {lo} resolves fully)",
+               patterns_ok and map_ok, f"patterns={la['counts']['physical_patterns']} resolved={mp['resolved']} unresolved={mp['unresolved']}")
+            ck(f"14. {sk}: uses its own palette banks (not R1's)", distinct or sk.startswith("PAL-R1-S1"),
+               f"{la['bank_ids'][:4]}")
+
     print(f"\n{'SUBROUND_PALETTE_COVERAGE PASS' if not F else str(len(F))+' CHECK(S) FAILED'}  (pass={len(P)})")
     return 1 if F else 0
 

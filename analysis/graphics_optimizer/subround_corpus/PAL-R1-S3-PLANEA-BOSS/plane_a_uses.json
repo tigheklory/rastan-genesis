@@ -1,0 +1,6898 @@
+[
+ {
+  "tile_code": 2066,
+  "tile_code_hex": "0x0812",
+  "physical_pattern": "84736ef665ca0ec3de48f652a9a71997fe9904c846e65563902037792c92ecb3",
+  "palette_bank": 8,
+  "palette_bank_hex": "0x008",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 64,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1408,
+    60
+   ],
+   [
+    1410,
+    60
+   ],
+   [
+    1412,
+    60
+   ],
+   [
+    1414,
+    60
+   ],
+   [
+    1416,
+    60
+   ],
+   [
+    1418,
+    60
+   ],
+   [
+    1420,
+    60
+   ],
+   [
+    1422,
+    60
+   ],
+   [
+    1424,
+    60
+   ],
+   [
+    1426,
+    60
+   ],
+   [
+    1428,
+    60
+   ],
+   [
+    1430,
+    60
+   ]
+  ],
+  "source_address": "0x010240"
+ },
+ {
+  "tile_code": 2067,
+  "tile_code_hex": "0x0813",
+  "physical_pattern": "edb4451494b6ab6559043527304b087db8f4a34495733968d46e51a68e99aa53",
+  "palette_bank": 8,
+  "palette_bank_hex": "0x008",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 64,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1409,
+    60
+   ],
+   [
+    1411,
+    60
+   ],
+   [
+    1413,
+    60
+   ],
+   [
+    1415,
+    60
+   ],
+   [
+    1417,
+    60
+   ],
+   [
+    1419,
+    60
+   ],
+   [
+    1421,
+    60
+   ],
+   [
+    1423,
+    60
+   ],
+   [
+    1425,
+    60
+   ],
+   [
+    1427,
+    60
+   ],
+   [
+    1429,
+    60
+   ],
+   [
+    1431,
+    60
+   ]
+  ],
+  "source_address": "0x010260"
+ },
+ {
+  "tile_code": 2068,
+  "tile_code_hex": "0x0814",
+  "physical_pattern": "21d09f6cde7fefc49b865bc21696a50ebe66839e531392a768e694581abde727",
+  "palette_bank": 8,
+  "palette_bank_hex": "0x008",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 64,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1408,
+    61
+   ],
+   [
+    1410,
+    61
+   ],
+   [
+    1412,
+    61
+   ],
+   [
+    1414,
+    61
+   ],
+   [
+    1416,
+    61
+   ],
+   [
+    1418,
+    61
+   ],
+   [
+    1420,
+    61
+   ],
+   [
+    1422,
+    61
+   ],
+   [
+    1424,
+    61
+   ],
+   [
+    1426,
+    61
+   ],
+   [
+    1428,
+    61
+   ],
+   [
+    1430,
+    61
+   ]
+  ],
+  "source_address": "0x010280"
+ },
+ {
+  "tile_code": 2069,
+  "tile_code_hex": "0x0815",
+  "physical_pattern": "d75da5c827b23683b4cf4a2633d70b62bef0cb1c8f94b5cc89c1a3a787c7b068",
+  "palette_bank": 8,
+  "palette_bank_hex": "0x008",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 64,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1409,
+    61
+   ],
+   [
+    1411,
+    61
+   ],
+   [
+    1413,
+    61
+   ],
+   [
+    1415,
+    61
+   ],
+   [
+    1417,
+    61
+   ],
+   [
+    1419,
+    61
+   ],
+   [
+    1421,
+    61
+   ],
+   [
+    1423,
+    61
+   ],
+   [
+    1425,
+    61
+   ],
+   [
+    1427,
+    61
+   ],
+   [
+    1429,
+    61
+   ],
+   [
+    1431,
+    61
+   ]
+  ],
+  "source_address": "0x0102A0"
+ },
+ {
+  "tile_code": 2072,
+  "tile_code_hex": "0x0818",
+  "physical_pattern": "ae62346749daa8d3768918bf59c5beae3b9e5f1a48699fcb609b4354f23de4e3",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 10,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1412,
+    56
+   ],
+   [
+    1416,
+    56
+   ],
+   [
+    1420,
+    56
+   ],
+   [
+    1424,
+    56
+   ],
+   [
+    1428,
+    56
+   ],
+   [
+    1448,
+    56
+   ],
+   [
+    1452,
+    56
+   ],
+   [
+    1456,
+    56
+   ],
+   [
+    1460,
+    56
+   ],
+   [
+    1464,
+    56
+   ]
+  ],
+  "source_address": "0x010300"
+ },
+ {
+  "tile_code": 2073,
+  "tile_code_hex": "0x0819",
+  "physical_pattern": "788503ab66e3f7ba154024d2abb5a0ee99f61bc4293baffc684644bc4c6884fc",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 10,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1413,
+    56
+   ],
+   [
+    1417,
+    56
+   ],
+   [
+    1421,
+    56
+   ],
+   [
+    1425,
+    56
+   ],
+   [
+    1429,
+    56
+   ],
+   [
+    1449,
+    56
+   ],
+   [
+    1453,
+    56
+   ],
+   [
+    1457,
+    56
+   ],
+   [
+    1461,
+    56
+   ],
+   [
+    1465,
+    56
+   ]
+  ],
+  "source_address": "0x010320"
+ },
+ {
+  "tile_code": 2074,
+  "tile_code_hex": "0x081A",
+  "physical_pattern": "0903ba56ad2b84079e5924c9efde2f9987e3fbc7c330ce30d84a5fc23a84d172",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 10,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1414,
+    56
+   ],
+   [
+    1418,
+    56
+   ],
+   [
+    1422,
+    56
+   ],
+   [
+    1426,
+    56
+   ],
+   [
+    1430,
+    56
+   ],
+   [
+    1450,
+    56
+   ],
+   [
+    1454,
+    56
+   ],
+   [
+    1458,
+    56
+   ],
+   [
+    1462,
+    56
+   ],
+   [
+    1466,
+    56
+   ]
+  ],
+  "source_address": "0x010340"
+ },
+ {
+  "tile_code": 2075,
+  "tile_code_hex": "0x081B",
+  "physical_pattern": "ed994be9d034541d9609763c2744f5d95a1d7bce966e7a8a13e258fb3e0b79b9",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 10,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1415,
+    56
+   ],
+   [
+    1419,
+    56
+   ],
+   [
+    1423,
+    56
+   ],
+   [
+    1427,
+    56
+   ],
+   [
+    1431,
+    56
+   ],
+   [
+    1451,
+    56
+   ],
+   [
+    1455,
+    56
+   ],
+   [
+    1459,
+    56
+   ],
+   [
+    1463,
+    56
+   ],
+   [
+    1467,
+    56
+   ]
+  ],
+  "source_address": "0x010360"
+ },
+ {
+  "tile_code": 2076,
+  "tile_code_hex": "0x081C",
+  "physical_pattern": "14972c9f0113d718c01113e455d869d9f61716753ae304d99b5f43aed025b1df",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 20,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1412,
+    53
+   ],
+   [
+    1416,
+    53
+   ],
+   [
+    1420,
+    53
+   ],
+   [
+    1424,
+    53
+   ],
+   [
+    1428,
+    53
+   ],
+   [
+    1448,
+    53
+   ],
+   [
+    1452,
+    53
+   ],
+   [
+    1456,
+    53
+   ],
+   [
+    1460,
+    53
+   ],
+   [
+    1464,
+    53
+   ],
+   [
+    1412,
+    57
+   ],
+   [
+    1416,
+    57
+   ]
+  ],
+  "source_address": "0x010380"
+ },
+ {
+  "tile_code": 2077,
+  "tile_code_hex": "0x081D",
+  "physical_pattern": "bdbe0b74f26f9cc984ea67571573a8a782d889cb59b99f5e6e280ee5b51b9a26",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 20,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1413,
+    53
+   ],
+   [
+    1417,
+    53
+   ],
+   [
+    1421,
+    53
+   ],
+   [
+    1425,
+    53
+   ],
+   [
+    1429,
+    53
+   ],
+   [
+    1449,
+    53
+   ],
+   [
+    1453,
+    53
+   ],
+   [
+    1457,
+    53
+   ],
+   [
+    1461,
+    53
+   ],
+   [
+    1465,
+    53
+   ],
+   [
+    1413,
+    57
+   ],
+   [
+    1417,
+    57
+   ]
+  ],
+  "source_address": "0x0103A0"
+ },
+ {
+  "tile_code": 2078,
+  "tile_code_hex": "0x081E",
+  "physical_pattern": "0ecf17e763568f35d80b3b5ed5c50d83ffe5459d91ff8adf3cffa937133fc299",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 20,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1414,
+    53
+   ],
+   [
+    1418,
+    53
+   ],
+   [
+    1422,
+    53
+   ],
+   [
+    1426,
+    53
+   ],
+   [
+    1430,
+    53
+   ],
+   [
+    1450,
+    53
+   ],
+   [
+    1454,
+    53
+   ],
+   [
+    1458,
+    53
+   ],
+   [
+    1462,
+    53
+   ],
+   [
+    1466,
+    53
+   ],
+   [
+    1414,
+    57
+   ],
+   [
+    1418,
+    57
+   ]
+  ],
+  "source_address": "0x0103C0"
+ },
+ {
+  "tile_code": 2079,
+  "tile_code_hex": "0x081F",
+  "physical_pattern": "13ad331831ea2641749e1d4c3a43f237f15e6db492148bb5b63d76fe62222619",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 20,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1415,
+    53
+   ],
+   [
+    1419,
+    53
+   ],
+   [
+    1423,
+    53
+   ],
+   [
+    1427,
+    53
+   ],
+   [
+    1431,
+    53
+   ],
+   [
+    1451,
+    53
+   ],
+   [
+    1455,
+    53
+   ],
+   [
+    1459,
+    53
+   ],
+   [
+    1463,
+    53
+   ],
+   [
+    1467,
+    53
+   ],
+   [
+    1415,
+    57
+   ],
+   [
+    1419,
+    57
+   ]
+  ],
+  "source_address": "0x0103E0"
+ },
+ {
+  "tile_code": 2080,
+  "tile_code_hex": "0x0820",
+  "physical_pattern": "4db6144be9aa89109d45a7f6e2740330e01b44591203e5ffaaa4e08b3737de79",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 20,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1412,
+    54
+   ],
+   [
+    1416,
+    54
+   ],
+   [
+    1420,
+    54
+   ],
+   [
+    1424,
+    54
+   ],
+   [
+    1428,
+    54
+   ],
+   [
+    1448,
+    54
+   ],
+   [
+    1452,
+    54
+   ],
+   [
+    1456,
+    54
+   ],
+   [
+    1460,
+    54
+   ],
+   [
+    1464,
+    54
+   ],
+   [
+    1412,
+    58
+   ],
+   [
+    1416,
+    58
+   ]
+  ],
+  "source_address": "0x010400"
+ },
+ {
+  "tile_code": 2081,
+  "tile_code_hex": "0x0821",
+  "physical_pattern": "a14d2febdc6ebd1b2bbabeaedf59fccf468383c312e9ed7353bfb082f2e97561",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 20,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1413,
+    54
+   ],
+   [
+    1417,
+    54
+   ],
+   [
+    1421,
+    54
+   ],
+   [
+    1425,
+    54
+   ],
+   [
+    1429,
+    54
+   ],
+   [
+    1449,
+    54
+   ],
+   [
+    1453,
+    54
+   ],
+   [
+    1457,
+    54
+   ],
+   [
+    1461,
+    54
+   ],
+   [
+    1465,
+    54
+   ],
+   [
+    1413,
+    58
+   ],
+   [
+    1417,
+    58
+   ]
+  ],
+  "source_address": "0x010420"
+ },
+ {
+  "tile_code": 2082,
+  "tile_code_hex": "0x0822",
+  "physical_pattern": "0172c8a1a068c949edbf8ccc6847a80742d6ca8eb4f212e87941a9807d5229f1",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 20,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1414,
+    54
+   ],
+   [
+    1418,
+    54
+   ],
+   [
+    1422,
+    54
+   ],
+   [
+    1426,
+    54
+   ],
+   [
+    1430,
+    54
+   ],
+   [
+    1450,
+    54
+   ],
+   [
+    1454,
+    54
+   ],
+   [
+    1458,
+    54
+   ],
+   [
+    1462,
+    54
+   ],
+   [
+    1466,
+    54
+   ],
+   [
+    1414,
+    58
+   ],
+   [
+    1418,
+    58
+   ]
+  ],
+  "source_address": "0x010440"
+ },
+ {
+  "tile_code": 2083,
+  "tile_code_hex": "0x0823",
+  "physical_pattern": "8194c80e512fd7ed134fb7850a4e9acb9f1c62a5b918c627f0a47268d5e35abc",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 20,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1415,
+    54
+   ],
+   [
+    1419,
+    54
+   ],
+   [
+    1423,
+    54
+   ],
+   [
+    1427,
+    54
+   ],
+   [
+    1431,
+    54
+   ],
+   [
+    1451,
+    54
+   ],
+   [
+    1455,
+    54
+   ],
+   [
+    1459,
+    54
+   ],
+   [
+    1463,
+    54
+   ],
+   [
+    1467,
+    54
+   ],
+   [
+    1415,
+    58
+   ],
+   [
+    1419,
+    58
+   ]
+  ],
+  "source_address": "0x010460"
+ },
+ {
+  "tile_code": 2084,
+  "tile_code_hex": "0x0824",
+  "physical_pattern": "9597c38049752a059aa1058e6164839615bc5a82442c86a54d69c6d56bbfb6b5",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 20,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1412,
+    55
+   ],
+   [
+    1416,
+    55
+   ],
+   [
+    1420,
+    55
+   ],
+   [
+    1424,
+    55
+   ],
+   [
+    1428,
+    55
+   ],
+   [
+    1448,
+    55
+   ],
+   [
+    1452,
+    55
+   ],
+   [
+    1456,
+    55
+   ],
+   [
+    1460,
+    55
+   ],
+   [
+    1464,
+    55
+   ],
+   [
+    1412,
+    59
+   ],
+   [
+    1416,
+    59
+   ]
+  ],
+  "source_address": "0x010480"
+ },
+ {
+  "tile_code": 2085,
+  "tile_code_hex": "0x0825",
+  "physical_pattern": "57d7a1ef000e5e1e3e814e7211bae94a7fb58da9a14ca72ef7159470f09fa54d",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 20,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1413,
+    55
+   ],
+   [
+    1417,
+    55
+   ],
+   [
+    1421,
+    55
+   ],
+   [
+    1425,
+    55
+   ],
+   [
+    1429,
+    55
+   ],
+   [
+    1449,
+    55
+   ],
+   [
+    1453,
+    55
+   ],
+   [
+    1457,
+    55
+   ],
+   [
+    1461,
+    55
+   ],
+   [
+    1465,
+    55
+   ],
+   [
+    1413,
+    59
+   ],
+   [
+    1417,
+    59
+   ]
+  ],
+  "source_address": "0x0104A0"
+ },
+ {
+  "tile_code": 2086,
+  "tile_code_hex": "0x0826",
+  "physical_pattern": "c403ba5366d06f2f519614b950ade18c4cede65074b088db80d307efe16ae6f4",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 20,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1414,
+    55
+   ],
+   [
+    1418,
+    55
+   ],
+   [
+    1422,
+    55
+   ],
+   [
+    1426,
+    55
+   ],
+   [
+    1430,
+    55
+   ],
+   [
+    1450,
+    55
+   ],
+   [
+    1454,
+    55
+   ],
+   [
+    1458,
+    55
+   ],
+   [
+    1462,
+    55
+   ],
+   [
+    1466,
+    55
+   ],
+   [
+    1414,
+    59
+   ],
+   [
+    1418,
+    59
+   ]
+  ],
+  "source_address": "0x0104C0"
+ },
+ {
+  "tile_code": 2087,
+  "tile_code_hex": "0x0827",
+  "physical_pattern": "e8510d8e64baecb3b1d4ea546e38bd32387df3dde7a79c9651a3a63d45e95981",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 20,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1415,
+    55
+   ],
+   [
+    1419,
+    55
+   ],
+   [
+    1423,
+    55
+   ],
+   [
+    1427,
+    55
+   ],
+   [
+    1431,
+    55
+   ],
+   [
+    1451,
+    55
+   ],
+   [
+    1455,
+    55
+   ],
+   [
+    1459,
+    55
+   ],
+   [
+    1463,
+    55
+   ],
+   [
+    1467,
+    55
+   ],
+   [
+    1415,
+    59
+   ],
+   [
+    1419,
+    59
+   ]
+  ],
+  "source_address": "0x0104E0"
+ },
+ {
+  "tile_code": 2267,
+  "tile_code_hex": "0x08DB",
+  "physical_pattern": "9f72ea0cf49536e3c66c787f705186df9a4378083753ae9536d65b3ad7fcddc4",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 72,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1437,
+    41
+   ],
+   [
+    1438,
+    41
+   ],
+   [
+    1439,
+    41
+   ],
+   [
+    1440,
+    41
+   ],
+   [
+    1441,
+    41
+   ],
+   [
+    1442,
+    41
+   ],
+   [
+    1437,
+    42
+   ],
+   [
+    1438,
+    42
+   ],
+   [
+    1439,
+    42
+   ],
+   [
+    1440,
+    42
+   ],
+   [
+    1441,
+    42
+   ],
+   [
+    1442,
+    42
+   ]
+  ],
+  "source_address": "0x011B60"
+ },
+ {
+  "tile_code": 2710,
+  "tile_code_hex": "0x0A96",
+  "physical_pattern": "35c002e58b9287c85cbb466038bd44053c33b1c135d48445e7e4d88da47c2727",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 24,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1408,
+    0
+   ],
+   [
+    1408,
+    2
+   ],
+   [
+    1408,
+    4
+   ],
+   [
+    1408,
+    6
+   ],
+   [
+    1408,
+    12
+   ],
+   [
+    1408,
+    14
+   ],
+   [
+    1408,
+    16
+   ],
+   [
+    1408,
+    18
+   ],
+   [
+    1408,
+    20
+   ],
+   [
+    1408,
+    22
+   ],
+   [
+    1408,
+    24
+   ],
+   [
+    1408,
+    26
+   ]
+  ],
+  "source_address": "0x0152C0"
+ },
+ {
+  "tile_code": 2711,
+  "tile_code_hex": "0x0A97",
+  "physical_pattern": "b7642ba06be7e9dc0f79bc69852a71af709928abe6ab8013d3b47ed546e0b951",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 155,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1409,
+    0
+   ],
+   [
+    1417,
+    0
+   ],
+   [
+    1449,
+    0
+   ],
+   [
+    1409,
+    1
+   ],
+   [
+    1417,
+    1
+   ],
+   [
+    1449,
+    1
+   ],
+   [
+    1409,
+    2
+   ],
+   [
+    1417,
+    2
+   ],
+   [
+    1449,
+    2
+   ],
+   [
+    1409,
+    3
+   ],
+   [
+    1417,
+    3
+   ],
+   [
+    1449,
+    3
+   ]
+  ],
+  "source_address": "0x0152E0"
+ },
+ {
+  "tile_code": 2712,
+  "tile_code_hex": "0x0A98",
+  "physical_pattern": "3a464e79006daddc49e8af3154a7d066f513a347185f9ff4a6fed6854abcba13",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 49,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1410,
+    0
+   ],
+   [
+    1410,
+    1
+   ],
+   [
+    1410,
+    2
+   ],
+   [
+    1410,
+    3
+   ],
+   [
+    1410,
+    4
+   ],
+   [
+    1410,
+    5
+   ],
+   [
+    1410,
+    6
+   ],
+   [
+    1410,
+    7
+   ],
+   [
+    1410,
+    12
+   ],
+   [
+    1410,
+    13
+   ],
+   [
+    1410,
+    14
+   ],
+   [
+    1410,
+    15
+   ]
+  ],
+  "source_address": "0x015300"
+ },
+ {
+  "tile_code": 2713,
+  "tile_code_hex": "0x0A99",
+  "physical_pattern": "de63537e6691af52b65c38cd1894c2f281be9ecd94b8202e78a49fbdcf33940b",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 76,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1411,
+    0
+   ],
+   [
+    1419,
+    0
+   ],
+   [
+    1451,
+    0
+   ],
+   [
+    1411,
+    2
+   ],
+   [
+    1419,
+    2
+   ],
+   [
+    1451,
+    2
+   ],
+   [
+    1411,
+    4
+   ],
+   [
+    1419,
+    4
+   ],
+   [
+    1451,
+    4
+   ],
+   [
+    1411,
+    6
+   ],
+   [
+    1419,
+    6
+   ],
+   [
+    1451,
+    6
+   ]
+  ],
+  "source_address": "0x015320"
+ },
+ {
+  "tile_code": 2714,
+  "tile_code_hex": "0x0A9A",
+  "physical_pattern": "3770b87fa37d65c076bd596c692e865368e1618d5e786f0f856f9780c68cf4a9",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 24,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1408,
+    1
+   ],
+   [
+    1408,
+    3
+   ],
+   [
+    1408,
+    5
+   ],
+   [
+    1408,
+    7
+   ],
+   [
+    1408,
+    13
+   ],
+   [
+    1408,
+    15
+   ],
+   [
+    1408,
+    17
+   ],
+   [
+    1408,
+    19
+   ],
+   [
+    1408,
+    21
+   ],
+   [
+    1408,
+    23
+   ],
+   [
+    1408,
+    25
+   ],
+   [
+    1408,
+    27
+   ]
+  ],
+  "source_address": "0x015340"
+ },
+ {
+  "tile_code": 2715,
+  "tile_code_hex": "0x0A9B",
+  "physical_pattern": "d90d8a95d3e5266754ee8ab8d44ee360b4b27ff4e3541a0d487a844ce80e5d06",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 74,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1411,
+    1
+   ],
+   [
+    1419,
+    1
+   ],
+   [
+    1451,
+    1
+   ],
+   [
+    1411,
+    3
+   ],
+   [
+    1419,
+    3
+   ],
+   [
+    1451,
+    3
+   ],
+   [
+    1411,
+    5
+   ],
+   [
+    1419,
+    5
+   ],
+   [
+    1451,
+    5
+   ],
+   [
+    1411,
+    7
+   ],
+   [
+    1419,
+    7
+   ],
+   [
+    1451,
+    7
+   ]
+  ],
+  "source_address": "0x015360"
+ },
+ {
+  "tile_code": 2716,
+  "tile_code_hex": "0x0A9C",
+  "physical_pattern": "d014a77ad83bdc85592957bffe81f1ff1887e9cea6e55047b2f9570c2975eaad",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 76,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1428,
+    0
+   ],
+   [
+    1460,
+    0
+   ],
+   [
+    1468,
+    0
+   ],
+   [
+    1428,
+    2
+   ],
+   [
+    1460,
+    2
+   ],
+   [
+    1468,
+    2
+   ],
+   [
+    1428,
+    4
+   ],
+   [
+    1460,
+    4
+   ],
+   [
+    1468,
+    4
+   ],
+   [
+    1428,
+    6
+   ],
+   [
+    1460,
+    6
+   ],
+   [
+    1468,
+    6
+   ]
+  ],
+  "source_address": "0x015380"
+ },
+ {
+  "tile_code": 2717,
+  "tile_code_hex": "0x0A9D",
+  "physical_pattern": "a334753ad854f94e07882d95f7bca123b8bca1a3f097918b3f34ac65141d002a",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 53,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1469,
+    0
+   ],
+   [
+    1469,
+    1
+   ],
+   [
+    1469,
+    2
+   ],
+   [
+    1469,
+    3
+   ],
+   [
+    1469,
+    4
+   ],
+   [
+    1469,
+    5
+   ],
+   [
+    1469,
+    6
+   ],
+   [
+    1469,
+    7
+   ],
+   [
+    1469,
+    8
+   ],
+   [
+    1469,
+    9
+   ],
+   [
+    1469,
+    10
+   ],
+   [
+    1469,
+    11
+   ]
+  ],
+  "source_address": "0x0153A0"
+ },
+ {
+  "tile_code": 2718,
+  "tile_code_hex": "0x0A9E",
+  "physical_pattern": "3ae5d2a277ea32d1e5c906cf85ce0b936687cac8e0f881e4aef32a1855a8507b",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 155,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1430,
+    0
+   ],
+   [
+    1462,
+    0
+   ],
+   [
+    1470,
+    0
+   ],
+   [
+    1430,
+    1
+   ],
+   [
+    1462,
+    1
+   ],
+   [
+    1470,
+    1
+   ],
+   [
+    1430,
+    2
+   ],
+   [
+    1462,
+    2
+   ],
+   [
+    1470,
+    2
+   ],
+   [
+    1430,
+    3
+   ],
+   [
+    1462,
+    3
+   ],
+   [
+    1470,
+    3
+   ]
+  ],
+  "source_address": "0x0153C0"
+ },
+ {
+  "tile_code": 2719,
+  "tile_code_hex": "0x0A9F",
+  "physical_pattern": "558f98158988b4c58c8915f4241be7c6ba79d5b291ef8d3e6384cf204ce01282",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 26,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1471,
+    0
+   ],
+   [
+    1471,
+    2
+   ],
+   [
+    1471,
+    4
+   ],
+   [
+    1471,
+    6
+   ],
+   [
+    1471,
+    8
+   ],
+   [
+    1471,
+    10
+   ],
+   [
+    1471,
+    12
+   ],
+   [
+    1471,
+    14
+   ],
+   [
+    1471,
+    16
+   ],
+   [
+    1471,
+    18
+   ],
+   [
+    1471,
+    20
+   ],
+   [
+    1471,
+    22
+   ]
+  ],
+  "source_address": "0x0153E0"
+ },
+ {
+  "tile_code": 2720,
+  "tile_code_hex": "0x0AA0",
+  "physical_pattern": "8b0c6ab6414c9ce90ff32fa6701fa264dac9abad40373347b9ea524dd8c47758",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 74,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1428,
+    1
+   ],
+   [
+    1460,
+    1
+   ],
+   [
+    1468,
+    1
+   ],
+   [
+    1428,
+    3
+   ],
+   [
+    1460,
+    3
+   ],
+   [
+    1468,
+    3
+   ],
+   [
+    1428,
+    5
+   ],
+   [
+    1460,
+    5
+   ],
+   [
+    1468,
+    5
+   ],
+   [
+    1428,
+    7
+   ],
+   [
+    1460,
+    7
+   ],
+   [
+    1468,
+    7
+   ]
+  ],
+  "source_address": "0x015400"
+ },
+ {
+  "tile_code": 2721,
+  "tile_code_hex": "0x0AA1",
+  "physical_pattern": "84c8081559ef9add36e876404ca1ee880d2572ab5120f4b54dbe48694e89dd7a",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 26,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1471,
+    1
+   ],
+   [
+    1471,
+    3
+   ],
+   [
+    1471,
+    5
+   ],
+   [
+    1471,
+    7
+   ],
+   [
+    1471,
+    9
+   ],
+   [
+    1471,
+    11
+   ],
+   [
+    1471,
+    13
+   ],
+   [
+    1471,
+    15
+   ],
+   [
+    1471,
+    17
+   ],
+   [
+    1471,
+    19
+   ],
+   [
+    1471,
+    21
+   ],
+   [
+    1471,
+    23
+   ]
+  ],
+  "source_address": "0x015420"
+ },
+ {
+  "tile_code": 2722,
+  "tile_code_hex": "0x0AA2",
+  "physical_pattern": "42a4947fab50b52165413e2e3b07d6cfaca7678dd020d84a987beb853850e10a",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1408,
+    52
+   ]
+  ],
+  "source_address": "0x015440"
+ },
+ {
+  "tile_code": 2723,
+  "tile_code_hex": "0x0AA3",
+  "physical_pattern": "08668cc5b54f297f418386d6973a81488853eaa91cc1579c9cef4c8bbde52603",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1411,
+    52
+   ]
+  ],
+  "source_address": "0x015460"
+ },
+ {
+  "tile_code": 2724,
+  "tile_code_hex": "0x0AA4",
+  "physical_pattern": "9434db1564bc99c6a804c135923b48480e5aa8a217264f20e74ab0c8651e4e45",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1408,
+    53
+   ]
+  ],
+  "source_address": "0x015480"
+ },
+ {
+  "tile_code": 2725,
+  "tile_code_hex": "0x0AA5",
+  "physical_pattern": "3c1338ac50bbd1ab1d54a50dfa1d4e8b4e9599470bf9299a5de70cfdc97c2eda",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1410,
+    53
+   ]
+  ],
+  "source_address": "0x0154A0"
+ },
+ {
+  "tile_code": 2726,
+  "tile_code_hex": "0x0AA6",
+  "physical_pattern": "03b2d370f4af75216696adff3459e886eacdb4bf4f858a3b4fc27f6f576481a3",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1411,
+    53
+   ]
+  ],
+  "source_address": "0x0154C0"
+ },
+ {
+  "tile_code": 2727,
+  "tile_code_hex": "0x0AA7",
+  "physical_pattern": "85e8cdc594787f22b63e8d5928a532b318a325aaba14e73e947f4bd5b778dc52",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1408,
+    54
+   ]
+  ],
+  "source_address": "0x0154E0"
+ },
+ {
+  "tile_code": 2728,
+  "tile_code_hex": "0x0AA8",
+  "physical_pattern": "f58301a5262bdacaa402118f7acb6e0e2cf819484c71019f45c207112c6019ab",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1410,
+    54
+   ]
+  ],
+  "source_address": "0x015500"
+ },
+ {
+  "tile_code": 2729,
+  "tile_code_hex": "0x0AA9",
+  "physical_pattern": "41c824a310a5bf096cc10814fcda15775c08cbfad136af9b8c08866499adf573",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1411,
+    54
+   ]
+  ],
+  "source_address": "0x015520"
+ },
+ {
+  "tile_code": 2730,
+  "tile_code_hex": "0x0AAA",
+  "physical_pattern": "bcf7bd6dc69a8c24d1503e46308352e2556f030b182bef60971501574544c5b8",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1408,
+    55
+   ]
+  ],
+  "source_address": "0x015540"
+ },
+ {
+  "tile_code": 2731,
+  "tile_code_hex": "0x0AAB",
+  "physical_pattern": "3f4c347291529c794d6949c5edb5b2de9d285862c13c0ed0856ae4a1a7555735",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1410,
+    55
+   ],
+   [
+    1410,
+    56
+   ]
+  ],
+  "source_address": "0x015560"
+ },
+ {
+  "tile_code": 2732,
+  "tile_code_hex": "0x0AAC",
+  "physical_pattern": "d1a23592b8159af1546f85e8652011a8fd2a0ba6396f38562189c0e351a28237",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1411,
+    55
+   ]
+  ],
+  "source_address": "0x015580"
+ },
+ {
+  "tile_code": 2733,
+  "tile_code_hex": "0x0AAD",
+  "physical_pattern": "780b99ee65fb14a990a591b5760fa6227b50ab5e296faa6d868661afa42bd9be",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1468,
+    52
+   ]
+  ],
+  "source_address": "0x0155A0"
+ },
+ {
+  "tile_code": 2734,
+  "tile_code_hex": "0x0AAE",
+  "physical_pattern": "20e2d7fcf15f0af47960f69c2c27e30e2bb8c0f57715ad2b6766c6b7689bad2c",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1471,
+    52
+   ]
+  ],
+  "source_address": "0x0155C0"
+ },
+ {
+  "tile_code": 2735,
+  "tile_code_hex": "0x0AAF",
+  "physical_pattern": "32d1726a606ef98f64ced01fddf82fcdff9c6d4a428121944cf6ad73631a0476",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1468,
+    53
+   ]
+  ],
+  "source_address": "0x0155E0"
+ },
+ {
+  "tile_code": 2736,
+  "tile_code_hex": "0x0AB0",
+  "physical_pattern": "7b51fb34919a873de4c535dc5ba9e61d967707061969d1d415fc7e4ada8f21d9",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1469,
+    53
+   ]
+  ],
+  "source_address": "0x015600"
+ },
+ {
+  "tile_code": 2737,
+  "tile_code_hex": "0x0AB1",
+  "physical_pattern": "17379a9f1cf30a5886f44f6fdb1621e7b1e2a0d148326b073354a60b1b1d4f3b",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1471,
+    53
+   ]
+  ],
+  "source_address": "0x015620"
+ },
+ {
+  "tile_code": 2738,
+  "tile_code_hex": "0x0AB2",
+  "physical_pattern": "4bdf46fc60895d570873bb772fe74596814891b3ac38e042357bdf6a62bbdc60",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1468,
+    54
+   ]
+  ],
+  "source_address": "0x015640"
+ },
+ {
+  "tile_code": 2739,
+  "tile_code_hex": "0x0AB3",
+  "physical_pattern": "2bdf8955f7bcdf73f8f4b0b6bebbcb58f82a04cda7e599a0f1019619256f1950",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1469,
+    54
+   ]
+  ],
+  "source_address": "0x015660"
+ },
+ {
+  "tile_code": 2740,
+  "tile_code_hex": "0x0AB4",
+  "physical_pattern": "d34e33bec8dde071a29f7c231b49e4c38a86e715487ae7029d4a96337571bc58",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1471,
+    54
+   ]
+  ],
+  "source_address": "0x015680"
+ },
+ {
+  "tile_code": 2741,
+  "tile_code_hex": "0x0AB5",
+  "physical_pattern": "e1243023784667ac241e26fd5fddaec42beaf5712e8c886148c8bc55503231b6",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1468,
+    55
+   ]
+  ],
+  "source_address": "0x0156A0"
+ },
+ {
+  "tile_code": 2742,
+  "tile_code_hex": "0x0AB6",
+  "physical_pattern": "be99bf62f87680d98f932d52bb084b28e1c90bd3ba8038115732f91de88f916b",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1469,
+    55
+   ],
+   [
+    1469,
+    56
+   ]
+  ],
+  "source_address": "0x0156C0"
+ },
+ {
+  "tile_code": 2743,
+  "tile_code_hex": "0x0AB7",
+  "physical_pattern": "7e33ff103d832cc6aa5c554c02df9798dd77127d029d8ec62714966237e8d47d",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1471,
+    55
+   ]
+  ],
+  "source_address": "0x0156E0"
+ },
+ {
+  "tile_code": 2744,
+  "tile_code_hex": "0x0AB8",
+  "physical_pattern": "d9696b091558b5eea3eae3558828a894bd9d12f1c5affb8e5a9eeead70c50076",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1408,
+    56
+   ]
+  ],
+  "source_address": "0x015700"
+ },
+ {
+  "tile_code": 2745,
+  "tile_code_hex": "0x0AB9",
+  "physical_pattern": "775c21c2ef33047dc591e6fa3a38d65b3354700ab6a3922840dffae201427888",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1411,
+    56
+   ]
+  ],
+  "source_address": "0x015720"
+ },
+ {
+  "tile_code": 2746,
+  "tile_code_hex": "0x0ABA",
+  "physical_pattern": "7b0cc0e78335d28d7a5964bca27efcf8fb06949738ac31b3f8b1d50f420c5d71",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1408,
+    57
+   ]
+  ],
+  "source_address": "0x015740"
+ },
+ {
+  "tile_code": 2747,
+  "tile_code_hex": "0x0ABB",
+  "physical_pattern": "f5b200ca28473f377811e0480799912dd91036761c08acf248cb6117a8696533",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1409,
+    57
+   ]
+  ],
+  "source_address": "0x015760"
+ },
+ {
+  "tile_code": 2748,
+  "tile_code_hex": "0x0ABC",
+  "physical_pattern": "c6fecb518a69a5bca4d3ff97c63b99689f7639ea6528752f53c8e9c5b2d9c70c",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1410,
+    57
+   ]
+  ],
+  "source_address": "0x015780"
+ },
+ {
+  "tile_code": 2749,
+  "tile_code_hex": "0x0ABD",
+  "physical_pattern": "6333b24ae3e4fa636e9f340275850a050d015f224d4a95b36bd43020884da220",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1411,
+    57
+   ]
+  ],
+  "source_address": "0x0157A0"
+ },
+ {
+  "tile_code": 2750,
+  "tile_code_hex": "0x0ABE",
+  "physical_pattern": "c0c7c9acd0ab9fa821fa27077dd17b5665ad329ddb055dd20f5f696dccad5e89",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1408,
+    58
+   ]
+  ],
+  "source_address": "0x0157C0"
+ },
+ {
+  "tile_code": 2751,
+  "tile_code_hex": "0x0ABF",
+  "physical_pattern": "073094b852a5f9f1dfac5b6a976ba96288fd2320211ec1b26a86a1128fb03bd7",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1409,
+    58
+   ]
+  ],
+  "source_address": "0x0157E0"
+ },
+ {
+  "tile_code": 2752,
+  "tile_code_hex": "0x0AC0",
+  "physical_pattern": "e8e4d73db50e9a10b6e0c36594f625b622a6f7598642bc88d90c38432af91b7a",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1410,
+    58
+   ]
+  ],
+  "source_address": "0x015800"
+ },
+ {
+  "tile_code": 2753,
+  "tile_code_hex": "0x0AC1",
+  "physical_pattern": "e87ec51e154e8b4500a52d6ed213d351fa6d6721cd1caded54b2cb0716a77e11",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1411,
+    58
+   ]
+  ],
+  "source_address": "0x015820"
+ },
+ {
+  "tile_code": 2754,
+  "tile_code_hex": "0x0AC2",
+  "physical_pattern": "fca64e078aa7b7fcc37206849ce59bd309a474a17804fa7393816d8a45dcfc1b",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1408,
+    59
+   ]
+  ],
+  "source_address": "0x015840"
+ },
+ {
+  "tile_code": 2755,
+  "tile_code_hex": "0x0AC3",
+  "physical_pattern": "1c54668bbda0849dd0667ce2a3b6e38781ce66e6e158ab16d3bdb641bf5c817d",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1409,
+    59
+   ]
+  ],
+  "source_address": "0x015860"
+ },
+ {
+  "tile_code": 2756,
+  "tile_code_hex": "0x0AC4",
+  "physical_pattern": "f2b8a666345638552e02f127db5cae391613bb8289502f3eb469944d47f0afd3",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1410,
+    59
+   ]
+  ],
+  "source_address": "0x015880"
+ },
+ {
+  "tile_code": 2757,
+  "tile_code_hex": "0x0AC5",
+  "physical_pattern": "50880616f42cb5134650ca31376fcb13966fd910014a8d1e1794267cbef9cbb0",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1411,
+    59
+   ]
+  ],
+  "source_address": "0x0158A0"
+ },
+ {
+  "tile_code": 2758,
+  "tile_code_hex": "0x0AC6",
+  "physical_pattern": "ff9bdc1c9b5fc43cc904f662ded5435fbe06abad25e37d30517cdf887ec12c27",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1468,
+    56
+   ]
+  ],
+  "source_address": "0x0158C0"
+ },
+ {
+  "tile_code": 2759,
+  "tile_code_hex": "0x0AC7",
+  "physical_pattern": "fd17a640bffe301b1df97d4e924872a69b46b2e73343ed38d71e5309254616c6",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1471,
+    56
+   ]
+  ],
+  "source_address": "0x0158E0"
+ },
+ {
+  "tile_code": 2760,
+  "tile_code_hex": "0x0AC8",
+  "physical_pattern": "d0145caa0b9c1f9f1d5f5fae4ce71f46a3a9c82d7ace5b92937958f8fe335af7",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1468,
+    57
+   ]
+  ],
+  "source_address": "0x015900"
+ },
+ {
+  "tile_code": 2761,
+  "tile_code_hex": "0x0AC9",
+  "physical_pattern": "523f146bc7267a938cc566c6ba18292930b69d0d0b1e79b720ff64644722d3c1",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1469,
+    57
+   ]
+  ],
+  "source_address": "0x015920"
+ },
+ {
+  "tile_code": 2762,
+  "tile_code_hex": "0x0ACA",
+  "physical_pattern": "c4c0b3a036652f72257d413f514bd2117c8fbc9db3be874ba6c56ee14a57e808",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1470,
+    57
+   ]
+  ],
+  "source_address": "0x015940"
+ },
+ {
+  "tile_code": 2763,
+  "tile_code_hex": "0x0ACB",
+  "physical_pattern": "c7c78188a2b01b04f8bd645a5483dbd795e5e8e25839cb004135a502c0595c3e",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1471,
+    57
+   ]
+  ],
+  "source_address": "0x015960"
+ },
+ {
+  "tile_code": 2764,
+  "tile_code_hex": "0x0ACC",
+  "physical_pattern": "9ef5c93d231f448db31e36ce3d058c99b236aee8e8666babf03368183ac05d06",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1468,
+    58
+   ]
+  ],
+  "source_address": "0x015980"
+ },
+ {
+  "tile_code": 2765,
+  "tile_code_hex": "0x0ACD",
+  "physical_pattern": "c02318a04ede5374ba0cda497f24d3b8ffe639fe86421e8b314bdf728531fbeb",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1469,
+    58
+   ]
+  ],
+  "source_address": "0x0159A0"
+ },
+ {
+  "tile_code": 2766,
+  "tile_code_hex": "0x0ACE",
+  "physical_pattern": "51f4189afbbf1f31fb813f21c0bb941c104f440e5b27e3598cd97665b2a56ee0",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1470,
+    58
+   ]
+  ],
+  "source_address": "0x0159C0"
+ },
+ {
+  "tile_code": 2767,
+  "tile_code_hex": "0x0ACF",
+  "physical_pattern": "c7a334e4ab0af3a447bb6af174562e4cba19747a9a54ff678e2681d7f311a2b4",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1471,
+    58
+   ]
+  ],
+  "source_address": "0x0159E0"
+ },
+ {
+  "tile_code": 2768,
+  "tile_code_hex": "0x0AD0",
+  "physical_pattern": "7979d2b309ad693e327a81038eed8a6f45cbfc84341602cc17a16ff75ac60337",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1468,
+    59
+   ]
+  ],
+  "source_address": "0x015A00"
+ },
+ {
+  "tile_code": 2769,
+  "tile_code_hex": "0x0AD1",
+  "physical_pattern": "200a251efdf2a8ab7bfd9059c0fe1871c9aa518cb63c351f4994d3708c8db1e2",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1469,
+    59
+   ]
+  ],
+  "source_address": "0x015A20"
+ },
+ {
+  "tile_code": 2770,
+  "tile_code_hex": "0x0AD2",
+  "physical_pattern": "07cef8033e6497d9239109f25523dc54abf3723864690e22423daa46c86de330",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1470,
+    59
+   ]
+  ],
+  "source_address": "0x015A40"
+ },
+ {
+  "tile_code": 2771,
+  "tile_code_hex": "0x0AD3",
+  "physical_pattern": "77afd4c9c1deb7700f2a6e171990f25f8407b4352c47c5b881da6796a2863537",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1471,
+    59
+   ]
+  ],
+  "source_address": "0x015A60"
+ },
+ {
+  "tile_code": 2772,
+  "tile_code_hex": "0x0AD4",
+  "physical_pattern": "6ab794fb9e503f05a3fa5324ed8650c88b977d08bb30b99ad184a87468b3e18b",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 52,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1416,
+    0
+   ],
+   [
+    1448,
+    0
+   ],
+   [
+    1416,
+    2
+   ],
+   [
+    1448,
+    2
+   ],
+   [
+    1416,
+    4
+   ],
+   [
+    1448,
+    4
+   ],
+   [
+    1416,
+    6
+   ],
+   [
+    1448,
+    6
+   ],
+   [
+    1408,
+    8
+   ],
+   [
+    1416,
+    8
+   ],
+   [
+    1448,
+    8
+   ],
+   [
+    1408,
+    10
+   ]
+  ],
+  "source_address": "0x015A80"
+ },
+ {
+  "tile_code": 2773,
+  "tile_code_hex": "0x0AD5",
+  "physical_pattern": "15dfda71cddeed4c03ad3d1d6be1f4ae2eee110a0a94c9278b584b8dc70a7a98",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 102,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1418,
+    0
+   ],
+   [
+    1450,
+    0
+   ],
+   [
+    1418,
+    1
+   ],
+   [
+    1450,
+    1
+   ],
+   [
+    1418,
+    2
+   ],
+   [
+    1450,
+    2
+   ],
+   [
+    1418,
+    3
+   ],
+   [
+    1450,
+    3
+   ],
+   [
+    1418,
+    4
+   ],
+   [
+    1450,
+    4
+   ],
+   [
+    1418,
+    5
+   ],
+   [
+    1450,
+    5
+   ]
+  ],
+  "source_address": "0x015AA0"
+ },
+ {
+  "tile_code": 2774,
+  "tile_code_hex": "0x0AD6",
+  "physical_pattern": "11e77733d35a0777d1e52c9b3502885daee6267c953548275c517c5f85a1118f",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 50,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1416,
+    1
+   ],
+   [
+    1448,
+    1
+   ],
+   [
+    1416,
+    3
+   ],
+   [
+    1448,
+    3
+   ],
+   [
+    1416,
+    5
+   ],
+   [
+    1448,
+    5
+   ],
+   [
+    1416,
+    7
+   ],
+   [
+    1448,
+    7
+   ],
+   [
+    1408,
+    9
+   ],
+   [
+    1416,
+    9
+   ],
+   [
+    1448,
+    9
+   ],
+   [
+    1408,
+    11
+   ]
+  ],
+  "source_address": "0x015AC0"
+ },
+ {
+  "tile_code": 2775,
+  "tile_code_hex": "0x0AD7",
+  "physical_pattern": "44ae23e12f6a76536c9c60857e8a047e3902056987a9211209c03b23d2c4df03",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 98,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1429,
+    0
+   ],
+   [
+    1461,
+    0
+   ],
+   [
+    1429,
+    1
+   ],
+   [
+    1461,
+    1
+   ],
+   [
+    1429,
+    2
+   ],
+   [
+    1461,
+    2
+   ],
+   [
+    1429,
+    3
+   ],
+   [
+    1461,
+    3
+   ],
+   [
+    1429,
+    4
+   ],
+   [
+    1461,
+    4
+   ],
+   [
+    1429,
+    5
+   ],
+   [
+    1461,
+    5
+   ]
+  ],
+  "source_address": "0x015AE0"
+ },
+ {
+  "tile_code": 2776,
+  "tile_code_hex": "0x0AD8",
+  "physical_pattern": "3a4b61c7ef705de6f51c7feb96408d7436a56245fab9903796f97a2d6fa4a57a",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 50,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1431,
+    0
+   ],
+   [
+    1463,
+    0
+   ],
+   [
+    1431,
+    2
+   ],
+   [
+    1463,
+    2
+   ],
+   [
+    1431,
+    4
+   ],
+   [
+    1463,
+    4
+   ],
+   [
+    1431,
+    6
+   ],
+   [
+    1463,
+    6
+   ],
+   [
+    1431,
+    8
+   ],
+   [
+    1463,
+    8
+   ],
+   [
+    1431,
+    10
+   ],
+   [
+    1463,
+    10
+   ]
+  ],
+  "source_address": "0x015B00"
+ },
+ {
+  "tile_code": 2777,
+  "tile_code_hex": "0x0AD9",
+  "physical_pattern": "78c2ccb214f15edeffa68f80c378f4263816eec3fec14d2d664cc6292dbde2f4",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 48,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1431,
+    1
+   ],
+   [
+    1463,
+    1
+   ],
+   [
+    1431,
+    3
+   ],
+   [
+    1463,
+    3
+   ],
+   [
+    1431,
+    5
+   ],
+   [
+    1463,
+    5
+   ],
+   [
+    1431,
+    7
+   ],
+   [
+    1463,
+    7
+   ],
+   [
+    1431,
+    9
+   ],
+   [
+    1463,
+    9
+   ],
+   [
+    1431,
+    11
+   ],
+   [
+    1463,
+    11
+   ]
+  ],
+  "source_address": "0x015B20"
+ },
+ {
+  "tile_code": 2778,
+  "tile_code_hex": "0x0ADA",
+  "physical_pattern": "7f3c8b57f0655da4be2464a5f067a0fa35f9fdb1a2c1c881b891a8149e80317d",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1416,
+    49
+   ],
+   [
+    1448,
+    49
+   ]
+  ],
+  "source_address": "0x015B40"
+ },
+ {
+  "tile_code": 2779,
+  "tile_code_hex": "0x0ADB",
+  "physical_pattern": "a3ddb9c46a598bffc21f5bca67afc8482ff295c6e33e7a98bafdd4d44b060a1d",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1417,
+    49
+   ],
+   [
+    1449,
+    49
+   ]
+  ],
+  "source_address": "0x015B60"
+ },
+ {
+  "tile_code": 2780,
+  "tile_code_hex": "0x0ADC",
+  "physical_pattern": "454293e38ae413a6a3a22135207d23a314cd3ac09b7d0ea8711410384102eae3",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1418,
+    49
+   ],
+   [
+    1450,
+    49
+   ]
+  ],
+  "source_address": "0x015B80"
+ },
+ {
+  "tile_code": 2781,
+  "tile_code_hex": "0x0ADD",
+  "physical_pattern": "44a36781f03ec313965b40c4d6007dcf9bb86135688d4371e3f52c18aeb674ed",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1419,
+    49
+   ],
+   [
+    1451,
+    49
+   ]
+  ],
+  "source_address": "0x015BA0"
+ },
+ {
+  "tile_code": 2782,
+  "tile_code_hex": "0x0ADE",
+  "physical_pattern": "41a0e79cda04b76bed50b07fc223bba86a84f0c43acc5324485ee7de877be876",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1416,
+    50
+   ],
+   [
+    1448,
+    50
+   ]
+  ],
+  "source_address": "0x015BC0"
+ },
+ {
+  "tile_code": 2783,
+  "tile_code_hex": "0x0ADF",
+  "physical_pattern": "6efa3ad6408d311576e2bc8f4cd151b29a2dd92eca1cd43c6adfdf0ab555172b",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1417,
+    50
+   ],
+   [
+    1449,
+    50
+   ]
+  ],
+  "source_address": "0x015BE0"
+ },
+ {
+  "tile_code": 2784,
+  "tile_code_hex": "0x0AE0",
+  "physical_pattern": "c7cd344a7dcbeba5bf40e42f770cc82da185f4ed9409b0a9284eca2d762c82a3",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1418,
+    50
+   ],
+   [
+    1450,
+    50
+   ]
+  ],
+  "source_address": "0x015C00"
+ },
+ {
+  "tile_code": 2785,
+  "tile_code_hex": "0x0AE1",
+  "physical_pattern": "7ba1e3daef370979dc7779d74e3a205b7625805317cdd48c4cbb9d44a720031c",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1419,
+    50
+   ],
+   [
+    1451,
+    50
+   ]
+  ],
+  "source_address": "0x015C20"
+ },
+ {
+  "tile_code": 2786,
+  "tile_code_hex": "0x0AE2",
+  "physical_pattern": "0ca742c169bc80c4a8d65fbcd5fb976eabfc407cd8c42560efd8f43457cad65b",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1416,
+    51
+   ],
+   [
+    1448,
+    51
+   ]
+  ],
+  "source_address": "0x015C40"
+ },
+ {
+  "tile_code": 2787,
+  "tile_code_hex": "0x0AE3",
+  "physical_pattern": "a9b870c45d7faac6bfb35a351772a8d1d9d2a0e5f4def7bafdd9cb76f3872d35",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1417,
+    51
+   ],
+   [
+    1449,
+    51
+   ]
+  ],
+  "source_address": "0x015C60"
+ },
+ {
+  "tile_code": 2788,
+  "tile_code_hex": "0x0AE4",
+  "physical_pattern": "aae284fd24cff914586a9752a32a1ec14881fb0f1392e3a83598163b36897dda",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1418,
+    51
+   ],
+   [
+    1450,
+    51
+   ]
+  ],
+  "source_address": "0x015C80"
+ },
+ {
+  "tile_code": 2789,
+  "tile_code_hex": "0x0AE5",
+  "physical_pattern": "a358c7b624b32f9a12fc7155821f9aa85dded3bc2aea54519462ac90bddb0423",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1419,
+    51
+   ],
+   [
+    1451,
+    51
+   ]
+  ],
+  "source_address": "0x015CA0"
+ },
+ {
+  "tile_code": 2790,
+  "tile_code_hex": "0x0AE6",
+  "physical_pattern": "262dcf117365d5d00224fa9f6eb6fbdab894758bdb883e3ec5cef0d27e30a2e3",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1428,
+    49
+   ],
+   [
+    1460,
+    49
+   ]
+  ],
+  "source_address": "0x015CC0"
+ },
+ {
+  "tile_code": 2791,
+  "tile_code_hex": "0x0AE7",
+  "physical_pattern": "36817c248f1e8462292d9245f1bf36bfd165a002262c3aea9041b51c865eb780",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1429,
+    49
+   ],
+   [
+    1461,
+    49
+   ]
+  ],
+  "source_address": "0x015CE0"
+ },
+ {
+  "tile_code": 2792,
+  "tile_code_hex": "0x0AE8",
+  "physical_pattern": "634a5f2422170387b459f95cc642cd0b3dd283f32e1d1c2fde844f861d3f83ae",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1430,
+    49
+   ],
+   [
+    1462,
+    49
+   ]
+  ],
+  "source_address": "0x015D00"
+ },
+ {
+  "tile_code": 2793,
+  "tile_code_hex": "0x0AE9",
+  "physical_pattern": "732719d8a877d89077b0f08f74f5db571167e32b71197240688fa4b3800de340",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1431,
+    49
+   ],
+   [
+    1463,
+    49
+   ]
+  ],
+  "source_address": "0x015D20"
+ },
+ {
+  "tile_code": 2794,
+  "tile_code_hex": "0x0AEA",
+  "physical_pattern": "7582d666e79996ed0d895752968ebc8659c272a1c67103cc8379d5526223c474",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1428,
+    50
+   ],
+   [
+    1460,
+    50
+   ]
+  ],
+  "source_address": "0x015D40"
+ },
+ {
+  "tile_code": 2795,
+  "tile_code_hex": "0x0AEB",
+  "physical_pattern": "eb812a8622b949e64cd308ec9d9c9cb4bd04541d5ea615817f46b4434d99bd55",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1429,
+    50
+   ],
+   [
+    1461,
+    50
+   ]
+  ],
+  "source_address": "0x015D60"
+ },
+ {
+  "tile_code": 2796,
+  "tile_code_hex": "0x0AEC",
+  "physical_pattern": "be57338f8e62a881ee01a05ada850dbbdbb0ecb6e01492a377106c4f7a4da361",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1430,
+    50
+   ],
+   [
+    1462,
+    50
+   ]
+  ],
+  "source_address": "0x015D80"
+ },
+ {
+  "tile_code": 2797,
+  "tile_code_hex": "0x0AED",
+  "physical_pattern": "164ad10188ccd525f9ad18eb7a8274f548504adf6502576dd0438c3aac1dc253",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1431,
+    50
+   ],
+   [
+    1463,
+    50
+   ]
+  ],
+  "source_address": "0x015DA0"
+ },
+ {
+  "tile_code": 2798,
+  "tile_code_hex": "0x0AEE",
+  "physical_pattern": "dca8d35ff3539f1b139d15a4a205420d466285880e40ed52bd4b45ea985e6a05",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1428,
+    51
+   ],
+   [
+    1460,
+    51
+   ]
+  ],
+  "source_address": "0x015DC0"
+ },
+ {
+  "tile_code": 2799,
+  "tile_code_hex": "0x0AEF",
+  "physical_pattern": "133fefc1d9c9dfc1bfd837bfed183d1a2bccd1566986b8704c21e039d99cbd82",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1429,
+    51
+   ],
+   [
+    1461,
+    51
+   ]
+  ],
+  "source_address": "0x015DE0"
+ },
+ {
+  "tile_code": 2800,
+  "tile_code_hex": "0x0AF0",
+  "physical_pattern": "f687c7b77c03cc35054eace5dee02dfce80db7d538a710a6541ef0ce0adca95e",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1430,
+    51
+   ],
+   [
+    1462,
+    51
+   ]
+  ],
+  "source_address": "0x015E00"
+ },
+ {
+  "tile_code": 2801,
+  "tile_code_hex": "0x0AF1",
+  "physical_pattern": "4b28582a746d48ec7c4cfdf386fd6150e58fb41377e33a0d9585ce728ba5952c",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1431,
+    51
+   ],
+   [
+    1463,
+    51
+   ]
+  ],
+  "source_address": "0x015E20"
+ },
+ {
+  "tile_code": 2802,
+  "tile_code_hex": "0x0AF2",
+  "physical_pattern": "a0195ae145536260890a5f085abd0d4526ead261407285bb1bb867021b04be11",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 10,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1412,
+    52
+   ],
+   [
+    1414,
+    52
+   ],
+   [
+    1416,
+    52
+   ],
+   [
+    1418,
+    52
+   ],
+   [
+    1420,
+    52
+   ],
+   [
+    1422,
+    52
+   ],
+   [
+    1424,
+    52
+   ],
+   [
+    1426,
+    52
+   ],
+   [
+    1428,
+    52
+   ],
+   [
+    1430,
+    52
+   ]
+  ],
+  "source_address": "0x015E40"
+ },
+ {
+  "tile_code": 2803,
+  "tile_code_hex": "0x0AF3",
+  "physical_pattern": "6e319257afbb0249a29609238aaf244ed56c96d0e33758529f6ed02ac8abf4f1",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 10,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1413,
+    52
+   ],
+   [
+    1415,
+    52
+   ],
+   [
+    1417,
+    52
+   ],
+   [
+    1419,
+    52
+   ],
+   [
+    1421,
+    52
+   ],
+   [
+    1423,
+    52
+   ],
+   [
+    1425,
+    52
+   ],
+   [
+    1427,
+    52
+   ],
+   [
+    1429,
+    52
+   ],
+   [
+    1431,
+    52
+   ]
+  ],
+  "source_address": "0x015E60"
+ },
+ {
+  "tile_code": 2804,
+  "tile_code_hex": "0x0AF4",
+  "physical_pattern": "2d70e95220c69494986e82577113211cd7a3ffb3f2f5652480c0994735c0e5b4",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 10,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1448,
+    52
+   ],
+   [
+    1450,
+    52
+   ],
+   [
+    1452,
+    52
+   ],
+   [
+    1454,
+    52
+   ],
+   [
+    1456,
+    52
+   ],
+   [
+    1458,
+    52
+   ],
+   [
+    1460,
+    52
+   ],
+   [
+    1462,
+    52
+   ],
+   [
+    1464,
+    52
+   ],
+   [
+    1466,
+    52
+   ]
+  ],
+  "source_address": "0x015E80"
+ },
+ {
+  "tile_code": 2805,
+  "tile_code_hex": "0x0AF5",
+  "physical_pattern": "e330c38b6c879c887311ae8896c575101ab007998e04d1996d28bd65c2bc2ebc",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 10,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1449,
+    52
+   ],
+   [
+    1451,
+    52
+   ],
+   [
+    1453,
+    52
+   ],
+   [
+    1455,
+    52
+   ],
+   [
+    1457,
+    52
+   ],
+   [
+    1459,
+    52
+   ],
+   [
+    1461,
+    52
+   ],
+   [
+    1463,
+    52
+   ],
+   [
+    1465,
+    52
+   ],
+   [
+    1467,
+    52
+   ]
+  ],
+  "source_address": "0x015EA0"
+ },
+ {
+  "tile_code": 2806,
+  "tile_code_hex": "0x0AF6",
+  "physical_pattern": "7e51cb5e31aa319b9e6e86f4b65a5394d034901be97f69061e97ef599719aae8",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1432,
+    52
+   ]
+  ],
+  "source_address": "0x015EC0"
+ },
+ {
+  "tile_code": 2807,
+  "tile_code_hex": "0x0AF7",
+  "physical_pattern": "b5c73d5df9802e178a369d1fc0dfac1f16f0abc688b3730621f75b8e4785fd70",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1433,
+    52
+   ]
+  ],
+  "source_address": "0x015EE0"
+ },
+ {
+  "tile_code": 2808,
+  "tile_code_hex": "0x0AF8",
+  "physical_pattern": "83dc640758803c7ac7b8ccfcbaa5f612dfd6512e003e30bf1804542a51babc4b",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1434,
+    52
+   ]
+  ],
+  "source_address": "0x015F00"
+ },
+ {
+  "tile_code": 2809,
+  "tile_code_hex": "0x0AF9",
+  "physical_pattern": "cfa4dffbf61b26fcf7448777a1bd2b07bb7e2a8b8cfb8d88c1f9bee20696d18a",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1435,
+    52
+   ],
+   [
+    1444,
+    52
+   ]
+  ],
+  "source_address": "0x015F20"
+ },
+ {
+  "tile_code": 2810,
+  "tile_code_hex": "0x0AFA",
+  "physical_pattern": "522cad605ebef3c656f73615cc528147833a772dede811d34f8cde13125a531e",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 4,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1432,
+    53
+   ],
+   [
+    1432,
+    55
+   ],
+   [
+    1432,
+    57
+   ],
+   [
+    1432,
+    59
+   ]
+  ],
+  "source_address": "0x015F40"
+ },
+ {
+  "tile_code": 2811,
+  "tile_code_hex": "0x0AFB",
+  "physical_pattern": "404527bd5c4b2284142d4d5baf5fac1fdfd8fe78860ab013c8f7c7201e55c91a",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1434,
+    53
+   ]
+  ],
+  "source_address": "0x015F60"
+ },
+ {
+  "tile_code": 2812,
+  "tile_code_hex": "0x0AFC",
+  "physical_pattern": "b8dc93655d05e55a07f082ad8c7c62578e986087a99452441b8ae3b267d7d187",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1435,
+    53
+   ]
+  ],
+  "source_address": "0x015F80"
+ },
+ {
+  "tile_code": 2813,
+  "tile_code_hex": "0x0AFD",
+  "physical_pattern": "6dcf967b15ea56a8c71b8d7e9ff515bdfccb632b8fe7e2158087299e781cc555",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 3,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1432,
+    54
+   ],
+   [
+    1432,
+    56
+   ],
+   [
+    1432,
+    58
+   ]
+  ],
+  "source_address": "0x015FA0"
+ },
+ {
+  "tile_code": 2814,
+  "tile_code_hex": "0x0AFE",
+  "physical_pattern": "04fee12fa3960a41c8c22c5beecb43306d7f94e718a6c034357eb91ff0b9c318",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1434,
+    54
+   ],
+   [
+    1433,
+    58
+   ]
+  ],
+  "source_address": "0x015FC0"
+ },
+ {
+  "tile_code": 2815,
+  "tile_code_hex": "0x0AFF",
+  "physical_pattern": "fe74469241515ff39691e2191cdb884f99d39bb3fdbf64edd31426212caffaa4",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1435,
+    54
+   ]
+  ],
+  "source_address": "0x015FE0"
+ },
+ {
+  "tile_code": 2816,
+  "tile_code_hex": "0x0B00",
+  "physical_pattern": "f904ef6f62366e40cda3981d05ded5e42490335773ea4694c46210b2bc5437f4",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 6,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1434,
+    55
+   ],
+   [
+    1445,
+    55
+   ],
+   [
+    1434,
+    56
+   ],
+   [
+    1445,
+    56
+   ],
+   [
+    1433,
+    59
+   ],
+   [
+    1446,
+    59
+   ]
+  ],
+  "source_address": "0x016000"
+ },
+ {
+  "tile_code": 2817,
+  "tile_code_hex": "0x0B01",
+  "physical_pattern": "b21272c6c29ba29236bff7fa4ad4d2351fe84689f80c3c4525337399cee11b2c",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1435,
+    55
+   ]
+  ],
+  "source_address": "0x016020"
+ },
+ {
+  "tile_code": 2818,
+  "tile_code_hex": "0x0B02",
+  "physical_pattern": "c83cb93b20f7ced01b1da8c65320bad57fbe843a7adbe7863dbcb65d6f2311b7",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1445,
+    52
+   ]
+  ],
+  "source_address": "0x016040"
+ },
+ {
+  "tile_code": 2819,
+  "tile_code_hex": "0x0B03",
+  "physical_pattern": "77907ba7df8e6090335d0992e3d8abaf454c6ca8465b31b400b11990e8971ca8",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1446,
+    52
+   ]
+  ],
+  "source_address": "0x016060"
+ },
+ {
+  "tile_code": 2820,
+  "tile_code_hex": "0x0B04",
+  "physical_pattern": "e916953e190531e075f769762a1be5b7b8d47fef524dcf3b2197e3ad8ebe1f2a",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1447,
+    52
+   ]
+  ],
+  "source_address": "0x016080"
+ },
+ {
+  "tile_code": 2821,
+  "tile_code_hex": "0x0B05",
+  "physical_pattern": "86bcc9cc64e1d27da8a9adfc1471e089f6d516c1723e21a46269fb2003f07ff9",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1444,
+    53
+   ]
+  ],
+  "source_address": "0x0160A0"
+ },
+ {
+  "tile_code": 2822,
+  "tile_code_hex": "0x0B06",
+  "physical_pattern": "0f1ce94a07c2762870d6844a691e186af084e25659edaf1d4bf38507c1b4a419",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1445,
+    53
+   ]
+  ],
+  "source_address": "0x0160C0"
+ },
+ {
+  "tile_code": 2823,
+  "tile_code_hex": "0x0B07",
+  "physical_pattern": "aebc25f1f5aae3fbc0bd0d6c9828de4bfbb04fce7abc5ca4d1a34424995e22b8",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 4,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1447,
+    53
+   ],
+   [
+    1447,
+    55
+   ],
+   [
+    1447,
+    57
+   ],
+   [
+    1447,
+    59
+   ]
+  ],
+  "source_address": "0x0160E0"
+ },
+ {
+  "tile_code": 2824,
+  "tile_code_hex": "0x0B08",
+  "physical_pattern": "db98bfc6e8b3aa031849fef9475206382bf096b20e4ac4cc4f38bb230d91b4d9",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1444,
+    54
+   ]
+  ],
+  "source_address": "0x016100"
+ },
+ {
+  "tile_code": 2825,
+  "tile_code_hex": "0x0B09",
+  "physical_pattern": "1c1f56fe06bb5f954fae39df0e9f24a63b67456a67466ee8fbb212cb069f3669",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1445,
+    54
+   ],
+   [
+    1446,
+    58
+   ]
+  ],
+  "source_address": "0x016120"
+ },
+ {
+  "tile_code": 2826,
+  "tile_code_hex": "0x0B0A",
+  "physical_pattern": "178bf0f03fc936aba8a32255ae31e07964eae625b6aa60a219a5d3f01a01db64",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 3,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1447,
+    54
+   ],
+   [
+    1447,
+    56
+   ],
+   [
+    1447,
+    58
+   ]
+  ],
+  "source_address": "0x016140"
+ },
+ {
+  "tile_code": 2827,
+  "tile_code_hex": "0x0B0B",
+  "physical_pattern": "8211e117db9491f7f77e13aac3e76d8aaf138438d61d018fd161f830edbfb79b",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1444,
+    55
+   ]
+  ],
+  "source_address": "0x016160"
+ },
+ {
+  "tile_code": 2828,
+  "tile_code_hex": "0x0B0C",
+  "physical_pattern": "7d622d84edbb94f8c46fafbc454bc706215a43143970c7be39e671767a3f3791",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1433,
+    56
+   ]
+  ],
+  "source_address": "0x016180"
+ },
+ {
+  "tile_code": 2829,
+  "tile_code_hex": "0x0B0D",
+  "physical_pattern": "7782bab64c5d20c9d3ff8b3ced3d4c24329c99c2b57ecc3c0f80f3460b3ae3bc",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1435,
+    56
+   ]
+  ],
+  "source_address": "0x0161A0"
+ },
+ {
+  "tile_code": 2830,
+  "tile_code_hex": "0x0B0E",
+  "physical_pattern": "51b5267b37f5f7d4891cfa95142e30032c679d793aa8ec1f749878349790e759",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1433,
+    57
+   ]
+  ],
+  "source_address": "0x0161C0"
+ },
+ {
+  "tile_code": 2831,
+  "tile_code_hex": "0x0B0F",
+  "physical_pattern": "67ae802e6c3690c2660d31b1e670ec15a6eb1ac5a17edbf94f8b27c6e4301f2c",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1434,
+    57
+   ]
+  ],
+  "source_address": "0x0161E0"
+ },
+ {
+  "tile_code": 2832,
+  "tile_code_hex": "0x0B10",
+  "physical_pattern": "a220476e7c42128d4c816fe0895a0ed3b7c5422a44dc9595d11e247b0c36daf3",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1435,
+    57
+   ]
+  ],
+  "source_address": "0x016200"
+ },
+ {
+  "tile_code": 2833,
+  "tile_code_hex": "0x0B11",
+  "physical_pattern": "b7900c908fc305482baf545f3cd08c76945a22eda86a4a0eb565ba1bca04cf52",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1434,
+    58
+   ]
+  ],
+  "source_address": "0x016220"
+ },
+ {
+  "tile_code": 2834,
+  "tile_code_hex": "0x0B12",
+  "physical_pattern": "29f85d3012b28ce1004efe7c3ccb4e4fa40d3fefc5f1a5017a8c0cbee99d277e",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1435,
+    58
+   ]
+  ],
+  "source_address": "0x016240"
+ },
+ {
+  "tile_code": 2835,
+  "tile_code_hex": "0x0B13",
+  "physical_pattern": "313d09599279d7dd3a17f741dfa44571562072390c4bd2e55d79dc6c32bb3176",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1434,
+    59
+   ]
+  ],
+  "source_address": "0x016260"
+ },
+ {
+  "tile_code": 2836,
+  "tile_code_hex": "0x0B14",
+  "physical_pattern": "945ee93d87ffad660fa33e7f598a063931ccbea9dfa4986d915de1b8210ecb61",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1435,
+    59
+   ]
+  ],
+  "source_address": "0x016280"
+ },
+ {
+  "tile_code": 2837,
+  "tile_code_hex": "0x0B15",
+  "physical_pattern": "fbbfad4cead9b9670e8b76204c0b94bcf0b4524e3cc1e93801498c718059709e",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1444,
+    56
+   ]
+  ],
+  "source_address": "0x0162A0"
+ },
+ {
+  "tile_code": 2838,
+  "tile_code_hex": "0x0B16",
+  "physical_pattern": "5d2d8ac89dc932446984641baa972d514ca65183f5d6f0af341231a6aa7fd1f0",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1446,
+    56
+   ]
+  ],
+  "source_address": "0x0162C0"
+ },
+ {
+  "tile_code": 2839,
+  "tile_code_hex": "0x0B17",
+  "physical_pattern": "be3dcdae22f863abdbbe4ffbc99f5b255465e71a1eb6300bfd90184da82ee9ab",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1444,
+    57
+   ]
+  ],
+  "source_address": "0x0162E0"
+ },
+ {
+  "tile_code": 2840,
+  "tile_code_hex": "0x0B18",
+  "physical_pattern": "add603534bae1d7880f7f99028ec00abe4c2de8ea78bf48515dd9370e92a6217",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1445,
+    57
+   ]
+  ],
+  "source_address": "0x016300"
+ },
+ {
+  "tile_code": 2841,
+  "tile_code_hex": "0x0B19",
+  "physical_pattern": "30596e8377c48827033888717c5cfa514b80cf150d5b198ae9ac1ff53453106e",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1446,
+    57
+   ]
+  ],
+  "source_address": "0x016320"
+ },
+ {
+  "tile_code": 2842,
+  "tile_code_hex": "0x0B1A",
+  "physical_pattern": "c507c01b46157d5dcff674359eefe9706f52f061bdbbdeb4832bfa2bf9d9c1e7",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1444,
+    58
+   ]
+  ],
+  "source_address": "0x016340"
+ },
+ {
+  "tile_code": 2843,
+  "tile_code_hex": "0x0B1B",
+  "physical_pattern": "ffbb0e07f4f01a734f4937984be2f43695364a48428025009ce3368043647f8b",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1445,
+    58
+   ]
+  ],
+  "source_address": "0x016360"
+ },
+ {
+  "tile_code": 2844,
+  "tile_code_hex": "0x0B1C",
+  "physical_pattern": "3e37a13174b1e10447b0a9af5ef80e50934f0cf9f9c287175cded2dc3f334a91",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1444,
+    59
+   ]
+  ],
+  "source_address": "0x016380"
+ },
+ {
+  "tile_code": 2845,
+  "tile_code_hex": "0x0B1D",
+  "physical_pattern": "b32c12833b76e0a08b4381f2a18269d2288d2f4a8d178cb827ac9ea3468844d8",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1445,
+    59
+   ]
+  ],
+  "source_address": "0x0163A0"
+ },
+ {
+  "tile_code": 2846,
+  "tile_code_hex": "0x0B1E",
+  "physical_pattern": "586e4dc9156c0925add3394e6394b304f133991133e1e9834bd3aefbd1ecc32c",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 64,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1436,
+    52
+   ],
+   [
+    1437,
+    52
+   ],
+   [
+    1438,
+    52
+   ],
+   [
+    1439,
+    52
+   ],
+   [
+    1440,
+    52
+   ],
+   [
+    1441,
+    52
+   ],
+   [
+    1442,
+    52
+   ],
+   [
+    1443,
+    52
+   ],
+   [
+    1436,
+    53
+   ],
+   [
+    1437,
+    53
+   ],
+   [
+    1438,
+    53
+   ],
+   [
+    1439,
+    53
+   ]
+  ],
+  "source_address": "0x0163C0"
+ },
+ {
+  "tile_code": 2847,
+  "tile_code_hex": "0x0B1F",
+  "physical_pattern": "bae4d1fe8afaeee157291de47e4a0c6b821bb1a1fbd53551658c977fde679f33",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 470,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1412,
+    0
+   ],
+   [
+    1414,
+    0
+   ],
+   [
+    1420,
+    0
+   ],
+   [
+    1422,
+    0
+   ],
+   [
+    1424,
+    0
+   ],
+   [
+    1426,
+    0
+   ],
+   [
+    1432,
+    0
+   ],
+   [
+    1434,
+    0
+   ],
+   [
+    1436,
+    0
+   ],
+   [
+    1438,
+    0
+   ],
+   [
+    1440,
+    0
+   ],
+   [
+    1442,
+    0
+   ]
+  ],
+  "source_address": "0x0163E0"
+ },
+ {
+  "tile_code": 2848,
+  "tile_code_hex": "0x0B20",
+  "physical_pattern": "8a8f2df514be06fc20e046b0add72c34bd02c414cd9664f43c11f101e5987767",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 474,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1413,
+    0
+   ],
+   [
+    1415,
+    0
+   ],
+   [
+    1421,
+    0
+   ],
+   [
+    1423,
+    0
+   ],
+   [
+    1425,
+    0
+   ],
+   [
+    1427,
+    0
+   ],
+   [
+    1433,
+    0
+   ],
+   [
+    1435,
+    0
+   ],
+   [
+    1437,
+    0
+   ],
+   [
+    1439,
+    0
+   ],
+   [
+    1441,
+    0
+   ],
+   [
+    1443,
+    0
+   ]
+  ],
+  "source_address": "0x016400"
+ },
+ {
+  "tile_code": 2849,
+  "tile_code_hex": "0x0B21",
+  "physical_pattern": "0ec165d57428c38dc216ef9f8d9e1d955797d60f858f1e2797867131895959a9",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1423,
+    40
+   ],
+   [
+    1455,
+    40
+   ]
+  ],
+  "source_address": "0x016420"
+ },
+ {
+  "tile_code": 2850,
+  "tile_code_hex": "0x0B22",
+  "physical_pattern": "1750e3dbf989d8dca801fcda6af6c8c5f6207dab1cd0d809d449ebc12607cecf",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 470,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1412,
+    1
+   ],
+   [
+    1414,
+    1
+   ],
+   [
+    1420,
+    1
+   ],
+   [
+    1422,
+    1
+   ],
+   [
+    1424,
+    1
+   ],
+   [
+    1426,
+    1
+   ],
+   [
+    1432,
+    1
+   ],
+   [
+    1434,
+    1
+   ],
+   [
+    1436,
+    1
+   ],
+   [
+    1438,
+    1
+   ],
+   [
+    1440,
+    1
+   ],
+   [
+    1442,
+    1
+   ]
+  ],
+  "source_address": "0x016440"
+ },
+ {
+  "tile_code": 2851,
+  "tile_code_hex": "0x0B23",
+  "physical_pattern": "1e818edbea094f06e5470ed73b7c5566c4422e51cdc967be3a1540c537f66432",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1421,
+    41
+   ],
+   [
+    1453,
+    41
+   ]
+  ],
+  "source_address": "0x016460"
+ },
+ {
+  "tile_code": 2852,
+  "tile_code_hex": "0x0B24",
+  "physical_pattern": "4914969e1df5ba77fe0e59a853eae0a5ace3c6f0a724a728e121206d3ea6343d",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1422,
+    41
+   ],
+   [
+    1454,
+    41
+   ]
+  ],
+  "source_address": "0x016480"
+ },
+ {
+  "tile_code": 2853,
+  "tile_code_hex": "0x0B25",
+  "physical_pattern": "0fe6d1faba5112441802b6d82bee09ad852ceabbd6d59bb0be58efed9104c90c",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1423,
+    41
+   ],
+   [
+    1455,
+    41
+   ]
+  ],
+  "source_address": "0x0164A0"
+ },
+ {
+  "tile_code": 2854,
+  "tile_code_hex": "0x0B26",
+  "physical_pattern": "254bcfc7778f5690d176ac812569a5e7674ad02604be85cc096782ba0ee68f2f",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1421,
+    42
+   ],
+   [
+    1453,
+    42
+   ]
+  ],
+  "source_address": "0x0164C0"
+ },
+ {
+  "tile_code": 2855,
+  "tile_code_hex": "0x0B27",
+  "physical_pattern": "f914859a65c0fdcc75a0ad3e7bb77b5ef5daeec264e4c3267426e08d10733831",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1422,
+    42
+   ],
+   [
+    1454,
+    42
+   ]
+  ],
+  "source_address": "0x0164E0"
+ },
+ {
+  "tile_code": 2856,
+  "tile_code_hex": "0x0B28",
+  "physical_pattern": "0b763c630d5d1d65edd01de53572b63f6410d1a99d81d3f775a98dd0d9da3685",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1423,
+    42
+   ],
+   [
+    1455,
+    42
+   ]
+  ],
+  "source_address": "0x016500"
+ },
+ {
+  "tile_code": 2857,
+  "tile_code_hex": "0x0B29",
+  "physical_pattern": "67f1ba3da0877251e2276269805f05587a904f3b776087c44508fda115dfbb5c",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1420,
+    43
+   ],
+   [
+    1452,
+    43
+   ]
+  ],
+  "source_address": "0x016520"
+ },
+ {
+  "tile_code": 2858,
+  "tile_code_hex": "0x0B2A",
+  "physical_pattern": "9fe12929e6150fceb4d416c5babbfe82a056cdd74653c41ea12b91e360749c7c",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1421,
+    43
+   ],
+   [
+    1453,
+    43
+   ]
+  ],
+  "source_address": "0x016540"
+ },
+ {
+  "tile_code": 2859,
+  "tile_code_hex": "0x0B2B",
+  "physical_pattern": "b9296ed05d318de3e309ce7fb863aecfd0856a45fc28e9560b9500c68f5897c7",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1422,
+    43
+   ],
+   [
+    1454,
+    43
+   ]
+  ],
+  "source_address": "0x016560"
+ },
+ {
+  "tile_code": 2860,
+  "tile_code_hex": "0x0B2C",
+  "physical_pattern": "1d5d30e7045df261b7eb72b1e2b31d0c99e84e807bfb96592d0910cba456f006",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1423,
+    43
+   ],
+   [
+    1455,
+    43
+   ]
+  ],
+  "source_address": "0x016580"
+ },
+ {
+  "tile_code": 2861,
+  "tile_code_hex": "0x0B2D",
+  "physical_pattern": "d26ad447f49bdd1f0ef0db4b6ce0e28d54e0a15745b001698577de1684f0ede8",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1424,
+    40
+   ],
+   [
+    1456,
+    40
+   ]
+  ],
+  "source_address": "0x0165A0"
+ },
+ {
+  "tile_code": 2862,
+  "tile_code_hex": "0x0B2E",
+  "physical_pattern": "957ec71230bf3842805b747ae3cf98ec8c8a356595cf1c64aa2a0faf4ac1c669",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1426,
+    40
+   ],
+   [
+    1458,
+    40
+   ]
+  ],
+  "source_address": "0x0165C0"
+ },
+ {
+  "tile_code": 2863,
+  "tile_code_hex": "0x0B2F",
+  "physical_pattern": "51f1e310b1563dbafedff033b0f353f9939f5b1d19fea5c481aeb067884a0f06",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1424,
+    41
+   ],
+   [
+    1456,
+    41
+   ]
+  ],
+  "source_address": "0x0165E0"
+ },
+ {
+  "tile_code": 2864,
+  "tile_code_hex": "0x0B30",
+  "physical_pattern": "e0aa4387c4eb35eef7b704d29faafb24b33582907198f351779f934a1c716687",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1425,
+    41
+   ],
+   [
+    1457,
+    41
+   ]
+  ],
+  "source_address": "0x016600"
+ },
+ {
+  "tile_code": 2865,
+  "tile_code_hex": "0x0B31",
+  "physical_pattern": "d9ca6e32836a528f79b2162d47d811595e7b4e2bc5293529aad14d41c7f9c41a",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1426,
+    41
+   ],
+   [
+    1458,
+    41
+   ]
+  ],
+  "source_address": "0x016620"
+ },
+ {
+  "tile_code": 2866,
+  "tile_code_hex": "0x0B32",
+  "physical_pattern": "516d831db86c2105d8dafeddbb9b0ee5d08c830737d4fc191dc49d9ffe0f6613",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 470,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1413,
+    1
+   ],
+   [
+    1415,
+    1
+   ],
+   [
+    1421,
+    1
+   ],
+   [
+    1423,
+    1
+   ],
+   [
+    1425,
+    1
+   ],
+   [
+    1427,
+    1
+   ],
+   [
+    1433,
+    1
+   ],
+   [
+    1435,
+    1
+   ],
+   [
+    1437,
+    1
+   ],
+   [
+    1439,
+    1
+   ],
+   [
+    1441,
+    1
+   ],
+   [
+    1443,
+    1
+   ]
+  ],
+  "source_address": "0x016640"
+ },
+ {
+  "tile_code": 2867,
+  "tile_code_hex": "0x0B33",
+  "physical_pattern": "7ca25fc91df56783885820c5eefe005638e23ce7a4563ec9aae2036a13a2821c",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1424,
+    42
+   ],
+   [
+    1456,
+    42
+   ]
+  ],
+  "source_address": "0x016660"
+ },
+ {
+  "tile_code": 2868,
+  "tile_code_hex": "0x0B34",
+  "physical_pattern": "d03461734abf82de1d4e65a12fbf915585b680135b1c08684f0bd12b1e4f662b",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1425,
+    42
+   ],
+   [
+    1457,
+    42
+   ]
+  ],
+  "source_address": "0x016680"
+ },
+ {
+  "tile_code": 2869,
+  "tile_code_hex": "0x0B35",
+  "physical_pattern": "7f94fd1f9fa39ee59d13b76193172b2173627d3608b63fd352676a42ddbfd475",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1426,
+    42
+   ],
+   [
+    1458,
+    42
+   ]
+  ],
+  "source_address": "0x0166A0"
+ },
+ {
+  "tile_code": 2870,
+  "tile_code_hex": "0x0B36",
+  "physical_pattern": "c2446ee8ec83531658fa2da37b3f76e2547ea5f189dfc3f08b90f3cfbdc7eb29",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1424,
+    43
+   ],
+   [
+    1456,
+    43
+   ]
+  ],
+  "source_address": "0x0166C0"
+ },
+ {
+  "tile_code": 2871,
+  "tile_code_hex": "0x0B37",
+  "physical_pattern": "99861a60183efc5c3c2143f9686f34e6987e4ffe34422c7f1ffe123f66aafb5d",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1425,
+    43
+   ],
+   [
+    1457,
+    43
+   ]
+  ],
+  "source_address": "0x0166E0"
+ },
+ {
+  "tile_code": 2872,
+  "tile_code_hex": "0x0B38",
+  "physical_pattern": "d76dfba2779e61e6584a0b291de677625503a290f2f76c1e44978f4408fdb9f6",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1426,
+    43
+   ],
+   [
+    1458,
+    43
+   ]
+  ],
+  "source_address": "0x016700"
+ },
+ {
+  "tile_code": 2873,
+  "tile_code_hex": "0x0B39",
+  "physical_pattern": "77625bbe194949496c62766454143cbb29231cdb6d35324c1509fa160374fbd1",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1427,
+    43
+   ],
+   [
+    1459,
+    43
+   ]
+  ],
+  "source_address": "0x016720"
+ },
+ {
+  "tile_code": 2874,
+  "tile_code_hex": "0x0B3A",
+  "physical_pattern": "93adb7374727f7dc5ceeea781bb47e8ef995a14ce8a919a40f0a427ba6c18ca1",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1420,
+    44
+   ],
+   [
+    1452,
+    44
+   ]
+  ],
+  "source_address": "0x016740"
+ },
+ {
+  "tile_code": 2875,
+  "tile_code_hex": "0x0B3B",
+  "physical_pattern": "d8fd1c8a052b6e3ae9c8a902d74603eb334d9758782fa0ae639da48342077bd7",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1421,
+    44
+   ],
+   [
+    1453,
+    44
+   ]
+  ],
+  "source_address": "0x016760"
+ },
+ {
+  "tile_code": 2876,
+  "tile_code_hex": "0x0B3C",
+  "physical_pattern": "b8c20218f95c85fefd955f67257d80ae5c8b287bfc165ce15692844eaeaf7e04",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1422,
+    44
+   ],
+   [
+    1454,
+    44
+   ]
+  ],
+  "source_address": "0x016780"
+ },
+ {
+  "tile_code": 2877,
+  "tile_code_hex": "0x0B3D",
+  "physical_pattern": "acfbc8c7f4d1284b5bd1e86820b57b815b4f9bbeda84e62706f4c5fb05282d4f",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1423,
+    44
+   ],
+   [
+    1455,
+    44
+   ]
+  ],
+  "source_address": "0x0167A0"
+ },
+ {
+  "tile_code": 2878,
+  "tile_code_hex": "0x0B3E",
+  "physical_pattern": "ae8bf29b8846c07a535fb8b30a39983252f544bc5a73087c20aad207b2feb44d",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1420,
+    45
+   ],
+   [
+    1452,
+    45
+   ]
+  ],
+  "source_address": "0x0167C0"
+ },
+ {
+  "tile_code": 2879,
+  "tile_code_hex": "0x0B3F",
+  "physical_pattern": "cc81415b7082ab424165135af6b40b4b06de15fc53f00e5704e24d5ba165380a",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1421,
+    45
+   ],
+   [
+    1453,
+    45
+   ]
+  ],
+  "source_address": "0x0167E0"
+ },
+ {
+  "tile_code": 2880,
+  "tile_code_hex": "0x0B40",
+  "physical_pattern": "dfff2ae75b75c2691cc429683a46a4070b97df97a5b2d6292137783fca5290e3",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1422,
+    45
+   ],
+   [
+    1454,
+    45
+   ]
+  ],
+  "source_address": "0x016800"
+ },
+ {
+  "tile_code": 2881,
+  "tile_code_hex": "0x0B41",
+  "physical_pattern": "6edd4e63b18bed166513d78a0a115258135abdfdac8829046378a6351e195821",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1423,
+    45
+   ],
+   [
+    1455,
+    45
+   ]
+  ],
+  "source_address": "0x016820"
+ },
+ {
+  "tile_code": 2882,
+  "tile_code_hex": "0x0B42",
+  "physical_pattern": "e6dd2ce0fe7678666c6e2d58485042081324e0ad7b818c53043ebb43e1aa5eda",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1420,
+    46
+   ],
+   [
+    1452,
+    46
+   ]
+  ],
+  "source_address": "0x016840"
+ },
+ {
+  "tile_code": 2883,
+  "tile_code_hex": "0x0B43",
+  "physical_pattern": "016edd3757b2ff8c80ebe471d5363dfe5d9150c9c0fbda489285ed53cd794621",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1421,
+    46
+   ],
+   [
+    1453,
+    46
+   ]
+  ],
+  "source_address": "0x016860"
+ },
+ {
+  "tile_code": 2884,
+  "tile_code_hex": "0x0B44",
+  "physical_pattern": "0b83184c307272d9c036ab1fc3c8f8c4106b08fa6ba295ce44f5c33b44cbbd71",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1422,
+    46
+   ],
+   [
+    1454,
+    46
+   ]
+  ],
+  "source_address": "0x016880"
+ },
+ {
+  "tile_code": 2885,
+  "tile_code_hex": "0x0B45",
+  "physical_pattern": "16321cf0f0d57024563ab90e633949f6b9f25419b05bd33e3a791e5dff0b8470",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1423,
+    46
+   ],
+   [
+    1455,
+    46
+   ]
+  ],
+  "source_address": "0x0168A0"
+ },
+ {
+  "tile_code": 2886,
+  "tile_code_hex": "0x0B46",
+  "physical_pattern": "87f4500b24a5bedc9f007746109ab673a93ef20ad047f379e9b5dec918ea5afe",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1422,
+    47
+   ],
+   [
+    1454,
+    47
+   ]
+  ],
+  "source_address": "0x0168C0"
+ },
+ {
+  "tile_code": 2887,
+  "tile_code_hex": "0x0B47",
+  "physical_pattern": "173c05b0d7f7dc84c83e59cfc53cec5f0dd016946e5a53d8fbf1975611aece20",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 4,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1427,
+    45
+   ],
+   [
+    1459,
+    45
+   ],
+   [
+    1423,
+    47
+   ],
+   [
+    1455,
+    47
+   ]
+  ],
+  "source_address": "0x0168E0"
+ },
+ {
+  "tile_code": 2888,
+  "tile_code_hex": "0x0B48",
+  "physical_pattern": "b50623f247e07ae866727c3e07ff9f46c9f04569b1893beb0e8ec56e90840108",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1424,
+    44
+   ],
+   [
+    1456,
+    44
+   ]
+  ],
+  "source_address": "0x016900"
+ },
+ {
+  "tile_code": 2889,
+  "tile_code_hex": "0x0B49",
+  "physical_pattern": "6cd61ce8770df4f290e26bf1ee0d1d661e1aff6710e48b3a548ea6d31b635387",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1425,
+    44
+   ],
+   [
+    1457,
+    44
+   ]
+  ],
+  "source_address": "0x016920"
+ },
+ {
+  "tile_code": 2890,
+  "tile_code_hex": "0x0B4A",
+  "physical_pattern": "22355d9b2672a6e65f3027a6a740cd96fbb541f49bdf232cf07c71140eb4fc71",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1426,
+    44
+   ],
+   [
+    1458,
+    44
+   ]
+  ],
+  "source_address": "0x016940"
+ },
+ {
+  "tile_code": 2891,
+  "tile_code_hex": "0x0B4B",
+  "physical_pattern": "7effbdc1542ca4eb5a8f84ba6a60b2618f5653496f2e73ebba85e972ec674ec7",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1427,
+    44
+   ],
+   [
+    1459,
+    44
+   ]
+  ],
+  "source_address": "0x016960"
+ },
+ {
+  "tile_code": 2892,
+  "tile_code_hex": "0x0B4C",
+  "physical_pattern": "7cd6c9417300df32634b37b9bb89ee8d4f6dd016674a4d0f22c65f4d6d8bf548",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1424,
+    45
+   ],
+   [
+    1456,
+    45
+   ]
+  ],
+  "source_address": "0x016980"
+ },
+ {
+  "tile_code": 2893,
+  "tile_code_hex": "0x0B4D",
+  "physical_pattern": "56e612909ce858ec782d4b9295efcdad4d2bd55938d5d9af31904a547ca11a68",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1425,
+    45
+   ],
+   [
+    1457,
+    45
+   ]
+  ],
+  "source_address": "0x0169A0"
+ },
+ {
+  "tile_code": 2894,
+  "tile_code_hex": "0x0B4E",
+  "physical_pattern": "94b24ea401c66956dc84594fdac26f73c40a6ad0915e5f5409ef77620f6efb85",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1426,
+    45
+   ],
+   [
+    1458,
+    45
+   ]
+  ],
+  "source_address": "0x0169C0"
+ },
+ {
+  "tile_code": 2895,
+  "tile_code_hex": "0x0B4F",
+  "physical_pattern": "8546d349673f70b0586611e95ffe0c75457480050d58a5b253c3b3cbd0201385",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1424,
+    46
+   ],
+   [
+    1456,
+    46
+   ]
+  ],
+  "source_address": "0x0169E0"
+ },
+ {
+  "tile_code": 2896,
+  "tile_code_hex": "0x0B50",
+  "physical_pattern": "d45ec6134764590af03883e3a6a469dd4325a796887935e4468984e570bfa646",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1425,
+    46
+   ],
+   [
+    1457,
+    46
+   ]
+  ],
+  "source_address": "0x016A00"
+ },
+ {
+  "tile_code": 2897,
+  "tile_code_hex": "0x0B51",
+  "physical_pattern": "1508bd265c227246084f3f86670dd102b5d734a8928f87d4d7ac8f456f5d83dc",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1426,
+    46
+   ],
+   [
+    1458,
+    46
+   ]
+  ],
+  "source_address": "0x016A20"
+ },
+ {
+  "tile_code": 2898,
+  "tile_code_hex": "0x0B52",
+  "physical_pattern": "fa9dd9372e43c9e0544cd82e84fe359c24edeb4802d7848e396f25fd0ccb183c",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1425,
+    47
+   ],
+   [
+    1457,
+    47
+   ]
+  ],
+  "source_address": "0x016A40"
+ },
+ {
+  "tile_code": 2899,
+  "tile_code_hex": "0x0B53",
+  "physical_pattern": "f029eac6e5cf5207ec5d1c4cbc01e84dedb0986b8c6ca09b6db11770fb33506a",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1426,
+    47
+   ],
+   [
+    1458,
+    47
+   ]
+  ],
+  "source_address": "0x016A60"
+ },
+ {
+  "tile_code": 2900,
+  "tile_code_hex": "0x0B54",
+  "physical_pattern": "36a3c44eae5b92562e37e24fe1f4fda926564c57e427383e48b672efc8abafe5",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 6,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1436,
+    40
+   ],
+   [
+    1436,
+    42
+   ],
+   [
+    1436,
+    44
+   ],
+   [
+    1436,
+    46
+   ],
+   [
+    1436,
+    48
+   ],
+   [
+    1436,
+    50
+   ]
+  ],
+  "source_address": "0x016A80"
+ },
+ {
+  "tile_code": 2901,
+  "tile_code_hex": "0x0B55",
+  "physical_pattern": "ed0272d0820504a125dfc2c8a132b19a7fc6b3862170729340125c64d0ac09b8",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1437,
+    40
+   ],
+   [
+    1439,
+    40
+   ]
+  ],
+  "source_address": "0x016AA0"
+ },
+ {
+  "tile_code": 2902,
+  "tile_code_hex": "0x0B56",
+  "physical_pattern": "bf7fb833b9d65967d4313de003055e894c525616c793be6de39e03ba89c27784",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1438,
+    40
+   ]
+  ],
+  "source_address": "0x016AC0"
+ },
+ {
+  "tile_code": 2903,
+  "tile_code_hex": "0x0B57",
+  "physical_pattern": "9c0c414a4ef25a26cfd415e179375b3380c380935eebdb27870b9fd2e4dbd1ae",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 6,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1436,
+    41
+   ],
+   [
+    1436,
+    43
+   ],
+   [
+    1436,
+    45
+   ],
+   [
+    1436,
+    47
+   ],
+   [
+    1436,
+    49
+   ],
+   [
+    1436,
+    51
+   ]
+  ],
+  "source_address": "0x016AE0"
+ },
+ {
+  "tile_code": 2904,
+  "tile_code_hex": "0x0B58",
+  "physical_pattern": "50f81485f399c26753cd637c8dec7582dabec11654cc821cb8ce2393f2e37e4c",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 2,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1440,
+    40
+   ],
+   [
+    1442,
+    40
+   ]
+  ],
+  "source_address": "0x016B00"
+ },
+ {
+  "tile_code": 2905,
+  "tile_code_hex": "0x0B59",
+  "physical_pattern": "102474cb35b42d26005a2c7ba2e7fe64a2f2766b20b6d9737099fd0f71cffba6",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 1,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1441,
+    40
+   ]
+  ],
+  "source_address": "0x016B20"
+ },
+ {
+  "tile_code": 2906,
+  "tile_code_hex": "0x0B5A",
+  "physical_pattern": "d1d40a3821ee025378a47d2b45488bd0ca84c378a0333071d026214a6f4585c4",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 6,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1443,
+    40
+   ],
+   [
+    1443,
+    42
+   ],
+   [
+    1443,
+    44
+   ],
+   [
+    1443,
+    46
+   ],
+   [
+    1443,
+    48
+   ],
+   [
+    1443,
+    50
+   ]
+  ],
+  "source_address": "0x016B40"
+ },
+ {
+  "tile_code": 2907,
+  "tile_code_hex": "0x0B5B",
+  "physical_pattern": "de9e176812b933933ba43e763fc9e527bd526df4d975b5dd6ce049fd84e90452",
+  "palette_bank": 25,
+  "palette_bank_hex": "0x019",
+  "flip": 0,
+  "priority_bits": null,
+  "map_cell_count": 6,
+  "records": [
+   22
+  ],
+  "coordinate_samples": [
+   [
+    1443,
+    41
+   ],
+   [
+    1443,
+    43
+   ],
+   [
+    1443,
+    45
+   ],
+   [
+    1443,
+    47
+   ],
+   [
+    1443,
+    49
+   ],
+   [
+    1443,
+    51
+   ]
+  ],
+  "source_address": "0x016B60"
+ }
+]

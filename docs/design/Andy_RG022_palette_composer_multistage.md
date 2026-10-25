@@ -108,3 +108,36 @@ and the regression suite. Next (gated by Tighe authoring the colors): per-enviro
 color-mapping reuses the existing Composer mapping machinery (`editor_policy` `context_policies`,
 keyed by the new scene keys) and, on approval, emits the per-scene `cram_asset`; Cody then consumes
 the manifest at the integration points. No approved R1 decision changes in that step.
+
+---
+
+## 9. Follow-up fix (same assignment): the editor now LOADS real per-subround graphics
+
+**Problem reported by Tighe:** selecting R1-S2 in the subround panel only changed the label — it did
+not load the castle tiles/enemies. The first pass delivered the key/model/export *metadata* but the
+editor's graphics corpus (`plane_a_uses.json`, `_MAP_BASES`) was hardcoded to R1 outdoor records 0–15,
+so there was nothing to display for castle/boss/R2.
+
+**Fix (reuses Cody's committed ARCADE-SOURCE decoders, not the Genesis assembly Cody is still
+correcting under RG-023):**
+- `tools/graphics_editor/gen_subround_layera_corpus.py` — generates the per-subround Layer-A authoring
+  corpus from the arcade source via `analyze_graphics.decode_plane_a(mc, gfx, segments)` (exact
+  `plane_a_uses` rows) + arcade palette banks decoded from the startup base `0x4EAF6 + bank*32`
+  (`0RGB` nibble → rgb8 via `_pal5`, matching the editor). Output:
+  `analysis/graphics_optimizer/subround_corpus/<scene_key>/` + `index.json`. Generated for R1-S2 castle
+  (records 16–21), R1-S3 boss (22), R2-S1/S2/S3 (23–45), and the R1-S1 caves.
+- `server.py` made scene-aware: `build_layera(scene)`, `plane_bank_colors(scene)`, `layera_map(seg,
+  scene)`, `layera_pattern_detail(pid, scene)` load the per-subround corpus; `/api/layera`,
+  `/api/layera_map` (segment clamp widened 0→138), `/api/layera_pattern` accept `?scene=`.
+- `app.js` made scene-aware (`ACTIVE_SCENE`, `sceneQS`, per-scene cache invalidation, record-band
+  segment dropdowns) + `window.loadSubroundScene(scene_key, records)`.
+- The subround panel's PLANEA environments now have a **"Load into editor ▸"** button that loads that
+  subround's real arcade tilemap/tiles/palette banks into the Layer-A view and jumps to its first
+  record.
+
+**Verified (server-backed tests 13/14, all pass):** castle/boss/R2 each load real arcade tiles that
+**fully resolve** (record 16 → 3648 cells resolved, 0 unresolved; boss 4096; R2 3086) with their own
+distinct palette banks (castle 0x008–0x014/0x01F, not R1's 0x003–0x01D), and the castle bank colors
+match the editor's authoritative R1 capture where banks overlap. Round-1 outdoor and all existing
+approvals are untouched. **Sprites/enemies per-subround roster is the remaining piece** (the sprite
+corpus is still R1-P1; surfaced in the panel as "sprites (per-scene roster pending)") — next step.

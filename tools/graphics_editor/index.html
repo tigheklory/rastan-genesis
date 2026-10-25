@@ -39,16 +39,27 @@
     var el=document.getElementById('srp-envs');
     document.getElementById('srp-current').textContent=
       sr.key+' — '+sr.name+'  ['+sr.native+(sr.mode?(' / '+sr.mode):'')+']';
-    var h='<table class="srp-envtab"><tr><th>environment</th><th>family</th><th>records</th><th>scene_key</th><th>palette</th><th>decisions</th></tr>';
-    (sr.environments||[]).forEach(function(e){
+    var h='<table class="srp-envtab"><tr><th>environment</th><th>family</th><th>records</th><th>scene_key</th><th>palette</th><th>load</th><th>decisions</th></tr>';
+    (sr.environments||[]).forEach(function(e,ix){
       var ps=e.authorable?e.palette_status:'reserved (Line 2 / arcade)';
       var col=e.authorable?(STAT[e.palette_status]||'#888'):'#777';
+      var canLoad=(e.family==='PLANEA')&&sr.native==='native_converted';
+      var loadCell=canLoad?('<button class="srp-load" data-sk="'+esc(e.scene_key)+'" data-r="'+(e.records||[]).join(',')+'">Load into editor ▸</button>')
+                  :(e.family==='PC090OJ'?'<span class="dim">sprites (per-scene roster pending)</span>':'<span class="dim">—</span>');
       h+='<tr><td>'+esc(e.env)+'</td><td>'+esc(e.family)+'</td><td>'+JSON.stringify(e.records||[])+
          '</td><td class="srp-key">'+esc(e.scene_key)+'</td><td style="color:'+col+'">'+esc(ps)+
-         '</td><td>'+((e.decisions||[]).map(function(d){return esc(d.id)+' ('+esc(d.status)+')';}).join('<br>')||'—')+'</td></tr>';
+         '</td><td>'+loadCell+'</td><td>'+((e.decisions||[]).map(function(d){return esc(d.id)+' ('+esc(d.status)+')';}).join('<br>')||'—')+'</td></tr>';
     });
     el.innerHTML=h+'</table><div class="srp-note">Line 2 / Plane B is arcade-controlled and never authored. '+
       'Palette colors require Tighe approval; the editor never auto-approves or substitutes another subround\'s colors.</div>';
+    Array.prototype.forEach.call(el.querySelectorAll('.srp-load'),function(b){
+      b.onclick=function(){
+        var rec=b.dataset.r?b.dataset.r.split(',').map(Number):null;
+        if(window.loadSubroundScene){window.loadSubroundScene(b.dataset.sk,rec);
+          document.getElementById('srp-current').textContent='LOADED: '+b.dataset.sk+' (records '+(rec?rec.join('–'):'?')+') — see Layer A';}
+        else{alert('editor not ready');}
+      };
+    });
   }
   function render(map){
     var g=document.getElementById('srp-grid');var h='';
