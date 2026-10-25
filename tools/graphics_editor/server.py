@@ -1430,6 +1430,31 @@ class Hd(BaseHTTPRequestHandler):
                 return self._s(500, json.dumps({"error": str(e)}).encode())
         if u.path == "/api/profiles":
             return self._s(200, json.dumps(loadj(os.path.join(POLICY_DIR, "profile_manifest.json"), {"profiles": []})).encode())
+        if u.path == "/api/subrounds":
+            # RG-022: the 18-subround / per-environment palette model + authentic scene keys,
+            # enriched with per-scene palette status from the canonical registry. Read-only.
+            smap = loadj(os.path.join(ROOT, "specs/palette_subround_map.json"), {"subrounds": [], "families": {}})
+            reg = loadj(os.path.join(ROOT, "specs/palette_decisions.json"), {"decisions": []})
+            by_scene = {}
+            for dec in reg.get("decisions", []):
+                for sk in (dec.get("scene_applicability", {}) or {}).get("scene_keys", []):
+                    by_scene.setdefault(sk, []).append({"id": dec["id"], "status": dec.get("status"),
+                        "cross_scene_candidate": (dec.get("scene_applicability", {}) or {}).get("cross_scene_candidate", False)})
+            def pstatus(sk):
+                decs = by_scene.get(sk, [])
+                if not decs:
+                    return "missing", []
+                st = {d["status"] for d in decs}
+                if st <= {"approved", "proven", "decided"}:
+                    return "approved", decs
+                if st <= {"provisional", "unknown"}:
+                    return "provisional", decs
+                return "mixed", decs
+            for sr in smap.get("subrounds", []):
+                for env in sr.get("environments", []):
+                    env["palette_status"], env["decisions"] = pstatus(env.get("scene_key"))
+                    env["authorable"] = bool(smap.get("families", {}).get(env.get("family"), {}).get("authorable"))
+            return self._s(200, json.dumps(smap).encode())
         if u.path == "/api/policy":
             pid = q.get("p", ["baseline_current"])[0]
             pol = loadj(os.path.join(POLICY_DIR, pid + ".json"), default_profile(pid))

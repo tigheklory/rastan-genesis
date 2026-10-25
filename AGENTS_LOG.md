@@ -53762,3 +53762,32 @@ for all 18 subrounds and a phased implementation plan.
 - Rope performance: Build 0495 `795/795/795` = 13,267.083 ms; Build 0499 `795/795/795` = 13,267.083 ms; deterministic, zero change.
 - Palette Composer and `specs/palette_decisions.json` untouched. R2 retains arcade palette conversion pending RG-022; audio source untouched. Hardware must verify castle art/collision, boss-room visuals and live post-boss progression, R2 visuals, palettes, and normal R1 regression.
 - Report: `docs/design/Cody_build0499_native_stage_graphics_and_level_data.md`; requested task index: `docs/design/Cody_RG021_native_stage_implementation.md`.
+
+## RG-022 — Per-subround Palette Composer expansion (Andy, editor-only, 2026-10-25)
+
+Expanded the Palette Composer (tools/graphics_editor/) for all 18 subrounds with authentic scene
+keys, preserving every existing R1 decision. No ROM build; did not touch Cody's renderer or the
+native integration points (scene_load.s/tilemap_hooks.s/palette_hooks.s) or Audio Composer.
+
+- **Key scheme:** scene_id alone is insufficient (R1-S1/S2/R2-S1 all scene_id=1). Authentic key =
+  round (a5@0x1242/23) + subround (stage offset 0/16/22) + record band (a5@0x13E) + residency +
+  family. Format PAL-R{r}-S{s}-{family}-{env}. Line 2/Plane B = arcade-controlled, NOT authorable.
+- **New model:** specs/palette_subround_map.json — 18 subrounds x per-environment scene keys +
+  native status (R1-S1/S2/S3 + R2-S1/S2/S3 native_converted per Cody RG-021; R4 mode_a; R3/R5/R6
+  mode_b) + palette status.
+- **Safe migration:** migrate_palette_registry_subround_keys.py backed up specs/_backup/ and added
+  only `scene_applicability` to the 23 decisions (schema v2); self-verified nothing else changed.
+- **Export contract (delivered for Cody):** export_subround_palette_manifest.py ->
+  build/palette_export/palette_scene_manifest.json (schema rastan-palette-scene-manifest/v1,
+  deterministic). Rules: Line 2 never authored; missing/provisional => keep arcade conversion (no
+  substitution); a decision applies to a scene only if its scene_key is in scene_applicability.
+- **Editor:** /api/subrounds endpoint (additive) + self-contained subround scope panel in
+  index.html/style.css showing native + palette status per environment and the active
+  scene/segment/family. Existing sprite-authoring UI untouched.
+- **Tests:** verify_subround_palette_coverage.py = 12/12 PASS (18 selectable, multi-env, unique keys,
+  R1 decisions preserved, deterministic export, status accuracy, no silent cross-subround sharing,
+  Plane B not authorable).
+- **Needs Tighe authoring (priority, native graphics exist):** R1-S2 castle, R1-S3 boss, R2 S1/S2/S3
+  Plane-A (+ sprite families as they diverge). R3-R6 deferred until Cody converts (R3/R5/R6 also need
+  the scene_a0_ranges Mode-B fix). No palette is claimed visually correct (Tighe approves colors).
+- Doc: docs/design/Andy_RG022_palette_composer_multistage.md. Push still blocked (SSH).

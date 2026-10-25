@@ -1,5 +1,5 @@
 {
- "schema_version": 1,
+ "schema_version": 2,
  "registry_id": "rastan-genesis-palette-decisions",
  "authority": "This file is the only palette-decision registry. Evidence documents may cite decision IDs but must not duplicate or override this registry.",
  "status_values": [
@@ -84,7 +84,13 @@
     "docs/design/Andy_build0280_sword_club_piece_rendering_fix.md",
     "docs/design/Cody_user_controlled_sword_lizardman_capture_for_build0280.md",
     "states/traces/build0279_user_controlled_sword_lizardman_corrected_20260812_092432/"
-   ]
+   ],
+   "scene_applicability": {
+    "scene_keys": [
+     "PAL-R1-S1-PC090OJ"
+    ],
+    "cross_scene_candidate": false
+   }
   },
   {
    "id": "PAL-PC090OJ-STAGE1-LIZARDMAN-001",
@@ -127,7 +133,13 @@
     "docs/design/Andy_opus_gameplay_hud_suppression_lizard_palette_build0208.md",
     "docs/design/Cody_user_controlled_sword_lizardman_capture_for_build0280.md",
     "states/traces/build0279_user_controlled_sword_lizardman_corrected_20260812_092432/"
-   ]
+   ],
+   "scene_applicability": {
+    "scene_keys": [
+     "PAL-R1-S1-PC090OJ"
+    ],
+    "cross_scene_candidate": false
+   }
   },
   {
    "id": "PAL-PC090OJ-GAMEPLAY-LARGE-BAT-001",
@@ -166,7 +178,13 @@
     "analysis/graphics_optimizer/round1_phase1_corpus/contact_sheets/r1p1_enemies.png",
     "KNOWN_FINDINGS.md#kf-1214",
     "docs/design/Andy_round1_phase1_enemy_contact_sheet.md"
-   ]
+   ],
+   "scene_applicability": {
+    "scene_keys": [
+     "PAL-R1-S1-PC090OJ"
+    ],
+    "cross_scene_candidate": false
+   }
   },
   {
    "id": "PAL-PC090OJ-GAMEPLAY-SMALL-BAT-001",
@@ -205,7 +223,13 @@
     "analysis/graphics_optimizer/round1_phase1_corpus/contact_sheets/r1p1_enemies.png",
     "KNOWN_FINDINGS.md#kf-1214",
     "docs/design/Andy_round1_phase1_enemy_contact_sheet.md"
-   ]
+   ],
+   "scene_applicability": {
+    "scene_keys": [
+     "PAL-R1-S1-PC090OJ"
+    ],
+    "cross_scene_candidate": false
+   }
   },
   {
    "id": "PAL-PC090OJ-GAMEPLAY-AXE-ITEM-001",
@@ -242,7 +266,13 @@
    "evidence": [
     "docs/design/Andy_complete_native_graphics_retirement_STOP.md",
     "docs/design/Cody_build0254_attract_mode_legacy_reachability_audit.md"
-   ]
+   ],
+   "scene_applicability": {
+    "scene_keys": [
+     "PAL-R1-S1-PC090OJ"
+    ],
+    "cross_scene_candidate": false
+   }
   },
   {
    "id": "PAL-PC090OJ-GAMEPLAY-FOUR-ARMED-ENEMY-001",
@@ -279,7 +309,13 @@
     "analysis/graphics_optimizer/round1_phase1_corpus/contact_sheets/r1p1_enemies.png",
     "KNOWN_FINDINGS.md#kf-1214",
     "docs/design/Andy_round1_phase1_enemy_contact_sheet.md"
-   ]
+   ],
+   "scene_applicability": {
+    "scene_keys": [
+     "PAL-R1-S1-PC090OJ"
+    ],
+    "cross_scene_candidate": false
+   }
   },
   {
    "id": "PAL-PC090OJ-STAGE1-CHIMERA-001",
@@ -315,7 +351,13 @@
     "analysis/graphics_optimizer/round1_phase1_corpus/contact_sheets/r1p1_enemies.png",
     "KNOWN_FINDINGS.md#kf-1214",
     "docs/design/Andy_round1_phase1_enemy_contact_sheet.md"
-   ]
+   ],
+   "scene_applicability": {
+    "scene_keys": [
+     "PAL-R1-S1-PC090OJ"
+    ],
+    "cross_scene_candidate": false
+   }
   },
   {
    "id": "PAL-PC090OJ-STAGE1-VALKYRIE-001",
@@ -351,7 +393,13 @@
     "analysis/graphics_optimizer/round1_phase1_corpus/contact_sheets/r1p1_enemies.png",
     "KNOWN_FINDINGS.md#kf-1214",
     "docs/design/Andy_round1_phase1_enemy_contact_sheet.md"
-   ]
+   ],
+   "scene_applicability": {
+    "scene_keys": [
+     "PAL-R1-S1-PC090OJ"
+    ],
+    "cross_scene_candidate": false
+   }
   },
   {
    "id": "PAL-PC090OJ-STAGE1-FLYING-DEMON-001",
@@ -387,7 +435,13 @@
     "analysis/graphics_optimizer/round1_phase1_corpus/contact_sheets/r1p1_enemies.png",
     "KNOWN_FINDINGS.md#kf-1214",
     "docs/design/Andy_round1_phase1_enemy_contact_sheet.md"
-   ]
+   ],
+   "scene_applicability": {
+    "scene_keys": [
+     "PAL-R1-S1-PC090OJ"
+    ],
+    "cross_scene_candidate": false
+   }
   },
   {
    "id": "PAL-PC090OJ-STAGE1-CAVE-BLOCK-001",
@@ -484,7 +538,13 @@
     "docs/design/Cody_build0366_cave_block_collision_palette.md",
     "analysis/actor_decompilation/h17_cave_block_palette.tsv (H17 arcade-truth palette)",
     "docs/design/Andy_h17_cave_block_arcade_palette.md"
-   ]
+   ],
+   "scene_applicability": {
+    "scene_keys": [
+     "PAL-R1-S1-PC090OJ"
+    ],
+    "cross_scene_candidate": false
+   }
   },
   {
    "id": "PAL-PC090OJ-ATTRACT-GAMEOVER-001",
@@ -531,7 +591,13 @@
    "evidence": [
     "docs/design/Cody_gameover_1up_palette_provenance.md",
     "docs/design/Andy_gameover_gameplay_hud_demon_palette_integration.md"
-   ]
+   ],
+   "scene_applicability": {
+    "scene_keys": [
+     "PAL-R1-S1-PC090OJ"
+    ],
+    "cross_scene_candidate": true
+   }
   },
   {
    "id": "PAL-PC090OJ-HUD-P1-LABEL-001",
@@ -582,7 +648,13 @@
    "evidence": [
     "docs/design/Cody_gameover_1up_palette_provenance.md",
     "docs/design/Andy_gameover_gameplay_hud_demon_palette_integration.md"
-   ]
+   ],
+   "scene_applicability": {
+    "scene_keys": [
+     "FRONTEND"
+    ],
+    "cross_scene_candidate": false
+   }
   },
   {
    "id": "PAL-PC090OJ-HUD-SCORE-DIGITS-001",
@@ -636,7 +708,13 @@
    "evidence": [
     "docs/design/Cody_gameover_1up_palette_provenance.md",
     "docs/design/Andy_gameover_gameplay_hud_demon_palette_integration.md"
-   ]
+   ],
+   "scene_applicability": {
+    "scene_keys": [
+     "FRONTEND"
+    ],
+    "cross_scene_candidate": false
+   }
   },
   {
    "id": "PAL-PC090OJ-ENEMY-DEATH-BURST-001",
@@ -682,7 +760,13 @@
     "analysis/actor_decompilation/h16_burst_child_structure.json",
     "analysis/actor_decompilation/h25_death_and_effect_families.tsv",
     "docs/design/Andy_bestiary_gameplay_items_weapon_powerups_death_palette_families.md"
-   ]
+   ],
+   "scene_applicability": {
+    "scene_keys": [
+     "PAL-R1-S1-PC090OJ"
+    ],
+    "cross_scene_candidate": true
+   }
   },
   {
    "id": "PAL-PC090OJ-BAT-DEATH-001",
@@ -724,7 +808,13 @@
     "analysis/decompilation/c/raw/00042abc.c",
     "analysis/actor_decompilation/h25_death_and_effect_families.tsv",
     "docs/design/Andy_bestiary_gameplay_items_weapon_powerups_death_palette_families.md"
-   ]
+   ],
+   "scene_applicability": {
+    "scene_keys": [
+     "PAL-R1-S1-PC090OJ"
+    ],
+    "cross_scene_candidate": true
+   }
   },
   {
    "id": "PAL-PC090OJ-ENEMY-ITEM-DROP-DEATH-001",
@@ -766,7 +856,13 @@
     "analysis/decompilation/c/rastan_actor_behavior.c",
     "analysis/actor_decompilation/h25_death_and_effect_families.tsv",
     "docs/design/Andy_bestiary_gameplay_items_weapon_powerups_death_palette_families.md"
-   ]
+   ],
+   "scene_applicability": {
+    "scene_keys": [
+     "PAL-R1-S1-PC090OJ"
+    ],
+    "cross_scene_candidate": true
+   }
   },
   {
    "id": "PAL-PC090OJ-ORDINARY-ENEMY-DEATH-001",
@@ -807,7 +903,13 @@
     "analysis/decompilation/c/rastan_actor_behavior.c",
     "analysis/actor_decompilation/h25_death_and_effect_families.tsv",
     "docs/design/Andy_bestiary_gameplay_items_weapon_powerups_death_palette_families.md"
-   ]
+   ],
+   "scene_applicability": {
+    "scene_keys": [
+     "PAL-R1-S1-PC090OJ"
+    ],
+    "cross_scene_candidate": true
+   }
   },
   {
    "id": "PAL-PC090OJ-GAMEPLAY-REWARD-B31-001",
@@ -844,7 +946,13 @@
     "analysis/actor_decompilation/h25_death_and_effect_families.tsv",
     "analysis/decompilation/c/raw/00040ccc.c",
     "docs/design/Andy_bestiary_gameplay_items_weapon_powerups_death_palette_families.md"
-   ]
+   ],
+   "scene_applicability": {
+    "scene_keys": [
+     "PAL-R1-S1-PC090OJ"
+    ],
+    "cross_scene_candidate": false
+   }
   },
   {
    "id": "PAL-PC090OJ-GAMEPLAY-REWARD-B37-001",
@@ -881,7 +989,13 @@
     "analysis/actor_decompilation/h25_death_and_effect_families.tsv",
     "analysis/decompilation/c/raw/00040ccc.c",
     "docs/design/Andy_bestiary_gameplay_items_weapon_powerups_death_palette_families.md"
-   ]
+   ],
+   "scene_applicability": {
+    "scene_keys": [
+     "PAL-R1-S1-PC090OJ"
+    ],
+    "cross_scene_candidate": false
+   }
   },
   {
    "id": "PAL-PC090OJ-SPECIALIZED-DEATH-019D-001",
@@ -923,7 +1037,13 @@
     "analysis/decompilation/c/raw/00042abc.c",
     "analysis/actor_decompilation/h25_death_and_effect_families.tsv",
     "docs/design/Andy_bestiary_gameplay_items_weapon_powerups_death_palette_families.md"
-   ]
+   ],
+   "scene_applicability": {
+    "scene_keys": [
+     "PAL-R1-S1-PC090OJ"
+    ],
+    "cross_scene_candidate": true
+   }
   },
   {
    "id": "PAL-PC090OJ-SPECIALIZED-DEATH-09DC-001",
@@ -962,7 +1082,13 @@
     "analysis/decompilation/c/raw/00042abc.c",
     "analysis/actor_decompilation/h25_death_and_effect_families.tsv",
     "docs/design/Andy_bestiary_gameplay_items_weapon_powerups_death_palette_families.md"
-   ]
+   ],
+   "scene_applicability": {
+    "scene_keys": [
+     "PAL-R1-S1-PC090OJ"
+    ],
+    "cross_scene_candidate": true
+   }
   },
   {
    "id": "PAL-FRONTEND-SCENE0-BASE-001",
@@ -1008,7 +1134,13 @@
    ],
    "evidence": [
     "docs/design/Cody_RG004_ready_continue_attract_reentry_cleanup.md"
-   ]
+   ],
+   "scene_applicability": {
+    "scene_keys": [
+     "FRONTEND"
+    ],
+    "cross_scene_candidate": false
+   }
   },
   {
    "id": "PAL-FRONTEND-READY-RETAINED-BANKS-001",
@@ -1050,7 +1182,18 @@
    ],
    "evidence": [
     "docs/design/Cody_RG004_ready_continue_attract_reentry_cleanup.md"
-   ]
+   ],
+   "scene_applicability": {
+    "scene_keys": [
+     "FRONTEND"
+    ],
+    "cross_scene_candidate": false
+   }
   }
- ]
+ ],
+ "subround_key_scheme": {
+  "doc": "scene_applicability.scene_keys reference specs/palette_subround_map.json scene_keys.",
+  "map": "specs/palette_subround_map.json",
+  "added_by": "RG-022 migrate_palette_registry_subround_keys.py"
+ }
 }

@@ -1,0 +1,1056 @@
+{
+ "schema_version": 1,
+ "registry_id": "rastan-genesis-palette-decisions",
+ "authority": "This file is the only palette-decision registry. Evidence documents may cite decision IDs but must not duplicate or override this registry.",
+ "status_values": [
+  "proven",
+  "decided",
+  "provisional",
+  "unknown"
+ ],
+ "status_definitions": {
+  "proven": "Arcade semantics and current Genesis realization are established by evidence.",
+  "decided": "An intentional Genesis mapping has been selected, including a deliberate hardware compromise where exact arcade ownership cannot be reproduced.",
+  "provisional": "A mapping exists but still requires validation or redesign.",
+  "unknown": "Insufficient evidence; no implementation decision is authorized."
+ },
+ "policy": {
+  "arcade_palette_semantics_authoritative": true,
+  "context_precedence": {
+   "stage_and_scene_specific_behavior_over_reused_graphics_assumptions": true,
+   "reused_artwork_implies_reused_palette_identity": false,
+   "reused_actor_family_or_class_implies_global_palette_mapping": false
+  },
+  "genesis_decisions": {
+   "document_intentional_hardware_compromises": true,
+   "unknown_status_authorizes_implementation_choice": false
+  },
+  "change_contract": {
+   "covered_changes": [
+    "CRAM line",
+    "palette_route",
+    "colbank interpretation",
+    "dynamic carrier",
+    "fallback behavior",
+    "shared CRAM ownership"
+   ],
+   "identify_affected_palette_decision_ids": true,
+   "inspect_documented_consumers": true,
+   "update_registry_in_same_task": true
+  },
+  "scope_control": {
+   "single_stage_or_enemy_fix_becomes_global_without_cross_stage_arcade_evidence": false
+  },
+  "consistency": {
+   "current_source_must_agree_with_registry": true,
+   "implementation_registry_discrepancy_blocks_further_palette_implementation_until_resolved": true
+  }
+ },
+ "decisions": [
+  {
+   "id": "PAL-PC090OJ-GAMEPLAY-RASTAN-SWORD-001",
+   "status": "proven",
+   "context": {
+    "scene": "gameplay scene 1",
+    "stage": "Stage 1 verified; do not extrapolate this entry to unverified scenes or stages",
+    "subsystem": "PC090OJ semantic melee-sword and nibble-3 Rastan BODY components",
+    "actor_family": "Rastan player",
+    "actor_classes": null
+   },
+   "arcade_semantics": {
+    "source_attribute_nibble": "0x3",
+    "sprite_control": "0x0060",
+    "colbank_bits": "0x0060",
+    "effective_palette_bank": "0x33",
+    "palette_source": "original arcade gameplay bank 0x33 for nibble-3 Rastan/sword components"
+   },
+   "genesis_realization": {
+    "palette_line": 3,
+    "route_kind": "direct gameplay PC090OJ palette route",
+    "dynamic_behavior": "normal assignment is stable; a transient line-0 SAT result is a known defect and is not an alternate decision",
+    "shared_line_ownership": "line 3 carries the verified nibble-3 Rastan and melee-sword components in this context; other Rastan component nibbles are outside this decision"
+   },
+   "decision_basis": "Build 0279 static and corrected user-controlled runtime evidence preserves nibble 3 and colbank 0x60 while normal output resolves to line 3.",
+   "known_defects": [
+    "Some exact nibble-3 player BODY/SAT matches transiently resolve to line 0 while sprite_control and colbank_bits remain 0x0060. This is downstream routing/commit behavior, not a palette-decision change."
+   ],
+   "consumers_to_inspect": [
+    "apps/rastan-direct/src/pc090oj_hooks.s native player BODY producer and finalizer",
+    "apps/rastan-direct/src/palette_route.s route lookup/table",
+    "apps/rastan-direct/src/vdp_comm.s SAT and palette commit paths",
+    "Build-time palette conversion/generation consumers of effective bank 0x33"
+   ],
+   "evidence": [
+    "docs/design/Andy_build0280_sword_club_piece_rendering_fix.md",
+    "docs/design/Cody_user_controlled_sword_lizardman_capture_for_build0280.md",
+    "states/traces/build0279_user_controlled_sword_lizardman_corrected_20260812_092432/"
+   ]
+  },
+  {
+   "id": "PAL-PC090OJ-STAGE1-LIZARDMAN-001",
+   "status": "decided",
+   "context": {
+    "scene": "gameplay scene 1",
+    "stage": "Stage 1",
+    "subsystem": "PC090OJ native enemy pieces",
+    "actor_family": "0x00",
+    "actor_classes": [
+     "0x17",
+     "0x18"
+    ]
+   },
+   "arcade_semantics": {
+    "source_attribute_nibble": "0x6",
+    "sprite_control": "0x0060",
+    "colbank_bits": "0x0060",
+    "effective_palette_bank": "0x36",
+    "palette_source": "ROUND-1 indirect load (FUN_0003ba20/56/64): source-buffer bank k=6 -> round-1 index row 0x3BA88 byte -> pool index 13 -> palette 0x4FD02+13*0x20 = 0x4FEA2 (16 words 0RGB; converter FUN_0003ba64; MAME xBGR_555 pal5bit(nibble*2)). NOT direct-bank indexing."
+   },
+   "genesis_realization": {
+    "palette_line": 0,
+    "route_kind": "carrier route with cache and scene-1 reassertion",
+    "dynamic_behavior": "bank 0x36 is captured and reasserted for Stage-1 Lizardmen",
+    "shared_line_ownership": "line 0 is available because gameplay HUD sprite representation is suppressed in this configuration"
+   },
+   "decision_basis": "KF-066 and Build 0210 runtime validation establish the arcade bank 0x36 semantics and current line-0 result. The line-0 carrier is an intentional Genesis shared-CRAM compromise enabled by gameplay HUD sprite suppression; the corrected Build 0279 bad-pose markers retain attr 0x46/source nibble 6 and line-0 SAT output.",
+   "known_defects": [
+    "The user-observed bad club pose remains a visual-composition issue; it does not authorize a Lizardman palette reassignment."
+   ],
+   "consumers_to_inspect": [
+    "apps/rastan-direct/src/pc090oj_hooks.s native family-0 Lizardman producer",
+    "apps/rastan-direct/src/palette_route.s bank 0x36 carrier route",
+    "apps/rastan-direct/src/vdp_comm.s bank 0x36 line-0 cache/reassert and CRAM commit",
+    "apps/rastan-direct/Makefile gameplay HUD sprite configuration"
+   ],
+   "evidence": [
+    "KNOWN_FINDINGS.md#kf-066",
+    "docs/design/Andy_opus_gameplay_hud_suppression_lizard_palette_build0208.md",
+    "docs/design/Cody_user_controlled_sword_lizardman_capture_for_build0280.md",
+    "states/traces/build0279_user_controlled_sword_lizardman_corrected_20260812_092432/"
+   ]
+  },
+  {
+   "id": "PAL-PC090OJ-GAMEPLAY-LARGE-BAT-001",
+   "status": "provisional",
+   "context": {
+    "scene": "gameplay",
+    "stage": "Stage 1 observed context only",
+    "subsystem": "PC090OJ native enemy pieces",
+    "actor_family": "actor_5c8 / base 0x03F6 (multi-cell aux); winged-bat render",
+    "actor_classes": null
+   },
+   "arcade_semantics": {
+    "source_attribute_nibble": "0xE",
+    "sprite_control": "0x0060",
+    "colbank_bits": "0x0060",
+    "effective_palette_bank": "0x3E",
+    "palette_source": "ROUND-1 indirect load (FUN_0003ba20/56/64): source-buffer bank k=14 -> round-1 index row 0x3BA88 byte -> pool index 36 -> palette 0x4FD02+36*0x20 = 0x50182 (16 words 0RGB; converter FUN_0003ba64; MAME xBGR_555 pal5bit(nibble*2)). NOT direct-bank indexing."
+   },
+   "genesis_realization": {
+    "palette_line": null,
+    "route_kind": null,
+    "dynamic_behavior": null,
+    "shared_line_ownership": null
+   },
+   "decision_basis": "CORRECTED: palette is loaded via the round-specific index table 0x3BA88 -> pool 0x4FD02 (FUN_0003ba20/56/64), NOT direct-bank indexing. Effective bank from emitted word0 nibble. Validated vs KF-1214 bank 0x36. Effective bank + exact 16-color palette PROVEN from the arcade sprite-palette source table (0x4FDE2, validated vs KF-1214 bank 0x36) and the enemy's real emitted PC090OJ record word0 nibble. Semantic name is an arcade-render visual identification (USER VERIFY). Status provisional pending Tighe name confirmation.",
+   "known_defects": [
+    "Bat palette behavior has been reported as preexisting/deferred; large-bat identity and palette provenance must be proven before assignment."
+   ],
+   "consumers_to_inspect": [
+    "Native large-bat semantic producer once identified",
+    "apps/rastan-direct/src/palette_route.s",
+    "apps/rastan-direct/src/vdp_comm.s palette and SAT commit consumers"
+   ],
+   "evidence": [
+    "analysis/graphics_optimizer/round1_phase1_corpus/enemy_palettes.json",
+    "analysis/graphics_optimizer/round1_phase1_corpus/contact_sheets/r1p1_enemies.png",
+    "KNOWN_FINDINGS.md#kf-1214",
+    "docs/design/Andy_round1_phase1_enemy_contact_sheet.md"
+   ]
+  },
+  {
+   "id": "PAL-PC090OJ-GAMEPLAY-SMALL-BAT-001",
+   "status": "provisional",
+   "context": {
+    "scene": "gameplay",
+    "stage": "Stage 1 surface/cave observations must remain distinct until provenance is proven",
+    "subsystem": "PC090OJ native enemy pieces",
+    "actor_family": "actor_748 / base 0x0268 (single-cell aux); small-bat render",
+    "actor_classes": null
+   },
+   "arcade_semantics": {
+    "source_attribute_nibble": "0xE",
+    "sprite_control": "0x0060",
+    "colbank_bits": "0x0060",
+    "effective_palette_bank": "0x3E",
+    "palette_source": "ROUND-1 indirect load (FUN_0003ba20/56/64): source-buffer bank k=14 -> round-1 index row 0x3BA88 byte -> pool index 36 -> palette 0x4FD02+36*0x20 = 0x50182 (16 words 0RGB; converter FUN_0003ba64; MAME xBGR_555 pal5bit(nibble*2)). NOT direct-bank indexing."
+   },
+   "genesis_realization": {
+    "palette_line": null,
+    "route_kind": null,
+    "dynamic_behavior": null,
+    "shared_line_ownership": null
+   },
+   "decision_basis": "CORRECTED: palette is loaded via the round-specific index table 0x3BA88 -> pool 0x4FD02 (FUN_0003ba20/56/64), NOT direct-bank indexing. Effective bank from emitted word0 nibble. Validated vs KF-1214 bank 0x36. Effective bank + exact 16-color palette PROVEN from the arcade sprite-palette source table (0x4FDE2, validated vs KF-1214 bank 0x36) and the enemy's real emitted PC090OJ record word0 nibble. Semantic name is an arcade-render visual identification (USER VERIFY). Status provisional pending Tighe name confirmation.",
+   "known_defects": [
+    "A wrong bat color has been reported in prior gameplay evidence; do not infer a replacement bank or line from that symptom."
+   ],
+   "consumers_to_inspect": [
+    "Native small-bat semantic producer once identified",
+    "apps/rastan-direct/src/palette_route.s",
+    "apps/rastan-direct/src/vdp_comm.s palette and SAT commit consumers"
+   ],
+   "evidence": [
+    "analysis/graphics_optimizer/round1_phase1_corpus/enemy_palettes.json",
+    "analysis/graphics_optimizer/round1_phase1_corpus/contact_sheets/r1p1_enemies.png",
+    "KNOWN_FINDINGS.md#kf-1214",
+    "docs/design/Andy_round1_phase1_enemy_contact_sheet.md"
+   ]
+  },
+  {
+   "id": "PAL-PC090OJ-GAMEPLAY-AXE-ITEM-001",
+   "status": "unknown",
+   "context": {
+    "scene": "gameplay",
+    "stage": "Stage 1 observed context only",
+    "subsystem": "PC090OJ native item pieces",
+    "actor_family": "Axe item; exact family/class not established in this registry",
+    "actor_classes": null
+   },
+   "arcade_semantics": {
+    "source_attribute_nibble": null,
+    "sprite_control": null,
+    "colbank_bits": null,
+    "effective_palette_bank": null,
+    "palette_source": null
+   },
+   "genesis_realization": {
+    "palette_line": null,
+    "route_kind": null,
+    "dynamic_behavior": null,
+    "shared_line_ownership": null
+   },
+   "decision_basis": "The Axe item is visible in accepted gameplay builds, but no canonical arcade-bank-to-Genesis-line decision is yet supported.",
+   "known_defects": [
+    "Visibility is not palette provenance; do not infer an assignment from the currently displayed colors."
+   ],
+   "consumers_to_inspect": [
+    "Native Axe item semantic producer once identified",
+    "apps/rastan-direct/src/palette_route.s",
+    "apps/rastan-direct/src/vdp_comm.s palette and SAT commit consumers"
+   ],
+   "evidence": [
+    "docs/design/Andy_complete_native_graphics_retirement_STOP.md",
+    "docs/design/Cody_build0254_attract_mode_legacy_reachability_audit.md"
+   ]
+  },
+  {
+   "id": "PAL-PC090OJ-GAMEPLAY-FOUR-ARMED-ENEMY-001",
+   "status": "provisional",
+   "context": {
+    "scene": "gameplay",
+    "stage": "not established",
+    "subsystem": "PC090OJ native enemy pieces",
+    "actor_family": "+0x3E=3 / base 0x02E8 (ordinary family)",
+    "actor_classes": null
+   },
+   "arcade_semantics": {
+    "source_attribute_nibble": "0xA",
+    "sprite_control": "0x0060",
+    "colbank_bits": "0x0060",
+    "effective_palette_bank": "0x3A",
+    "palette_source": "ROUND-1 indirect load (FUN_0003ba20/56/64): source-buffer bank k=10 -> round-1 index row 0x3BA88 byte -> pool index 22 -> palette 0x4FD02+22*0x20 = 0x4FFC2 (16 words 0RGB; converter FUN_0003ba64; MAME xBGR_555 pal5bit(nibble*2)). NOT direct-bank indexing."
+   },
+   "genesis_realization": {
+    "palette_line": null,
+    "route_kind": null,
+    "dynamic_behavior": null,
+    "shared_line_ownership": null
+   },
+   "decision_basis": "CORRECTED: palette is loaded via the round-specific index table 0x3BA88 -> pool 0x4FD02 (FUN_0003ba20/56/64), NOT direct-bank indexing. Effective bank from emitted word0 nibble. Validated vs KF-1214 bank 0x36. Effective bank + exact 16-color palette PROVEN from the arcade sprite-palette source table (0x4FDE2, validated vs KF-1214 bank 0x36) and the enemy's real emitted PC090OJ record word0 nibble. Semantic name is an arcade-render visual identification (USER VERIFY). Status provisional pending Tighe name confirmation.",
+   "known_defects": [],
+   "consumers_to_inspect": [
+    "Native four-armed-enemy semantic producer once identified",
+    "apps/rastan-direct/src/palette_route.s",
+    "apps/rastan-direct/src/vdp_comm.s palette and SAT commit consumers"
+   ],
+   "evidence": [
+    "analysis/graphics_optimizer/round1_phase1_corpus/enemy_palettes.json",
+    "analysis/graphics_optimizer/round1_phase1_corpus/contact_sheets/r1p1_enemies.png",
+    "KNOWN_FINDINGS.md#kf-1214",
+    "docs/design/Andy_round1_phase1_enemy_contact_sheet.md"
+   ]
+  },
+  {
+   "id": "PAL-PC090OJ-STAGE1-CHIMERA-001",
+   "status": "provisional",
+   "context": {
+    "scene": "gameplay scene 1",
+    "stage": "Stage 1",
+    "subsystem": "PC090OJ native enemy pieces",
+    "actor_family": "+0x3E=1 / base 0x00D0 (Chimera, Tighe anchor)",
+    "actor_classes": null
+   },
+   "arcade_semantics": {
+    "source_attribute_nibble": "0x4",
+    "sprite_control": "0x0060",
+    "colbank_bits": "0x0060",
+    "effective_palette_bank": "0x34",
+    "palette_source": "ROUND-1 indirect load (FUN_0003ba20/56/64): source-buffer bank k=4 -> round-1 index row 0x3BA88 byte -> pool index 18 -> palette 0x4FD02+18*0x20 = 0x4FF42 (16 words 0RGB; converter FUN_0003ba64; MAME xBGR_555 pal5bit(nibble*2)). NOT direct-bank indexing."
+   },
+   "genesis_realization": {
+    "palette_line": null,
+    "route_kind": null,
+    "dynamic_behavior": null,
+    "shared_line_ownership": null
+   },
+   "decision_basis": "CORRECTED: palette is loaded via the round-specific index table 0x3BA88 -> pool 0x4FD02 (FUN_0003ba20/56/64), NOT direct-bank indexing. Effective bank from emitted word0 nibble. Validated vs KF-1214 bank 0x36. ",
+   "known_defects": [],
+   "consumers_to_inspect": [
+    "apps/rastan-direct/src/palette_route.s",
+    "apps/rastan-direct/src/vdp_comm.s"
+   ],
+   "evidence": [
+    "analysis/graphics_optimizer/round1_phase1_corpus/enemy_palettes.json",
+    "analysis/graphics_optimizer/round1_phase1_corpus/contact_sheets/r1p1_enemies.png",
+    "KNOWN_FINDINGS.md#kf-1214",
+    "docs/design/Andy_round1_phase1_enemy_contact_sheet.md"
+   ]
+  },
+  {
+   "id": "PAL-PC090OJ-STAGE1-VALKYRIE-001",
+   "status": "provisional",
+   "context": {
+    "scene": "gameplay scene 1",
+    "stage": "Stage 1",
+    "subsystem": "PC090OJ native enemy pieces",
+    "actor_family": "+0x3E=8 / base 0x0241 (Valkyrie; armored-female-warrior render, USER VERIFY)",
+    "actor_classes": null
+   },
+   "arcade_semantics": {
+    "source_attribute_nibble": "0x2",
+    "sprite_control": "0x0060",
+    "colbank_bits": "0x0060",
+    "effective_palette_bank": "0x32",
+    "palette_source": "ROUND-1 indirect load (FUN_0003ba20/56/64): source-buffer bank k=2 -> round-1 index row 0x3BA88 byte -> pool index 15 -> palette 0x4FD02+15*0x20 = 0x4FEE2 (16 words 0RGB; converter FUN_0003ba64; MAME xBGR_555 pal5bit(nibble*2)). NOT direct-bank indexing."
+   },
+   "genesis_realization": {
+    "palette_line": null,
+    "route_kind": null,
+    "dynamic_behavior": null,
+    "shared_line_ownership": null
+   },
+   "decision_basis": "CORRECTED: palette is loaded via the round-specific index table 0x3BA88 -> pool 0x4FD02 (FUN_0003ba20/56/64), NOT direct-bank indexing. Effective bank from emitted word0 nibble. Validated vs KF-1214 bank 0x36. ",
+   "known_defects": [],
+   "consumers_to_inspect": [
+    "apps/rastan-direct/src/palette_route.s",
+    "apps/rastan-direct/src/vdp_comm.s"
+   ],
+   "evidence": [
+    "analysis/graphics_optimizer/round1_phase1_corpus/enemy_palettes.json",
+    "analysis/graphics_optimizer/round1_phase1_corpus/contact_sheets/r1p1_enemies.png",
+    "KNOWN_FINDINGS.md#kf-1214",
+    "docs/design/Andy_round1_phase1_enemy_contact_sheet.md"
+   ]
+  },
+  {
+   "id": "PAL-PC090OJ-STAGE1-FLYING-DEMON-001",
+   "status": "provisional",
+   "context": {
+    "scene": "gameplay scene 1",
+    "stage": "Stage 1",
+    "subsystem": "PC090OJ native enemy pieces",
+    "actor_family": "special two-slot actor_508 / base 0x0129 (Flying Demon; NOT a +0x3E family; attr 0x80 but emitted word0 nibble 5)",
+    "actor_classes": null
+   },
+   "arcade_semantics": {
+    "source_attribute_nibble": "0x5",
+    "sprite_control": "0x0060",
+    "colbank_bits": "0x0060",
+    "effective_palette_bank": "0x35",
+    "palette_source": "ROUND-1 indirect load (FUN_0003ba20/56/64): source-buffer bank k=5 -> round-1 index row 0x3BA88 byte -> pool index 16 -> palette 0x4FD02+16*0x20 = 0x4FF02 (16 words 0RGB; converter FUN_0003ba64; MAME xBGR_555 pal5bit(nibble*2)). NOT direct-bank indexing."
+   },
+   "genesis_realization": {
+    "palette_line": 1,
+    "route_kind": "native gameplay PC090OJ finalizer; effective bank 0x35 (emitted word0 nibble 5 | colbank 0x60); both components (A base 0x0129, B base 0x0275) carry nibble 5",
+    "dynamic_behavior": "Authored by Tighe in the Palette Composer (Test profile usage:flying_demon:bank0x35 -> line 1 + per-color index_map). VERIFIED to propagate: editor -> Test.snapshot.json -> generated pc090oj_palsel_lut.inc (scene 1 bank 0x35 -> line 1, profile_sha256 matches) -> runtime .Lnq_hit lookup; index_map -> gen_reindexed_pc090oj.py -> build/regions/pc090oj_editor.bin (rebuilt in Build 0458). This recorded value PRESERVES Tighe's assignment; it is not a reset.",
+    "shared_line_ownership": "line 1 carries the flying_demon (bank 0x35) in scene 1 per the authored Test profile"
+   },
+   "decision_basis": "CORRECTED: palette is loaded via the round-specific index table 0x3BA88 -> pool 0x4FD02 (FUN_0003ba20/56/64), NOT direct-bank indexing. Effective bank from emitted word0 nibble. Validated vs KF-1214 bank 0x36. | 2026-10-20: Genesis realization recorded as line 1 per Tighe's Palette Composer assignment (previously null); full editor->LUT->runtime propagation statically verified in Build 0458 (see Andy_gameover_gameplay_hud_demon_palette_integration.md).",
+   "known_defects": [],
+   "consumers_to_inspect": [
+    "apps/rastan-direct/src/palette_route.s",
+    "apps/rastan-direct/src/vdp_comm.s"
+   ],
+   "evidence": [
+    "analysis/graphics_optimizer/round1_phase1_corpus/enemy_palettes.json",
+    "analysis/graphics_optimizer/round1_phase1_corpus/contact_sheets/r1p1_enemies.png",
+    "KNOWN_FINDINGS.md#kf-1214",
+    "docs/design/Andy_round1_phase1_enemy_contact_sheet.md"
+   ]
+  },
+  {
+   "id": "PAL-PC090OJ-STAGE1-CAVE-BLOCK-001",
+   "status": "decided",
+   "context": {
+    "scene": "gameplay scene 1 cave entrance",
+    "stage": "Stage 1",
+    "subsystem": "PC090OJ native destructible cave-block pieces",
+    "actor_family": "actor_2c8 / base 0x0179 / target character H / state 0x1E",
+    "actor_classes": null
+   },
+   "arcade_semantics": {
+    "source_attribute_nibble": "0xC",
+    "sprite_control": "0x0060",
+    "colbank_bits": "0x0060",
+    "effective_palette_bank": "0x3C",
+    "palette_source": "ROUND-1 indirect load: source-buffer bank k=12 -> 0x3BA88[12]=35 -> pool 0x4FD02+35*0x20 = 0x50162 (16 words 0RGB). Cave-block cells 0x0179..0x017C use nonzero indices {1,7,8,9,12,13,14}.",
+    "arcade_display_palette_PROVEN_H17": {
+     "round": 1,
+     "pool_index": 35,
+     "rom_palette_address": "0x50162",
+     "raw_words_0RGB": [
+      "0x0000",
+      "0x0000",
+      "0x0444",
+      "0x0CCC",
+      "0x0999",
+      "0x0777",
+      "0x0555",
+      "0x0E74",
+      "0x0E84",
+      "0x0752",
+      "0x0333",
+      "0x0666",
+      "0x0630",
+      "0x0964",
+      "0x0B74",
+      "0x0BA9"
+     ],
+     "rgb8": [
+      "0,0,0",
+      "0,0,0",
+      "68,68,68",
+      "204,204,204",
+      "153,153,153",
+      "119,119,119",
+      "85,85,85",
+      "238,119,68",
+      "238,136,68",
+      "119,85,34",
+      "51,51,51",
+      "102,102,102",
+      "102,51,0",
+      "153,102,68",
+      "187,119,68",
+      "187,170,153"
+     ],
+     "appearance": "BLACK + BROWN block (matches the arcade screenshot). The tiles 0x0179..0x017C use ONLY indices {1,7,8,9,12,13,14}: idx1 black(0,0,0), idx7/8 orange-brown(238,119,68 / 238,136,68), idx9 dark brown(119,85,34), idx12 very-dark brown(102,51,0), idx13 brown(153,102,68), idx14 light brown(187,119,68). The pool's gray entries (2,3,4,5,6,10,11) are shared-line colors NOT used by the cave block.",
+     "verified_by": "H17 independent arcade trace: program 0x3E1C0 control nibble 0xC (all 4 pieces) -> 0x3C9E8 (+0x27 bit6 clear) -> line 0xC -> 0x3BA88[R1][0xC]=35 -> 0x50162",
+     "status": "PROVEN EXACT ARCADE DISPLAY",
+     "used_indices": [
+      1,
+      7,
+      8,
+      9,
+      12,
+      13,
+      14
+     ],
+     "used_index_proof": "decoded pc090oj.bin tiles 0x0179..0x017C (128B/16x16 4bpp) -> pixel indices = {1,7,8,9,12,13,14} for all four cells"
+    }
+   },
+   "genesis_realization": {
+    "palette_line": 3,
+    "route_kind": "direct PC090OJ selection of the already-resident shared Layer-A master line",
+    "dynamic_behavior": "stable for gameplay scene 1; the route selects line 3 and does not write CRAM",
+    "shared_line_ownership": "Line 3 remains owned by Layer A. Cave-block cells are offline-reindexed to the established muddy-ground entries 1..5; no duplicate palette and no palette-line steal."
+   },
+   "decision_basis": "The frozen Palette Composer context maps the Stage-1 muddy Layer-A ground source indices 9..13 to resident Line-3 entries 1..5. Raw cave-block indices are incompatible with those meanings, so only cells 0x0179..0x017C are reindexed. The authored map uses Palette Composer CIEDE2000 matching constrained to those five established ground entries; seven source indices necessarily collapse into the five shared ground colors. Visual acceptance remains with Tighe in BlastEm.",
+   "known_defects": [
+    "Genesis color WRONG (deferred to Andy per Cody build0366): the genesis_realization Line-3 muddy-ground offline reindex (1->5,7->2,8->1,9->3,12->3,13->3,14->1) is a Genesis compatibility fit, NOT the arcade appearance, and was not visually accepted. H17 proves the arcade cave block is gray stone + brown (pool 35 / 0x50162), which the Genesis realization must reproduce rather than collapse into the muddy ground line."
+   ],
+   "consumers_to_inspect": [
+    "analysis/graphics_optimizer/editor_policy/Test.json usage:cave_block:bank0x3C",
+    "build/rastan-direct/build0314/Test.snapshot.json usage:cave_block:bank0x3C",
+    "tools/graphics_editor/gen_reindexed_pc090oj.py offline cell reindex",
+    "apps/rastan-direct/src/palette_hooks.s scene-1 PC090OJ bank 0x3C route",
+    "apps/rastan-direct/src/vdp_comm.s gameplay Line-3 installation"
+   ],
+   "evidence": [
+    "analysis/graphics_optimizer/arcade_graphics_oracle/objects.json object:hazard.cave_block",
+    "analysis/graphics_optimizer/round1_phase1_corpus/sprite_census_captured.json semantic 2c8_0179_00",
+    "build/regions/maincpu.bin 0x3BA88[12] and palette pool 0x50162",
+    "docs/design/Cody_build0366_cave_block_collision_palette.md",
+    "analysis/actor_decompilation/h17_cave_block_palette.tsv (H17 arcade-truth palette)",
+    "docs/design/Andy_h17_cave_block_arcade_palette.md"
+   ]
+  },
+  {
+   "id": "PAL-PC090OJ-ATTRACT-GAMEOVER-001",
+   "status": "provisional",
+   "context": {
+    "scene": "attract/demo gameplay state (A5+(0,2,4)=(2,3,0/1), A5+0x34==0)",
+    "stage": "Stage 1 attract demo; large flashing GAME OVER",
+    "subsystem": "PC090OJ bespoke eight-glyph GAME OVER sprite row (NOT PC080SN text)",
+    "actor_family": "attract GAME OVER graphic",
+    "actor_classes": null
+   },
+   "arcade_semantics": {
+    "source_attribute_nibble": "0x0",
+    "sprite_control": "0x0060",
+    "colbank_bits": "0x0060",
+    "effective_palette_bank": "0x30",
+    "pattern_codes": [
+     "0x0037",
+     "0x0038",
+     "0x003F",
+     "0x0040",
+     "0x0041",
+     "0x0042",
+     "0x0043",
+     "0x0044"
+    ],
+    "arcade_routine_chain": "0x05104E -> 0x05A502..0x05A5AA (records 83..90)",
+    "palette_source": "R1 bank-0 round-row 0x3BA88[0]=11 -> 0x4FD02+11*0x20 = 0x4FE62 (16 words 0RGB, provenance only)",
+    "flash_behavior": "ONE family: same patterns/attrs/palette; bit 5 of 0x10C200 toggles visible Y~0x70 vs hidden/parked Y~0x180. No second palette family."
+   },
+   "genesis_realization": {
+    "palette_line": 0,
+    "route_kind": "native .Lnq_gameover_emit/.Lnq_gameover_labels selects the generated object:attract.game_over semantic profile asset and generated PC090OJ_GAMEOVER_PROFILE_LINE constant; identity is the semantic family, not effective bank 0x30 or a temporary native tile slot",
+    "dynamic_behavior": "current Test object line and index_map are compiled offline; visible/hidden flash remains the retained arcade bit-5 decision",
+    "shared_line_ownership": "Tighe currently authors line 0; semantic object identity remains independent of burst despite their shared effective arcade bank 0x30"
+   },
+   "decision_basis": "Cody static provenance (docs/design/Cody_gameover_1up_palette_provenance.md). Build 0459 production integration compiles Tighe's current object:attract.game_over line/index_map directly, eliminating the accidental burst-bank fallback without changing the authored values.",
+   "known_defects": [],
+   "consumers_to_inspect": [
+    "apps/rastan-direct/src/pc090oj_hooks.s .Lnq_gameover_emit/.Lnq_gameover_labels",
+    "tools/graphics_editor/gen_reindexed_pc090oj.py (per-object index_map)",
+    "tools/translation/gen_pc090oj_palsel_lut.py (bank-keyed line LUT)"
+   ],
+   "evidence": [
+    "docs/design/Cody_gameover_1up_palette_provenance.md",
+    "docs/design/Andy_gameover_gameplay_hud_demon_palette_integration.md"
+   ]
+  },
+  {
+   "id": "PAL-PC090OJ-HUD-P1-LABEL-001",
+   "status": "provisional",
+   "context": {
+    "scene": "gameplay HUD (scene 1) and frontend",
+    "stage": "all stages (HUD)",
+    "subsystem": "PC090OJ P1 / 1UP static label sprites",
+    "actor_family": "gameplay HUD P1/1UP label",
+    "actor_classes": null
+   },
+   "arcade_semantics": {
+    "source_attribute_nibble": "0x0",
+    "sprite_control": "0x0060",
+    "colbank_bits": "0x0060",
+    "effective_palette_bank": "0x30",
+    "pattern_codes": [
+     "0x0039",
+     "0x0046",
+     "0x0048"
+    ],
+    "arcade_routines": [
+     "0x03B8B0",
+     "0x03B930",
+     "0x03B802"
+    ],
+    "arcade_source_ranges": [
+     "0x1C80..0x1CFF (0x39)",
+     "0x2300..0x237F (0x46)",
+     "0x2400..0x247F (0x48)"
+    ],
+    "palette_source": "shares the 1UP/score arcade palette family/effective bank 0x30 with the score digits, but is a DIFFERENT pattern family"
+   },
+   "genesis_realization": {
+    "palette_line": 0,
+    "route_kind": "reduced gameplay producer .Lnq_project_p1_hud selects the generated object:hud.p1_label semantic profile asset and PC090OJ_HUD_P1_PROFILE_LINE constant; frontend full HUD remains its separately generated accepted presentation",
+    "dynamic_behavior": "current Test object line/index_map are compiled offline; runtime supplies only the retained score/label visibility and position decision",
+    "shared_line_ownership": "Tighe currently authors line 0; P1 identity remains separate from score and burst despite effective bank 0x30"
+   },
+   "decision_basis": "Cody provenance. Build 0459 compiles Tighe's current object:hud.p1_label line/index_map into the reduced gameplay HUD without collapsing its pattern identity into score or burst.",
+   "known_defects": [],
+   "consumers_to_inspect": [
+    "tools/translation/gen_native_hud.py",
+    "tools/translation/build_pc090oj_hud_white.py",
+    "apps/rastan-direct/src/pc090oj_hooks.s .Lnq_project_p1_hud",
+    "tools/graphics_editor/gen_reindexed_pc090oj.py"
+   ],
+   "evidence": [
+    "docs/design/Cody_gameover_1up_palette_provenance.md",
+    "docs/design/Andy_gameover_gameplay_hud_demon_palette_integration.md"
+   ]
+  },
+  {
+   "id": "PAL-PC090OJ-HUD-SCORE-DIGITS-001",
+   "status": "provisional",
+   "context": {
+    "scene": "gameplay HUD (scene 1) and frontend",
+    "stage": "all stages (HUD)",
+    "subsystem": "PC090OJ six BCD score digit sprites",
+    "actor_family": "gameplay HUD score digits",
+    "actor_classes": null
+   },
+   "arcade_semantics": {
+    "source_attribute_nibble": "0x0",
+    "sprite_control": "0x0060",
+    "colbank_bits": "0x0060",
+    "effective_palette_bank": "0x30",
+    "pattern_codes": [
+     "0x002A",
+     "0x002B",
+     "0x002C",
+     "0x002D",
+     "0x002E",
+     "0x002F",
+     "0x0030",
+     "0x0031",
+     "0x0032",
+     "0x0033"
+    ],
+    "arcade_routines": [
+     "0x03B802 (six BCD digits; reads A5+0x011E)"
+    ],
+    "arcade_source_ranges": [
+     "0x1500..0x19FF (0x2A..0x33)"
+    ],
+    "palette_source": "shares the 1UP/score arcade palette family/effective bank 0x30 with the P1 label, but is a DIFFERENT pattern family"
+   },
+   "genesis_realization": {
+    "palette_line": 0,
+    "route_kind": "reduced gameplay producer .Lnq_project_p1_hud selects the generated object:hud.score_digits semantic profile asset and PC090OJ_HUD_SCORE_PROFILE_LINE constant; frontend full HUD remains its separately generated accepted presentation",
+    "dynamic_behavior": "current Test object line/index_map are compiled offline; runtime supplies only retained BCD digits, visibility, and position",
+    "shared_line_ownership": "Tighe currently authors line 0; score identity remains separate from P1 and burst despite effective bank 0x30"
+   },
+   "decision_basis": "Cody provenance. Build 0459 compiles Tighe's current object:hud.score_digits line/index_map into the reduced gameplay HUD while retaining a separate pattern family from P1 and burst.",
+   "known_defects": [],
+   "consumers_to_inspect": [
+    "tools/translation/gen_native_hud.py",
+    "tools/translation/build_pc090oj_hud_white.py",
+    "apps/rastan-direct/src/pc090oj_hooks.s .Lnq_project_p1_hud",
+    "tools/graphics_editor/gen_reindexed_pc090oj.py"
+   ],
+   "evidence": [
+    "docs/design/Cody_gameover_1up_palette_provenance.md",
+    "docs/design/Andy_gameover_gameplay_hud_demon_palette_integration.md"
+   ]
+  },
+  {
+   "id": "PAL-PC090OJ-ENEMY-DEATH-BURST-001",
+   "status": "provisional",
+   "context": {
+    "scene": "gameplay (all scenes)",
+    "stage": "all",
+    "subsystem": "PC090OJ generic enemy death / burst / impact effect",
+    "actor_family": "generic burst (base 0x0275); Flying Demon + selected boss death also use this",
+    "actor_classes": null
+   },
+   "arcade_semantics": {
+    "source_attribute_nibble": "0x0",
+    "sprite_control": "0x0060",
+    "colbank_bits": "0x0060",
+    "effective_palette_bank": "0x30",
+    "base": "0x0275",
+    "anim_codes": [
+     "0x9D",
+     "0x9E",
+     "0x9F",
+     "0xA0"
+    ],
+    "handler": "0x40CCC(0x40DD8 +0x39) / 0x42ABC default",
+    "palette_source": "R1 nibble-0 pool entry 11 -> 0x04FD02+11*0x20 = 0x04FE62",
+    "frames": 4
+   },
+   "genesis_realization": {
+    "palette_line": null,
+    "route_kind": "native gameplay PC090OJ finalizer; same base/bank as the existing Palette Composer burst object (object:effect.burst)",
+    "dynamic_behavior": "shared by generic enemy burst, Flying Demon death (types 8/9), selected boss death types, projectile burst",
+    "shared_line_ownership": "effective bank 0x30 (see GAMEOVER/HUD bank-0x30 collision note)"
+   },
+   "decision_basis": "H16 burst structure + H25 death taxonomy (rastan_actor_behavior.c, raw/00042abc.c). Same family the Palette Composer already exposes as object:effect.burst; recorded here so the death-effect palette ownership is in the registry. No color authored.",
+   "known_defects": [
+    "Shares effective bank 0x30 with GAME OVER, HUD P1/SCORE, bat_death (line-LUT bank-key collision)."
+   ],
+   "consumers_to_inspect": [
+    "apps/rastan-direct/src/pc090oj_hooks.s native finalizer",
+    "tools/graphics_editor/gen_reindexed_pc090oj.py (usage:burst:bank0x30)"
+   ],
+   "evidence": [
+    "analysis/actor_decompilation/h16_burst_child_structure.json",
+    "analysis/actor_decompilation/h25_death_and_effect_families.tsv",
+    "docs/design/Andy_bestiary_gameplay_items_weapon_powerups_death_palette_families.md"
+   ]
+  },
+  {
+   "id": "PAL-PC090OJ-BAT-DEATH-001",
+   "status": "provisional",
+   "context": {
+    "scene": "gameplay",
+    "stage": "Stage 1+ (bats)",
+    "subsystem": "PC090OJ bat death (one-frame)",
+    "actor_family": "Small Bat 0x0268 + Large Bat 0x03F6 (shared death)",
+    "actor_classes": null
+   },
+   "arcade_semantics": {
+    "source_attribute_nibble": "0x0",
+    "sprite_control": "0x0060",
+    "colbank_bits": "0x0060",
+    "effective_palette_bank": "0x30",
+    "base": "0x0275",
+    "anim_codes": [
+     "0xA8"
+    ],
+    "handler": "0x42ABC (types 10/11, A8 short branch)",
+    "frames": 1,
+    "palette_source": "R1 nibble-0 pool entry 11 -> 0x04FE62 (same bank as generic burst)"
+   },
+   "genesis_realization": {
+    "palette_line": null,
+    "route_kind": "native gameplay PC090OJ finalizer; DISTINCT pattern cell 0xA8 (one frame) from the generic burst's 0x9D-0xA0",
+    "dynamic_behavior": "Small Bat and Large Bat share the SAME death family (one semantic family); one frame then retire (0x4092E)",
+    "shared_line_ownership": "shares the generic-burst palette (effective bank 0x30); MAY share the burst palette decision while keeping a distinct pattern identity"
+   },
+   "decision_basis": "H25 / raw/00042abc.c type 10-13/18/28 A8 branch (anim = phase+0xA7 = 0xA8); compositor VM 0x0275/0xA8 renders exactly ONE piece (confirms one-frame). No color authored.",
+   "known_defects": [
+    "Must NOT be merged into the generic burst PATTERN identity despite the shared base/bank (distinct cell 0xA8)."
+   ],
+   "consumers_to_inspect": [
+    "apps/rastan-direct/src/pc090oj_hooks.s native finalizer"
+   ],
+   "evidence": [
+    "analysis/decompilation/c/raw/00042abc.c",
+    "analysis/actor_decompilation/h25_death_and_effect_families.tsv",
+    "docs/design/Andy_bestiary_gameplay_items_weapon_powerups_death_palette_families.md"
+   ]
+  },
+  {
+   "id": "PAL-PC090OJ-ENEMY-ITEM-DROP-DEATH-001",
+   "status": "decided",
+   "context": {
+    "scene": "gameplay",
+    "stage": "all",
+    "subsystem": "PC090OJ enemy-death reward/drop presentation (family-12)",
+    "actor_family": "dying field enemy transformed in-place to family-12 reward presentation",
+    "actor_classes": null
+   },
+   "arcade_semantics": {
+    "source_attribute_nibble": null,
+    "sprite_control": "0x0060",
+    "colbank_bits": "0x0060",
+    "effective_palette_bank": "0x30 (kinds 1-4) / 0x31 (kinds 5-13) / 0x37 (kinds 14-17)",
+    "base": "0x0A5A",
+    "handler": "0x40CCC phase>=10 transform 0x40D32 (family 0x0C)",
+    "frames": "1 static presentation per kind (17 kinds)",
+    "palette_source": "per-round pool at the baked control nibble (0/1/7): 0x3BA88[round] -> 0x4FD02; reward identity +0x29 = table 0x40C2E[kind-1]; score +0x2C = table 0x40C40[kind-1]",
+    "gating": "+0x36 (schedule reward field) selects kind; generation/position constraints at 0x40D64",
+    "anim_selector": "(kind-1)+0x13 = 0x13..0x23 (17 reward kinds)"
+   },
+   "genesis_realization": {
+    "palette_line": null,
+    "route_kind": "native gameplay PC090OJ finalizer; 17 reward kinds across banks 0x30/0x31/0x37 (per-kind baked control nibble)",
+    "dynamic_behavior": "This IS the visible gameplay collectible/reward: the dying enemy transforms in-place into it when +0x36 is set. NOT a created rec_type-12 pickup actor (PROVEN ABSENT, H19/H20) and NOT a separate marker/scripted item sprite (scripted creators make enemies, never collectibles).",
+    "shared_line_ownership": null
+   },
+   "decision_basis": "H25 / raw/00040ccc xform 0x40D32 + reward tables 0x40C2E/0x40C40; per-kind palette nibble resolved via the compositor VM (H15 rule). Graphics base/anim/bank now PROVEN; Genesis line/index left for Tighe. No color authored.",
+   "known_defects": [
+    "Three bank groups (0x30/0x31/0x37) share the bank-0x30 line-LUT collision caveat; colored per-round-pool, not a free editor nibble."
+   ],
+   "consumers_to_inspect": [
+    "apps/rastan-direct/src/pc090oj_hooks.s native finalizer",
+    "analysis/decompilation/c/raw/00040ccc.c (reward-table 0x40C0E)"
+   ],
+   "evidence": [
+    "analysis/decompilation/c/rastan_actor_behavior.c",
+    "analysis/actor_decompilation/h25_death_and_effect_families.tsv",
+    "docs/design/Andy_bestiary_gameplay_items_weapon_powerups_death_palette_families.md"
+   ]
+  },
+  {
+   "id": "PAL-PC090OJ-ORDINARY-ENEMY-DEATH-001",
+   "status": "provisional",
+   "context": {
+    "scene": "gameplay",
+    "stage": "all",
+    "subsystem": "PC090OJ ordinary enemy death animation (armored-man fall)",
+    "actor_family": "shared by field enemies (Lizardman/Chimera/Four-Armed/Valkyrie/Horned/Skeleton/Serpent/...)",
+    "actor_classes": null
+   },
+   "arcade_semantics": {
+    "source_attribute_nibble": null,
+    "sprite_control": "0x0060",
+    "colbank_bits": "0x0060",
+    "effective_palette_bank": "0x36 (shared with Lizardman cell block 0xA73..0xAA2)",
+    "base": "0x0A73",
+    "anim_codes": [
+     "0x40DCE table seq + 11 (0x0B..0x12)"
+    ],
+    "handler": "0x40CCC default (actor_armored_40ccc)",
+    "frames": 10,
+    "compositor": 2,
+    "palette_source": "via the owning enemy's bank; the 0x0A73 death cells are owned by Lizardman (bank 0x36) in the current reindex corpus"
+   },
+   "genesis_realization": {
+    "palette_line": null,
+    "route_kind": "native gameplay PC090OJ finalizer; the 0x0A73 death cells already belong to the enemy palette families (e.g. usage:lizardman:bank0x36) in the Palette Composer",
+    "dynamic_behavior": "a SINGLE shared ordinary-death animation for field enemies",
+    "shared_line_ownership": "colored via the owning enemy palette family (bank 0x36 block); no separate death palette decision required"
+   },
+   "decision_basis": "H25 / rastan_actor_behavior.c actor_armored_40ccc default branch (base 0x0A73, comp 2). The 0xA73..0xAA2 cells are already in the reindex corpus under Lizardman (bank 0x36). No new color authored; linkage only.",
+   "known_defects": [],
+   "consumers_to_inspect": [
+    "tools/graphics_editor/gen_reindexed_pc090oj.py (0xA73 block under lizardman)"
+   ],
+   "evidence": [
+    "analysis/decompilation/c/rastan_actor_behavior.c",
+    "analysis/actor_decompilation/h25_death_and_effect_families.tsv",
+    "docs/design/Andy_bestiary_gameplay_items_weapon_powerups_death_palette_families.md"
+   ]
+  },
+  {
+   "id": "PAL-PC090OJ-GAMEPLAY-REWARD-B31-001",
+   "status": "decided",
+   "context": {
+    "scene": "gameplay",
+    "stage": "all",
+    "subsystem": "PC090OJ gameplay reward/pickup (family-12, bank-0x31 kinds)",
+    "actor_family": "reward kinds 5-13 (anim 0x17..0x1F)",
+    "actor_classes": null
+   },
+   "arcade_semantics": {
+    "base": "0x0A5A",
+    "anim_selector": "0x17..0x1F (kinds 5-13)",
+    "effective_palette_bank": "0x31",
+    "frames": "1 per kind",
+    "sprite_control": "0x0060",
+    "colbank_bits": "0x0060",
+    "palette_source": "per-round pool nibble 1 -> 0x3BA88[round]+1 -> 0x4FD02"
+   },
+   "genesis_realization": {
+    "palette_line": null,
+    "route_kind": "native gameplay PC090OJ finalizer (base 0x0A5A, bank 0x31)",
+    "dynamic_behavior": "visible gameplay reward pickups, bank-0x31 group of the item-drop-death reward presentation",
+    "shared_line_ownership": null
+   },
+   "decision_basis": "H25; same reward presentation as item-drop-death but the bank-0x31 kind group. Graphics PROVEN; no color authored.",
+   "known_defects": [],
+   "consumers_to_inspect": [
+    "apps/rastan-direct/src/pc090oj_hooks.s native finalizer",
+    "tools/graphics_editor/gen_reindexed_pc090oj.py"
+   ],
+   "evidence": [
+    "analysis/actor_decompilation/h25_death_and_effect_families.tsv",
+    "analysis/decompilation/c/raw/00040ccc.c",
+    "docs/design/Andy_bestiary_gameplay_items_weapon_powerups_death_palette_families.md"
+   ]
+  },
+  {
+   "id": "PAL-PC090OJ-GAMEPLAY-REWARD-B37-001",
+   "status": "decided",
+   "context": {
+    "scene": "gameplay",
+    "stage": "all",
+    "subsystem": "PC090OJ gameplay reward/pickup (family-12, bank-0x37 kinds)",
+    "actor_family": "reward kinds 14-17 (anim 0x20..0x23)",
+    "actor_classes": null
+   },
+   "arcade_semantics": {
+    "base": "0x0A5A",
+    "anim_selector": "0x20..0x23 (kinds 14-17)",
+    "effective_palette_bank": "0x37",
+    "frames": "1 per kind",
+    "sprite_control": "0x0060",
+    "colbank_bits": "0x0060",
+    "palette_source": "per-round pool nibble 7 -> 0x3BA88[round]+7 -> 0x4FD02"
+   },
+   "genesis_realization": {
+    "palette_line": null,
+    "route_kind": "native gameplay PC090OJ finalizer (base 0x0A5A, bank 0x37)",
+    "dynamic_behavior": "visible gameplay reward pickups, bank-0x37 group of the item-drop-death reward presentation",
+    "shared_line_ownership": null
+   },
+   "decision_basis": "H25; bank-0x37 kind group of the reward presentation. Graphics PROVEN; no color authored.",
+   "known_defects": [],
+   "consumers_to_inspect": [
+    "apps/rastan-direct/src/pc090oj_hooks.s native finalizer",
+    "tools/graphics_editor/gen_reindexed_pc090oj.py"
+   ],
+   "evidence": [
+    "analysis/actor_decompilation/h25_death_and_effect_families.tsv",
+    "analysis/decompilation/c/raw/00040ccc.c",
+    "docs/design/Andy_bestiary_gameplay_items_weapon_powerups_death_palette_families.md"
+   ]
+  },
+  {
+   "id": "PAL-PC090OJ-SPECIALIZED-DEATH-019D-001",
+   "status": "provisional",
+   "context": {
+    "scene": "gameplay",
+    "stage": "all",
+    "subsystem": "PC090OJ specialized enemy death (base 0x019D)",
+    "actor_family": "actor 0x019D (map-driven special; rec_type 0/3)",
+    "actor_classes": null
+   },
+   "arcade_semantics": {
+    "base": "0x019D",
+    "anim_codes": [
+     "0x2A",
+     "0x2C",
+     "0x2E",
+     "(+1 if type3)"
+    ],
+    "frames": 3,
+    "handler": "0x42ABC type<8 branch",
+    "sprite_control": "0x0060",
+    "colbank_bits": "0x0060",
+    "effective_palette_bank": "0x34",
+    "palette_source": "per-round pool nibble 4 -> 0x3BA88[round]+4 -> 0x4FD02"
+   },
+   "genesis_realization": {
+    "palette_line": null,
+    "route_kind": "native gameplay PC090OJ finalizer (base 0x019D, bank 0x34)",
+    "dynamic_behavior": "specialized death of actor 0x019D (rec_type<8)",
+    "shared_line_ownership": null
+   },
+   "decision_basis": "H25 / raw/00042abc type<8 branch; bank 0x34 via compositor control nibble. actor 0x019D observed rec_type 0/3 (native_sprite_completion_manifest) -> reachable. Human identity PENDING. No color authored.",
+   "known_defects": [],
+   "consumers_to_inspect": [
+    "apps/rastan-direct/src/pc090oj_hooks.s native finalizer"
+   ],
+   "evidence": [
+    "analysis/decompilation/c/raw/00042abc.c",
+    "analysis/actor_decompilation/h25_death_and_effect_families.tsv",
+    "docs/design/Andy_bestiary_gameplay_items_weapon_powerups_death_palette_families.md"
+   ]
+  },
+  {
+   "id": "PAL-PC090OJ-SPECIALIZED-DEATH-09DC-001",
+   "status": "provisional",
+   "context": {
+    "scene": "gameplay",
+    "stage": "all",
+    "subsystem": "PC090OJ specialized enemy death (base 0x09DC, type5)",
+    "actor_family": "rec_type-5 lethal actor (identity PENDING)",
+    "actor_classes": null
+   },
+   "arcade_semantics": {
+    "base": "0x09DC",
+    "anim_codes": [
+     "seq_42bb8 + 0xC2 (16 phases)"
+    ],
+    "frames": 16,
+    "handler": "0x42ABC type==5 (+0x3D bit7)",
+    "sprite_control": "0x0060",
+    "colbank_bits": "0x0060",
+    "effective_palette_bank": "0x33",
+    "palette_source": "per-round pool nibble 3 -> 0x3BA88[round]+3 -> 0x4FD02"
+   },
+   "genesis_realization": {
+    "palette_line": null,
+    "route_kind": "native gameplay PC090OJ finalizer (base 0x09DC, bank 0x33)",
+    "dynamic_behavior": "specialized type-5 death",
+    "shared_line_ownership": null
+   },
+   "decision_basis": "H25 / raw/00042abc type==5 branch; bank 0x33 via compositor control nibble. Exact rec_type-5 enemy identity + independent reachability confirmation PENDING. No color authored.",
+   "known_defects": [],
+   "consumers_to_inspect": [
+    "apps/rastan-direct/src/pc090oj_hooks.s native finalizer"
+   ],
+   "evidence": [
+    "analysis/decompilation/c/raw/00042abc.c",
+    "analysis/actor_decompilation/h25_death_and_effect_families.tsv",
+    "docs/design/Andy_bestiary_gameplay_items_weapon_powerups_death_palette_families.md"
+   ]
+  },
+  {
+   "id": "PAL-FRONTEND-SCENE0-BASE-001",
+   "status": "proven",
+   "context": {
+    "scene": "frontend scene 0",
+    "stage": "cold title and every gameplay-to-frontend ownership return",
+    "subsystem": "PC080SN/frontend base CRAM ownership",
+    "actor_family": null,
+    "actor_classes": null
+   },
+   "arcade_semantics": {
+    "physical_palette_banks": [
+     "0x00",
+     "0x01",
+     "0x30"
+    ],
+    "palette_sources": [
+     "maincpu 0x04EAF6",
+     "maincpu 0x04EB16",
+     "maincpu 0x04FE62"
+    ],
+    "palette_source": "original cold-start frontend Lines 0/1 and the frontend sprite base line; exact xBGR-555 words converted offline"
+   },
+   "genesis_realization": {
+    "palette_lines": [
+     0,
+     1,
+     2
+    ],
+    "route_kind": "finite scene-0 ownership restore generated by gen_native_title.py",
+    "dynamic_behavior": "load_scene_tiles(0) restores Lines 0/1/2 and clears Line 3 before retained title, READY, story, BEST-5, Continue, and item producers apply their own updates",
+    "shared_line_ownership": "Line 3 is deliberately empty at the base boundary and belongs to subsequent retained frontend producers"
+   },
+   "decision_basis": "RG-004 first-title versus second-title CRAM comparison and original cold-start palette provenance. The offline conversion reproduces the accepted first-title Lines 0 and 2 byte-for-byte; gameplay-owned Test colors were proven to persist only because scene-0 residency activation did not restore base CRAM ownership.",
+   "known_defects": [],
+   "consumers_to_inspect": [
+    "tools/translation/gen_native_title.py",
+    "tools/translation/verify_native_title.py",
+    "apps/rastan-direct/src/scene_load.s load_scene_tiles",
+    "apps/rastan-direct/src/title_native.s retained title presentation",
+    "apps/rastan-direct/src/vdp_comm.s palette publication"
+   ],
+   "evidence": [
+    "docs/design/Cody_RG004_ready_continue_attract_reentry_cleanup.md"
+   ]
+  },
+  {
+   "id": "PAL-FRONTEND-READY-RETAINED-BANKS-001",
+   "status": "proven",
+   "context": {
+    "scene": "frontend READY state 9",
+    "stage": "post-death READY presentation",
+    "subsystem": "retained arcade palette producer at 0x056128 through genesistan_palette_hook_59ad4",
+    "actor_family": "READY plane and sprite presentation",
+    "actor_classes": null
+   },
+   "arcade_semantics": {
+    "effective_palette_banks": [
+     "0x04",
+     "0x05",
+     "0x33",
+     "0x43"
+    ],
+    "palette_source": "bank 0x04 uses maincpu 0x05649E row 0; banks 0x05/0x33/0x43 use maincpu 0x0564FE row 0; 0x33 and 0x43 are duplicate source palettes"
+   },
+   "genesis_realization": {
+    "palette_lines": {
+     "0x04": 0,
+     "0x05": 1,
+     "0x33": 3,
+     "0x43": 3
+    },
+    "route_kind": "retained finite palette load translated by genesistan_palette_hook_59ad4; matching scene-0 PC090OJ route-table rows select SAT Line 3 for banks 0x33/0x43",
+    "dynamic_behavior": "all four READY writes stage normally in scene 0 and publish through the existing pending-CRAM path",
+    "shared_line_ownership": "0x33 and 0x43 intentionally share Line 3 because the retained producer supplies identical source words"
+   },
+   "decision_basis": "RG-004 static source proof plus Build-0464 hook audit established that 0x04/0x05/0x43 were rejected before staging, while actual CRAM always matched staging. The four-to-three compression preserves original source identity without changing Tighe-authored gameplay mappings.",
+   "known_defects": [],
+   "consumers_to_inspect": [
+    "apps/rastan-direct/src/palette_hooks.s genesistan_palette_hook_59ad4 and palette_route_table",
+    "apps/rastan-direct/src/pc090oj_hooks.s frontend SAT palette selection",
+    "apps/rastan-direct/src/vdp_comm.s palette publication",
+    "tools/translation/gen_pc090oj_palsel_lut.py"
+   ],
+   "evidence": [
+    "docs/design/Cody_RG004_ready_continue_attract_reentry_cleanup.md"
+   ]
+  }
+ ]
+}

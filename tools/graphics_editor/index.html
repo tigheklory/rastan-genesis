@@ -18,6 +18,57 @@
 </header>
 <div id="scopebar" class="scopebar"></div>
 <div id="pstatus" class="pstatus"></div>
+<!-- RG-022: 18-subround / per-environment palette scope selector (self-contained; additive). -->
+<div id="subroundpanel" class="subroundpanel">
+  <div class="srp-head"><b>Subround palette scope</b>
+    <span id="srp-current" class="srp-current">select a subround</span></div>
+  <div id="srp-grid" class="srp-grid"></div>
+  <div id="srp-envs" class="srp-envs"></div>
+</div>
+<script>
+(function(){
+  var cur=null;
+  var STAT={missing:'#a33',provisional:'#a80',approved:'#2a7',mixed:'#669'};
+  var NAT={native_converted:'●',native_not_converted:'○'};
+  function esc(s){return String(s).replace(/[<>&]/g,function(c){return{'<':'&lt;','>':'&gt;','&':'&amp;'}[c];});}
+  function envStat(sr){ // worst palette status among authorable envs
+    var s='approved';var rank={approved:0,mixed:1,provisional:2,missing:3};
+    (sr.environments||[]).forEach(function(e){if(e.authorable&&rank[e.palette_status]>rank[s])s=e.palette_status;});
+    return s;}
+  function renderEnvs(sr){
+    var el=document.getElementById('srp-envs');
+    document.getElementById('srp-current').textContent=
+      sr.key+' — '+sr.name+'  ['+sr.native+(sr.mode?(' / '+sr.mode):'')+']';
+    var h='<table class="srp-envtab"><tr><th>environment</th><th>family</th><th>records</th><th>scene_key</th><th>palette</th><th>decisions</th></tr>';
+    (sr.environments||[]).forEach(function(e){
+      var ps=e.authorable?e.palette_status:'reserved (Line 2 / arcade)';
+      var col=e.authorable?(STAT[e.palette_status]||'#888'):'#777';
+      h+='<tr><td>'+esc(e.env)+'</td><td>'+esc(e.family)+'</td><td>'+JSON.stringify(e.records||[])+
+         '</td><td class="srp-key">'+esc(e.scene_key)+'</td><td style="color:'+col+'">'+esc(ps)+
+         '</td><td>'+((e.decisions||[]).map(function(d){return esc(d.id)+' ('+esc(d.status)+')';}).join('<br>')||'—')+'</td></tr>';
+    });
+    el.innerHTML=h+'</table><div class="srp-note">Line 2 / Plane B is arcade-controlled and never authored. '+
+      'Palette colors require Tighe approval; the editor never auto-approves or substitutes another subround\'s colors.</div>';
+  }
+  function render(map){
+    var g=document.getElementById('srp-grid');var h='';
+    (map.subrounds||[]).forEach(function(sr,i){
+      var st=envStat(sr);
+      h+='<button class="srp-cell" data-i="'+i+'" title="'+esc(sr.native)+'" '+
+         'style="border-left:4px solid '+(STAT[st]||'#888')+'">'+
+         (NAT[sr.native]||'?')+' '+esc(sr.key)+'</button>';
+    });
+    g.innerHTML=h;
+    Array.prototype.forEach.call(g.querySelectorAll('.srp-cell'),function(b){
+      b.onclick=function(){cur=map.subrounds[+b.dataset.i];renderEnvs(cur);
+        Array.prototype.forEach.call(g.querySelectorAll('.srp-cell'),function(x){x.classList.remove('srp-on');});
+        b.classList.add('srp-on');};
+    });
+  }
+  fetch('/api/subrounds').then(function(r){return r.json();}).then(render)
+    .catch(function(e){document.getElementById('srp-grid').textContent='subround map unavailable: '+e;});
+})();
+</script>
 <div id="helpbox" class="hide">
   <b>How to use</b>
   <ol>
