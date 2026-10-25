@@ -53791,3 +53791,18 @@ native integration points (scene_load.s/tilemap_hooks.s/palette_hooks.s) or Audi
   Plane-A (+ sprite families as they diverge). R3-R6 deferred until Cody converts (R3/R5/R6 also need
   the scene_a0_ranges Mode-B fix). No palette is claimed visually correct (Tighe approves colors).
 - Doc: docs/design/Andy_RG022_palette_composer_multistage.md. Push still blocked (SSH).
+
+### MAME Exit Summary (2026-10-24 22:42:36)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## RG-023 — Correct native Layer A/B stage assembly (Cody, Build 0500, 2026-10-24)
+
+- Baseline Build 0499; exact ROM-producing source `ef02c3643fc30654335ef3bc427ddf9ccca76a1c`. Candidate normal ROM `dist/rastan-direct/rastan_direct_video_test_build_0500.bin`, SHA-256 `c994622994876e4a1461a09bf56f2dc39914f508b29b8976daece864fa9ed566`, 3,399,352 bytes. Build 0500 is NOT ACCEPTED pending Tighe.
+- Original arcade proof rejects the castle-transpose hypothesis: R1-S2 is record 17 / selector 1 / Y=`0x100`; R2-S2 is record 40 / selector 0 / Y=`0x100`; both use the direct 64-column semantic layout.
+- Root cause: native Layer-A fill folded every raw destination with `row&31`, allowing off-window logical animation rows 42–44 to overwrite resident boss-stage rows 10–12. The correction preserves the six-bit row and publishes only rows in the live 32-row window derived from retained scroll state; no shadow, bypass, fallback, or collision rewrite.
+- Original arcade MAME vs Genesis NTSC MAME spatial gate: R1-S1/S2/S3 and R2-S1/S2/S3 all PASS with zero pattern, orientation, LUT, final-VRAM, or collision errors after bounded HUD/off-screen exclusions. Seven-ROM family, all 18 selector variants, canonical/gameplay/epoch gates, and 30-second trace pass.
+- Rope performance remains deterministic: `795/795/795`, median 13,267.083 ms, zero change from Build 0499 and accepted Build 0472.
+- The exact R1-S2 obstruction and live boss-defeat transition remain hardware observations; no boss progression fix is claimed. Rounds 3–6 and RG-022 palette authoring remain separate. Concurrent Andy/audio/Palette Composer work was preserved.
+- Report: `docs/design/Cody_build0500_native_plane_stage_assembly.md`; task index: `docs/design/Cody_RG023_native_plane_stage_assembly.md`.
