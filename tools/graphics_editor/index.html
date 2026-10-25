@@ -73,7 +73,18 @@
     Array.prototype.forEach.call(g.querySelectorAll('.srp-cell'),function(b){
       b.onclick=function(){cur=map.subrounds[+b.dataset.i];renderEnvs(cur);
         Array.prototype.forEach.call(g.querySelectorAll('.srp-cell'),function(x){x.classList.remove('srp-on');});
-        b.classList.add('srp-on');};
+        b.classList.add('srp-on');
+        // Auto-load the subround's primary background environment into the editor on selection.
+        var prim=(cur.environments||[]).filter(function(e){return e.family==='PLANEA'&&cur.native==='native_converted';})[0];
+        if(prim&&window.loadSubroundScene){
+          var rec=prim.records||[0,15];
+          window.loadSubroundScene(prim.scene_key,rec);
+          document.getElementById('srp-current').textContent=cur.key+' — '+cur.name+'  → LOADED '+prim.env+' ('+prim.scene_key+', records '+rec.join('–')+')';
+        } else if(window.loadSubroundScene){
+          window.loadSubroundScene(null,null);   // not converted yet: fall back to R1-P1 corpus
+          document.getElementById('srp-current').textContent=cur.key+' — '+cur.name+'  ['+cur.native+(cur.mode?(' / '+cur.mode):'')+'] — no native background yet';
+        }
+      };
     });
   }
   fetch('/api/subrounds').then(function(r){return r.json();}).then(render)

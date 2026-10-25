@@ -450,7 +450,7 @@ function sceneQS(pfx){return ACTIVE_SCENE?(pfx+'scene='+encodeURIComponent(ACTIV
 let LAVIEW='library',LAMAPSEG=null,LAMAP=null,LAMAPZOOM=1,LAMAPMODE='arcade',LAMAPGRID=false,LAMAPSEL=null;
 const LAFILT={q:'',seg:'',bank:'',pal:'',map:'',anim:''};
 const LAPP=200;
-window.loadSubroundScene=function(sceneKey,records){ACTIVE_SCENE=sceneKey||null;SCENE_RECORDS=(records&&records.length===2)?records:null;LA=null;LAMAP=null;LADET=null;LAUSAGE=null;LAP.clear();LAMAPSEG=SCENE_RECORDS?SCENE_RECORDS[0]:0;LAVIEW='map';TAB='layera';document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x.dataset.t==='layera'));window._layerActive=true;renderLayerA($('#list'));};
+window.loadSubroundScene=function(sceneKey,records){ACTIVE_SCENE=sceneKey||null;SCENE_RECORDS=(records&&records.length===2)?records:null;LA=null;LAMAP=null;LADET=null;LAUSAGE=null;LAP.clear();LAMAPSEG=SCENE_RECORDS?SCENE_RECORDS[0]:0;LAVIEW='map';TAB='layera';document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x.dataset.t==='layera'));renderList();};
 async function renderLayerA(L){
  if(!LA||LA_SCENE!==ACTIVE_SCENE){L.innerHTML='<div class="dim">Loading Layer-A corpus…</div>';LA=await j('/api/layera'+sceneQS('?'));LA_SCENE=ACTIVE_SCENE;}
  if(!POL.plane_usage_palette_mappings)POL.plane_usage_palette_mappings={};
