@@ -1520,6 +1520,23 @@ class Hd(BaseHTTPRequestHandler):
                     env["palette_status"], env["decisions"] = pstatus(env.get("scene_key"))
                     env["authorable"] = bool(smap.get("families", {}).get(env.get("family"), {}).get("authorable"))
             return self._s(200, json.dumps(smap).encode())
+        if u.path == "/api/per_round_evidence":
+            # PROMPT-ID-0006 Req 1: honest disclosure of the per-round arcade palette derivation so
+            # the UI never claims a "verified" R2+ palette it could not capture. Read-only; the file
+            # is produced by tools/graphics_editor/derive_per_round_palette.py.
+            ev = loadj(os.path.join(ROOT, "analysis/graphics_optimizer/per_round_palette_evidence.json"),
+                       {"status": "unavailable"})
+            return self._s(200, json.dumps(ev).encode())
+        if u.path == "/api/scene_sprite_coverage":
+            # PROMPT-ID-0006 Req 4: honest per-scene sprite/enemy coverage so the Objects tab never
+            # silently presents the R1/Phase-1 corpus as another scene's roster. Read-only; produced
+            # by tools/graphics_editor/scene_sprite_coverage.py.
+            cov = loadj(os.path.join(ROOT, "build/palette_export/scene_sprite_coverage.json"),
+                        {"scenes": {}})
+            sk = (q.get("scene", [""])[0] or None)
+            if sk:
+                return self._s(200, json.dumps(cov.get("scenes", {}).get(sk, {"coverage_status": "unknown"})).encode())
+            return self._s(200, json.dumps(cov).encode())
         if u.path == "/api/policy":
             pid = q.get("p", ["baseline_current"])[0]
             pol = loadj(os.path.join(POLICY_DIR, pid + ".json"), default_profile(pid))

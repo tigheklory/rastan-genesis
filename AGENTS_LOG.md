@@ -53867,3 +53867,42 @@ assumptions in the shared Plane-A decode explain the reports:
 - Causal correction: the maintained direct-start `FG Y=0x0166` ceiling is not the user's later upper-chain oracle; original arcade MAME stops at the same location on the same collision words. The older human third-chain trace is a later ring epoch (`0x01DA -> 0x0028`). Authentic upper-route traversal is therefore not proven and the climb defect remains open pending Tighe's exact-route test.
 - Palette Composer and palette decisions were untouched. Andy should regenerate the Layer-A corpus for selector-1 records 17/21/43/44 from the canonical decoder.
 - Full report: `docs/design/Cody_build0502_selector1_castle_map_candidate.md`; requested task index: `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0002_castle_climb_fix.md`.
+
+### MAME Exit Summary (2026-10-25 12:45:25)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## PROMPT-ID-0006 — Fix and Complete Rastan Palette Composer (Andy, 2026-10-25)
+
+Composer-only (`tools/graphics_editor/`). NO ROM build consumed, no Composer-owned native code changed,
+no Audio Composer touched, no palette-registry duplication, no rts/NOP/stub.
+
+- **Req 1 (arcade palette R2, Criterion E) — derived + disclosed, not fully resolved (honest).**
+  Static proof from `build/regions/maincpu.bin`: ROM 0RGB→xBGR555 is nibble*2; `0x4EAF6+3*32`
+  reproduces live R1 bank 3 EXACTLY; R1 Plane-A bank 3 is fixed-base-sourced (NOT per-round pool
+  `0x4FD02`). A genuine per-round table EXISTS at `0x3BA88+(round-1)*32` (loader `0x3BA20`), rounds
+  differ from R1 by {R2:7,R3:9,R4:15,R5:20,R6:20,R7:32}. UNRESOLVED: whether any `0x200000` Plane-A
+  bank is reloaded per-round — 3 R2-capture attempts failed (round-force corrupts state; `_Sx-y` ROMs
+  don't set round counter = RG-019 quirk; subround-complete poke doesn't advance). Generator keeps the
+  PROVEN fixed-base colors (no fabrication); R2+ scenes get an honest "unconfirmed/not-verified" banner.
+  The real R2 mismatch Tighe saw is explained by R1-scope/R1-record leakage, fixed by Req 2+3.
+  Evidence: `analysis/graphics_optimizer/per_round_palette_evidence.json` (tool:
+  `tools/graphics_editor/derive_per_round_palette.py`).
+- **Req 2 (independent per-subround lines) — done.** Scene contexts parent to neutral `context:gameplay`;
+  Lines 0/1/3 author per scene, Line 2 reserved. `verify_independent_scopes.py` 9/9 PASS (commit e60306e8).
+- **Req 3 (selector-aware castle maps) — done.** `layera_map` uses Cody's `reconstruct_segment` +
+  `decode_record_selector` (Build 0502 contract), no JS rotation (commit f6db8d2c).
+- **Req 4 (per-subround sprites) — honest coverage, NO substitution.** `scene_sprite_coverage.py`:
+  4 PROVEN_COMPLETE (R1-S1 phases), 6 SCHEDULE_ONLY (S2, bases known/cells not captured), 11 PENDING
+  (blocked on A5+0x10D000 collision-record populator). Objects tab shows disclosure banner +
+  substitution_warning on every non-R1-S1 scene. Output: `build/palette_export/scene_sprite_coverage.json`.
+- **Req 5 (per-scene CRAM export) — done.** `export_subround_palette_manifest.py --profile` emits
+  `build/palette_export/cram/<scene_key>.bin` only for scenes with OWN overrides; Line 2 excluded;
+  deterministic; missing → arcade fallback (commit 0bba1b3e).
+- **Req 6/G — approvals preserved** (additive schema-v2 migration; backup in `specs/_backup/`).
+- New endpoints: `/api/per_round_evidence`, `/api/scene_sprite_coverage`.
+- Diagnostic scaffolding (analysis-only, kept): `tools/mame/scripts/arcade_r2_palette_force.lua`,
+  `tools/mame/scripts/arcade_reach_r2.lua`; transient `states/traces/reach_r2/`.
+- Report: `docs/design/Andy_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0006_palette_composer_fixes.md`
+- Manual browser steps remain (scene load / Line-3 isolation / Undo-Redo / banners); headless data-layer all PASS.

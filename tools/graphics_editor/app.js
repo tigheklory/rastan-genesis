@@ -101,6 +101,18 @@ function renderList(){const L=$('#list');L.innerHTML='';
   const gb=el('div','groupbar');gb.appendChild(el('span','dim','Shared Palette Group: '+GROUP.size+' '));
   if(GROUP.size>=1){mkbtn(gb,'Derive Shared Palette',()=>solveGroup(false,'delta_e'));const lb=mkbtn(gb,'Derive Luminance/Hue Palette',()=>solveGroup(false,'luminance_hue'));lb.title='Prioritizes preserving perceptual brightness (OKLab L), then chooses hues between compatible source colors.';mkbtn(gb,'Compare Solvers',()=>compareSolvers());mkbtn(gb,'Clear',()=>{GROUP.clear();renderList();});}
   L.appendChild(gb);
+  // PROMPT-ID-0006 Req 4: honest per-scene sprite coverage — never present R1/P1 enemies as another
+  // scene's roster without disclosure. Lazy-fetch + re-render (renderList is sync).
+  if(ACTIVE_SCENE){
+   const cov=SPR_COV[ACTIVE_SCENE];
+   if(cov===undefined){SPR_COV[ACTIVE_SCENE]=null;j('/api/scene_sprite_coverage?scene='+encodeURIComponent(ACTIVE_SCENE)).then(c=>{SPR_COV[ACTIVE_SCENE]=c||null;if(TAB==='objects')renderList();}).catch(()=>{});}
+   else if(cov&&cov.coverage_status&&cov.coverage_status!=='PROVEN_COMPLETE'){
+    const nb=el('div','warn');nb.style.cssText='border:1px solid #a86;background:#1c1710;color:#d9c9a0;padding:6px 8px;margin:4px 0;font-size:12px;border-radius:4px;';
+    nb.textContent=ACTIVE_SCENE+' — sprite coverage: '+cov.coverage_status+'. '+(cov.substitution_warning||'')+' '+(cov.note||'');
+    L.appendChild(nb);
+    if(Array.isArray(cov.roster)&&cov.roster.length){const rl=el('div','dim');rl.style.cssText='margin:2px 0 6px;font-size:11px;';rl.textContent='known for this scene: '+cov.roster.join(', ');L.appendChild(rl);}
+   }
+  }
   // group usages by object_id -> ONE palette-domain row (preview frames are representations, not consumers)
   const doms={};O.usages.forEach(u=>{(doms[u.object_id]=doms[u.object_id]||[]).push(u);});
   Object.entries(doms).forEach(([oid,reps])=>{const u0=reps[0];const dname=u0.display_name.split(' (')[0];
@@ -445,7 +457,7 @@ function validate(){const V=$('#valid');V.innerHTML='';let err=0;
  const maps=Object.keys(POL.usage_palette_mappings).length;V.appendChild(el('div','vitem '+(err?'ERROR':'PASS'),`usages mapped: ${maps} · errors: ${err}`));}
 // ================= LAYER A workspace =================
 let LA=null,LAP=new Set(),LADET=null,LAUSAGE=null,LAZOOM=4,LAPAGE=0,LASRC=null;
-let ACTIVE_SCENE=null,LA_SCENE=undefined,SCENE_RECORDS=null;
+let ACTIVE_SCENE=null,LA_SCENE=undefined,SCENE_RECORDS=null,PR_EV=undefined,SPR_COV={};
 function sceneQS(pfx){return ACTIVE_SCENE?(pfx+'scene='+encodeURIComponent(ACTIVE_SCENE)):'';}
 let LAVIEW='library',LAMAPSEG=null,LAMAP=null,LAMAPZOOM=1,LAMAPMODE='arcade',LAMAPGRID=false,LAMAPSEL=null;
 const LAFILT={q:'',seg:'',bank:'',pal:'',map:'',anim:''};
@@ -458,6 +470,16 @@ async function renderLayerA(L){
  if(!LA||LA_SCENE!==ACTIVE_SCENE){L.innerHTML='<div class="dim">Loading Layer-A corpus…</div>';LA=await j('/api/layera'+sceneQS('?'));LA_SCENE=ACTIVE_SCENE;}
  if(!POL.plane_usage_palette_mappings)POL.plane_usage_palette_mappings={};
  L.innerHTML='';const c=LA.counts;
+ // PROMPT-ID-0006 Req 1: honest per-round palette disclosure for R2+ scenes (no "verified" claim).
+ const _m=(ACTIVE_SCENE||'').match(/^PAL-R(\d+)-/);
+ if(_m&&(+_m[1])>=2){
+  if(PR_EV===undefined){PR_EV=null;try{PR_EV=await j('/api/per_round_evidence');}catch(e){PR_EV=null;}}
+  const nb=el('div','warn');nb.style.cssText='border:1px solid #a86;background:#1c1710;color:#d9c9a0;padding:6px 8px;margin:4px 0;font-size:12px;border-radius:4px;';
+  nb.textContent='Round '+_m[1]+': arcade colors are derived from the PROVEN round-independent base (0x4EAF6). '
+   +'A genuine Round-2+ live capture could not be reproduced, so a per-round reload of these banks is '
+   +'UNCONFIRMED — colors are not fabricated and not claimed verified. See per_round_palette_evidence.json.';
+  L.appendChild(nb);
+ }
  // Segment Map | Tile Library view toggle; auto-open the scope's segment on entry
  const seg=scopeSegment();if(seg!=null&&LAMAPSEG==null){LAMAPSEG=seg;LAVIEW='map';}
  const vt=el('div','groupbar');['map','library'].forEach(v=>{const b=el('button','mini'+(LAVIEW===v?' on':''),v==='map'?'Segment Map':'Tile Library');b.onclick=()=>{LAVIEW=v;renderLayerA($('#list'));};vt.appendChild(b);});L.appendChild(vt);
