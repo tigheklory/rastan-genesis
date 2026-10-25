@@ -573,16 +573,6 @@ genesistan_hook_tilemap_plane_a_selector12_native:
     lea     genesistan_pc080sn_tile_vram_lut, %a2
     lea     staged_fg_buffer, %a6
 
-    moveq   #0, %d7
-    move.w  ARCADE_PC080SN_STRIP_GROUP_OFFSET(%a5), %d7
-    andi.w  #0x000F, %d7
-    lsl.w   #2, %d7
-    moveq   #0, %d6
-    move.w  ARCADE_PC080SN_STRIP_INDEX_OFFSET(%a5), %d6
-    andi.w  #0x0003, %d6
-    add.w   %d6, %d7
-    move.w  %d7, 10(%sp)                     /* live horizontal ring front */
-
     move.w  #16, plane_a_src_ref_block      /* Build 0353: vertical row producer = camera-relative (one plane lead) */
     moveq   #0, %d4                 /* descriptor segment */
 .Lplane_a_sel12_segment_loop:
@@ -594,65 +584,13 @@ genesistan_hook_tilemap_plane_a_selector12_native:
     cmpi.l  #0x0005FFFC, %d6
     bhi     .Lplane_a_sel12_next_segment
 
-    /* Build 0425: selector 1/2 publishes one fixed logical row across 64
-     * columns.  Four aligned columns share row-group source selection and
-     * col_block, except the one block that may straddle the live ring front.
-     * Preserve accepted per-cell discovery for that boundary fragment; all
-     * other blocks select/relocate/validate one descriptor and one native
-     * record, then consume four independent visual/collision subcells. */
-    move.w  %d4, %d7
-    lsl.w   #2, %d7                          /* aligned block start column */
-    move.w  10(%sp), %d6
-    cmp.w   %d7, %d6
-    blo.s   .Lplane_a_sel12_shared_segment
-    move.w  %d7, %d0
-    addq.w  #3, %d0
-    cmp.w   %d0, %d6
-    bhs.s   .Lplane_a_sel12_shared_segment
-
-    move.w  #1, 12(%sp)                      /* ring-front fragment fallback */
-    moveq   #0, %d5
-.Lplane_a_sel12_fallback_loop:
-    move.w  %d4, %d1
-    lsl.w   #2, %d1
-    add.w   %d5, %d1                /* logical column */
-    move.w  0(%sp), %d0             /* logical row */
-    move.w  %d0, %d3
-    sub.w   2(%sp), %d3
-    andi.w  #0x003F, %d3
-    cmpi.w  #32, %d3
-    bhs.s   .Lplane_a_sel12_collision_only
-    MAP_GET_NAME_COLLISION_A         /* resident row: D0 = name; D2 = collision */
-    move.w  %d0, 8(%sp)
-    bra.w   .Lplane_a_sel12_store_collision
-.Lplane_a_sel12_collision_only:
-    MAP_GET_COLLISION                /* nonresident row has no name consumer */
-    move.w  %d0, %d2
-    bra.w   .Lplane_a_sel12_store_collision
-
-.Lplane_a_sel12_shared_segment:
-    clr.w   12(%sp)                           /* shared-record segment */
-
-    move.w  0(%sp), %d2
-    lsr.w   #2, %d2
-    andi.w  #0x000F, %d2
-    lsl.w   #2, %d2
-    lea     PC080SN_DESC_REBUILD_SRC_TABLE, %a0
-    movea.l 0(%a0,%d2.w), %a0
-
-    move.w  %d4, %d2                         /* col_block */
-    moveq   #0, %d6
-    move.w  ARCADE_PC080SN_STRIP_GROUP_OFFSET(%a5), %d6
-    andi.w  #0x000F, %d6
-    sub.w   %d6, %d2
-    cmp.w   10(%sp), %d7                     /* block start after live front? */
-    bls.s   .Lplane_a_sel12_delta_ready
-    subi.w  #16, %d2
-.Lplane_a_sel12_delta_ready:
-    ext.l   %d2
-    asl.l   #2, %d2
-    adda.l  %d2, %a0
-
+    /* 0x55990 already gives selector 1/2 the sixteen rebuilt descriptor
+     * pointers in A3 order.  That order is the destination column-block axis;
+     * each pointer has already advanced by the live strip group at 0x558C6.
+     * Consume it directly.  Re-deriving a descriptor from logical row/column
+     * here was a selector-0 interpretation and destroyed the arcade's
+     * block-coordinate transpose/reversal. */
+    movea.l %d6, %a0
     cmpa.l  #PC080SN_DESC_ARCADE_START, %a0
     blo.s   .Lplane_a_sel12_shared_blank
     cmpa.l  #PC080SN_DESC_ARCADE_END, %a0
@@ -744,8 +682,6 @@ genesistan_hook_tilemap_plane_a_selector12_native:
     addq.w  #1, %d5
     cmpi.w  #4, %d5
     bhs.s   .Lplane_a_sel12_next_segment
-    tst.w   12(%sp)
-    bne.w   .Lplane_a_sel12_fallback_loop
     bra.w   .Lplane_a_sel12_shared_loop
 
 .Lplane_a_sel12_next_segment:

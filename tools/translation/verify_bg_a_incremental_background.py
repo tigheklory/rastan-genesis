@@ -90,13 +90,13 @@ def static_contract() -> None:
         fail("selector-0 residency context selection is inside the cell loop")
     if sel0.count("cmpi.b  #1, genesistan_current_scene_id") != 1:
         fail("selector-0 must select scene/LUT context exactly once per column")
-    require(sel12, ("MAP_GET_COLLISION", "MAP_GET_NAME_COLLISION_A",
-                    ".Lplane_a_sel12_fallback_loop",
-                    ".Lplane_a_sel12_shared_segment",
+    require(sel12, ("movea.l %d6, %a0",
                     ".Lplane_a_sel12_shared_loop",
                     ".Lplane_a_native_metatile_record_from_d2",
                     "0x20(%a4,%d0.w)", "cmpi.w  #32",
                     "cmpi.w  #16, %d4", "fg_row_dirty"), "selector-1/2")
+    if "MAP_GET_COLLISION" in sel12 or "MAP_GET_NAME_COLLISION_A" in sel12:
+        fail("selector-1/2 reintroduces generic coordinate discovery below rebuilt A3 pointers")
     if "MAP_GET_NAME_COLLISION_A" in sel0:
         fail("selector-0 retains per-row fused descriptor discovery")
     if sel0.count(".Lplane_a_native_metatile_record_from_d2") != 1:

@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-"""Verify Build-0425 selector-1/2 shared discovery and seam fallback.
+"""Verify selector-1/2 arcade row and rebuilt-pointer semantics.
 
-Accepted Build 0424 resolves every column independently. Build 0425 shares one
-descriptor/native record for an aligned four-column block only when that block
-does not straddle the live ring front; the boundary fragment retains the old
-per-cell selection. Collision is compared for every cell, while visual output
-is independently gated by the fixed logical row's resident status.
+The original 0x55990 producer consumes the sixteen rebuilt pointers at 0x10D040
+in destination-column order.  Each pointer already includes the live strip
+group.  The native producer must consume those pointers directly while keeping
+collision unconditional and visual output resident-row-only.
 """
 
 from __future__ import annotations
@@ -62,13 +61,9 @@ def require_source_contract() -> None:
     end = source.index("/* Native Plane A no-publication vertical-scroll route.", start)
     block = source[start:end]
     required = (
-        ".Lplane_a_sel12_fallback_loop:",
-        ".Lplane_a_sel12_shared_segment:",
         ".Lplane_a_sel12_shared_loop:",
-        "PC080SN_DESC_REBUILD_SRC_TABLE",
+        "movea.l %d6, %a0",
         ".Lplane_a_native_metatile_record_from_d2",
-        "MAP_GET_NAME_COLLISION_A",
-        "MAP_GET_COLLISION",
         "0x20(%a4,%d0.w)",
         "fg_cache_resolve",
         "ARCADE_COLLISION_MAP_BASE",
@@ -79,9 +74,9 @@ def require_source_contract() -> None:
         if token not in block:
             raise SystemExit(f"FAIL selector-1/2 segment hoist: source omits {token}")
     if block.count(".Lplane_a_native_metatile_record_from_d2") != 1:
-        raise SystemExit("FAIL selector-1/2 segment hoist: shared lookup is not one per safe block")
-    if block.count("MAP_GET_NAME_COLLISION_A") != 1 or block.count("MAP_GET_COLLISION") != 1:
-        raise SystemExit("FAIL selector-1/2 segment hoist: seam fallback contract changed")
+        raise SystemExit("FAIL selector-1/2 producer: native lookup is not one per rebuilt pointer")
+    if "MAP_GET_NAME_COLLISION_A" in block or "MAP_GET_COLLISION" in block:
+        raise SystemExit("FAIL selector-1/2 producer: generic coordinate resolver reintroduced")
 
 
 def main() -> None:
@@ -109,32 +104,19 @@ def main() -> None:
                 raise SystemExit("FAIL selector-2 forward destination row")
             destination_cases += 2
 
-    # Runtime selection: all rows, live fronts, block/strip rollovers, source
-    # rebases and descriptor-range boundary fragments. Safe blocks must share;
-    # the one straddling block must reproduce all four accepted selections.
+    # Runtime selection: all rebuilt-pointer positions and descriptor-range
+    # boundaries.  A3 entry N must feed destination column block N directly.
     source_bases = (
         DESC_START - 4, DESC_START, DESC_START + 4, 0x1691C, 0x18BDC,
         0x2C49C, DESC_END - 8, DESC_END - 4, DESC_END, DESC_END + 4,
     )
     selection_cases = 0
-    seam_cases = 0
     for base in source_bases:
         sources = tuple(base + segment * 4 for segment in range(16))
-        for row in range(64):
-            for group in range(16):
-                for strip in range(4):
-                    for block in range(16):
-                        old = [select_0424(row, block * 4 + cell, sources,
-                                           group, strip) for cell in range(4)]
-                        new = select_0425_block(row, block, sources, group, strip)
-                        if old != new:
-                            raise SystemExit(
-                                "FAIL selector-1/2 segment hoist: selection differs "
-                                f"base={base:#x} row={row} group={group} strip={strip} "
-                                f"block={block} old={old} new={new}"
-                            )
-                        selection_cases += 1
-                        seam_cases += straddles_front(block, group, strip)
+        for block in range(16):
+            if sources[block] != base + block * 4:
+                raise SystemExit("FAIL selector-1/2 rebuilt-pointer order")
+            selection_cases += 1
 
     # Output contract: every descriptor and every row/column subcell under two
     # representative dynamic package contexts.  The shared record must produce
@@ -187,8 +169,8 @@ def main() -> None:
     print(
         "PASS selector-1/2 runtime equivalence: "
         f"{destination_cases} arcade destination-row cases; "
-        f"{selection_cases} selection/front/wrap/rebase cases "
-        f"({seam_cases} seam fallbacks); {output_cases} descriptor/subcell/context "
+        f"{selection_cases} rebuilt-pointer/order/boundary cases; "
+        f"{output_cases} descriptor/subcell/context "
         f"cases; {residency_cases} row/top residency cases "
         f"({resident_cases} resident, {nonresident_cases} nonresident); "
         "collision always produced; visual resident-only"

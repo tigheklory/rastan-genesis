@@ -13,6 +13,8 @@ local A5 = 0x00ff0000
 local frame, phase2_at, blocked_at = -1, nil, nil
 local stable_frames, last_scroll, last_y = 0, nil, nil
 local closed, taps = false, {}
+local debuglog = m.debugger and m.debugger.consolelog or nil
+local debug_index = debuglog and #debuglog or 0
 
 local function r8(a) return p:read_u8(a) & 0xff end
 local function r16(a) return p:read_u16(a) & 0xffff end
@@ -54,16 +56,52 @@ local function probe_row(name)
     r16(A5+0x10b0), r16(A5+0x013e), r16(A5+0x10ca), r16(A5+0x10cc)))
 end
 
+local probe_pcs = {
+  [0x053A90]="UP_MOVE_ENTRY",
+  [0x053ABC]="HEAD_RESULT_FLAGS",
+  [0x053AC4]="HEAD_BLOCK_BRANCH",
+  [0x053AC6]="RETRY_SMALLER_MOVE",
+  [0x053BB6]="HEAD_CENTER_RESULT",
+  [0x053BEA]="HEAD_LEFT_RESULT",
+  [0x053C1E]="HEAD_RIGHT_RESULT"
+}
+
+local function drain_debug_log()
+  if not debuglog then return end
+  for i = debug_index + 1, #debuglog do
+    local line = tostring(debuglog[i])
+    local payload = line:match("^(RG002,.*)")
+    if payload then
+      local v = {}
+      for s in payload:gmatch("[^,]+") do v[#v+1] = s end
+      if #v >= 13 then
+        probes:write(table.concat({
+          tostring(frame), v[2], v[3], v[4], v[5],
+          string.format("%02X", (tonumber(v[5], 16) or 0) & 0x7f),
+          v[6], v[7], v[8], v[9], v[10], v[11], v[12], v[13]
+        }, "\t"), "\n")
+      end
+    end
+  end
+  debug_index = #debuglog
+  probes:flush()
+end
+
 if type(p.install_execute_tap) == "function" then
-  for pc, name in pairs({
-    [0x053bb6]="HEAD_CENTER_RESULT",
-    [0x053bea]="HEAD_LEFT_RESULT",
-    [0x053c1e]="HEAD_RIGHT_RESULT"
-  }) do
+  for pc, name in pairs(probe_pcs) do
     local event_name = name
     taps[#taps+1] = p:install_execute_tap(pc, pc, "rg023_" .. name,
       function() if not closed then probe_row(event_name) end end)
   end
+else
+  assert(debuglog, "launch with -debug -debugger none")
+  for pc, name in pairs(probe_pcs) do
+    local action = string.format(
+      'printf "RG002,%s,%%06X,%%06X,%%04X,%%04X,%%04X,%%04X,%%04X,%%04X,%%04X,%%04X,%%04X\n",pc,a0,w@a0,w@FF10BE,w@FF10C0,w@FF10E8,w@FF10AE,w@FF10B0,w@FF013E,w@FF10CA,w@FF10CC; g',
+      name)
+    cpu.debug:bpset(pc, "w@FF013E>=10", action)
+  end
+  m.debugger:command("go")
 end
 
 local function dump_collision()
@@ -73,6 +111,7 @@ local function dump_collision()
 end
 local function close()
   if closed then return end
+  drain_debug_log()
   closed = true
   state_row("END")
   if blocked_at then dump_collision() end
@@ -81,6 +120,7 @@ end
 
 emu.register_frame_done(function()
   frame = frame + 1
+  drain_debug_log()
   key("Coin 1", frame >= 120 and frame <= 132)
   key("P1 A", frame >= 120 and frame <= 132)
   key("1 Player Start", frame >= 175 and frame <= 187)
