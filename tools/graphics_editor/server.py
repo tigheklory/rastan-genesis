@@ -1093,47 +1093,66 @@ def _maincpu():
     return _MAINCPU
 
 
+_PC080SN = None
+_PA_DEC = None
+_PA_COMP = None
+def _pc080sn():
+    global _PC080SN
+    if _PC080SN is None:
+        _PC080SN = open(os.path.join(ROOT, "build/regions/pc080sn.bin"), "rb").read()
+    return _PC080SN
+def _plane_a_modules():
+    """Cody's canonical, selector-aware arcade Plane-A decoder + the record-selector lookup.
+    Reused verbatim so the editor's map display matches the native Genesis assembly (never a JS rotation)."""
+    global _PA_DEC, _PA_COMP
+    if _PA_DEC is None:
+        import importlib.util, sys as _sys
+        def _ld(rel, name):
+            sp = importlib.util.spec_from_file_location(name, os.path.join(ROOT, rel))
+            m = importlib.util.module_from_spec(sp); _sys.modules[name] = m
+            sp.loader.exec_module(m); return m
+        _PA_DEC = _ld("tools/audit_round1_phase1_plane_a.py", "pa_dec")
+        _PA_COMP = _ld("tools/translation/compile_pc080sn_genesis.py", "pa_comp")
+    return _PA_DEC, _PA_COMP
+
+
 def layera_map(seg, scene=None):
-    """Reconstruct one R1/P1 Layer-A segment's COMPLETE assembled backing tilemap (64x64) from the arcade
-    maincpu tables. Every nonblank cell resolves to its exact logical usage (tile_code + palette_bank).
-    The complete vertical domain is exposed (not just the 30-row screen viewport) so terrain in the lower
-    rows is editable; the normal viewport is reported for optional highlight only."""
-    _ckey=(seg,scene)
+    """Reconstruct one Layer-A record's COMPLETE 64x64 backing tilemap from the arcade tables using
+    Cody's SELECTOR-AWARE canonical decoder (reconstruct_segment): selector-0 records keep source
+    coordinates; selector-1 (vertical) records apply the arcade block-coordinate transpose, so the
+    editor map matches the real arcade orientation (records 17/21/43/44). Every nonblank cell resolves
+    to its logical usage (tile_code + palette_bank)."""
+    _ckey = (seg, scene)
     if _ckey in _MAPCACHE:
         return _MAPCACHE[_ckey]
-    m = _maincpu()
-    be = lambda o: int.from_bytes(m[o:o + 2], "big")
     la = build_layera(scene)
     bybank = {}
     for u in la["usages"]:
         bybank.setdefault((u["tile_code"], u["palette_bank"]), u)
+    dec, comp = _plane_a_modules()
+    mc = _maincpu(); gfx = _pc080sn()
+    selector = comp.decode_record_selector(mc, seg)
+    src = dec.reconstruct_segment(mc, gfx, seg, "visible", selector=selector)
     cells = []
     codes = set()
-    descriptor_cells = blank_cells = 0
-    for wr in range(_MAP_ROWS):
-        ti, dr = divmod(wr, 4)
-        tb = _MAP_BASES[ti] + seg * _MAP_STRIDE
-        for sc in range(_MAP_COLS):
-            dc, ds = divmod(sc, 4)
-            entry = tb + dc * 4
-            attr = be(entry); desc = be(entry + 2)
-            if desc == 0:
-                continue
-            descriptor_cells += 1
-            code = be(desc + dr * 8 + ds * 2) & 0x3FFF
-            if not any(tile_indices8(code)):     # fully-transparent (blank) tile — counted, not emitted
-                blank_cells += 1
-                continue
-            bank = "0x%03X" % (attr & 0x1FF)
-            u = bybank.get((code, bank))
-            cells.append({"c": sc, "r": wr, "code": code, "bank": bank,
-                          "hf": 1 if attr & 0x4000 else 0, "vf": 1 if attr & 0x8000 else 0,
-                          "attr": "0x%04X" % attr, "entry": "0x%06X" % entry,
-                          "descr": "0x%06X" % (desc + dr * 8 + ds * 2),
-                          "uid": (u["usage_id"] if u else None), "pid": (u["pattern_id"] if u else None)})
-            codes.add(code)
+    descriptor_cells = len(src)
+    blank_cells = 0
+    for cell in src:
+        code = cell.tile_code
+        if not any(tile_indices8(code)):     # fully-transparent (blank) tile — counted, not emitted
+            blank_cells += 1
+            continue
+        attr = cell.attr
+        bank = "0x%03X" % (attr & 0x1FF)
+        u = bybank.get((code, bank))
+        cells.append({"c": cell.segment_column, "r": cell.world_row, "code": code, "bank": bank,
+                      "hf": 1 if attr & 0x4000 else 0, "vf": 1 if attr & 0x8000 else 0,
+                      "attr": "0x%04X" % attr, "entry": "0x%06X" % 0,
+                      "descr": "0x%06X" % cell.descriptor_offset,
+                      "uid": (u["usage_id"] if u else None), "pid": (u["pattern_id"] if u else None)})
+        codes.add(code)
     tiles = {str(c): tile_indices8(c) for c in codes}
-    out = {"seg": seg, "cols": _MAP_COLS, "rows": _MAP_ROWS, "row0": 0, "nrows": _MAP_ROWS,
+    out = {"seg": seg, "selector": selector, "cols": _MAP_COLS, "rows": _MAP_ROWS, "row0": 0, "nrows": _MAP_ROWS,
            "visible_viewport": {"row0": _MAP_VIS_ROW0, "nrows": _MAP_VIS_NROWS},
            "total_cells": _MAP_ROWS * _MAP_COLS, "descriptor_cells": descriptor_cells,
            "blank_cells": blank_cells, "nonblank_cells": len(cells),
