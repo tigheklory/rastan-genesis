@@ -1344,6 +1344,27 @@ def build_oracle():
     banks = sprite_bank_colors()
     plane = loadj(os.path.join(CORP, "plane_palette_banks.json"), {"banks": {}})
     contexts = loadj(os.path.join(ORACLE, "contexts.json"), {"contexts": [], "context_types": []})
+    # RG-022/PROMPT-0006: register each subround PLANEA environment as a genuine, independent editing
+    # context so Genesis Lines 0/1/3 can be authored per subround (context_policies[scene_key].tpl).
+    # Parent = context:gameplay (a neutral node with no overrides) so scenes are independent siblings;
+    # R1-S1 outdoor keeps the existing context:gameplay.r01.p01 (preserving approved work), and the
+    # R1-S1 caves nest under it.
+    ctx_ids = {c["id"] for c in contexts.get("contexts", [])}
+    smap = loadj(os.path.join(ROOT, "specs/palette_subround_map.json"), {"subrounds": []})
+    added = []
+    for sr in smap.get("subrounds", []):
+        for env in sr.get("environments", []):
+            if env.get("family") != "PLANEA":
+                continue
+            sk = env["scene_key"]
+            if sk == "PAL-R1-S1-PLANEA-OUTDOOR" or sk in ctx_ids:
+                continue  # outdoor R1-S1 == existing r01.p01; don't duplicate
+            parent = "context:gameplay.r01.p01" if sr["key"] == "R1-S1" else "context:gameplay"
+            disp = f"{sr['key']} {env['env']} (Plane A)"
+            added.append({"id": sk, "display": disp, "parent": parent, "type": "GAMEPLAY_SUBROUND",
+                          "subround": sr["key"], "env": env["env"], "records": env.get("records"),
+                          "native": sr["native"]})
+    contexts["contexts"] = contexts.get("contexts", []) + added
     objects = loadj(os.path.join(ORACLE, "objects.json"), {"objects": []})
     coex = loadj(os.path.join(ORACLE, "coexistence.json"), {})
     usages = build_usages(banks)
