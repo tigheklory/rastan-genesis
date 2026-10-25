@@ -53848,3 +53848,22 @@ assumptions in the shared Plane-A decode explain the reports:
   NOT implemented pending Tighe review.
 - Report: docs/design/Andy_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0001_arcade_palette_and_map_orientation_audit.md
   Evidence: analysis/rg_audit_0001_evidence/ (rec17 as-decoded vs CCW-correct, rec45 complete). Push blocked (SSH).
+
+### MAME Exit Summary (2026-10-25 12:05:37)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-25 12:11:56)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## PROMPT-ID-0002 — Selector-1 castle map candidate (Cody, Build 0502, 2026-10-25)
+
+- Build 0502 normal ROM: `dist/rastan-direct/rastan_direct_video_test_build_0502.bin`, SHA-256 `69c20a117af330f0dfbc9fd8ebbb0231a468610bfb9f939ec38f62e2af613529`; exact ROM-producing source `e8652fc0200ea3adb60d5c268e8295f1e4a935c2`. Candidate only; not accepted.
+- Independently derived selector 1 as block-axis transpose plus block-column reversal with inner 4x4 orientation preserved. Offline decoder and native selector-1/2 producer now consume that contract; native code consumes the exact rebuilt descriptor pointers supplied by retained arcade `0x055990` rather than reconstructing selector-0 coordinates.
+- Static gate passes 128 destination-row, 160 pointer/order, 1,869,856 descriptor/subcell/context, and 4,096 residency cases. Original arcade MAME vs Genesis NTSC initial spatial checks for R1-S1/S2/S3 and R2-S1/S2/S3 have zero Plane-A/B, collision, LUT, orientation, or VRAM mismatches. Rope benchmark remains `795/795/795`, median 13,267.083 ms.
+- Causal correction: the maintained direct-start `FG Y=0x0166` ceiling is not the user's later upper-chain oracle; original arcade MAME stops at the same location on the same collision words. The older human third-chain trace is a later ring epoch (`0x01DA -> 0x0028`). Authentic upper-route traversal is therefore not proven and the climb defect remains open pending Tighe's exact-route test.
+- Palette Composer and palette decisions were untouched. Andy should regenerate the Layer-A corpus for selector-1 records 17/21/43/44 from the canonical decoder.
+- Full report: `docs/design/Cody_build0502_selector1_castle_map_candidate.md`; requested task index: `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0002_castle_climb_fix.md`.

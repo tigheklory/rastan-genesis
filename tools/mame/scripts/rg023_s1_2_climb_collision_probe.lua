@@ -159,6 +159,7 @@ emu.register_frame_done(function()
       blocked_at = frame
       state_row("CLIMB_BLOCKED")
       dump_collision()
+      pcall(function() m.video:snapshot() end)
     end
     if (t % 30) == 0 then state_row("SAMPLE") end
   end
