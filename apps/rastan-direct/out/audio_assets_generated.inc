@@ -5,10 +5,10 @@
     .global genesistan_audio_song_dispatch_count
     .global genesistan_audio_song_dispatch
 genesistan_audio_song_catalog_count:
-    .byte 7
+    .byte 9
     .balign 2
 genesistan_audio_song_catalog:
-    .byte 1, 0xFF
+    .byte 1, 0x04
     .word 0
     .long genesistan_audio_track_01_credit_start
     .long 0
@@ -24,7 +24,7 @@ genesistan_audio_song_catalog:
     .word 0
     .long genesistan_audio_track_04_bad_bible_name_regist_start
     .long genesistan_audio_track_04_bad_bible_name_regist_loop
-    .byte 5, 0xFF
+    .byte 5, 0x27
     .word 0
     .long genesistan_audio_track_05_re_in_carnation_scene_2_start
     .long genesistan_audio_track_05_re_in_carnation_scene_2_loop
@@ -34,16 +34,68 @@ genesistan_audio_song_catalog:
     .long genesistan_audio_track_06_the_devil_boss_carnival_scene_3_boss_loop
     .byte 7, 0xFF
     .word 0
+    .long genesistan_audio_track_07_scene_clear_start
+    .long 0
+    .byte 8, 0xFF
+    .word 0
+    .long genesistan_audio_track_08_final_destroy_scene_3_round_6_boss_start
+    .long genesistan_audio_track_08_final_destroy_scene_3_round_6_boss_loop
+    .byte 9, 0xFF
+    .word 0
     .long genesistan_audio_track_09_the_man_of_saga_ending_start
     .long 0
 genesistan_audio_song_dispatch_count:
-    .byte 1
+    .byte 12
     .balign 2
 genesistan_audio_song_dispatch:
-    .byte 37, 3
+    .byte 0x25, 3
     .word 0
     .long genesistan_audio_track_03_aggressive_world_scene_1_start
     .long genesistan_audio_track_03_aggressive_world_scene_1_loop
+    .byte 0x04, 1
+    .word 0
+    .long genesistan_audio_track_01_credit_start
+    .long 0
+    .byte 0x27, 5
+    .word 0
+    .long genesistan_audio_track_05_re_in_carnation_scene_2_start
+    .long genesistan_audio_track_05_re_in_carnation_scene_2_loop
+    .byte 0xD0, 1
+    .word 0
+    .long genesistan_audio_track_01_credit_start
+    .long 0
+    .byte 0xD1, 2
+    .word 0
+    .long genesistan_audio_track_02_broken_the_promises_opening_start
+    .long 0
+    .byte 0xD2, 3
+    .word 0
+    .long genesistan_audio_track_03_aggressive_world_scene_1_start
+    .long genesistan_audio_track_03_aggressive_world_scene_1_loop
+    .byte 0xD3, 4
+    .word 0
+    .long genesistan_audio_track_04_bad_bible_name_regist_start
+    .long genesistan_audio_track_04_bad_bible_name_regist_loop
+    .byte 0xD4, 5
+    .word 0
+    .long genesistan_audio_track_05_re_in_carnation_scene_2_start
+    .long genesistan_audio_track_05_re_in_carnation_scene_2_loop
+    .byte 0xD5, 6
+    .word 0
+    .long genesistan_audio_track_06_the_devil_boss_carnival_scene_3_boss_start
+    .long genesistan_audio_track_06_the_devil_boss_carnival_scene_3_boss_loop
+    .byte 0xD6, 7
+    .word 0
+    .long genesistan_audio_track_07_scene_clear_start
+    .long 0
+    .byte 0xD7, 8
+    .word 0
+    .long genesistan_audio_track_08_final_destroy_scene_3_round_6_boss_start
+    .long genesistan_audio_track_08_final_destroy_scene_3_round_6_boss_loop
+    .byte 0xD8, 9
+    .word 0
+    .long genesistan_audio_track_09_the_man_of_saga_ending_start
+    .long 0
     .section .audio,"a"
     .balign 0x8000
     .global genesistan_audio_track_01_credit_start
@@ -94,6 +146,22 @@ genesistan_audio_track_06_the_devil_boss_carnival_scene_3_boss_start:
 genesistan_audio_track_06_the_devil_boss_carnival_scene_3_boss_loop:
     .incbin "out/audio_native/track_06_the_devil_boss_carnival_scene_3_boss_loop.bin"
 genesistan_audio_track_06_the_devil_boss_carnival_scene_3_boss_end:
+    .global genesistan_audio_track_07_scene_clear_start
+    .global genesistan_audio_track_07_scene_clear_loop
+    .global genesistan_audio_track_07_scene_clear_end
+genesistan_audio_track_07_scene_clear_start:
+    .incbin "out/audio_native/track_07_scene_clear_intro.bin"
+genesistan_audio_track_07_scene_clear_loop:
+    .incbin "out/audio_native/track_07_scene_clear_loop.bin"
+genesistan_audio_track_07_scene_clear_end:
+    .global genesistan_audio_track_08_final_destroy_scene_3_round_6_boss_start
+    .global genesistan_audio_track_08_final_destroy_scene_3_round_6_boss_loop
+    .global genesistan_audio_track_08_final_destroy_scene_3_round_6_boss_end
+genesistan_audio_track_08_final_destroy_scene_3_round_6_boss_start:
+    .incbin "out/audio_native/track_08_final_destroy_scene_3_round_6_boss_intro.bin"
+genesistan_audio_track_08_final_destroy_scene_3_round_6_boss_loop:
+    .incbin "out/audio_native/track_08_final_destroy_scene_3_round_6_boss_loop.bin"
+genesistan_audio_track_08_final_destroy_scene_3_round_6_boss_end:
     .global genesistan_audio_track_09_the_man_of_saga_ending_start
     .global genesistan_audio_track_09_the_man_of_saga_ending_loop
     .global genesistan_audio_track_09_the_man_of_saga_ending_end

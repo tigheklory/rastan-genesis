@@ -9,8 +9,8 @@
   "native_event_count": 90,
   "noise_mode": "fixed_1024",
   "original_track_command_mapping": "unresolved unless listed by the generated native dispatch registry",
-  "profile_revision": 11,
-  "profile_revision_id": "music-test.r11.20261022T220736Z",
+  "profile_revision": 14,
+  "profile_revision_id": "music-test.r14.20261023T204126Z",
   "render_stats": {
     "dropped_channels": [
       0,

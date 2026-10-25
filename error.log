@@ -2,10 +2,10 @@
 [:mdslot] No SRAM detected from header, using fallback SRAM in case this is a broken header
 [:mdslot] FILE DETAILS
 [:mdslot] ============
-[:mdslot] Name: rastan_direct_video_test_build_0367.bin
-[:mdslot] File Size: 0x001a3eb8
+[:mdslot] Name: rastan_direct_video_test_build_0498_S2-1.bin
+[:mdslot] File Size: 0x0033deb8
 [:mdslot] Detected type: rom_sramsafe
-[:mdslot] ROM (Allocated) Size: 0x200000
+[:mdslot] ROM (Allocated) Size: 0x400000
 [:mdslot] NVRAM: Yes
 [:mdslot] NVRAM (Allocated) Size: 0x10000
 [:mdslot] 
@@ -21,8 +21,8 @@
 [:mdslot]  - Type: 00 (Unknown)
 [:mdslot]  - Serial Code: 0000  
 [:mdslot]  - Revision:   
-[:mdslot] Checksum: C0E6
-[:mdslot]  - Calculated Checksum: 5094
+[:mdslot] Checksum: 3868
+[:mdslot]  - Calculated Checksum: 3015
 [:mdslot] Supported I/O Devices:            
 [:mdslot] Modem:             
 [:mdslot] Memo:                        JUE             
@@ -35,3 +35,6 @@
 Soft reset
 [:maincpu] ':maincpu' (000222): unmapped program memory write to A14000 = 5345 & FFFF
 [:maincpu] ':maincpu' (000222): unmapped program memory write to A14002 = 4741 & FFFF
+RG021_MISS_A code=0D12 stage=0017 seg=0018 package=0006
+RG021_MISS_A code=0D15 stage=0017 seg=0018 package=0006
+RG021_MISS_A code=0F2D stage=0017 seg=0018 package=0006
