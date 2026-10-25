@@ -1,12 +1,17 @@
--- Focused Build 0419/0421 Segment-0 semantic snapshot.
--- Captures once the same initial gameplay state has remained stable for 15 frames,
--- before the established input driver begins moving the player.
+-- Focused native-stage semantic snapshot.  Originally introduced for the
+-- Build 0419/0421 Segment-0 comparison; current symbols are supplied by the
+-- wrapper so the same bounded capture remains valid as ROM/BSS layout grows.
 
 local machine = manager.machine
 local cpu = assert(machine.devices[":maincpu"], "missing :maincpu")
 local program = assert(cpu.spaces["program"], "missing maincpu program space")
+local screen = assert(machine.screens:at(1), "missing screen")
 local trace_dir = assert(os.getenv("TRACE_DIR"), "TRACE_DIR is required")
 local capture_x = tonumber(os.getenv("SEGMENT0_CAPTURE_X") or "0x20")
+local scene_addr = assert(tonumber(os.getenv("SCENE_ADDR")), "SCENE_ADDR is required")
+local active_lut_addr = assert(tonumber(os.getenv("ACTIVE_LUT_ADDR")), "ACTIVE_LUT_ADDR is required")
+local staged_bg_addr = assert(tonumber(os.getenv("STAGED_BG_ADDR")), "STAGED_BG_ADDR is required")
+local staged_fg_addr = assert(tonumber(os.getenv("STAGED_FG_ADDR")), "STAGED_FG_ADDR is required")
 
 local function r8(address) return program:read_u8(address) & 0xff end
 local function r16(address) return program:read_u16(address) & 0xffff end
@@ -25,9 +30,24 @@ local function dump(path, address, size)
   out:close()
 end
 
+local function dump_vram_names(path, base)
+  -- Read the real Mega Drive VRAM through the VDP data port.  The MAME
+  -- :gen_vdp Lua videoram space is only the 16-KiB Mode-4 compatibility view.
+  program:write_u16(0x00c00004, 0x8f02)
+  program:write_u16(0x00c00004, base & 0x3fff)
+  program:write_u16(0x00c00004, (base >> 14) & 3)
+  local out = assert(io.open(path, "wb"))
+  for _ = 0, 2047 do
+    local word = program:read_u16(0x00c00000) & 0xffff
+    out:write(string.char((word >> 8) & 0xff, word & 0xff))
+  end
+  out:close()
+end
+
 local frame = 0
 local stable = 0
 local captured = false
+local captured_frame = nil
 
 local function drive_inputs()
   set_input("Coin 1", frame >= 120 and frame <= 132)
@@ -44,23 +64,34 @@ emu.register_frame_done(function()
   local player_x = r16(0xff10be)
   local x_ready = capture_x == 0x20 and player_x == capture_x or player_x >= capture_x
   local initial = r16(0xff0000) == 2 and r16(0xff0002) == 3 and
-    r16(0xff0004) == 0 and r8(0xff3865) == 1 and x_ready
+    r16(0xff0004) == 0 and r8(scene_addr) == 1 and x_ready
   stable = initial and (stable + 1) or 0
   local required_stable = capture_x == 0x20 and 15 or 1
   if not captured and stable >= required_stable then
     captured = true
-    dump(trace_dir .. "/staged_plane_b.bin", 0xff40a0, 0x1000)
-    dump(trace_dir .. "/staged_plane_a.bin", 0xff50a0, 0x1000)
+    captured_frame = frame
+    dump(trace_dir .. "/staged_plane_b.bin", staged_bg_addr, 0x1000)
+    dump(trace_dir .. "/staged_plane_a.bin", staged_fg_addr, 0x1000)
     dump(trace_dir .. "/collision_map.bin", 0xff1e00, 0x2000)
     dump(trace_dir .. "/descriptor_state.bin", 0xff1000, 0x0100)
+    dump(trace_dir .. "/active_lut.bin", active_lut_addr, 0x5000)
+    local snapshot_ok,snapshot_error=pcall(function() machine.video:snapshot() end)
+    local snapshot_status=assert(io.open(trace_dir .. "/snapshot_status.txt","w"))
+    snapshot_status:write(snapshot_ok and "PASS\n" or (tostring(snapshot_error).."\n"))
+    snapshot_status:close()
+    dump_vram_names(trace_dir .. "/vram_plane_b.bin", 0xc000)
+    dump_vram_names(trace_dir .. "/vram_plane_a.bin", 0xe000)
     local out = assert(io.open(trace_dir .. "/state.tsv", "w"))
-    out:write("frame\tstate0\tstate2\tstate4\tscene\tplayer_x\tplayer_y\trecord\tscroll_a_x\tscroll_a_y\tstrip_index\tstrip_group\tbg_subcol\tbg_walker\tbg_table_index\n")
-    out:write(string.format("%d\t%04X\t%04X\t%04X\t%02X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%08X\t%04X\n",
-      frame, r16(0xff0000), r16(0xff0002), r16(0xff0004), r8(0xff3865),
-      r16(0xff10be), r16(0xff10c2), r16(0xff013e), r16(0xff10ae),
-      r16(0xff10b0), r16(0xff10ca), r16(0xff10cc), r16(0xff10f6),
-      program:read_u32(0xff10fc) & 0xffffffff, r16(0xff1386)))
+    out:write("frame\tstate0\tstate2\tstate4\tscene\tplayer_x\tplayer_y\trecord\tselector\tscroll_a_x\tscroll_a_y\tscroll_b_x\tscroll_b_y\tstrip_index\tstrip_group\tbg_subcol\tbg_walker\tbg_table_index\tstage_byte\tphase3_enable\tphase3_tick\n")
+    out:write(string.format("%d\t%04X\t%04X\t%04X\t%02X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%08X\t%04X\t%02X\t%04X\t%04X\n",
+      frame, r16(0xff0000), r16(0xff0002), r16(0xff0004), r8(scene_addr),
+      r16(0xff10be), r16(0xff10c2), r16(0xff013e), r16(0xff10a8),
+      r16(0xff10ae), r16(0xff10b0), r16(0xff10ec), r16(0xff10ee),
+      r16(0xff10ca), r16(0xff10cc), r16(0xff10f6),
+      program:read_u32(0xff10fc) & 0xffffffff, r16(0xff1386),
+      r8(0xff0118), r16(0xff1360), r16(0xff1362)))
     out:close()
+  elseif captured_frame and frame >= captured_frame + 2 then
     machine:exit()
   elseif frame >= 1200 then
     local out = assert(io.open(trace_dir .. "/capture_failed.txt", "w"))

@@ -2435,6 +2435,25 @@ genesistan_hook_tilemap_fg_fill:
     andi.w  #0x003F, %d4
     move.w  %d2, %d5
     lsr.w   #6, %d5
+    andi.w  #0x003F, %d5
+
+    /* RG-023: a raw PC080SN Layer-A destination carries a 64-row logical
+     * identity.  The Genesis resident plane carries only the live 32-row
+     * window.  Folding every writer with row&31 made nonresident Phase-3
+     * animation destinations (for example logical rows 42..44 in R1-S3)
+     * overwrite resident rows 10..12.  Preserve non-gameplay callers exactly,
+     * but during gameplay publish only a logical row owned by the live window;
+     * retained state/timing still executes and no C-window image is created. */
+    cmpi.b  #SCENE_GAMEPLAY_ID, genesistan_current_scene_id
+    bne.s   .Lfg_fill_project_row
+    move.w  %d5, %d7
+    move.w  0x00FF10B0, %d0
+    bsr     .Lplane_a_visible_top_from_scroll_d0
+    sub.w   %d0, %d7
+    andi.w  #0x003F, %d7
+    cmpi.w  #32, %d7
+    bhs.s   .Lfg_fill_advance
+.Lfg_fill_project_row:
     andi.w  #0x001F, %d5
 
     move.w  %d5, %d0
@@ -2447,6 +2466,7 @@ genesistan_hook_tilemap_fg_fill:
     bset    %d5, %d0
     move.l  %d0, fg_row_dirty
 
+.Lfg_fill_advance:
     adda.l  #4, %a4
     subq.w  #1, %d6
     bne.s   .Lfg_fill_loop
