@@ -1425,6 +1425,56 @@ def derive_scene_palette(scene, lines=(0, 1, 3), skip_usages=()):
     }
 
 
+def reuse_line2_mapping(scene, skip_usages=()):
+    """Bulk-map the scene's REMAINING Plane-A banks onto Line 2's EXISTING arcade Layer-B colors
+    (reuse, never author). Per usage: injective (MRD=0) min-cost ΔE assignment of its used arcade
+    colors onto the populated Line-2 entries. Banks whose any usage is already mapped (skip_usages)
+    are left as-is. A usage needing more distinct colors than Line 2 has populated is BLOCKED. No
+    colors are created or changed — only plane mappings with line==2 are returned."""
+    la = build_layera(scene)
+    banks = la["banks"]
+    usages = la["usages"]
+    skip = set(skip_usages)
+    placed_banks = {u["palette_bank"] for u in usages if u["usage_id"] in skip}
+    lb = _layer_b_display() or {}
+    lb_cram = lb.get("cram") or []
+    tgt = [(i, list(_cram_rgb(lb_cram[i]))) for i in range(1, 16)
+           if i < len(lb_cram) and lb_cram[i] and lb_cram[i] != "0x0000"]
+    mappings, blocked_usages, mapped_banks = {}, [], set()
+    considered_banks = {u["palette_bank"] for u in usages if u["palette_bank"] not in placed_banks}
+    for u in usages:
+        b = u["palette_bank"]
+        if b in placed_banks:
+            continue
+        pal = banks.get(b, [[0, 0, 0]] * 16)
+        counts = {}
+        for v in tile_indices8(u["tile_code"]):
+            if v:
+                counts[v] = counts.get(v, 0) + 1
+        srcs = [(si, pal[si] if si < len(pal) else [0, 0, 0], counts[si]) for si in sorted(counts)]
+        if not srcs:
+            continue
+        if len(srcs) > len(tgt):
+            blocked_usages.append(u["usage_id"]); continue
+        n = len(tgt)
+        cost = [[(srcs[r][2] * _de00(srcs[r][1], tgt[cc][1]) if r < len(srcs) else 0.0)
+                 for cc in range(n)] for r in range(n)]
+        assign = _hungarian(cost)
+        mappings[u["usage_id"]] = {"line": 2, "index_map": {str(srcs[r][0]): tgt[assign[r]][0]
+                                                            for r in range(len(srcs))}}
+        mapped_banks.add(b)
+    return {
+        "scene": scene, "reuse_line2": True, "lines": {}, "mappings": mappings,
+        "blocked_banks": [], "blocked_usages": blocked_usages,
+        "summary": {
+            "banks_total": len(considered_banks), "banks_placed": len(mapped_banks), "banks_blocked": 0,
+            "banks_already_placed": len(placed_banks), "usages_total": len(usages),
+            "usages_mapped": len(mappings), "usages_blocked": len(blocked_usages),
+            "line_fill": {"2": len(tgt)},
+        },
+    }
+
+
 def layera_solver_usages(ids, scene=None):
     """Build solve_group-shaped usage dicts for selected Layer-A logical usages (LA-NNNN).
     Each logical usage is its own palette domain; used_colors + pixel MRD come from the real tile pixels.
@@ -1730,11 +1780,14 @@ class Hd(BaseHTTPRequestHandler):
                 if _scene_corpus_dir(scene) is None:
                     return self._s(404, json.dumps({"error": "no Layer-A corpus for scene %s — derive "
                                    "disabled for this scene (R1/P1 is NOT substituted)" % scene}).encode())
-            lines = body.get("lines") or [0, 1, 3]
-            lines = [int(x) for x in lines if int(x) not in RESERVED_LINES and int(x) in (0, 1, 3)]
+            req_lines = [int(x) for x in (body.get("lines") or [0, 1, 3])]
+            skip = body.get("skip_usages") or []
+            # Line 2 request = REUSE mode: map remaining banks onto existing Layer-B colors (never author).
+            if req_lines == [2]:
+                return self._s(200, json.dumps(reuse_line2_mapping(scene, skip)).encode())
+            lines = [x for x in req_lines if x not in RESERVED_LINES and x in (0, 1, 3)]
             if not lines:
                 return self._s(400, json.dumps({"error": "no editable target lines (0/1/3)"}).encode())
-            skip = body.get("skip_usages") or []
             return self._s(200, json.dumps(derive_scene_palette(scene, tuple(lines), skip)).encode())
         if u.path == "/api/solve":
             idlist = body.get("usage_ids", [])

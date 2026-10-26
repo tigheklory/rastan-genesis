@@ -523,10 +523,12 @@ async function renderLayerA(L){
  // banks, packed into Lines 0/1/3, then mapped. No per-usage checkbox hunting.
  const dbar=el('div','groupbar');
  const canDerive=ph&&!isProtected(ACTIVE)&&editableLines().includes(ACTIVE);
- const dbtn=el('button','act','Derive Scene Palette → Line '+ACTIVE);dbtn.disabled=!canDerive;
- dbtn.title=canDerive?('Derive the closest Genesis palette for the ENTIRE '+amName+' tileset onto Line '+ACTIVE+' (banks that do not fit 15 colors are reported, never merged)'):(isProtected(ACTIVE)?'Line 2 is protected — pick Line 0/1/3':(ph?'Select an editable Genesis line (0/1/3) at right first':'Open a subround scene first'));
+ const l2reuse=ph&&isProtected(ACTIVE)&&POL.line2_display&&POL.line2_display.cram;   // Line 2 = reuse Layer B
+ const canAny=canDerive||l2reuse;
+ const dbtn=el('button','act',l2reuse?('Map Scene → Line '+ACTIVE+' (reuse Layer B)'):('Derive Scene Palette → Line '+ACTIVE));dbtn.disabled=!canAny;
+ dbtn.title=canAny?(l2reuse?('Bulk-map the remaining Plane-A banks onto Line 2\'s EXISTING Layer-B colors — reuse only, never changes Line 2, MRD-safe'):('Derive the closest Genesis palette for the ENTIRE '+amName+' tileset onto Line '+ACTIVE+' (banks that do not fit 15 colors are reported, never merged)')):(ph?'Select a Genesis line (0/1/3, or 2 to reuse Layer B) at right first':'Open a subround scene first');
  dbtn.onclick=()=>deriveScenePalette(ACTIVE);dbar.appendChild(dbtn);
- dbar.appendChild(el('div','dim',canDerive?('whole tileset → Line '+ACTIVE+' · one Undo · scoped to '+amName):'Pick an editable line (click LINE 0/1/3 at right)'));
+ dbar.appendChild(el('div','dim',canAny?(l2reuse?('remaining banks → Line 2 (reuse Layer B) · one Undo · '+amName):('whole tileset → Line '+ACTIVE+' · one Undo · scoped to '+amName)):'Pick a line (click LINE 0/1/3, or 2 to reuse Layer B, at right)'));
  L.appendChild(dbar);
  // Clear the active line (colors + mappings) at this scope — isolated from other subrounds.
  const cbar=el('div','groupbar');
@@ -625,10 +627,14 @@ async function deriveScenePalette(line){
  const ctx=automapContext();
  if(!ctx)return alert('Open a subround scene (or a phase context) first.');
  if(POL.immutable)return alert('Create an editable profile first.');
- if(line==null)line=ACTIVE;if(guardProtected(line))return;
- if(!editableLines().includes(line))return alert('Pick an editable Genesis line (0, 1 or 3) at right first.');
+ if(line==null)line=ACTIVE;
+ // Line 2 = REUSE mode: map remaining banks onto existing Layer-B colors (never author). Otherwise 0/1/3.
+ const reuse=isProtected(line);
+ if(!reuse&&guardProtected(line))return;
+ if(reuse&&!(POL.line2_display&&POL.line2_display.cram))return alert('No Layer-B palette is loaded for Line '+line+', so there is nothing to reuse.');
+ if(!reuse&&!editableLines().includes(line))return alert('Pick an editable Genesis line (0, 1 or 3) at right first.');
  const destId=ctx.id, reqScene=ctx.scene||null, reqScope=SCOPE, reqActive=ACTIVE_SCENE, label=ctxName(destId)+(ctx.kind==='scene'?' ['+destId+']':'');
- $('#status').textContent='deriving scene palette for '+label+' → Line '+line+'…';
+ $('#status').textContent=(reuse?'mapping remaining banks → Line ':'deriving scene palette for '+label+' → Line ')+line+'…';
  // usages already mapped in THIS scene go in skip_usages so their banks aren't re-derived — lets you
  // place the remaining banks on another line by selecting it and running again.
  const skip=Object.keys((ctxPolicies()[destId]||{}).plane_usage_palette_mappings||{});
@@ -644,28 +650,32 @@ async function deriveScenePalette(line){
  const savedScope=SCOPE;SCOPE=destId;let changed=0;
  (res.lines[String(line)]||[]).forEach((cc,i)=>{if(i>0&&cc!=null){const cur=tcram(line,i);if(cur!=null&&cur!==cc)changed++;}});
  SCOPE=savedScope;
- const msg='Derive Scene Palette: '+label+'\n'
-  +'target: Genesis Line '+line+'\n'
+ const msg=(reuse?'Map remaining banks → Line '+line+' (REUSE Layer B): '+label+'\n'
+    +'maps each remaining Plane-A tile onto Line 2\'s EXISTING arcade colors (never changes Line 2).\n'
+   :'Derive Scene Palette: '+label+'\ntarget: Genesis Line '+line+'\n')
   +(s.banks_already_placed?('banks already placed on other lines (kept): '+s.banks_already_placed+'\n'):'')
-  +'remaining banks that fit this line: '+s.banks_placed+'/'+s.banks_total+'  (too big for one line: '+s.banks_blocked+')\n'
+  +'remaining banks '+(reuse?'mapped':'that fit')+' this line: '+s.banks_placed+'/'+s.banks_total+(reuse?'':'  (too big for one line: '+s.banks_blocked+')')+'\n'
   +'usages mapped this pass: '+s.usages_mapped+'  (still unmapped: '+s.usages_blocked+')\n'
-  +'colors written to Line '+line+': '+fill+'/15\n'
-  +(changed?('WARNING: '+changed+' existing color(s) on Line '+line+' will be overwritten.\n'):'')
-  +'Fills ONLY Line '+line+' and maps the usages that fit, scoped ONLY to '+label+'. One Undo. Line 2 untouched.\n'
-  +(s.banks_blocked?'Banks that do not fit stay UNMAPPED — put them on another line by selecting it and running this again.\n':'')
+  +(reuse?'Line 2 colors are NOT changed. MRD-safe (no merges). ':'colors written to Line '+line+': '+fill+'/15\n'
+    +(changed?('WARNING: '+changed+' existing color(s) on Line '+line+' will be overwritten.\n'):''))
+  +'Scoped ONLY to '+label+'. One Undo.\n'
+  +(s.usages_blocked?'Tiles needing >15 distinct colors stay UNMAPPED.\n':'')
   +'\nProceed?';
- if(!confirm(msg)){$('#status').textContent='derive canceled (no changes)';return;}
+ if(!confirm(msg)){$('#status').textContent=(reuse?'map':'derive')+' canceled (no changes)';return;}
  pushUndo();
- // colors -> the destination context's per-scene override on the CHOSEN line (not the shared base)
- (res.lines[String(line)]||[]).forEach((cc,i)=>{if(i>0&&cc!=null)tplSetAt(destId,line,i,cc);});
+ // colors -> per-scene override on the chosen line (authoring lines 0/1/3 only; Line 2 is reuse-mapping, no colors)
+ if(!reuse)(res.lines[String(line)]||[]).forEach((cc,i)=>{if(i>0&&cc!=null)tplSetAt(destId,line,i,cc);});
  // mappings -> the destination context's plane map
  const dest=ctxPlaneMaps(destId);Object.entries(res.mappings).forEach(([uid,m])=>{dest[uid]={line:m.line,index_map:m.index_map};});
  afterChange();
  PHASE_RESULT=null;const P=$('#props');P.innerHTML='';
- P.appendChild(txt('DERIVE SCENE PALETTE — '+label+' → LINE '+line+'\nalready placed (other lines): '+s.banks_already_placed+' banks\nremaining banks fit this line: '+s.banks_placed+'/'+s.banks_total+'\nusages mapped this pass: '+s.usages_mapped+'\nstill unmapped: '+s.usages_blocked+'\ncolors on Line '+line+': '+fill+'/15\ncolors written to: per-scene override ('+destId+')'));
- if(s.banks_blocked)P.appendChild(el('div','vitem WARN',s.banks_blocked+' bank(s) do not fit Line '+line+' (>15 colors together) — still UNMAPPED. Select another editable line (0/1/3) and run again to place them there.'));
- else P.appendChild(el('div','vitem PASS','All remaining banks placed on Line '+line+'. Isolated to '+destId+'.'));
- $('#status').textContent='scene palette derived → Line '+line+': '+s.usages_mapped+' usages mapped, '+s.banks_blocked+' banks blocked';}
+ P.appendChild(txt((reuse?'MAP → LINE '+line+' (REUSE LAYER B)':'DERIVE SCENE PALETTE → LINE '+line)+' — '+label
+   +'\nalready placed (other lines): '+s.banks_already_placed+' banks\nremaining banks '+(reuse?'mapped':'fit this line')+': '+s.banks_placed+'/'+s.banks_total
+   +'\nusages mapped this pass: '+s.usages_mapped+'\nstill unmapped: '+s.usages_blocked
+   +(reuse?'\nLine 2 colors: UNCHANGED (reuse only)':'\ncolors on Line '+line+': '+fill+'/15\ncolors written to: per-scene override ('+destId+')')));
+ if(s.usages_blocked)P.appendChild(el('div','vitem WARN',s.usages_blocked+' usage(s) need >15 distinct colors — still UNMAPPED.'));
+ else P.appendChild(el('div','vitem PASS',(reuse?'All remaining tiles mapped onto Line 2 (Layer B unchanged).':'All remaining banks placed on Line '+line+'.')+' Isolated to '+destId+'.'));
+ $('#status').textContent=(reuse?'mapped → Line ':'scene palette derived → Line ')+line+': '+s.usages_mapped+' usages, '+s.usages_blocked+' blocked';}
 // Clear ALL colors + mappings on `line` at the active scope. Removes this scope's per-scene color
 // overrides for the line AND the shared base entries, plus the Layer-A/sprite mappings that target it.
 // Other subrounds keep their OWN Line `line` (their private tpl overrides are untouched). Line 2 protected.

@@ -54070,3 +54070,16 @@ simply never drawn in the castle (R1 uses one background bank), so the flame col
 - Normal SHA-256 `6cd134226f82cfb6d4c7c3929f7297d1fefd2bd998eb36a7b6780603b136674a`; R1-S2 SHA-256 `96f63e694874622818763a62b33881ec07a106b7c611a8d4edeff33e67fc508c`.
 - Records 18–20 (selector 0) and 21 (selector 1) pass exhaustive/static native gates and remain package 5, but the bounded route did not naturally reach them. Tighe must verify their transitions, multiple record-21 positions, fourth-chain attachment, R1-S3, and boss progression. Candidate NOT ACCEPTED.
 - Full evidence: `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0012_r1s2_complete_record_streaming.md`.
+
+## Feature: bulk "Map Scene → Line 2 (reuse Layer B)" (Andy, 2026-10-26, Tighe request)
+
+Tighe wanted to bulk-map the flame tiles onto Line 2 (reuse) instead of one color at a time (manual
+reuse caused MRD merges). Made the Derive button work for Line 2 in REUSE mode: server
+reuse_line2_mapping(scene, skip_usages) does a per-usage injective (MRD=0) min-cost ΔE assignment of
+each remaining bank's colors onto Line 2's EXISTING populated Layer-B colors; returns line==2 mappings,
+authors NO colors (lines={}). /api/scene_palette treats lines==[2] as the reuse request. Client: the
+derive button enables for Line 2 ("Map Scene → Line N (reuse Layer B)"), deriveScenePalette branches on
+isProtected(line) to skip color writes and guard, applies only mappings. Incremental skip_usages means
+with stone already on Line 3, running this on Line 2 maps only the remaining fire/water banks. Observed
+R1-S2: 517/520 usages mapped to Line 2, 0 blocked, MRD-safe. Tests: verify_scene_automap.py 42/42
+(J1-J4 + updated G8); independent 9/9.

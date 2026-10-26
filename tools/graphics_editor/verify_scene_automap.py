@@ -131,8 +131,9 @@ def main() -> int:
         ck("G6. (single line held all banks — incremental not exercised)", True)
     _, g7 = post("/api/scene_palette", {"scene": "PAL-R9-S9-PLANEA-NOPE", "lines": [3]})
     ck("G7. unknown scene derive fails (404), no R1/P1", g7 == 404, g7)
-    _, g8 = post("/api/scene_palette", {"scene": CASTLE1, "lines": [2]})
-    ck("G8. Line 2 rejected as a derive target (400)", g8 == 400, g8)
+    g8r, g8 = post("/api/scene_palette", {"scene": CASTLE1, "lines": [2]})
+    ck("G8. Line 2 derive is accepted in REUSE mode (200, no color authoring)",
+       g8 == 200 and g8r.get("reuse_line2") is True and g8r.get("lines") == {}, (g8, g8r.get("reuse_line2")))
 
     # apply like the client (colors -> cp[scene].tpl, mappings -> cp[scene].plane map) and prove isolation
     prof2 = {"profile_id": "t_derive", "display_name": "t_derive", "parent": "baseline_current",
@@ -208,6 +209,18 @@ def main() -> int:
        got["context_policies"][CASTLE1]["plane_usage_palette_mappings"]["LA-0479"]["line"] == 2 and
        all(x is None for x in got["target_palette_lines"][2]),
        got["target_palette_lines"][2])
+
+    # --- J: Derive -> Line 2 = bulk REUSE of Layer-B colors (no authoring) ---
+    jr, jc = post("/api/scene_palette", {"scene": CASTLE1, "lines": [2]})
+    ck("J1. Line-2 derive runs in reuse mode (200, reuse_line2)", jc == 200 and jr.get("reuse_line2") is True, (jc, jr.get("reuse_line2")))
+    jm = jr.get("mappings", {})
+    ck("J2. every reuse mapping targets Line 2 on populated indices (1..15), no color authoring",
+       jm and all(m["line"] == 2 for m in jm.values()) and
+       all(1 <= int(v) <= 15 for m in jm.values() for v in m["index_map"].values()) and jr.get("lines") == {},
+       (len({m["line"] for m in jm.values()}), jr.get("lines")))
+    ck("J3. reuse mappings ⊆ R1-S2 corpus", set(jm) <= c1_ids)
+    jr2, _ = post("/api/scene_palette", {"scene": CASTLE1, "lines": [2], "skip_usages": list(jm)[:40]})
+    ck("J4. reuse honors skip_usages (reports already-placed banks)", jr2["summary"]["banks_already_placed"] >= 1, jr2["summary"])
 
     httpd.shutdown()
     print(f"\n{'SCENE_AUTOMAP PASS' if not F else str(len(F))+' FAILED'}  (pass={len(P)})")
