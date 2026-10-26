@@ -1757,28 +1757,43 @@ class Hd(BaseHTTPRequestHandler):
             pid = (body.get("profile_id") or "").strip()
             if not pid or pid == "baseline_current":
                 return self._s(400, b'{"error":"immutable baseline cannot be overwritten"}')
-            # LINE-2 PROTECTION (server-authoritative): reject any mapping that targets a reserved line,
-            # and force the protected line back to empty so the editor can never serialize over Layer B.
+            # LINE-2 PROTECTION (server-authoritative): a mapping may REUSE an existing arcade Layer-B
+            # color (reference an occupied Line-2 index) but may NEVER author/overwrite a Line-2 color.
+            # So reserved-line mappings are allowed only when every target index is a populated Layer-B
+            # entry; the Line-2 colors themselves are still forced empty (never serialized over Layer B).
+            lb = _layer_b_display() or {}
+            lb_cram = lb.get("cram") or []
+            l2_pop = {i for i in range(1, 16) if i < len(lb_cram) and lb_cram[i] and lb_cram[i] != "0x0000"}
+            def _bad_reuse(mp):
+                if not mp or mp.get("line") not in RESERVED_LINES:
+                    return None
+                tgts = [int(v) for v in (mp.get("index_map") or {}).values()]
+                bad = [t for t in tgts if t not in l2_pop]
+                return (sorted(set(bad)) or ["(none)"]) if (bad or not tgts) else None
             for coll in ("usage_palette_mappings", "plane_usage_palette_mappings"):
                 for k, mp in (body.get(coll) or {}).items():
-                    if mp and mp.get("line") in RESERVED_LINES:
-                        return self._s(403, json.dumps({"error": "LINE 2 is protected (Layer B / arcade controlled); "
-                                        "mapping %s may not target a reserved line" % k}).encode())
+                    bad = _bad_reuse(mp)
+                    if bad is not None:
+                        return self._s(403, json.dumps({"error": "LINE 2 (Layer B) is read-only: mapping %s may only "
+                                        "REUSE existing Layer-B colors (indices %s), not target empty/created indices %s"
+                                        % (k, sorted(l2_pop), bad)}).encode())
             tpl = body.get("target_palette_lines")
             if isinstance(tpl, list):
                 for ln in RESERVED_LINES:
                     if ln < len(tpl):
                         tpl[ln] = [None] * 16      # Line 2 is never editable/serialized as a replacement palette
-            # context overrides may never touch a reserved line either
+            # context overrides may never AUTHOR a reserved line; context mappings may REUSE it.
             for cid, cp in (body.get("context_policies") or {}).items():
                 for ln in list((cp.get("tpl") or {}).keys()):
                     if int(ln) in RESERVED_LINES:
                         return self._s(403, json.dumps({"error": "LINE 2 is protected; context %s may not override a "
                                         "reserved line" % cid}).encode())
                 for k, mp in (cp.get("plane_usage_palette_mappings") or {}).items():
-                    if mp and mp.get("line") in RESERVED_LINES:
-                        return self._s(403, json.dumps({"error": "LINE 2 is protected; context %s plane mapping %s may "
-                                        "not target a reserved line" % (cid, k)}).encode())
+                    bad = _bad_reuse(mp)
+                    if bad is not None:
+                        return self._s(403, json.dumps({"error": "LINE 2 (Layer B) is read-only: context %s plane mapping "
+                                        "%s may only REUSE existing Layer-B colors, not target empty indices %s"
+                                        % (cid, k, bad)}).encode())
             body["reserved_lines"] = list(RESERVED_LINES)
             body["line_owners"] = LINE_OWNERS
             json.dump(body, open(os.path.join(POLICY_DIR, pid + ".json"), "w"), indent=1)

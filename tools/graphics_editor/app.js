@@ -19,6 +19,12 @@ function effEntry(line,i){let cram=POL.target_palette_lines[line]?POL.target_pal
  const cp=ctxPolicies();ctxChain(SCOPE).forEach(c=>{const t=cp[c.id]&&cp[c.id].tpl&&cp[c.id].tpl[line];if(t&&t[i]!==undefined){cram=t[i];owner=c.id;}});
  return {cram,owner,local:owner===SCOPE};}
 const tcram=(line,i)=>effEntry(line,i).cram;
+// Effective CRAM including the read-only arcade Layer-B palette for the protected line (Line 2): a tile
+// may REUSE (map onto) an existing Layer-B color, so its rendered/exported color must resolve from the
+// Layer-B display palette, not the (always-null) Line-2 base.
+function effCramAt(line,i){
+ if(isProtected(line)){const l2d=POL.line2_display&&POL.line2_display.cram;return (POL.target_palette_lines[line]||[])[i]||(l2d?l2d[i]:null);}
+ return tcram(line,i);}
 // PROMPT-ID isolation: a target color authored while a scene is active belongs to THAT scene, not the
 // shared base. setTgt writes the active scope's override; effLine is the scope's effective 16-entry line.
 // (Without this, Layer-A color tools wrote the base and one subround's palette leaked into another.)
@@ -292,7 +298,9 @@ function renderTarget(){const G=$('#genlines');G.innerHTML='';if(!POL)return;
   if(prot){const usable=cram&&i!==0;decorate(s,i,cram);
     s.title=usable?`L${line}:${i} ${cram} — Layer B color (read-only, reusable)${anim.includes(i)?' · ANIMATED sky — avoid':''}`:`L${line}:${i} — Layer B protected (empty/read-only)`;
     if(usable)s.classList.add('protusable');
-    s.onclick=()=>{ACTIVE=line;if(usable&&SRC&&U){TGT={line,index:i};renderTarget();mapWithAuto(line,i);}else{TGT={line,index:i};renderTarget();showProtected(line);}};
+    s.onclick=()=>{ACTIVE=line;
+      if(window._laMode&&LAUSAGE&&LASRC){if(usable)laMapColor(line,i);else{TGT={line,index:i};renderTarget();showProtected(line);}return;}
+      if(usable&&SRC&&U){TGT={line,index:i};renderTarget();mapWithAuto(line,i);}else{TGT={line,index:i};renderTarget();showProtected(line);}};
     row.appendChild(s);continue;}
   decorate(s,i,cram);
   if(cram&&i!==0&&eff.local)s.classList.add('localov');else if(cram&&i!==0&&eff.owner!=='default')s.classList.add('inherov');
@@ -694,7 +702,7 @@ function mapInspect(k,seg){const P=$('#props');P.innerHTML='';const occ=LAMAP.ce
  if(k.uid)mkbtn(P,'Open usage '+k.uid,()=>openLAPatternUsage(k.pid,k.uid));}
 function laGenPalByUsage(uid,bankId){const mm=planeMap(uid);if(!mm)return null;const bank=LA.banks[bankId];if(!bank)return null;
  const pal=bank.map(x=>x.slice());   // start from arcade bank; overlay this usage's context-effective mapping
- Object.entries(mm.index_map||{}).forEach(([si,ti])=>{const g=cramToRGB(tcram(mm.line,ti));if(g)pal[+si]=g;});return pal;}
+ Object.entries(mm.index_map||{}).forEach(([si,ti])=>{const g=cramToRGB(effCramAt(mm.line,ti));if(g)pal[+si]=g;});return pal;}
 async function openLAPatternUsage(pid,uid){LADET=await j('/api/layera_pattern?pid='+pid+sceneQS('&'));LAUSAGE=(LADET.usages.find(x=>x.usage_id===uid))||LADET.usages[0]||null;LASRC=null;
  // jump to library detail so the full editor is available
  LAVIEW='library';renderLayerA($('#list'));}
@@ -741,7 +749,7 @@ function renderLADetail(){const C=$('#center');C.innerHTML='';const p=LADET.patt
  C.appendChild(ut);
  if(LAUSAGE)renderLAUsage();}
 function laGenPal(u){const pal=[[0,0,0]];for(let i=1;i<16;i++)pal[i]=[60,60,72];const mm=planeMap(u.usage_id);
- u.used_colors.forEach(c=>{let rgb=c.genesis_rgb8;if(mm&&mm.index_map[c.src_index]!=null){const g=cramToRGB(tcram(mm.line,mm.index_map[c.src_index]));if(g)rgb=g;}pal[c.src_index]=rgb;});return pal;}
+ u.used_colors.forEach(c=>{let rgb=c.genesis_rgb8;if(mm&&mm.index_map[c.src_index]!=null){const g=cramToRGB(effCramAt(mm.line,mm.index_map[c.src_index]));if(g)rgb=g;}pal[c.src_index]=rgb;});return pal;}
 function renderLAUsage(){const C=$('#center');const u=LAUSAGE;
  C.appendChild(el('h3',null,'SELECTED USAGE '+u.usage_id+' — Arcade source vs Genesis target'));
  const pv=el('div','laVariants');
@@ -773,11 +781,22 @@ function laFindMatch(c){const P=$('#props');P.innerHTML='';P.appendChild(txt('LA
  rows.sort((a,b)=>a.de-b.de);const T=el('div','simtab');
  rows.slice(0,12).forEach(r=>{const dL=Math.abs(oklab(c.arcade_rgb8)[0]-oklab(r.rgb)[0]);const row=el('div','maprow');const sw=swBox(r.rgb);sw.style.display='inline-block';row.appendChild(sw);row.appendChild(el('span',null,r.src+' '+r.nm+' i'+r.i));row.appendChild(el('span',null,'ΔE '+r.de.toFixed(2)));row.appendChild(el('span',null,'ΔL '+dL.toFixed(3)+(r.nat?' =nat':'')));T.appendChild(row);});
  P.appendChild(el('div','vitem PASS','CROSS-REFERENCE (Layer A + sprites) — Layer B is informational only; protected Line 2 is never a target.'));P.appendChild(T);}
-function laMapColor(line,index){const u=LAUSAGE,c=LASRC;if(!u||!c)return;if(POL.immutable)return alert('Create an editable profile first.');if(guardProtected(line))return;
+function laMapColor(line,index){const u=LAUSAGE,c=LASRC;if(!u||!c)return;if(POL.immutable)return alert('Create an editable profile first.');
+ // Line 2 (Layer B, protected): colors are arcade-controlled and NOT editable, but an EXISTING Line-2
+ // color may be REUSED by a Plane-A tile (map onto an occupied index; never create/overwrite a color).
+ const prot=isProtected(line);
+ if(prot){
+   const l2d=POL.line2_display&&POL.line2_display.cram?POL.line2_display.cram:null;
+   const have=(POL.target_palette_lines[line]||[])[index]||(l2d?l2d[index]:null);
+   if(index===0||!have){$('#status').textContent='Line '+line+' index '+index+' has no arcade color — reuse an occupied Line-2 entry.';
+     return alert('LINE '+line+' (Layer B / arcade) is read-only. You can REUSE one of its existing colors, but not create a new color on an empty index.');}
+   if(animatedIndices(line).includes(index) && !confirm('L'+line+':'+index+' is the ANIMATED sky/time-of-day color (it changes across Round 1). Reuse it anyway?'))return;
+ }
  const cur=planeMap(u.usage_id);let m={line,index_map:Object.assign({},(cur&&cur.line===line?cur.index_map:{}))};
  for(const[si,ti]of Object.entries(m.index_map)){if(+ti===index&&+si!==c.src_index&&u.mrd_pairs.some(([a,b])=>(a===+si&&b===c.src_index)||(b===+si&&a===c.src_index)))return alert('TILE MRD: i'+c.src_index+' and i'+si+' both appear in this tile and must stay distinct.');}
- pushUndo();m.index_map[c.src_index]=index;setPlaneMapping(u.usage_id,m);if(tcram(line,index)==null)setTgt(line,index,bestCramFor(c.arcade_rgb8).cram);
- window._laMode=false;LASRC=null;$('#status').textContent=`${u.usage_id} i${c.src_index} → L${line}:${index} (scope ${ctxName(SCOPE)})`;afterChange();renderLADetail();}
+ pushUndo();m.index_map[c.src_index]=index;setPlaneMapping(u.usage_id,m);
+ if(!prot&&tcram(line,index)==null)setTgt(line,index,bestCramFor(c.arcade_rgb8).cram);   // never author Line 2
+ window._laMode=false;LASRC=null;$('#status').textContent=`${u.usage_id} i${c.src_index} → L${line}:${index}`+(prot?' [reused Layer-B color]':'')+` (scope ${ctxName(SCOPE)})`;afterChange();renderLADetail();}
 function autoFillTile(line){const u=LAUSAGE;if(!u)return;if(POL.immutable)return alert('Create an editable profile first.');
  if(line==null)line=editableLines()[0];if(guardProtected(line))return;
  pushUndo();const m={line,index_map:{}};setPlaneMapping(u.usage_id,m);const L=effLine(line);

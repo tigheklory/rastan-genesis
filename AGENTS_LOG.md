@@ -54032,3 +54032,30 @@ entries, and removes Layer-A (scope+global) and sprite mappings that target that
 private Line-N overrides are untouched; Line 2 protected; one Undo; confirm shows counts. Tests:
 verify_scene_automap.py 34/34 (H1-H6 prove isolation: clearing R1-S2 Line 3 leaves R1-S1's own Line 3
 intact).
+
+### MAME Exit Summary (2026-10-26 11:00:29)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-26 11:01:57)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## Feature: Layer-A reuse-only mapping onto Line 2 (Layer B) (Andy, 2026-10-26, Tighe request)
+
+Tighe wants to map Plane-A flame tiles onto Line 2's existing arcade Layer-B colors WITHOUT changing
+them (reuse, not author), since in R1-S2 the castle flame shares the Layer-B warm palette and Lines 0/1
+are reserved for sprites / Line 3 is full of stone. The sprite path (mapWithAuto) already allowed
+reuse-only Line-2 mapping; extended the SAME to Layer A:
+- laMapColor: reuse-only on protected Line 2 (require an occupied Layer-B index, warn on animated index,
+  never setTgt/author a color). Protected target swatch now routes Layer-A map mode to laMapColor.
+- effCramAt(line,i): resolves the protected line's color from POL.line2_display so reused-L2 colors
+  render/preview correctly (laGenPal / laGenPalByUsage use it).
+- Server: relaxed LINE-2 protection — a usage/plane/context mapping may target Line 2 ONLY if every
+  index_map target is a populated Layer-B index (reuse); empty-index targets and tpl color overrides
+  on Line 2 are still rejected, and target_palette_lines[2] is still force-nulled (never serialized).
+Finding for Tighe: the editor's Line-2 display IS R1's real Layer-B palette; its sky-blues (i7/i8) are
+simply never drawn in the castle (R1 uses one background bank), so the flame colors to reuse
+(yellows/oranges/reds/white) are present. Tests: verify_scene_automap.py 38/38 (I1-I4), independent 9/9.

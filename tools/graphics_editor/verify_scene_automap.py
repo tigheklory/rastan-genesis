@@ -190,6 +190,25 @@ def main() -> int:
     ck("H5. shared base Line 3 cleared", all(x is None for x in prof3["target_palette_lines"][3]))
     ck("H6. profile with cleared line still saves", post("/api/policy", prof3)[0].get("ok"))
 
+    # --- I: Line-2 REUSE mapping allowed; Line-2 color authoring still rejected ---
+    base_prof = {"profile_id": "t_l2reuse", "parent": "baseline_current",
+                 "target_palette_lines": [[None]*16, [None]*16, [None]*16, [None]*16],
+                 "usage_palette_mappings": {}, "plane_usage_palette_mappings": {}, "reserved_lines": [2]}
+    reuse = dict(base_prof); reuse["context_policies"] = {
+        CASTLE1: {"plane_usage_palette_mappings": {"LA-0479": {"line": 2, "index_map": {"9": 5, "12": 11}}}}}
+    ck("I1. Plane-A mapping that REUSES existing Line-2 colors is accepted", post("/api/policy", reuse)[0].get("ok"))
+    empty = dict(base_prof); empty["profile_id"] = "t_l2empty"; empty["context_policies"] = {
+        CASTLE1: {"plane_usage_palette_mappings": {"LA-0479": {"line": 2, "index_map": {"9": 0}}}}}
+    ck("I2. mapping onto an EMPTY Line-2 index is rejected (no color creation)", post("/api/policy", empty)[1] == 403)
+    author = dict(base_prof); author["profile_id"] = "t_l2author"; author["context_policies"] = {
+        CASTLE1: {"tpl": {"2": {"5": "0x0FFF"}}}}
+    ck("I3. authoring a Line-2 COLOR (tpl override) is still rejected", post("/api/policy", author)[1] == 403)
+    got = g("/api/policy?p=t_l2reuse")
+    ck("I4. reused Line-2 mapping persisted; Line-2 base stays empty",
+       got["context_policies"][CASTLE1]["plane_usage_palette_mappings"]["LA-0479"]["line"] == 2 and
+       all(x is None for x in got["target_palette_lines"][2]),
+       got["target_palette_lines"][2])
+
     httpd.shutdown()
     print(f"\n{'SCENE_AUTOMAP PASS' if not F else str(len(F))+' FAILED'}  (pass={len(P)})")
     return 1 if F else 0
