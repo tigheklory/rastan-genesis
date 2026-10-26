@@ -54009,3 +54009,17 @@ now also re-renders the Layer-A panel when that tab is active, so the buttons tr
   build_layera() (R1/P1 banks), so scene bank ids fell back to [[0,0,0]]. Made render_tile scene-aware
   (accepts &scene=) and the client thumbnail + ARCADE SOURCE URLs now pass the scene. Same scene-fallback
   bug class as project_composer_scene_fallback_bug_class.
+
+## Fix: Layer-A color tools leaked colors across subrounds via the shared base (Andy, 2026-10-25, Tighe)
+
+Tighe: mapping R1-S2 changed R1-S1's palette. Root cause: Layer-A PLANE MAPPINGS were per-scene
+(context_policies[scene].plane_usage_palette_mappings), but the COLORS those mappings point at were
+written to the shared base target_palette_lines by the bulk tools laMapColor / autoFillTile (Copy Used
+Colors) / applyLASolution. So one subround's colors appeared under every scene. (The Derive button
+already wrote per-scene via tplSetAt.) Added setTgt(line,i,cram)=tplSetAt(SCOPE,...) and effLine(line)
+(effective 16-entry line at SCOPE); routed the three Layer-A color-authoring functions through them so
+colors land in cp[SCOPE].tpl, isolated per subround. Manual slider edits were already per-scope;
+closestInLine already read effective. Sprite-side color writes (autoFill/mapWithAuto/applySolution) still
+use the base and are out of scope here (sprites are per-scene roster pending). verify_scene_automap 28/28,
+verify_independent_scopes 9/9. NOTE for existing sessions: Reload to discard base colors already leaked
+before this fix.

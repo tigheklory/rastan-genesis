@@ -19,6 +19,11 @@ function effEntry(line,i){let cram=POL.target_palette_lines[line]?POL.target_pal
  const cp=ctxPolicies();ctxChain(SCOPE).forEach(c=>{const t=cp[c.id]&&cp[c.id].tpl&&cp[c.id].tpl[line];if(t&&t[i]!==undefined){cram=t[i];owner=c.id;}});
  return {cram,owner,local:owner===SCOPE};}
 const tcram=(line,i)=>effEntry(line,i).cram;
+// PROMPT-ID isolation: a target color authored while a scene is active belongs to THAT scene, not the
+// shared base. setTgt writes the active scope's override; effLine is the scope's effective 16-entry line.
+// (Without this, Layer-A color tools wrote the base and one subround's palette leaked into another.)
+function setTgt(line,i,cram){tplSetAt(SCOPE,line,i,cram);}
+function effLine(line){const a=[];for(let i=0;i<16;i++)a[i]=effEntry(line,i).cram;return a;}
 function setEntry(line,i,cram){if(guardProtected(line))return false;const cp=ctxPolicies();
  (cp[SCOPE]=cp[SCOPE]||{tpl:{}});cp[SCOPE].tpl=cp[SCOPE].tpl||{};cp[SCOPE].tpl[line]=cp[SCOPE].tpl[line]||{};
  const created=cp[SCOPE].tpl[line][i]===undefined;cp[SCOPE].tpl[line][i]=cram;
@@ -740,15 +745,15 @@ function laFindMatch(c){const P=$('#props');P.innerHTML='';P.appendChild(txt('LA
 function laMapColor(line,index){const u=LAUSAGE,c=LASRC;if(!u||!c)return;if(POL.immutable)return alert('Create an editable profile first.');if(guardProtected(line))return;
  const cur=planeMap(u.usage_id);let m={line,index_map:Object.assign({},(cur&&cur.line===line?cur.index_map:{}))};
  for(const[si,ti]of Object.entries(m.index_map)){if(+ti===index&&+si!==c.src_index&&u.mrd_pairs.some(([a,b])=>(a===+si&&b===c.src_index)||(b===+si&&a===c.src_index)))return alert('TILE MRD: i'+c.src_index+' and i'+si+' both appear in this tile and must stay distinct.');}
- pushUndo();m.index_map[c.src_index]=index;setPlaneMapping(u.usage_id,m);if(POL.target_palette_lines[line][index]==null)POL.target_palette_lines[line][index]=bestCramFor(c.arcade_rgb8).cram;
+ pushUndo();m.index_map[c.src_index]=index;setPlaneMapping(u.usage_id,m);if(tcram(line,index)==null)setTgt(line,index,bestCramFor(c.arcade_rgb8).cram);
  window._laMode=false;LASRC=null;$('#status').textContent=`${u.usage_id} i${c.src_index} → L${line}:${index} (scope ${ctxName(SCOPE)})`;afterChange();renderLADetail();}
 function autoFillTile(line){const u=LAUSAGE;if(!u)return;if(POL.immutable)return alert('Create an editable profile first.');
  if(line==null)line=editableLines()[0];if(guardProtected(line))return;
- pushUndo();const m={line,index_map:{}};setPlaneMapping(u.usage_id,m);const L=POL.target_palette_lines[line];
+ pushUndo();const m={line,index_map:{}};setPlaneMapping(u.usage_id,m);const L=effLine(line);
  const taken={};L.forEach((c,i)=>{if(c!=null)taken[c]=i;});let next=1;const nextFree=()=>{while(next<16&&L[next]!=null)next++;return next<16?next:-1;};
  u.used_colors.forEach(c=>{let cram=bestCramFor(c.arcade_rgb8).cram;
   if(Object.values(m.index_map).some(ti=>L[ti]===cram))cram=nudgeDistinct(c.arcade_rgb8,new Set(Object.values(m.index_map).map(ti=>L[ti])));
-  let ti=taken[cram];if(ti==null){ti=nextFree();if(ti<0){$('#status').textContent='Line '+line+' full';return;}L[ti]=cram;taken[cram]=ti;}m.index_map[c.src_index]=ti;});
+  let ti=taken[cram];if(ti==null){ti=nextFree();if(ti<0){$('#status').textContent='Line '+line+' full';return;}L[ti]=cram;taken[cram]=ti;setTgt(line,ti,cram);}m.index_map[c.src_index]=ti;});
  $('#status').textContent=`Auto-filled ${u.usage_id} → Line ${line} (${Object.keys(m.index_map).length} colors, detail preserved)`;afterChange();renderLADetail();}
 function copyUsedColors(line){const u=LAUSAGE;if(!u)return;if(guardProtected(line))return;autoFillTile(line);}
 async function solveLA(mode){if(!LAP.size)return alert('check 1+ Layer-A usages');$('#status').textContent='solving…';
@@ -760,7 +765,7 @@ async function solveLA(mode){if(!LAP.size)return alert('check 1+ Layer-A usages'
  if(!sol.feasible)P.appendChild(el('div','vitem ERROR',`NO ACCEPTABLE ONE-LINE SOLUTION — needs ${sol.safe_entries_required} hue-safe entries. No colors destroyed to force a fit.`));
  editableLines().forEach(line=>{const b=el('button',null,'Apply to Line '+line);b.onclick=()=>applyLASolution(sol,line);P.appendChild(b);});}
 function applyLASolution(sol,line){if(guardProtected(line))return;if(POL.immutable)return alert('Create an editable profile first.');pushUndo();
- sol.entries.forEach(e=>{POL.target_palette_lines[line][e.target_index]=e.cram;});
+ sol.entries.forEach(e=>{setTgt(line,e.target_index,e.cram);});
  LAP.forEach(uid=>{const m={line,index_map:{}};setPlaneMapping(uid,m);sol.entries.forEach(e=>e.members.forEach(mm=>{if(mm.usage_id===uid)m.index_map[mm.src_index]=e.target_index;}));});
  ACTIVE=line;$('#status').textContent='applied Layer-A '+(sol.solver||'')+' shared palette → Line '+line;afterChange();if(LADET)renderLADetail();}
 
