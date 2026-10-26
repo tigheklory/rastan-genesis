@@ -537,6 +537,17 @@ async function renderLayerA(L){
  cbtn.onclick=()=>clearLine(ACTIVE);cbar.appendChild(cbtn);
  cbar.appendChild(el('div','dim',isProtected(ACTIVE)?'Line 2 protected':('empties Line '+ACTIVE+' at '+ctxName(SCOPE)+' · one Undo')));
  L.appendChild(cbar);
+ // Move ONLY the filtered bank to the active line (overrides its current mapping). Use the Bank filter
+ // below to pick the bank (e.g. the flame bank), then move it to Line 2 (reuse) or Line 0/1/3.
+ if(ph&&LAFILT.bank){
+  const bbar=el('div','groupbar');
+  const bbtn=el('button','mini','Move Bank '+LAFILT.bank+' → Line '+ACTIVE+(l2reuse?' (reuse)':''));
+  bbtn.disabled=!canAny;
+  bbtn.title=canAny?('Remap ONLY bank '+LAFILT.bank+'\'s tiles to Line '+ACTIVE+' — moves them off whatever line they are on now'):'Pick a line (0/1/3, or 2 to reuse Layer B) first';
+  bbtn.onclick=()=>deriveScenePalette(ACTIVE,LAFILT.bank);bbar.appendChild(bbtn);
+  bbar.appendChild(el('div','dim','moves bank '+LAFILT.bank+' → Line '+ACTIVE+' · overrides its current line · one Undo'));
+  L.appendChild(bbar);
+ }
  const q=el('input');q.placeholder='search id / code / hash / usage';q.value=LAFILT.q;q.style.width='96%';q.oninput=()=>{LAFILT.q=q.value;LAPAGE=0;renderLAGrid();};L.appendChild(q);
  const mk=(lbl,key,opts)=>{const w=el('div','line');w.appendChild(el('span','lbl',lbl));const s=el('select');s.appendChild(new Option('(all)',''));opts.forEach(o=>s.appendChild(new Option(o[1],o[0])));s.value=LAFILT[key];s.onchange=()=>{LAFILT[key]=s.value;LAPAGE=0;renderLAGrid();};w.appendChild(s);L.appendChild(w);};
  mk('Segment','seg',(()=>{const _r=SCENE_RECORDS||[0,15],o=[];for(let i=_r[0];i<=_r[1];i++)o.push([''+i,(ACTIVE_SCENE?'rec ':'seg ')+i]);return o;})());
@@ -623,7 +634,7 @@ async function phaseAutoMap(ph,line){
 // PROMPT-ID-0010: write a CRAM into a SPECIFIC context's per-scene override (tpl), so each subround's
 // derived palette is isolated and never clobbers another scene's base colors.
 function tplSetAt(cid,line,i,cram){const cp=ctxPolicies();cp[cid]=cp[cid]||{};cp[cid].tpl=cp[cid].tpl||{};cp[cid].tpl[line]=cp[cid].tpl[line]||{};cp[cid].tpl[line][i]=cram;}
-async function deriveScenePalette(line){
+async function deriveScenePalette(line,onlyBank){
  const ctx=automapContext();
  if(!ctx)return alert('Open a subround scene (or a phase context) first.');
  if(POL.immutable)return alert('Create an editable profile first.');
@@ -634,12 +645,12 @@ async function deriveScenePalette(line){
  if(reuse&&!(POL.line2_display&&POL.line2_display.cram))return alert('No Layer-B palette is loaded for Line '+line+', so there is nothing to reuse.');
  if(!reuse&&!editableLines().includes(line))return alert('Pick an editable Genesis line (0, 1 or 3) at right first.');
  const destId=ctx.id, reqScene=ctx.scene||null, reqScope=SCOPE, reqActive=ACTIVE_SCENE, label=ctxName(destId)+(ctx.kind==='scene'?' ['+destId+']':'');
- $('#status').textContent=(reuse?'mapping remaining banks → Line ':'deriving scene palette for '+label+' → Line ')+line+'…';
- // usages already mapped in THIS scene go in skip_usages so their banks aren't re-derived — lets you
- // place the remaining banks on another line by selecting it and running again.
- const skip=Object.keys((ctxPolicies()[destId]||{}).plane_usage_palette_mappings||{});
+ $('#status').textContent=(onlyBank?'mapping bank '+onlyBank+' → Line ':(reuse?'mapping remaining banks → Line ':'deriving scene palette for '+label+' → Line '))+line+'…';
+ // Whole-scene incremental: skip usages already mapped so their banks aren't re-derived. only_bank mode
+ // remaps JUST that bank (ignores skip) so you can MOVE it from its current line to the chosen one.
+ const skip=onlyBank?[]:Object.keys((ctxPolicies()[destId]||{}).plane_usage_palette_mappings||{});
  let res;
- try{res=await j('/api/scene_palette',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({scene:reqScene,lines:[line],skip_usages:skip})});}
+ try{res=await j('/api/scene_palette',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({scene:reqScene,lines:[line],skip_usages:skip,only_bank:onlyBank||null})});}
  catch(e){$('#status').textContent='';return alert('derive failed: '+e);}
  if(res.error){$('#status').textContent='';return alert(res.error);}
  // stale + identity guards (never apply a result to a different scene than we asked for)
@@ -650,7 +661,9 @@ async function deriveScenePalette(line){
  const savedScope=SCOPE;SCOPE=destId;let changed=0;
  (res.lines[String(line)]||[]).forEach((cc,i)=>{if(i>0&&cc!=null){const cur=tcram(line,i);if(cur!=null&&cur!==cc)changed++;}});
  SCOPE=savedScope;
- const msg=(reuse?'Map remaining banks → Line '+line+' (REUSE Layer B): '+label+'\n'
+ const msg=(onlyBank?'MOVE bank '+onlyBank+' → Line '+line+(reuse?' (reuse Layer B)':'')+': '+label+'\n'
+    +'remaps ONLY bank '+onlyBank+'\'s tiles to Line '+line+' (overrides their current line).\n'
+   :reuse?'Map remaining banks → Line '+line+' (REUSE Layer B): '+label+'\n'
     +'maps each remaining Plane-A tile onto Line 2\'s EXISTING arcade colors (never changes Line 2).\n'
    :'Derive Scene Palette: '+label+'\ntarget: Genesis Line '+line+'\n')
   +(s.banks_already_placed?('banks already placed on other lines (kept): '+s.banks_already_placed+'\n'):'')

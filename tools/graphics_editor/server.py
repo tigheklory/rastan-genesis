@@ -1310,7 +1310,7 @@ def _nearest_cram(rgb, taken=None):
     return best[0] if best else "0x0000"
 
 
-def derive_scene_palette(scene, lines=(0, 1, 3), skip_usages=()):
+def derive_scene_palette(scene, lines=(0, 1, 3), skip_usages=(), only_bank=None):
     """Derive the scene's closest-possible Genesis palette and per-usage mappings onto the CHOSEN target
     line(s), honoring Plane-A semantics (each tile/usage draws from exactly ONE palette line).
 
@@ -1331,12 +1331,15 @@ def derive_scene_palette(scene, lines=(0, 1, 3), skip_usages=()):
     usages = la["usages"]
     lines = [l for l in lines if l not in RESERVED_LINES]
     skip = set(skip_usages)
-    # banks already placed on another line (any of their usages already mapped) -> excluded this pass
-    placed_banks = {u["palette_bank"] for u in usages if u["usage_id"] in skip}
+    # banks already placed on another line (any of their usages already mapped) -> excluded this pass.
+    # With only_bank (remap a single bank), ignore prior placements and consider just that bank.
+    placed_banks = set() if only_bank is not None else {u["palette_bank"] for u in usages if u["usage_id"] in skip}
 
     # bank -> {src_index: nearest distinct CRAM} (distinct within the bank); skip already-placed banks
     bank_used = {}
     for u in usages:
+        if only_bank is not None and u["palette_bank"] != only_bank:
+            continue
         if u["palette_bank"] in placed_banks:
             continue
         bank_used.setdefault(u["palette_bank"], set()).update(u.get("used_indices", []))
@@ -1395,6 +1398,8 @@ def derive_scene_palette(scene, lines=(0, 1, 3), skip_usages=()):
     mappings, blocked_usages = {}, []
     for u in usages:
         b = u["palette_bank"]
+        if only_bank is not None and b != only_bank:
+            continue
         if b in placed_banks:
             continue                       # already mapped on another line (prior pass) — leave as-is
         if b not in bank_line:
@@ -1425,25 +1430,29 @@ def derive_scene_palette(scene, lines=(0, 1, 3), skip_usages=()):
     }
 
 
-def reuse_line2_mapping(scene, skip_usages=()):
-    """Bulk-map the scene's REMAINING Plane-A banks onto Line 2's EXISTING arcade Layer-B colors
-    (reuse, never author). Per usage: injective (MRD=0) min-cost ΔE assignment of its used arcade
-    colors onto the populated Line-2 entries. Banks whose any usage is already mapped (skip_usages)
-    are left as-is. A usage needing more distinct colors than Line 2 has populated is BLOCKED. No
-    colors are created or changed — only plane mappings with line==2 are returned."""
+def reuse_line2_mapping(scene, skip_usages=(), only_bank=None):
+    """Bulk-map Plane-A tiles onto Line 2's EXISTING arcade Layer-B colors (reuse, never author).
+    Per usage: injective (MRD=0) min-cost ΔE assignment of its used arcade colors onto the populated
+    Line-2 entries. Default: the scene's REMAINING banks (skip_usages' banks left as-is). With
+    `only_bank` (a bank hex like "0x014"): remap ONLY that bank's usages, ignoring skip — used to MOVE
+    one bank (e.g. the flame bank) from whatever line it is on to Line 2. A usage needing more distinct
+    colors than Line 2 has populated is BLOCKED. No colors are created/changed — only line==2 mappings."""
     la = build_layera(scene)
     banks = la["banks"]
     usages = la["usages"]
     skip = set(skip_usages)
-    placed_banks = {u["palette_bank"] for u in usages if u["usage_id"] in skip}
+    placed_banks = set() if only_bank is not None else {u["palette_bank"] for u in usages if u["usage_id"] in skip}
     lb = _layer_b_display() or {}
     lb_cram = lb.get("cram") or []
     tgt = [(i, list(_cram_rgb(lb_cram[i]))) for i in range(1, 16)
            if i < len(lb_cram) and lb_cram[i] and lb_cram[i] != "0x0000"]
     mappings, blocked_usages, mapped_banks = {}, [], set()
-    considered_banks = {u["palette_bank"] for u in usages if u["palette_bank"] not in placed_banks}
+    considered_banks = ({only_bank} if only_bank is not None
+                        else {u["palette_bank"] for u in usages if u["palette_bank"] not in placed_banks})
     for u in usages:
         b = u["palette_bank"]
+        if only_bank is not None and b != only_bank:
+            continue
         if b in placed_banks:
             continue
         pal = banks.get(b, [[0, 0, 0]] * 16)
@@ -1782,13 +1791,14 @@ class Hd(BaseHTTPRequestHandler):
                                    "disabled for this scene (R1/P1 is NOT substituted)" % scene}).encode())
             req_lines = [int(x) for x in (body.get("lines") or [0, 1, 3])]
             skip = body.get("skip_usages") or []
-            # Line 2 request = REUSE mode: map remaining banks onto existing Layer-B colors (never author).
+            only_bank = body.get("only_bank") or None   # remap ONLY this bank (move it to the line)
+            # Line 2 request = REUSE mode: map banks onto existing Layer-B colors (never author).
             if req_lines == [2]:
-                return self._s(200, json.dumps(reuse_line2_mapping(scene, skip)).encode())
+                return self._s(200, json.dumps(reuse_line2_mapping(scene, skip, only_bank)).encode())
             lines = [x for x in req_lines if x not in RESERVED_LINES and x in (0, 1, 3)]
             if not lines:
                 return self._s(400, json.dumps({"error": "no editable target lines (0/1/3)"}).encode())
-            return self._s(200, json.dumps(derive_scene_palette(scene, tuple(lines), skip)).encode())
+            return self._s(200, json.dumps(derive_scene_palette(scene, tuple(lines), skip, only_bank)).encode())
         if u.path == "/api/solve":
             idlist = body.get("usage_ids", [])
             ids = set(idlist)

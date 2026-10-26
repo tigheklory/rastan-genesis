@@ -54083,3 +54083,14 @@ isProtected(line) to skip color writes and guard, applies only mappings. Increme
 with stone already on Line 3, running this on Line 2 maps only the remaining fire/water banks. Observed
 R1-S2: 517/520 usages mapped to Line 2, 0 blocked, MRD-safe. Tests: verify_scene_automap.py 42/42
 (J1-J4 + updated G8); independent 9/9.
+
+## Feature: "Move Bank → Line N" (remap one bank, override current line) (Andy, 2026-10-26, Tighe)
+
+Tighe already mapped the whole scene to Line 3 (flames included) and wanted to MOVE just the flame bank
+to Line 2; the incremental skip meant the already-mapped flames were skipped. Added only_bank: derive/
+reuse map ONLY that bank's usages, ignoring skip and OVERRIDING their current line. Server
+derive_scene_palette/reuse_line2_mapping accept only_bank; /api/scene_palette passes body.only_bank.
+Client: "Move Bank <hex> → Line N" button appears when the Bank filter is set; deriveScenePalette(line,
+onlyBank) sends only_bank with skip=[]; mappings override the usage's prior line (plane map keyed by
+usage_id). Works for Line 2 (reuse) and 0/1/3 (author). Verified: move bank 0x01F → Line 2 maps only
+that bank (25 usages, all line 2); → Line 1 authors only its colors. Tests 42/42 + 9/9.
