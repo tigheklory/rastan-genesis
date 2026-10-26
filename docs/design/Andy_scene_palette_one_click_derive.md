@@ -7,17 +7,26 @@ instead of per-tile "Copy Used Colors" or per-usage checkbox selection for "Deri
 Composer, no approved-palette overwrite.
 
 ## What it does
-A single button, **"Derive Scene Palette → Lines 0/1/3"** (left panel, under Auto-map), derives the
-closest-possible Genesis palette for the **entire** selected subround tileset and maps every usage —
-no hand-selection.
+A single button, **"Derive Scene Palette → Line N"** (left panel, under Auto-map), derives the
+closest-possible Genesis palette for the **entire** selected subround tileset onto the **line you
+choose** (N = the active LINE 0/1/3 selected on the right, exactly like "Auto-map → Line N") and maps
+every usage that fits — no hand-selection. The user controls the target line; the derive never
+auto-spreads across lines.
+
+**Incremental multi-line:** one Genesis line holds 15 colors, so a many-bank scene (a castle has 15
+banks) won't fit one line. Banks that don't fit are left unmapped and reported. Select another editable
+line and run again — the derive passes the already-mapped usages as `skip_usages`, so it places only the
+**remaining** banks on the new line instead of re-deriving everything. Repeat across Lines 0/1/3 to cover
+the scene at the user's chosen distribution.
 
 ## Algorithm (honors Plane-A semantics)
 Each Plane-A tile/usage draws from exactly ONE palette line, so the derive is **bank-centric**:
 1. Per arcade bank, collect the distinct source colors its usages actually use; quantize each to its
    **nearest legal CRAM by CIEDE2000**, kept distinct within the bank (so a bank never self-merges → MRD 0).
-2. **Pack** the banks into the authorable lines (0, 1, 3), each line holding ≤15 CRAMs, merging banks
-   that share colors (greedy, least-growth first). A bank that fits no line is **BLOCKED** — its usages
-   are reported and left unmapped, never merged or substituted.
+2. **Pack** the banks into the chosen line(s), each line holding ≤15 CRAMs, merging banks that share
+   colors (greedy, least-growth first). A bank that fits no requested line is **BLOCKED** — its usages
+   are reported and left unmapped, never merged or substituted. Banks whose usages are already mapped
+   (passed in `skip_usages`) are treated as already placed and excluded.
 3. Emit each line's palette (indices 1–15) and, per usage, `line` + `index_map` onto those entries.
 
 ## Isolation (per-subround independence)

@@ -53981,3 +53981,14 @@ Composer-only. No ROM build, no native code, no Audio Composer, no approved-pale
   distinct colors); R2-S2 CASTLE 5/5 banks, 234/234 usages.
 - Tests: `verify_scene_automap.py` 25/25 (G1–G9 added). Report:
   `docs/design/Andy_scene_palette_one_click_derive.md`.
+
+## "Derive Scene Palette" — user-chosen target line + incremental (Andy, 2026-10-25, Tighe follow-up)
+
+Tighe: don't auto-spread across Lines 0/1/3 — let me choose the line. Changed the derive to target the
+ACTIVE line (button "Derive Scene Palette → Line N", mirrors Auto-map). Added incremental multi-line:
+client sends `skip_usages` (usages already mapped in the scene) so `derive_scene_palette` excludes
+already-placed banks and fills only the REMAINING banks on the newly chosen line — run per line to
+distribute as desired. Server `derive_scene_palette(scene,lines,skip_usages)`; `/api/scene_palette`
+passes skip_usages; summary adds `banks_already_placed`. Colors still per-scene override, Line 2 never a
+target, scene identity + stale guards intact. Tests: verify_scene_automap.py 28/28 (G1-G12, incremental
+G5/G6).

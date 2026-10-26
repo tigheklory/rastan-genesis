@@ -1310,28 +1310,35 @@ def _nearest_cram(rgb, taken=None):
     return best[0] if best else "0x0000"
 
 
-def derive_scene_palette(scene, lines=(0, 1, 3)):
-    """PROMPT-ID-0010: derive the WHOLE scene's closest-possible Genesis palette in one pass and the
-    per-usage mappings, honoring Plane-A semantics (each tile/usage draws from exactly ONE palette line).
+def derive_scene_palette(scene, lines=(0, 1, 3), skip_usages=()):
+    """Derive the scene's closest-possible Genesis palette and per-usage mappings onto the CHOSEN target
+    line(s), honoring Plane-A semantics (each tile/usage draws from exactly ONE palette line).
 
     Method:
       - Each Layer-A usage uses one arcade bank; collect, per bank, the distinct arcade colors its
         usages actually use, each quantized to its nearest legal CRAM (distinct within the bank, so a
         bank never self-merges -> MRD 0).
-      - Pack the banks into the authorable lines (default 0,1,3), each line holding <=15 CRAMs, merging
-        banks that share colors; a bank that cannot fit any line is BLOCKED (its usages are reported,
-        never silently dropped or substituted).
+      - Pack the banks into the requested line(s), each line holding <=15 CRAMs, merging banks that share
+        colors; a bank that cannot fit is BLOCKED (its usages are reported, never dropped/substituted).
       - Emit each line's palette (index 1..15) and, per usage, line + index_map onto those entries.
-    Target CRAM colors are proposed, not written, until the client applies. Line 2 is never a target.
+    `skip_usages` enables ONE-LINE-AT-A-TIME use: any bank that already has a mapped usage is treated as
+    already placed and excluded, so running again on another line fills the REMAINING banks instead of
+    re-deriving everything. Target CRAM colors are proposed, not written, until the client applies.
+    Line 2 is never a target.
     """
     la = build_layera(scene)
     banks = la["banks"]
     usages = la["usages"]
     lines = [l for l in lines if l not in RESERVED_LINES]
+    skip = set(skip_usages)
+    # banks already placed on another line (any of their usages already mapped) -> excluded this pass
+    placed_banks = {u["palette_bank"] for u in usages if u["usage_id"] in skip}
 
-    # bank -> {src_index: nearest distinct CRAM} (distinct within the bank)
+    # bank -> {src_index: nearest distinct CRAM} (distinct within the bank); skip already-placed banks
     bank_used = {}
     for u in usages:
+        if u["palette_bank"] in placed_banks:
+            continue
         bank_used.setdefault(u["palette_bank"], set()).update(u.get("used_indices", []))
     bank_colors = {}
     for b, idxs in bank_used.items():
@@ -1377,6 +1384,8 @@ def derive_scene_palette(scene, lines=(0, 1, 3)):
     mappings, blocked_usages = {}, []
     for u in usages:
         b = u["palette_bank"]
+        if b in placed_banks:
+            continue                       # already mapped on another line (prior pass) — leave as-is
         if b not in bank_line:
             blocked_usages.append(u["usage_id"]); continue
         ln, cmap, im = bank_line[b], bank_colors[b], {}
@@ -1397,7 +1406,7 @@ def derive_scene_palette(scene, lines=(0, 1, 3)):
         "blocked_usages": blocked_usages,
         "summary": {
             "banks_total": len(bank_cramset), "banks_placed": len(bank_line),
-            "banks_blocked": len(blocked_banks),
+            "banks_blocked": len(blocked_banks), "banks_already_placed": len(placed_banks),
             "usages_total": len(usages), "usages_mapped": len(mappings),
             "usages_blocked": len(blocked_usages),
             "line_fill": {str(ln): sum(1 for x in line_pal.get(ln, []) if x) for ln in lines},
@@ -1711,7 +1720,8 @@ class Hd(BaseHTTPRequestHandler):
             lines = [int(x) for x in lines if int(x) not in RESERVED_LINES and int(x) in (0, 1, 3)]
             if not lines:
                 return self._s(400, json.dumps({"error": "no editable target lines (0/1/3)"}).encode())
-            return self._s(200, json.dumps(derive_scene_palette(scene, tuple(lines))).encode())
+            skip = body.get("skip_usages") or []
+            return self._s(200, json.dumps(derive_scene_palette(scene, tuple(lines), skip)).encode())
         if u.path == "/api/solve":
             idlist = body.get("usage_ids", [])
             ids = set(idlist)

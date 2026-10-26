@@ -105,19 +105,34 @@ def main() -> int:
        all(all(x is None for x in ln) for ln in loaded.get("target_palette_lines", [])),
        loaded.get("target_palette_lines"))
 
-    # --- G: whole-scene derive (/api/scene_palette) is scene-scoped + isolated ---
-    d, dc = post("/api/scene_palette", {"scene": CASTLE1, "lines": [0, 1, 3]})
-    ck("G1. derive echoes scene + 200", dc == 200 and d.get("scene") == CASTLE1, (dc, d.get("scene")))
+    # --- G: scene derive (/api/scene_palette) targets the CHOSEN line, scene-scoped + isolated ---
+    d, dc = post("/api/scene_palette", {"scene": CASTLE1, "lines": [3]})
+    ck("G1. derive to Line 3 echoes scene + 200", dc == 200 and d.get("scene") == CASTLE1, (dc, d.get("scene")))
     dmap = d.get("mappings", {})
     ck("G2. derive mappings ⊆ R1-S2 corpus", dmap and set(dmap) <= c1_ids, len(dmap))
-    ck("G3. lines filled with CRAM strings (≤15, idx0 empty)",
-       all(ln[0] is None and 1 <= sum(1 for x in ln if x) <= 15 and
-           all(isinstance(x, str) and x.startswith("0x") for x in ln if x) for ln in d["lines"].values()),
+    ck("G3. only Line 3 is filled (≤15 CRAM strings, idx0 empty); no other line returned",
+       set(d["lines"]) == {"3"} and d["lines"]["3"][0] is None and
+       1 <= sum(1 for x in d["lines"]["3"] if x) <= 15 and
+       all(isinstance(x, str) and x.startswith("0x") for x in d["lines"]["3"] if x),
        {k: sum(1 for x in v if x) for k, v in d["lines"].items()})
-    ck("G4. every mapped usage draws from exactly ONE line",
-       all(isinstance(m["line"], int) for m in dmap.values()))
-    _, g5 = post("/api/scene_palette", {"scene": "PAL-R9-S9-PLANEA-NOPE", "lines": [0, 1, 3]})
-    ck("G5. unknown scene derive fails (404), no R1/P1", g5 == 404, g5)
+    ck("G4. every mapped usage lands on the chosen line (3)",
+       all(m["line"] == 3 for m in dmap.values()))
+    # incremental: run again on Line 0 skipping the already-mapped usages -> places REMAINING banks on L0
+    if d["summary"]["banks_blocked"]:
+        d2, _ = post("/api/scene_palette", {"scene": CASTLE1, "lines": [0], "skip_usages": list(dmap)})
+        ck("G5. incremental pass reports the first pass's banks as already-placed",
+           d2["summary"]["banks_already_placed"] >= 1, d2["summary"])
+        ck("G6. incremental mappings are NEW usages on Line 0 (no overlap with pass 1)",
+           set(d2["mappings"]) <= c1_ids and not (set(d2["mappings"]) & set(dmap)) and
+           all(m["line"] == 0 for m in d2["mappings"].values()),
+           (len(d2["mappings"]), len(set(d2["mappings"]) & set(dmap))))
+    else:
+        ck("G5. (single line held all banks — incremental not exercised)", True)
+        ck("G6. (single line held all banks — incremental not exercised)", True)
+    _, g7 = post("/api/scene_palette", {"scene": "PAL-R9-S9-PLANEA-NOPE", "lines": [3]})
+    ck("G7. unknown scene derive fails (404), no R1/P1", g7 == 404, g7)
+    _, g8 = post("/api/scene_palette", {"scene": CASTLE1, "lines": [2]})
+    ck("G8. Line 2 rejected as a derive target (400)", g8 == 400, g8)
 
     # apply like the client (colors -> cp[scene].tpl, mappings -> cp[scene].plane map) and prove isolation
     prof2 = {"profile_id": "t_derive", "display_name": "t_derive", "parent": "baseline_current",
@@ -131,17 +146,18 @@ def main() -> int:
         for i, c in enumerate(arr):
             if i and c: tpl.setdefault(ln, {})[str(i)] = c
     tgt.setdefault("plane_usage_palette_mappings", {}).update({k: v for k, v in dmap.items()})
-    r, _ = post("/api/policy", prof2); ck("G6. save derived scene profile ok", r.get("ok"))
+    r, _ = post("/api/policy", prof2); ck("G9. save derived scene profile ok", r.get("ok"))
     L2 = g("/api/policy?p=t_derive")
-    ck("G7. derived colors stored as per-scene override (cp[scene].tpl), base still empty",
+    ck("G10. derived colors stored as per-scene override (cp[scene].tpl), base still empty",
        bool(L2["context_policies"][CASTLE1].get("tpl")) and
        all(all(x is None for x in ln) for ln in L2["target_palette_lines"]),
        L2["target_palette_lines"])
-    ck("G8. R1-S1 mappings untouched by derive",
+    ck("G11. R1-S1 mappings untouched by derive",
        L2["context_policies"][R1S1] == {"plane_usage_palette_mappings": {"LA-0000": {"line": 3, "index_map": {"5": 7}}}},
        L2["context_policies"][R1S1])
-    ck("G9. Line 2 never written by derive",
-       all("2" not in (L2["context_policies"][CASTLE1].get("tpl") or {}) for _ in [0]))
+    ck("G12. only the chosen line (3) written; Line 2 never written",
+       set((L2["context_policies"][CASTLE1].get("tpl") or {}).keys()) == {"3"},
+       (L2["context_policies"][CASTLE1].get("tpl") or {}).keys())
 
     httpd.shutdown()
     print(f"\n{'SCENE_AUTOMAP PASS' if not F else str(len(F))+' FAILED'}  (pass={len(P)})")
