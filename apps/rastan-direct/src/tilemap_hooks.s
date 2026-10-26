@@ -706,11 +706,11 @@ genesistan_plane_a_scene_scroll_reseed_native:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
     lea     0x00FF0000, %a5
     cmpi.b  #SCENE_GAMEPLAY_ID, genesistan_current_scene_id
-    bne.s   .Lscene_scroll_reseed_done
+    bne     .Lscene_scroll_reseed_done
 
     moveq   #0, %d0
     move.w  0x013E(%a5), %d0              /* post-fill progression cursor */
-    beq.s   .Lscene_scroll_reseed_done
+    beq     .Lscene_scroll_reseed_done
     subq.w  #1, %d0                       /* record consumed by 0x0503DC */
     cmpi.w  #FG_SCENE_FILL_MAP_RECORDS, %d0
     bhs.s   .Lscene_scroll_reseed_done
