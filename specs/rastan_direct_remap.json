@@ -120,6 +120,7 @@
   "genesistan_hook_tilemap_plane_a",
   "genesistan_hook_tilemap_plane_a_selector0_native",
   "genesistan_hook_tilemap_plane_a_selector12_native",
+  "genesistan_plane_a_scene_scroll_reseed_native",
   "genesistan_plane_a_pan_publish_entering_rows_up",
   "genesistan_plane_a_pan_publish_entering_rows_down",
   "fg_boundary_advance_segment",

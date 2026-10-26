@@ -107,6 +107,8 @@ def main() -> None:
             raise SystemExit(f"FAIL scene-fill helper contains forbidden {token}")
 
     spec = json.loads(args.spec.read_text())
+    if "genesistan_plane_a_scene_scroll_reseed_native" not in spec["required_symbols"]:
+        raise SystemExit("FAIL scene-fill helper missing from required_symbols")
     replacements = [row for row in spec["shift_replacements"]
                     if row.get("arcade_pc", "").lower() == "0x050538"]
     if len(replacements) != 1 or "genesistan_plane_a_scene_scroll_reseed_native" not in \
