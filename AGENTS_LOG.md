@@ -54105,3 +54105,18 @@ null-shadow overrides (cp[SCOPE].tpl[line][i]=null) for any base/inherited color
 at this scope without touching the shared base or other subrounds; removes only THIS scope's plane
 mappings (shared/global/sprite left alone). Tests: verify_scene_automap.py 44/44 (H1-H6 rewritten: H5
 proves base PRESERVED, H3b proves R1-S1 intact); independent 9/9.
+
+## Build request → held; Cody handoff for runtime per-subround palette (Andy, 2026-10-26)
+
+Tighe asked for build 0509 S1-1/S1-2 to test palettes. Investigation: the production palette bridge is
+hardcoded to R1-S1 — gen_test_palette_cram.py bakes only base target_palette_lines (R1-S1 colors) and
+gen_reindexed_region.py reindexes only context:gameplay.r01.p01 (line 31); the 7 standard variants are
+post-patch copies sharing ONE baked palette, and _S1-x are stage-select byte patches on it. So S1-2 would
+render the castle with R1-S1's palette, not the Composer's R1-S2 work; a static per-scene bake can't fix
+it (one shared palette; code-indexed reindex conflicts on shared tile codes). Faithful per-subround
+rendering needs native runtime selection (Cody), for which the per-scene CRAM export (Req 5,
+build/palette_export/cram/<scene>.bin) is the data contract. Tighe chose to HOLD the build (no number
+consumed) and take the Cody handoff. Wrote
+docs/design/Cody_runtime_per_subround_palette_selection_handoff.md. Updated stale memory
+project_editor_to_production_bridge_gap (base bridge now exists; per-subround is the remaining gap).
+No ROM build consumed.
