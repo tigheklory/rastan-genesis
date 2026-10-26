@@ -363,7 +363,7 @@ $(CRASH_BUILD_INC): FORCE_ASM_REBUILD | $(OUT_DIR)
 	printf '/* GENERATED build number by apps/rastan-direct/Makefile -- do not hand-edit. */\ncrash_build_number_str: .asciz "%s"\n' "$$tag" > $@; \
 	echo "crash build number -> $$tag ($@)"
 
-$(OUT_DIR)/tilemap_hooks.o: $(SRC_DIR)/tilemap_hooks.s $(PC090OJ_CONFIG_INC) $(PC080SN_BOUNDARY_CONSTANTS) $(PC080SN_SCENE_FILL_MAPS) $(BEST5_NUMBER_TABLE) $(BEST5_NAME_TABLE) FORCE_ASM_REBUILD | $(OUT_DIR)
+$(OUT_DIR)/tilemap_hooks.o: $(SRC_DIR)/tilemap_hooks.s $(PC090OJ_CONFIG_INC) $(PC080SN_BOUNDARY_CONSTANTS) $(PC080SN_SCENE_FILL_MAPS) $(PC080SN_PAN_ROW_MAPS) $(BEST5_NUMBER_TABLE) $(BEST5_NAME_TABLE) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
 $(OUT_DIR)/palette_hooks.o: $(SRC_DIR)/palette_hooks.s $(PC090OJ_CONFIG_INC) $(TEST_PALETTE_LINE0) $(TEST_PALETTE_LINE1) $(TEST_PALETTE_LINE3) FORCE_ASM_REBUILD | $(OUT_DIR)
