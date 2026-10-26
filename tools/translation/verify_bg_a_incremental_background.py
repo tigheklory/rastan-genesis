@@ -112,6 +112,11 @@ def static_contract() -> None:
                     ".Lplane_a_native_attr_from_word", "fg_cache_resolve"),
             "fused Plane-A name/collision accessor")
     require(row_a, ("movea.l 0(%a0,%d1.w), %a4",
+                    "genesistan_plane_a_pan_row_maps",
+                    "FG_PAN_ROW_MAP_BYTES",
+                    ".Lplane_a_row_precompiled_copy:",
+                    ".Lplane_a_row_dynamic:",
+                    ".Lplane_a_row_mark_dirty:",
                     "lea     fg_boundary_active_lut, %a2",
                     "adda.w  %d1, %a6",
                     "ARCADE_PC080SN_STRIP_GROUP_OFFSET",
@@ -141,8 +146,8 @@ def static_contract() -> None:
                          "moveq   #0, %d3"), macro)
     if row_a.count("PC080SN_DESC_REBUILD_SRC_TABLE") != 1:
         fail("Plane-A row source context is not selected exactly once per row")
-    if row_a.count("lea     staged_fg_buffer, %a6") != 1:
-        fail("Plane-A staging-row context is not selected exactly once per row")
+    if row_a.count("lea     staged_fg_buffer, %a6") != 2:
+        fail("Plane-A precompiled/dynamic staging-row contexts are not each selected once")
     if row_b.count("lea     staged_bg_buffer, %a6") != 1:
         fail("Plane-B staging-row context is not selected exactly once per row")
     if "bsr     fg_cache_resolve" in block4:
