@@ -124,7 +124,7 @@ CANONICAL_OPCODE_REPLACE_COUNT = 228  # RG-003 reclassifies frontend teardown 0x
 # (recovered Scene Clear + Final Boss), growing the aligned audio section by
 # +0x27000 (0x30FEB8 -> 0x335EB8); RG-021 adds the Round-2 native
 # PC080SN package corpus (+0x8000).
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x33DEB8
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x355EB8
 
 # DIAGNOSTIC_SYMBOLS — symbols allowed for bookmarks_v2 helper_symbol resolution.
 #
