@@ -25,10 +25,15 @@ function setEntry(line,i,cram){if(guardProtected(line))return false;const cp=ctx
  if(created)$('#status').textContent='LOCAL OVERRIDE CREATED · '+ctxName(SCOPE)+' · L'+line+':'+i;return true;}
 function resetEntry(line,i){const cp=ctxPolicies();if(cp[SCOPE]&&cp[SCOPE].tpl&&cp[SCOPE].tpl[line]){delete cp[SCOPE].tpl[line][i];}}
 // ---- phase context + effective Layer-A mapping resolution ----
-function phaseContext(){const c=ctxById(SCOPE);if(!c)return null;
- // the phase node is ...rNN.pNN (a segment scope resolves up to its phase parent)
- for(const x of ctxChain(SCOPE).slice().reverse()){if(/\.p\d+$/.test(x.id))return x;}
- return ctxById('context:gameplay.r01.p01');}
+// PROMPT-ID-0009: resolve the Auto-map DESTINATION safely. A scene-specific scope
+// (PAL-R*-S*-PLANEA-*) maps to ITS OWN context + per-subround corpus — never a phase fallback.
+// A genuine phase node (…rNN.pNN) maps phase-wide on the R1/P1 corpus. Anything else = no target
+// (we NEVER silently fall back to context:gameplay.r01.p01 for an unrecognized scope).
+function automapContext(){
+ const c=ctxById(SCOPE);if(!c)return null;
+ if(/^PAL-/.test(SCOPE))return {id:SCOPE,scene:SCOPE,kind:'scene'};
+ for(const x of ctxChain(SCOPE).slice().reverse()){if(/\.p\d+$/.test(x.id))return {id:x.id,scene:null,kind:'phase'};}
+ return null;}
 function ctxPlaneMaps(cid){const cp=ctxPolicies();cp[cid]=cp[cid]||{};cp[cid].plane_usage_palette_mappings=cp[cid].plane_usage_palette_mappings||{};return cp[cid].plane_usage_palette_mappings;}
 function effPlaneMapping(uid){let m=(POL.plane_usage_palette_mappings||{})[uid],owner='global';
  (POL.context_policies?ctxChain(SCOPE):[]).forEach(c=>{const t=(POL.context_policies[c.id]||{}).plane_usage_palette_mappings;if(t&&t[uid]){m=t[uid];owner=c.id;}});
@@ -464,7 +469,11 @@ const LAFILT={q:'',seg:'',bank:'',pal:'',map:'',anim:''};
 const LAPP=200;
 window.loadSubroundScene=function(sceneKey,records){ACTIVE_SCENE=sceneKey||null;SCENE_RECORDS=(records&&records.length===2)?records:null;
  // Set the editing SCOPE to the scene's INDEPENDENT context so Genesis Lines 0/1/3 author per subround.
- if(sceneKey){SCOPE=(sceneKey==='PAL-R1-S1-PLANEA-OUTDOOR')?'context:gameplay.r01.p01':(ctxById(sceneKey)?sceneKey:'context:gameplay.r01.p01');}
+ // PROMPT-ID-0009: a real subround selection NEVER falls back to r01.p01 (that leaked R1-S2 edits into
+ // R1-S1). Only the explicit R1-S1 outdoor scene authors on the r01.p01 phase node; every other scene
+ // authors on its OWN scene-key context (isolated), and deselecting returns to r01.p01.
+ if(sceneKey){SCOPE=(sceneKey==='PAL-R1-S1-PLANEA-OUTDOOR')?'context:gameplay.r01.p01':sceneKey;}
+ else{SCOPE='context:gameplay.r01.p01';}
  LA=null;LAMAP=null;LADET=null;LAUSAGE=null;LAP.clear();LAMAPSEG=SCENE_RECORDS?SCENE_RECORDS[0]:0;LAVIEW='map';TAB='layera';document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x.dataset.t==='layera'));renderScopeBar();renderTarget();renderList();};
 async function renderLayerA(L){
  if(!LA||LA_SCENE!==ACTIVE_SCENE){L.innerHTML='<div class="dim">Loading Layer-A corpus…</div>';LA=await j('/api/layera'+sceneQS('?'));LA_SCENE=ACTIVE_SCENE;}
@@ -488,13 +497,14 @@ async function renderLayerA(L){
   const zz=el('div','zoombar');zz.appendChild(el('span','dim','map zoom '));[1,2,4].forEach(z=>{const b=el('button','mini'+(LAMAPZOOM===z?' on':''),z+'×');b.onclick=()=>{LAMAPZOOM=z;renderSegMap();};zz.appendChild(b);});
    const gl=el('label','dim');const gk=el('input');gk.type='checkbox';gk.checked=LAMAPGRID;gk.onchange=()=>{LAMAPGRID=gk.checked;renderSegMap();};gl.appendChild(gk);gl.appendChild(el('span',null,' tile boundaries'));zz.appendChild(gl);L.appendChild(zz);}
  L.appendChild(txt(`LAYER A CORPUS\nphysical patterns: ${c.physical_patterns}\nlogical usages: ${c.logical_usages}\npalette banks: ${c.palette_banks}\nmulti-palette: ${c.multi_palette_patterns}`));
- // phase-wide auto-map to the active editable line (existing colors only)
- const ph=phaseContext();const canPhase=ph&&!isProtected(ACTIVE)&&editableLines().includes(ACTIVE);
+ // scene/phase auto-map to the active editable line (existing colors only) — PROMPT-ID-0009
+ const ph=automapContext();const canPhase=ph&&!isProtected(ACTIVE)&&editableLines().includes(ACTIVE);
+ const isScene=ph&&ph.kind==='scene';const amName=ph?ctxName(ph.id):'';
  const pbar=el('div','groupbar');
- const pbtn=el('button','act','Auto-map Phase → Active Line '+ACTIVE);pbtn.disabled=!canPhase;
- pbtn.title=canPhase?('Map ALL Layer-A usages in '+ctxName(ph.id)+' to the existing colors on Line '+ACTIVE):(isProtected(ACTIVE)?'Line 2 is protected — pick Line 0/1/3':'Select an editable Genesis line (0/1/3) first');
+ const pbtn=el('button','act',(isScene?'Auto-map Current Scene':'Auto-map Phase')+' → Line '+ACTIVE);pbtn.disabled=!canPhase;
+ pbtn.title=canPhase?('Map ALL Layer-A usages in '+amName+(isScene?' ['+ph.id+']':'')+' to the existing colors on Line '+ACTIVE):(isProtected(ACTIVE)?'Line 2 is protected — pick Line 0/1/3':(ph?'Select an editable Genesis line (0/1/3) first':'No safe auto-map scope for this selection'));
  pbtn.onclick=()=>phaseAutoMap(ph,ACTIVE);pbar.appendChild(pbtn);
- pbar.appendChild(el('div','dim',canPhase?(ctxName(ph.id)+' · Line '+ACTIVE+' · existing colors only'):'Pick an editable line (click LINE 0/1/3 label at right)'));
+ pbar.appendChild(el('div','dim',canPhase?(amName+(isScene?' ['+ph.id+']':'')+' · Line '+ACTIVE+' · existing colors only'):'Pick an editable line (click LINE 0/1/3 label at right)'));
  L.appendChild(pbar);
  const q=el('input');q.placeholder='search id / code / hash / usage';q.value=LAFILT.q;q.style.width='96%';q.oninput=()=>{LAFILT.q=q.value;LAPAGE=0;renderLAGrid();};L.appendChild(q);
  const mk=(lbl,key,opts)=>{const w=el('div','line');w.appendChild(el('span','lbl',lbl));const s=el('select');s.appendChild(new Option('(all)',''));opts.forEach(o=>s.appendChild(new Option(o[1],o[0])));s.value=LAFILT[key];s.onchange=()=>{LAFILT[key]=s.value;LAPAGE=0;renderLAGrid();};w.appendChild(s);L.appendChild(w);};
@@ -539,29 +549,52 @@ async function renderSegMap(){const seg=(LAMAPSEG!=null?LAMAPSEG:scopeSegment()|
  if(LAMAPSEL){const occ=LAMAP.cells.filter(k=>k.pid===LAMAPSEL.pid).length;const info=el('div','vitem PASS',`Selected ${LAMAPSEL.pid} · this physical pattern occurs ${occ} time(s) in segment ${seg}.`);C.appendChild(info);}
  C.appendChild(el('div','dim','Click a tile: opens its exact logical usage + palette variant. In Genesis mode, clicking a pixel also selects its target CRAM entry. Line 2 stays protected.'));}
 async function phaseAutoMap(ph,line){
- if(!ph)return;if(POL.immutable)return alert('Create an editable profile first.');if(guardProtected(line))return;
- // effective target colors for this line at the phase scope
- const savedScope=SCOPE;SCOPE=ph.id;const cols=[null];for(let i=1;i<16;i++)cols[i]=tcram(line,i);
+ if(!ph)return alert('No safe auto-map scope is active for this selection. Open a subround scene or a phase context first.');
+ if(POL.immutable)return alert('Create an editable profile first.');if(guardProtected(line))return;
+ const destId=ph.id, reqScene=ph.scene||null, isScene=ph.kind==='scene', label=ctxName(destId)+(isScene?' ['+destId+']':'');
+ // effective target colors for this line at the DESTINATION scope (restore SCOPE immediately — no side effect)
+ const savedScope=SCOPE;SCOPE=destId;const cols=[null];for(let i=1;i<16;i++)cols[i]=tcram(line,i);SCOPE=savedScope;
  const npop=cols.filter((x,i)=>i>0&&x).length;
- if(!npop){SCOPE=savedScope;return alert('Line '+line+' has no populated colors. Author the palette on that line first.');}
- // warn if descendant segment contexts override colors on this line
- let childOv=0;(O.contexts||[]).forEach(c=>{if(c.id!==ph.id&&c.id.startsWith(ph.id+'.')){const t=(POL.context_policies||{})[c.id];if(t&&t.tpl&&t.tpl[line])childOv++;}});
- if(!confirm('Auto-map all Layer-A usages in '+ctxName(ph.id)+' to the '+npop+' existing colors on Line '+line+'?\nTarget colors will NOT change. One Undo operation.'+(childOv?'\n\nNote: '+childOv+' child contexts override colors on Line '+line+'; matching uses the phase-level effective palette.':''))){SCOPE=savedScope;return;}
- $('#status').textContent='phase auto-mapping…';
- const res=await j('/api/phase_automap',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({line,target_colors:cols})});
- if(res.error){SCOPE=savedScope;return alert(res.error);}
- // apply as ONE undo transaction into the PHASE context plane mappings
- pushUndo();const dest=ctxPlaneMaps(ph.id);let nw=0,rep=0,unch=0;
- res.proposals.forEach(p=>{if(p.blocked)return;const prev=dest[p.usage_id];const nm={line:p.line,index_map:p.index_map};
-   if(!prev)nw++;else if(JSON.stringify(prev)===JSON.stringify(nm))unch++;else rep++;dest[p.usage_id]=nm;});
- SCOPE=savedScope;afterChange();
- PHASE_RESULT={ph:ph.id,line,res,nw,rep,unch,childOv};renderPhaseResult();
- $('#status').textContent='phase auto-map done: '+res.summary.mapped+' mapped, '+res.summary.blocked+' blocked';}
+ if(!npop)return alert('Line '+line+' has no populated colors. Author the palette on that line first.');
+ // snapshot the scene identity so an async result can never be applied to a DIFFERENT scene (Req 3)
+ const reqScope=SCOPE, reqActive=ACTIVE_SCENE;
+ $('#status').textContent='auto-mapping '+label+'…';
+ let res;
+ try{res=await j('/api/phase_automap',{method:'POST',headers:{'Content-Type':'application/json'},
+   body:JSON.stringify({line,target_colors:cols,scene:reqScene})});}
+ catch(e){$('#status').textContent='';return alert('auto-map request failed: '+e);}
+ if(res.error){$('#status').textContent='';return alert(res.error);}
+ // STALE guard: the selected scene/scope changed while we waited — discard, change nothing.
+ if(SCOPE!==reqScope||ACTIVE_SCENE!==reqActive){$('#status').textContent='auto-map discarded (selection changed)';return;}
+ // IDENTITY guard: server must echo the exact scene we asked for (null == R1/P1 phase corpus).
+ if((res.scene||null)!==reqScene){$('#status').textContent='';return alert('Auto-map scene mismatch (asked '+reqScene+', got '+(res.scene||'null')+') — NO changes applied.');}
+ // classify proposals against EXISTING mappings at the destination context (fill unmapped first).
+ const existing=(ctxPolicies()[destId]||{}).plane_usage_palette_mappings||{};
+ const fresh=[],repl=[];
+ (res.proposals||[]).forEach(p=>{if(p.blocked)return;const nm={line:p.line,index_map:p.index_map};const prev=existing[p.usage_id];
+   if(!prev)fresh.push([p.usage_id,nm]);else if(JSON.stringify(prev)!==JSON.stringify(nm))repl.push([p.usage_id,nm]);});
+ const msg=(isScene?'Auto-map Current Scene':'Auto-map Phase')+': '+label+'\n'
+  +'Genesis Line '+line+'\n'
+  +'Layer-A usages considered: '+res.summary.considered+'\n'
+  +'new mappings proposed: '+fresh.length+'\n'
+  +'existing mappings that would change: '+repl.length+'\n'
+  +'blocked (need more colors than Line '+line+' has): '+res.summary.blocked+'\n'
+  +'Target CRAM colors will NOT change. One Undo operation.\n\nApply the '+fresh.length+' NEW mapping(s)?';
+ if(!confirm(msg)){$('#status').textContent='auto-map canceled (no changes)';return;}
+ // ONE undo transaction; write ONLY the destination context's plane mappings (Req 2/6).
+ pushUndo();const dest=ctxPlaneMaps(destId);fresh.forEach(([uid,nm])=>dest[uid]=nm);
+ let repApplied=0;
+ if(repl.length&&confirm(repl.length+' EXISTING mapping(s) in '+label+' would be replaced. Replace them too?')){
+   repl.forEach(([uid,nm])=>dest[uid]=nm);repApplied=repl.length;}
+ afterChange();
+ PHASE_RESULT={ph:destId,scene:reqScene,label,line,res,nw:fresh.length,rep:repApplied,skipped:repl.length-repApplied};renderPhaseResult();
+ $('#status').textContent='auto-map done: '+fresh.length+' new, '+repApplied+' replaced, '+res.summary.blocked+' blocked';}
 let PHASE_RESULT=null;
 function renderPhaseResult(){const R=PHASE_RESULT;if(!R)return;const P=$('#props');P.innerHTML='';const s=R.res.summary;
- P.appendChild(txt(`PHASE AUTO-MAP — ${ctxName(R.ph)} → LINE ${R.line}\nlogical usages considered: ${s.considered}\nmapped: ${s.mapped}\n  new: ${R.nw}  replaced: ${R.rep}  unchanged: ${R.unch}\nblocked: ${s.blocked}\npopulated target colors: ${s.populated_targets}\nMRD violations: 0 (injective per usage)\nmean ΔE: ${s.mean_de}\nworst ΔE: ${s.worst_de}\ntarget colors modified: NO`));
+ const kind=R.scene?'SCENE AUTO-MAP':'PHASE AUTO-MAP';
+ P.appendChild(txt(`${kind} — ${R.label||ctxName(R.ph)} → LINE ${R.line}\nscene identity: ${R.scene||'(R1/P1 phase corpus)'}\nlogical usages considered: ${s.considered}\nnew mappings: ${R.nw}\nreplaced: ${R.rep}${R.skipped?`  (declined: ${R.skipped})`:''}\nblocked: ${s.blocked}\npopulated target colors: ${s.populated_targets}\nMRD violations: 0 (injective per usage)\nmean ΔE: ${s.mean_de}\nworst ΔE: ${s.worst_de}\ntarget colors modified: NO`));
  if(s.blocked)P.appendChild(el('div','vitem WARN',s.blocked+' usage(s) BLOCKED — need more distinct colors than Line '+R.line+' has populated (not merged).'));
- P.appendChild(el('div','vitem PASS','Target palette unchanged. Mappings stored at phase scope ('+R.ph+'); child usages inherit.'));
+ P.appendChild(el('div','vitem PASS','Target palette unchanged. Mappings stored ONLY at '+R.ph+'; other scenes untouched.'));
  const wb=el('button','act','Show worst matches ('+R.res.worst.length+')');wb.onclick=()=>{const box=el('div');R.res.worst.forEach(w=>{const r=el('div','maprow');r.style.cursor='pointer';r.appendChild(el('span',null,w.usage_id));r.appendChild(el('span',null,w.pattern_id));r.appendChild(el('span',null,'worst ΔE '+w.worst_de));r.appendChild(el('span','dim','mean '+w.mean_de));r.onclick=()=>openLAPatternUsage(w.pattern_id,w.usage_id);box.appendChild(r);});P.appendChild(box);};P.appendChild(wb);}
 function mapInspect(k,seg){const P=$('#props');P.innerHTML='';const occ=LAMAP.cells.filter(c=>c.pid===k.pid).length;
  P.appendChild(txt(`MAP TILE INSPECTOR\nsegment: ${seg} (record ${seg})\nmap x/y: ${k.c} / ${k.r}\ntile code: 0x${k.code.toString(16).toUpperCase()}\nphysical pattern: ${k.pid||'—'}\nlogical usage: ${k.uid||'UNRESOLVED'}\nraw attr word: ${k.attr}\npalette selector: attr & 0x1ff = ${k.bank}\neffective palette bank: ${k.bank}\ndescriptor entry addr: ${k.entry}\ntile-word addr: ${k.descr}\nflip: h${k.hf} v${k.vf}\noccurrences in segment: ${occ}\npalette authority: ORIGINAL ARCADE palette RAM 0x200000 (KF-788 validated)`));
@@ -662,7 +695,9 @@ function autoFillTile(line){const u=LAUSAGE;if(!u)return;if(POL.immutable)return
  $('#status').textContent=`Auto-filled ${u.usage_id} → Line ${line} (${Object.keys(m.index_map).length} colors, detail preserved)`;afterChange();renderLADetail();}
 function copyUsedColors(line){const u=LAUSAGE;if(!u)return;if(guardProtected(line))return;autoFillTile(line);}
 async function solveLA(mode){if(!LAP.size)return alert('check 1+ Layer-A usages');$('#status').textContent='solving…';
- const sol=await j('/api/solve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({usage_ids:[...LAP],mode})});
+ // PROMPT-ID-0009: LA source corpus follows the active scene (null unless a PAL-* scene is open).
+ const scn=/^PAL-/.test(ACTIVE_SCENE||'')?ACTIVE_SCENE:null;
+ const sol=await j('/api/solve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({usage_ids:[...LAP],mode,scene:scn})});
  SOLUTION=sol;const P=$('#props');P.innerHTML='';const nm=sol.solver==='luminance_hue'?'LUMINANCE/HUE':'ΔE PERCEPTUAL';
  P.appendChild(txt(`${nm} SHARED PALETTE (Layer A)\ndomains: ${(sol.palette_domains||[]).length}\nfeasible in one line: ${sol.feasible?'YES':'NO'}\nsafe entries required: ${sol.safe_entries_required||sol.entries_used} / capacity ${sol.one_line_capacity||15}\nMRD violations: 0 (guaranteed)`));
  if(!sol.feasible)P.appendChild(el('div','vitem ERROR',`NO ACCEPTABLE ONE-LINE SOLUTION — needs ${sol.safe_entries_required} hue-safe entries. No colors destroyed to force a fit.`));

@@ -1221,12 +1221,14 @@ def _hungarian(cost):
     return assign
 
 
-def phase_layera_automap(line, target_colors):
-    """Map EVERY R1/P1 Layer-A logical usage onto the fixed populated entries of one Genesis line.
-    Per usage: injective (MRD=0) min-cost assignment of its used arcade colors -> populated target entries,
-    cost = pixel-weighted CIEDE2000. Target colors are NOT changed. Usages needing more distinct colors than
-    the line has populated entries are BLOCKED (never merged)."""
-    la = build_layera()
+def phase_layera_automap(line, target_colors, scene=None):
+    """Map EVERY Layer-A logical usage OF THE REQUESTED SCENE onto the fixed populated entries of one
+    Genesis line.  scene=None uses the R1/P1 phase corpus; a PAL-* scene_key uses that subround's own
+    per-scene corpus (PROMPT-ID-0009).  Per usage: injective (MRD=0) min-cost assignment of its used
+    arcade colors -> populated target entries, cost = pixel-weighted CIEDE2000.  Target colors are NOT
+    changed.  Usages needing more distinct colors than the line has populated entries are BLOCKED.
+    The response echoes the scene identity so the client can verify before applying."""
+    la = build_layera(scene)
     banks = la["banks"]
     # populated nontransparent target entries (index 1..15) with their RGB
     tgt = []
@@ -1281,7 +1283,7 @@ def phase_layera_automap(line, target_colors):
     worst_list.sort(reverse=True)
     summary["mean_de"] = round(summary["sum_de"] / max(1, summary["de_count"]), 2)
     summary["worst_de"] = round(summary["worst_de"], 2)
-    return {"line": line, "proposals": proposals, "summary": summary,
+    return {"line": line, "scene": scene, "proposals": proposals, "summary": summary,
             "worst": [{"worst_de": round(w, 2), "usage_id": uid, "pattern_id": pid, "mean_de": m}
                       for w, uid, pid, m in worst_list[:20]]}
 
@@ -1292,10 +1294,12 @@ def _cram_rgb(cram):
     return LV3[R], LV3[G], LV3[B]
 
 
-def layera_solver_usages(ids):
+def layera_solver_usages(ids, scene=None):
     """Build solve_group-shaped usage dicts for selected Layer-A logical usages (LA-NNNN).
-    Each logical usage is its own palette domain; used_colors + pixel MRD come from the real tile pixels."""
-    la = build_layera()
+    Each logical usage is its own palette domain; used_colors + pixel MRD come from the real tile pixels.
+    PROMPT-ID-0009: LA-NNNN ids are scene-relative, so the SOURCE corpus must be the SAME scene the
+    client is viewing — never the R1/P1 default for a subround scene."""
+    la = build_layera(scene)
     want = set(ids)
     byid = {u["usage_id"]: u for u in la["usages"]}
     out = []
@@ -1572,13 +1576,25 @@ class Hd(BaseHTTPRequestHandler):
             tcs = body.get("target_colors") or []
             if not any(tcs[1:] if len(tcs) > 1 else []):
                 return self._s(400, json.dumps({"error": "selected line has no populated colors"}).encode())
-            return self._s(200, json.dumps(phase_layera_automap(line, tcs)).encode())
+            # PROMPT-ID-0009: a scene-specific request MUST resolve to that scene's own corpus. An
+            # unknown or corpus-less scene FAILS SAFE (never falls back to the R1/P1 corpus).
+            scene = body.get("scene") or None
+            if scene is not None:
+                if not isinstance(scene, str) or not scene.startswith("PAL-"):
+                    return self._s(400, json.dumps({"error": "invalid scene key: %r" % scene}).encode())
+                if _scene_corpus_dir(scene) is None:
+                    return self._s(404, json.dumps({"error": "no Layer-A corpus for scene %s — auto-map "
+                                   "disabled for this scene (R1/P1 is NOT substituted)" % scene}).encode())
+            return self._s(200, json.dumps(phase_layera_automap(line, tcs, scene)).encode())
         if u.path == "/api/solve":
             idlist = body.get("usage_ids", [])
             ids = set(idlist)
             plane_ids = [i for i in idlist if i.startswith("LA-")]
+            scene = body.get("scene") or None                 # LA source corpus scene (PROMPT-ID-0009)
+            if scene is not None and (not isinstance(scene, str) or not scene.startswith("PAL-")):
+                return self._s(400, json.dumps({"error": "invalid scene key: %r" % scene}).encode())
             us = [x for x in build_usages(sprite_bank_colors()) if x["usage_id"] in ids]
-            us += layera_solver_usages(plane_ids)         # Layer-A logical usages participate too
+            us += layera_solver_usages(plane_ids, scene)   # Layer-A logical usages participate too
             if len(us) < 1:
                 return self._s(400, b'{"error":"select 1+ usages"}')
             mode = body.get("mode", "delta_e")

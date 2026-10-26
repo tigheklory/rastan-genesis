@@ -1,0 +1,114 @@
+#!/usr/bin/env python3
+"""PROMPT-ID-0009 regression: scene-specific Layer-A auto-map targets ONLY the selected scene.
+
+Proven through the REAL in-process server + /api/phase_automap + /api/policy round-trip, mirroring the
+client apply exactly (fill unmapped into context_policies[scene].plane_usage_palette_mappings):
+
+  A  R1-S2 auto-map echoes scene=PAL-R1-S2-PLANEA-CASTLE and its proposals are R1-S2 corpus usages.
+  B  R2-S2 auto-map echoes its own scene; proposals are R2-S2 corpus usages (not R1-S2, not R1/P1).
+  C  Applying + save + reload stores mappings under the scene context; R1-S1 (r01.p01) is byte-identical.
+  E  Unknown scene / corpus-less scene / Line 2 / invalid scene all FAIL (no R1/P1 substitution).
+  F  scene=None (R1/P1 phase) still works and differs from the subround corpus.
+
+Not covered (browser): DOM confirm dialog text, Undo/Redo UI, stale-async abort — manual steps in report.
+"""
+from __future__ import annotations
+import importlib.util, json, threading, time, urllib.request, urllib.error, copy
+from http.server import ThreadingHTTPServer
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+P, F = [], []
+def ck(n, c, extra=""):
+    (P if c else F).append(n); print(("PASS " if c else "FAIL ") + n + ((" -> " + str(extra)) if extra and not c else ""))
+
+CASTLE1 = "PAL-R1-S2-PLANEA-CASTLE"
+CASTLE2 = "PAL-R2-S2-PLANEA-CASTLE"
+R1S1 = "context:gameplay.r01.p01"
+LINE = 3
+COLORS = [None] + ["0x0%03X" % (0x111 + k) for k in range(15)]   # 15 populated Line-3 colors
+
+
+def main() -> int:
+    spec = importlib.util.spec_from_file_location("ged_server", ROOT / "tools/graphics_editor/server.py")
+    srv = importlib.util.module_from_spec(spec)
+    try: spec.loader.exec_module(srv)
+    except SystemExit: pass
+    httpd = ThreadingHTTPServer(("127.0.0.1", 0), srv.Hd); port = httpd.server_address[1]
+    threading.Thread(target=httpd.serve_forever, daemon=True).start(); time.sleep(0.3)
+    base = f"http://127.0.0.1:{port}"
+    def g(u): return json.load(urllib.request.urlopen(base + u))
+    def post(u, obj):
+        req = urllib.request.Request(base + u, data=json.dumps(obj).encode(),
+                                     headers={"Content-Type": "application/json"}, method="POST")
+        try: return json.load(urllib.request.urlopen(req)), 200
+        except urllib.error.HTTPError as e: return json.load(e), e.code
+
+    # corpus usage-id sets per scene (authoritative: the server's own build_layera)
+    def usage_ids(scene):
+        return {u["usage_id"] for u in srv.build_layera(scene)["usages"]}
+    c1_ids, c2_ids, r1p1_ids = usage_ids(CASTLE1), usage_ids(CASTLE2), usage_ids(None)
+
+    # --- A: R1-S2 auto-map is scene-identified and uses R1-S2 corpus ---
+    a, code = post("/api/phase_automap", {"line": LINE, "target_colors": COLORS, "scene": CASTLE1})
+    ck("A1. R1-S2 auto-map returns 200", code == 200, (code, a))
+    ck("A2. response echoes scene=PAL-R1-S2-PLANEA-CASTLE", a.get("scene") == CASTLE1, a.get("scene"))
+    prop_ids = {p["usage_id"] for p in a.get("proposals", [])}
+    ck("A3. proposals are drawn from the R1-S2 corpus", prop_ids and prop_ids <= c1_ids, len(prop_ids))
+
+    # --- F: R1/P1 phase corpus (scene=None) works and differs from the subround corpus ---
+    f, fc = post("/api/phase_automap", {"line": LINE, "target_colors": COLORS, "scene": None})
+    ck("F1. scene=None (R1/P1 phase) returns 200 with scene null", fc == 200 and f.get("scene") is None, f.get("scene"))
+    fp = {p["usage_id"] for p in f.get("proposals", [])}
+    ck("F2. R1/P1 proposals come from R1/P1 corpus and differ from R1-S2",
+       fp and fp <= r1p1_ids and fp != prop_ids, (len(fp), len(prop_ids)))
+
+    # --- B: R2-S2 is its own scene ---
+    b, bc = post("/api/phase_automap", {"line": LINE, "target_colors": COLORS, "scene": CASTLE2})
+    bp = {p["usage_id"] for p in b.get("proposals", [])}
+    ck("B1. R2-S2 echoes its own scene", bc == 200 and b.get("scene") == CASTLE2, b.get("scene"))
+    ck("B2. R2-S2 proposals come from R2-S2 corpus", bp and bp <= c2_ids, len(bp))
+
+    # --- E: failures never fall back to R1/P1 ---
+    _, e1 = post("/api/phase_automap", {"line": LINE, "target_colors": COLORS, "scene": "PAL-R9-S9-PLANEA-NOPE"})
+    ck("E1. unknown scene fails (404), no R1/P1 fallback", e1 == 404, e1)
+    _, e2 = post("/api/phase_automap", {"line": LINE, "target_colors": COLORS, "scene": "PAL-R1-S1-PLANEA-OUTDOOR"})
+    ck("E2. recognized but corpus-less scene fails (404)", e2 == 404, e2)
+    _, e3 = post("/api/phase_automap", {"line": 2, "target_colors": COLORS, "scene": CASTLE1})
+    ck("E3. protected Line 2 rejected (403)", e3 == 403, e3)
+    _, e4 = post("/api/phase_automap", {"line": LINE, "target_colors": COLORS, "scene": "not-a-pal-key"})
+    ck("E4. invalid scene key rejected (400)", e4 == 400, e4)
+
+    # --- C: apply (fill) into the scene context, save, reload -> isolation ---
+    prof = {"profile_id": "t_automap", "display_name": "t_automap", "parent": "baseline_current",
+            "target_palette_lines": [[None]*16, [None]*16, [None]*16, [None]*16],
+            "usage_palette_mappings": {}, "plane_usage_palette_mappings": {},
+            # pre-existing R1-S1 mapping that must remain untouched
+            "context_policies": {R1S1: {"plane_usage_palette_mappings": {"LA-0000": {"line": 3, "index_map": {"5": 7}}}}},
+            "reserved_lines": [2]}
+    before_r1s1 = copy.deepcopy(prof["context_policies"][R1S1])
+    # client-style fill: only unmapped usages written to context_policies[CASTLE1]
+    dest = prof["context_policies"].setdefault(CASTLE1, {}).setdefault("plane_usage_palette_mappings", {})
+    for p in a["proposals"]:
+        if p.get("blocked"): continue
+        dest[p["usage_id"]] = {"line": p["line"], "index_map": p["index_map"]}
+    r, _ = post("/api/policy", prof); ck("C1. save profile with scene mappings ok", r.get("ok"))
+    loaded = g("/api/policy?p=t_automap")
+    cp = loaded.get("context_policies", {})
+    ck("C2. mappings stored under the R1-S2 scene context",
+       bool(cp.get(CASTLE1, {}).get("plane_usage_palette_mappings")), list(cp.keys()))
+    ck("C3. R1-S1 (r01.p01) mappings byte-identical (unaffected)",
+       cp.get(R1S1) == before_r1s1, cp.get(R1S1))
+    ck("C4. no auto-map mappings leaked into the global plane map",
+       not loaded.get("plane_usage_palette_mappings"), loaded.get("plane_usage_palette_mappings"))
+    ck("C5. target CRAM colors unchanged by auto-map (all lines still empty)",
+       all(all(x is None for x in ln) for ln in loaded.get("target_palette_lines", [])),
+       loaded.get("target_palette_lines"))
+
+    httpd.shutdown()
+    print(f"\n{'SCENE_AUTOMAP PASS' if not F else str(len(F))+' FAILED'}  (pass={len(P)})")
+    return 1 if F else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

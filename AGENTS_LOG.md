@@ -53928,3 +53928,28 @@ no Audio Composer touched, no palette-registry duplication, no rts/NOP/stub.
   Tighe manual acceptance items; no completed playthrough is claimed. Build 0504 was not consumed.
 - Report:
   `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0005_r1s2_fourth_chain.md`.
+
+## PROMPT-ID-0009 — Fix Scene-Specific Layer A Automapping (Andy, 2026-10-25)
+
+Composer-only. No ROM build, no native code, no Audio Composer, no approved-palette overwrite, no
+rts/NOP, no registry duplication.
+
+- **Root cause:** (1) client `phaseContext()` fell back to `context:gameplay.r01.p01` for the new
+  `PAL-R*-S*-PLANEA-*` scene keys → destination/confirm/writes all became R1/P1; (2) server
+  `phase_layera_automap()` used `build_layera()` with no scene (frozen R1/P1 corpus). Related (Req 8):
+  `layera_solver_usages()` same no-scene defect; `loadSubroundScene()` had an r01.p01 fallback.
+- **Client fix (app.js):** replaced `phaseContext()` with `automapContext()` (PAL-* → own scene ctx;
+  real `…pNN` → phase/R1P1; else null — NO r01.p01 fallback). Rewrote `phaseAutoMap()`: sends+verifies
+  scene identity, stale-async guard, fills unmapped first + separate confirm to replace, one pushUndo
+  txn, writes only the dest context, never touches CRAM colors. Button → "Auto-map Current Scene" for
+  scene scope; confirm/result report scene key/line/considered/new/replaced/blocked. `loadSubroundScene`
+  no longer routes a subround to r01.p01. `solveLA` sends active scene.
+- **Server fix (server.py):** `phase_layera_automap(line,tc,scene)` → `build_layera(scene)`, echoes
+  `scene`. `/api/phase_automap` validates scene is a PAL-* key WITH a corpus (404 if missing/unknown —
+  NO R1/P1 substitution), Line 2 → 403. `layera_solver_usages(ids,scene)` + `/api/solve` scene-aware.
+- **Tests:** `tools/graphics_editor/verify_scene_automap.py` 16/16 (A R1-S2 scene-identified corpus; B
+  R2-S2 own corpus; C apply→save→reload isolates, R1-S1 byte-identical, no global leak, CRAM unchanged;
+  E unknown/corpus-less/Line2/invalid all fail without fallback; F scene=null R1/P1 still works).
+  `verify_independent_scopes.py` 9/9 (no regression). Browser items (dialog text, Undo/Redo, stale
+  abort) remain manual.
+- Report: `docs/design/Andy_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0009_scene_automap_fix.md`
