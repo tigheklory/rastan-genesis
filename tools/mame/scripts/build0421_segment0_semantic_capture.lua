@@ -8,6 +8,10 @@ local program = assert(cpu.spaces["program"], "missing maincpu program space")
 local screen = assert(machine.screens:at(1), "missing screen")
 local trace_dir = assert(os.getenv("TRACE_DIR"), "TRACE_DIR is required")
 local capture_x = tonumber(os.getenv("SEGMENT0_CAPTURE_X") or "0x20")
+local capture_record = tonumber(os.getenv("CAPTURE_RECORD") or "")
+local capture_selector = tonumber(os.getenv("CAPTURE_SELECTOR") or "")
+local capture_scroll_y_min = tonumber(os.getenv("CAPTURE_SCROLL_Y_MIN") or "")
+local r1s2_route = os.getenv("R1S2_ROUTE") == "1"
 local scene_addr = assert(tonumber(os.getenv("SCENE_ADDR")), "SCENE_ADDR is required")
 local active_lut_addr = assert(tonumber(os.getenv("ACTIVE_LUT_ADDR")), "ACTIVE_LUT_ADDR is required")
 local staged_bg_addr = assert(tonumber(os.getenv("STAGED_BG_ADDR")), "STAGED_BG_ADDR is required")
@@ -71,7 +75,24 @@ local function drive_inputs()
   set_input("P1 A", frame >= 120 and frame <= 132)
   set_input("1 Player Start", frame >= 175 and frame <= 187)
   set_input("P1 Start", frame >= 175 and frame <= 187)
-  set_input("P1 Right", capture_x ~= 0x20 and frame >= 360)
+  if r1s2_route and r16(0xff013e) >= 0x10 then
+    local t = frame - 360
+    local left = (t < 1200) or (t >= 1800 and t < 3000)
+    local right = (t >= 1200 and t < 1800) or t >= 3000
+    local up = (t % 360) >= 120 and (t % 360) < 330
+    local jump = (t % 90) < 12
+    set_input("P1 Left", left)
+    set_input("P1 Right", right)
+    set_input("P1 Up", up)
+    set_input("P1 B", jump)
+    set_input("P1 C", jump)
+    -- Established bounded-route survival setup.  It does not alter graphics,
+    -- movement, collision, record progression, or camera state.
+    program:write_u8(0xff0101, 3)
+    program:write_u8(0xff013a, 0x30)
+  else
+    set_input("P1 Right", capture_x ~= 0x20 and frame >= 360)
+  end
 end
 
 emu.register_frame_done(function()
@@ -80,8 +101,11 @@ emu.register_frame_done(function()
 
   local player_x = r16(0xff10be)
   local x_ready = capture_x == 0x20 and player_x == capture_x or player_x >= capture_x
+  local semantic_ready = (not capture_record or r16(0xff013e) == capture_record) and
+    (not capture_selector or r16(0xff10a8) == capture_selector) and
+    (not capture_scroll_y_min or r16(0xff10b0) >= capture_scroll_y_min)
   local initial = r16(0xff0000) == 2 and r16(0xff0002) == 3 and
-    r16(0xff0004) == 0 and r8(scene_addr) == 1 and x_ready
+    r16(0xff0004) == 0 and r8(scene_addr) == 1 and x_ready and semantic_ready
   stable = initial and (stable + 1) or 0
   local required_stable = capture_x == 0x20 and 15 or 1
   if not captured and stable >= required_stable then
@@ -114,7 +138,7 @@ emu.register_frame_done(function()
     out:close()
   elseif captured_frame and frame >= captured_frame + 2 then
     machine:exit()
-  elseif frame >= 1200 then
+  elseif frame >= (r1s2_route and 6000 or 1200) then
     local out = assert(io.open(trace_dir .. "/capture_failed.txt", "w"))
     out:write("initial Segment-0 state not reached\n")
     out:close()

@@ -727,33 +727,13 @@ genesistan_plane_a_scene_scroll_reseed_native:
     bhs.s   .Lscene_scroll_reseed_done
     adda.l  %d1, %a0
 
-    move.w  ARCADE_PC080SN_SCROLL_Y_FG_OFFSET(%a5), %d0
-    bsr     .Lplane_a_visible_top_from_scroll_d0
-    move.w  %d0, %d6                      /* first logical resident row */
-    lea     fg_boundary_active_lut, %a2
+    /* The compiler has already applied the selected record's immutable
+     * 0x0504FA scroll window, code->slot mapping, palette and orientation. */
     lea     staged_fg_buffer, %a6
-    moveq   #31, %d7
-.Lscene_scroll_reseed_row:
-    move.w  %d6, %d0
-    andi.w  #0x003F, %d0
-    move.w  %d0, %d1
-    lsl.w   #8, %d1                       /* 64 cells * 4 bytes */
-    lea     0(%a0,%d1.w), %a1
-    andi.w  #0x001F, %d0
-    lsl.w   #7, %d0                       /* 64 final name words */
-    lea     0(%a6,%d0.w), %a4
-    moveq   #63, %d5
+    move.w  #1023, %d7                    /* 2048 words / two per move */
 .Lscene_scroll_reseed_cell:
-    moveq   #0, %d3
-    move.w  (%a1)+, %d3                   /* predecoded arcade tile code */
-    add.w   %d3, %d3
-    move.w  0(%a2,%d3.w), %d3             /* native resident slot */
-    or.w    (%a1)+, %d3                   /* preconverted palette/flip */
-    move.w  %d3, (%a4)+
-    dbra    %d5, .Lscene_scroll_reseed_cell
-    addq.w  #1, %d6
-    andi.w  #0x003F, %d6
-    dbra    %d7, .Lscene_scroll_reseed_row
+    move.l  (%a0)+, (%a6)+
+    dbra    %d7, .Lscene_scroll_reseed_cell
 
     move.l  #0xFFFFFFFF, fg_row_dirty
     move.b  #1, fg_native_gameplay_owner
@@ -1202,6 +1182,41 @@ resolve_plane_a_collision_cell:
     andi.w  #0x001F, %d1
     move.w  %d1, 2(%sp)                      /* physical resident row */
 
+    /* Selector-1/2 world rows have swapped source block axes.  The compiler
+     * has already applied that invariant transform and the active package's
+     * code->slot mapping.  No-publication camera motion therefore copies one
+     * final 64-word native row instead of reusing selector-0 source geometry. */
+    tst.w   ARCADE_PC080SN_SELECTOR_OFFSET(%a5)
+    beq.s   .Lplane_a_row_dynamic
+    moveq   #0, %d1
+    move.w  0x013E(%a5), %d1
+    cmpi.w  #FG_BOUNDARY_RECORDS, %d1
+    bhs.s   .Lplane_a_row_dynamic
+    lsl.l   #2, %d1
+    lea     genesistan_plane_a_pan_row_maps, %a0
+    move.l  0(%a0,%d1.l), %d2
+    cmpi.l  #0xFFFFFFFF, %d2
+    beq.s   .Lplane_a_row_dynamic
+    cmpi.l  #FG_PAN_ROW_MAP_BYTES, %d2
+    bhs.s   .Lplane_a_row_dynamic
+    adda.l  %d2, %a0
+    moveq   #0, %d1
+    move.w  0(%sp), %d1
+    lsl.l   #7, %d1
+    adda.l  %d1, %a0
+    lea     staged_fg_buffer, %a6
+    moveq   #0, %d1
+    move.w  2(%sp), %d1
+    lsl.l   #7, %d1
+    adda.l  %d1, %a6
+    moveq   #31, %d7
+.Lplane_a_row_precompiled_copy:
+    move.l  (%a0)+, (%a6)+
+    dbra    %d7, .Lplane_a_row_precompiled_copy
+    bra.w   .Lplane_a_row_mark_dirty
+
+.Lplane_a_row_dynamic:
+
     /* Row-wide context: all sixteen four-cell blocks share the row's rebuilt
      * source pointer, physical staging-row base, active residency LUT and live
      * ring front.  Build 0433 recomputed these inside every block and entered
@@ -1246,6 +1261,7 @@ resolve_plane_a_collision_cell:
     cmpi.w  #BG_LOGICAL_SPAN, %d4
     blo.w   .Lplane_a_row_col_loop
 
+.Lplane_a_row_mark_dirty:
     move.w  2(%sp), %d0
     move.l  fg_row_dirty, %d1
     bset    %d0, %d1
@@ -4931,6 +4947,8 @@ genesistan_highscore_name_descriptor_table:
     .align 2
 genesistan_plane_a_scene_fill_maps:
     .incbin "../../build/pc080sn_boundary/scene_fill_maps.bin"
+genesistan_plane_a_pan_row_maps:
+    .incbin "../../build/pc080sn_boundary/pan_row_maps.bin"
 
     .section .bss
     .align 2
