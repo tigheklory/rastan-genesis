@@ -58,6 +58,7 @@
     .extern fg_boundary_active_record
     .extern fg_boundary_resolve_b
     .extern fg_boundary_active_lut
+    .extern fg_scene_scroll_reseed_pending
     .extern fg_boundary_miss_a
     .extern fg_boundary_miss_b
     .extern fg_boundary_transition_step
@@ -705,6 +706,9 @@ genesistan_hook_tilemap_plane_a_selector12_native:
 genesistan_plane_a_scene_scroll_reseed_native:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
     lea     0x00FF0000, %a5
+    tst.b   fg_scene_scroll_reseed_pending
+    beq     .Lscene_scroll_reseed_done
+    clr.b   fg_scene_scroll_reseed_pending
     cmpi.b  #SCENE_GAMEPLAY_ID, genesistan_current_scene_id
     bne     .Lscene_scroll_reseed_done
 

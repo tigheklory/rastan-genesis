@@ -32,6 +32,7 @@
     .global fg_boundary_active_record
     .global fg_boundary_active_variant
     .global fg_boundary_active_lut
+    .global fg_scene_scroll_reseed_pending
 
     .extern genesistan_current_scene_id
     .extern genesistan_pc080sn_tile_vram_lut
@@ -145,6 +146,7 @@ fg_boundary_install_post_reseed:
     clr.l   bg_col_dirty + 4
     clr.w   fg_narrow_desc_count
     clr.w   fg_narrow_pending_rows
+    move.b  #1, fg_scene_scroll_reseed_pending
     clr.b   genesistan_scene_present_pending
     /* RG-015: names are complete, but the matching CRAM/SAT/scroll generation
      * is not visible until the next normal VBlank publication completes. */
@@ -756,4 +758,5 @@ fg_boundary_pending_identity_count:     .space 2
 fg_boundary_active_round:               .space 2
 fg_boundary_pending_round:              .space 2
 fg_boundary_reseed_pending:             .space 1
+fg_scene_scroll_reseed_pending:         .space 1
     .align 2

@@ -18,6 +18,9 @@ SCENE_ADDR=$(symaddr genesistan_current_scene_id)
 ACTIVE_LUT_ADDR=$(symaddr fg_boundary_active_lut)
 STAGED_BG_ADDR=$(symaddr staged_bg_buffer)
 STAGED_FG_ADDR=$(symaddr staged_fg_buffer)
+TILESET_ADDR=$(symaddr genesistan_current_pc080sn_tileset_id)
+ACTIVE_RECORD_ADDR=$(symaddr fg_boundary_active_record)
+ACTIVE_PACKAGE_ADDR=$(symaddr fg_boundary_active_package)
 
 for required in SCENE_ADDR ACTIVE_LUT_ADDR STAGED_BG_ADDR STAGED_FG_ADDR; do
     [[ -n "${!required}" ]] || { echo "missing symbol for $required in $SYMBOLS" >&2; exit 2; }
@@ -27,6 +30,8 @@ mkdir -p "$OUTPUT_DIR"
 TRACE_DIR="$OUTPUT_DIR" SEGMENT0_CAPTURE_X="$PLAYER_X" \
 SCENE_ADDR="$SCENE_ADDR" ACTIVE_LUT_ADDR="$ACTIVE_LUT_ADDR" \
 STAGED_BG_ADDR="$STAGED_BG_ADDR" STAGED_FG_ADDR="$STAGED_FG_ADDR" \
+TILESET_ADDR="$TILESET_ADDR" ACTIVE_RECORD_ADDR="$ACTIVE_RECORD_ADDR" \
+ACTIVE_PACKAGE_ADDR="$ACTIVE_PACKAGE_ADDR" \
 timeout 120s mame genesis \
     -cart "$ROM" -video none -sound none -nothrottle -skip_gameinfo \
     -snapshot_directory "$OUTPUT_DIR" -snapname frame \

@@ -675,7 +675,8 @@ $(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(R1_SELECTOR_STREAM
 		--index "$(PC080SN_NATIVE_METATILE_INDEX)" --records "$(PC080SN_NATIVE_METATILE_RECORDS)"
 	$(PYTHON) "$(PLANE_A_SCENE_FILL_GATE)" --maincpu "$(MAINCPU_REGION)" \
 		--pc080sn "$(PC080SN_REGION)" --maps "$(PC080SN_SCENE_FILL_MAPS)" \
-		--source "$(SRC_DIR)/tilemap_hooks.s" --spec "$(PATCH_SPEC)"
+		--source "$(SRC_DIR)/tilemap_hooks.s" --cache-source "$(SRC_DIR)/fg_tile_cache.s" \
+		--spec "$(PATCH_SPEC)"
 	$(PYTHON) "$(COLLISION_VISUAL_SEMANTICS_VERIFY)"
 	$(PYTHON) "$(NATIVE_TITLE_VERIFY)" --generator "$(NATIVE_TITLE_GEN)" \
 		--maincpu "$(MAINCPU_REGION)" --pc080sn "$(PC080SN_REGION)" \

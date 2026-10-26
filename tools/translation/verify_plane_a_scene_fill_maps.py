@@ -39,6 +39,7 @@ def main() -> None:
     parser.add_argument("--pc080sn", type=Path, required=True)
     parser.add_argument("--maps", type=Path, required=True)
     parser.add_argument("--source", type=Path, required=True)
+    parser.add_argument("--cache-source", type=Path, required=True)
     parser.add_argument("--spec", type=Path, required=True)
     args = parser.parse_args()
 
@@ -88,6 +89,8 @@ def main() -> None:
     source = args.source.read_text()
     required_source = (
         "genesistan_plane_a_scene_scroll_reseed_native:",
+        "tst.b   fg_scene_scroll_reseed_pending",
+        "clr.b   fg_scene_scroll_reseed_pending",
         "move.w  0x013E(%a5), %d0",
         "subq.w  #1, %d0",
         "ARCADE_PC080SN_SCROLL_Y_FG_OFFSET",
@@ -99,6 +102,12 @@ def main() -> None:
     for token in required_source:
         if token not in source:
             raise SystemExit(f"FAIL scene-fill source omits {token}")
+    cache_source = args.cache_source.read_text()
+    for token in (".global fg_scene_scroll_reseed_pending",
+                  "move.b  #1, fg_scene_scroll_reseed_pending",
+                  "fg_scene_scroll_reseed_pending:         .space 1"):
+        if token not in cache_source:
+            raise SystemExit(f"FAIL scene-fill handoff omits {token}")
     forbidden = ("staged_fg_tall_buffer", "C08000", "runtime transpose")
     helper = source[source.index("genesistan_plane_a_scene_scroll_reseed_native:"):
                     source.index("/* Native Plane A no-publication vertical-scroll route.")]
