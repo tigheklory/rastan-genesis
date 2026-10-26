@@ -6,6 +6,7 @@
     .global genesistan_hook_tilemap_plane_a
     .global genesistan_hook_tilemap_plane_a_selector0_native
     .global genesistan_hook_tilemap_plane_a_selector12_native
+    .global genesistan_plane_a_scene_scroll_reseed_native
     .global genesistan_plane_a_pan_publish_entering_rows_up
     .global genesistan_plane_a_pan_publish_entering_rows_down
     .global genesistan_pc080sn_directional_dispatch_native
@@ -688,6 +689,71 @@ genesistan_hook_tilemap_plane_a_selector12_native:
     blo     .Lplane_a_sel12_segment_loop
 
     adda.w  #16, %sp
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
+/* Native scene-fill resident-window realization.
+ *
+ * The retained 0x0503DC fill finishes before 0x0504FA installs the selected
+ * record's authoritative camera tuple.  The arcade's 64-row PC080SN retains
+ * both halves across that ordering; the Genesis Plane A has 32 physical rows.
+ * This finite post-scroll helper selects the already compiled record map and
+ * writes exactly the final 32-row native resident window.  Collision, ring,
+ * descriptor rebuild, and selector progression remain owned by the retained
+ * fill; this helper consumes none of their chip-shaped destinations.
+ */
+genesistan_plane_a_scene_scroll_reseed_native:
+    movem.l %d0-%d7/%a0-%a6, -(%sp)
+    lea     0x00FF0000, %a5
+    cmpi.b  #SCENE_GAMEPLAY_ID, genesistan_current_scene_id
+    bne.s   .Lscene_scroll_reseed_done
+
+    moveq   #0, %d0
+    move.w  0x013E(%a5), %d0              /* post-fill progression cursor */
+    beq.s   .Lscene_scroll_reseed_done
+    subq.w  #1, %d0                       /* record consumed by 0x0503DC */
+    cmpi.w  #FG_SCENE_FILL_MAP_RECORDS, %d0
+    bhs.s   .Lscene_scroll_reseed_done
+    lsl.l   #2, %d0
+    lea     genesistan_plane_a_scene_fill_maps, %a0
+    move.l  0(%a0,%d0.l), %d1
+    cmpi.l  #0xFFFFFFFF, %d1
+    beq.s   .Lscene_scroll_reseed_done
+    cmpi.l  #FG_SCENE_FILL_MAP_BYTES, %d1
+    bhs.s   .Lscene_scroll_reseed_done
+    adda.l  %d1, %a0
+
+    move.w  ARCADE_PC080SN_SCROLL_Y_FG_OFFSET(%a5), %d0
+    bsr     .Lplane_a_visible_top_from_scroll_d0
+    move.w  %d0, %d6                      /* first logical resident row */
+    lea     fg_boundary_active_lut, %a2
+    lea     staged_fg_buffer, %a6
+    moveq   #31, %d7
+.Lscene_scroll_reseed_row:
+    move.w  %d6, %d0
+    andi.w  #0x003F, %d0
+    move.w  %d0, %d1
+    lsl.w   #8, %d1                       /* 64 cells * 4 bytes */
+    lea     0(%a0,%d1.w), %a1
+    andi.w  #0x001F, %d0
+    lsl.w   #7, %d0                       /* 64 final name words */
+    lea     0(%a6,%d0.w), %a4
+    moveq   #63, %d5
+.Lscene_scroll_reseed_cell:
+    moveq   #0, %d3
+    move.w  (%a1)+, %d3                   /* predecoded arcade tile code */
+    add.w   %d3, %d3
+    move.w  0(%a2,%d3.w), %d3             /* native resident slot */
+    or.w    (%a1)+, %d3                   /* preconverted palette/flip */
+    move.w  %d3, (%a4)+
+    dbra    %d5, .Lscene_scroll_reseed_cell
+    addq.w  #1, %d6
+    andi.w  #0x003F, %d6
+    dbra    %d7, .Lscene_scroll_reseed_row
+
+    move.l  #0xFFFFFFFF, fg_row_dirty
+    move.b  #1, fg_native_gameplay_owner
+.Lscene_scroll_reseed_done:
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
@@ -4857,6 +4923,10 @@ genesistan_number_descriptor_table:
     .incbin "../../build/rastan-direct/best5_number_descriptors.bin"
 genesistan_highscore_name_descriptor_table:
     .incbin "../../build/rastan-direct/best5_name_descriptors.bin"
+
+    .align 2
+genesistan_plane_a_scene_fill_maps:
+    .incbin "../../build/pc080sn_boundary/scene_fill_maps.bin"
 
     .section .bss
     .align 2

@@ -575,6 +575,42 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
 
     record_maps = [record_map(index, decode_record_selector(mc, index))
                    for index in range(len(records))]
+
+    # Scene fill runs before 0x504FA installs the record's final camera/scroll
+    # tuple.  A 64-row PC080SN could retain both halves until that later
+    # decision; a 32-row Genesis plane cannot.  Compile the complete semantic
+    # map for the six original scene-fill records so the native post-scroll
+    # boundary can select the final 32-row resident window directly.  Entries
+    # are {arcade tile code, final Genesis Plane-A attribute}; no runtime
+    # transpose, descriptor walk, or arcade name-RAM image is required.
+    scene_fill_records = sorted(record["segment"] for record in records
+                                if record["scene_reinit"])
+    scene_fill_table = bytearray(b"\xff\xff\xff\xff" * len(records))
+    scene_fill_data = bytearray()
+    scene_fill_offsets = {}
+    for record_index in scene_fill_records:
+        offset = len(scene_fill_table) + len(scene_fill_data)
+        scene_fill_offsets[record_index] = offset
+        scene_fill_table[record_index * 4:record_index * 4 + 4] = be32(offset)
+        selector = decode_record_selector(mc, record_index)
+        if selector != 0:
+            raise SystemExit(f"scene-fill record {record_index} unexpectedly uses selector {selector}")
+        for source_row in range(64):
+            table_index, descriptor_row = divmod(source_row, 4)
+            table_base = source_table_bases[table_index] + record_index * 0x40
+            for source_column in range(64):
+                descriptor_column, descriptor_subcolumn = divmod(source_column, 4)
+                entry = table_base + descriptor_column * 4
+                attr = u16(entry)
+                descriptor = u16(entry + 2)
+                code = 0
+                if descriptor:
+                    code = u16(descriptor + descriptor_row * 8 +
+                               descriptor_subcolumn * 2) & 0x3FFF
+                native_attr = 0x6000 | ((attr & 0xC000) >> 3)
+                scene_fill_data += be16(code) + be16(native_attr)
+    scene_fill_binary = scene_fill_table + scene_fill_data
+    (outdir / "scene_fill_maps.bin").write_bytes(scene_fill_binary)
     transition_specs = []
     for definition in BOUNDARY_TRANSITION_DEFS:
         outgoing = record_maps[definition["out_record"]]
@@ -969,6 +1005,9 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
         f".equ FG_BOUNDARY_SLOT_FIRST, {a_slot_first}\n"
         f".equ FG_BOUNDARY_SLOT_COUNT, {a_slot_count}\n"
         f".equ FG_BOUNDARY_PATTERN_IDENTITIES, {len(pattern_id)}\n"
+        f".equ FG_SCENE_FILL_MAP_RECORDS, {len(records)}\n"
+        f".equ FG_SCENE_FILL_MAP_TABLE_BYTES, {len(scene_fill_table)}\n"
+        f".equ FG_SCENE_FILL_MAP_BYTES, {len(scene_fill_binary)}\n"
         f".equ FG_BOUNDARY_SCRATCH_WORD, {scratch_word}\n"
         + "".join(
             f".equ FG_BOUNDARY_FIXED_B_R{item['round']}_OFFSET, {item['offset']}\n"
@@ -998,6 +1037,9 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
         "round2_records": [record["segment"] for record in round_records[1]],
         "record_to_epoch": record_to_epoch,
         "record_to_package": record_to_package,
+        "scene_fill_records": scene_fill_records,
+        "scene_fill_offsets": scene_fill_offsets,
+        "scene_fill_map_bytes": len(scene_fill_binary),
         "minimum_contiguous_epoch_count_at_cap": minimum_epoch_count,
         "minimum_contiguous_segmentations": [
             [[first, last] for first, last in segmentation]

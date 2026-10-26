@@ -12,6 +12,9 @@ local scene_addr = assert(tonumber(os.getenv("SCENE_ADDR")), "SCENE_ADDR is requ
 local active_lut_addr = assert(tonumber(os.getenv("ACTIVE_LUT_ADDR")), "ACTIVE_LUT_ADDR is required")
 local staged_bg_addr = assert(tonumber(os.getenv("STAGED_BG_ADDR")), "STAGED_BG_ADDR is required")
 local staged_fg_addr = assert(tonumber(os.getenv("STAGED_FG_ADDR")), "STAGED_FG_ADDR is required")
+local tileset_addr = tonumber(os.getenv("TILESET_ADDR") or "")
+local active_record_addr = tonumber(os.getenv("ACTIVE_RECORD_ADDR") or "")
+local active_package_addr = tonumber(os.getenv("ACTIVE_PACKAGE_ADDR") or "")
 
 local function r8(address) return program:read_u8(address) & 0xff end
 local function r16(address) return program:read_u16(address) & 0xffff end
@@ -38,6 +41,20 @@ local function dump_vram_names(path, base)
   program:write_u16(0x00c00004, (base >> 14) & 3)
   local out = assert(io.open(path, "wb"))
   for _ = 0, 2047 do
+    local word = program:read_u16(0x00c00000) & 0xffff
+    out:write(string.char((word >> 8) & 0xff, word & 0xff))
+  end
+  out:close()
+end
+
+local function dump_vram(path)
+  -- The spatial verifier must validate the pattern bytes named by Plane A/B,
+  -- not merely that staged and hardware name words agree.
+  program:write_u16(0x00c00004, 0x8f02)
+  program:write_u16(0x00c00004, 0x0000)
+  program:write_u16(0x00c00004, 0x0000)
+  local out = assert(io.open(path, "wb"))
+  for _ = 0, 32767 do
     local word = program:read_u16(0x00c00000) & 0xffff
     out:write(string.char((word >> 8) & 0xff, word & 0xff))
   end
@@ -81,10 +98,14 @@ emu.register_frame_done(function()
     snapshot_status:close()
     dump_vram_names(trace_dir .. "/vram_plane_b.bin", 0xc000)
     dump_vram_names(trace_dir .. "/vram_plane_a.bin", 0xe000)
+    dump_vram(trace_dir .. "/vram.bin")
     local out = assert(io.open(trace_dir .. "/state.tsv", "w"))
-    out:write("frame\tstate0\tstate2\tstate4\tscene\tplayer_x\tplayer_y\trecord\tselector\tscroll_a_x\tscroll_a_y\tscroll_b_x\tscroll_b_y\tstrip_index\tstrip_group\tbg_subcol\tbg_walker\tbg_table_index\tstage_byte\tphase3_enable\tphase3_tick\n")
-    out:write(string.format("%d\t%04X\t%04X\t%04X\t%02X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%08X\t%04X\t%02X\t%04X\t%04X\n",
+    out:write("frame\tstate0\tstate2\tstate4\tscene\ttileset\tactive_record\tactive_package\tplayer_x\tplayer_y\trecord\tselector\tscroll_a_x\tscroll_a_y\tscroll_b_x\tscroll_b_y\tstrip_index\tstrip_group\tbg_subcol\tbg_walker\tbg_table_index\tstage_byte\tphase3_enable\tphase3_tick\n")
+    out:write(string.format("%d\t%04X\t%04X\t%04X\t%02X\t%02X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%08X\t%04X\t%02X\t%04X\t%04X\n",
       frame, r16(0xff0000), r16(0xff0002), r16(0xff0004), r8(scene_addr),
+      tileset_addr and r8(tileset_addr) or 0xff,
+      active_record_addr and r16(active_record_addr) or 0xffff,
+      active_package_addr and r16(active_package_addr) or 0xffff,
       r16(0xff10be), r16(0xff10c2), r16(0xff013e), r16(0xff10a8),
       r16(0xff10ae), r16(0xff10b0), r16(0xff10ec), r16(0xff10ee),
       r16(0xff10ca), r16(0xff10cc), r16(0xff10f6),

@@ -405,6 +405,12 @@
    "note": "Build 0303 event/reseed timing: at the proven completion of the arcade 0x0503DC scene-fill, install a deferred boundary package only for records 16/22. Descriptor cursor, Plane-B Y, tm0, and all scene-fill state now exist before variant selection; ordinary records remain installed at their direct progression boundary. Proper 2-to-8-byte shift-table replacement preserves the original return."
   },
   {
+   "arcade_pc": "0x050538",
+   "original_bytes": "4E75",
+   "replacement_bytes": "4EB9{symbol:genesistan_plane_a_scene_scroll_reseed_native}4E75",
+   "note": "RG-024 native scene-fill resident-window completion. Preserve all of original 0x0504FA, which has just selected the authoritative record and installed its six scroll/camera words, then select the offline-compiled native scene-fill map and stage exactly the final 32-row Genesis Plane-A window. This retires the implicit dependence on a 64-row PC080SN retaining both halves between the earlier 0x0503DC fill and this later scroll decision. Collision, descriptor/ring progression, selector-1/2 rebuilt-pointer semantics, and gameplay state are unchanged. Proper 2-to-8-byte shift-table replacement preserves the original return; no shadow map, runtime transpose, fallback, or chip-address interpretation is introduced."
+  },
+  {
    "arcade_pc": "0x05105A",
    "original_bytes": "3B7C00FF12FC",
    "replacement_bytes": "3B7C00FF12FC4EB9{symbol:native_player_frame_begin}",

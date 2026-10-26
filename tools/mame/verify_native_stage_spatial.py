@@ -38,6 +38,8 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--arcade", type=Path, required=True)
     parser.add_argument("--genesis", type=Path, required=True)
+    parser.add_argument("--patterns", type=Path, required=True,
+                        help="native build's 32-byte code-indexed PC080SN pattern ROM")
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
 
@@ -58,6 +60,10 @@ def main() -> None:
     staged_b = words(args.genesis / "staged_plane_b.bin")
     vram_a = words(args.genesis / "vram_plane_a.bin")
     vram_b = words(args.genesis / "vram_plane_b.bin")
+    vram_patterns = (args.genesis / "vram.bin").read_bytes()
+    source_patterns = args.patterns.read_bytes()
+    if len(vram_patterns) != 0x10000:
+        raise SystemExit(f"expected 64 KiB Genesis VRAM dump, got {len(vram_patterns)} bytes")
 
     def u16(offset: int) -> int:
         return int.from_bytes(name_ram[offset:offset + 2], "big")
@@ -71,16 +77,25 @@ def main() -> None:
             ("B", 0x0000, int(genesis["scroll_b_y"]), staged_b, vram_b)):
         top = visible_top(scroll)
         pattern_mismatch = attr_mismatch = lut_missing = vram_mismatch = 0
+        vram_pattern_mismatch = 0
+        bad_slots: set[int] = set()
         compared = excluded = 0
-        # Both PC080SN and the native 64x32 Genesis resident plane preserve
-        # physical row identity.  Camera/VSRAM selects the visible window; it
-        # does not rotate the underlying name-table rows.  Compare the 32 rows
-        # that can coexist in Genesis VRAM directly (r -> r), independent of
-        # which one is currently at the top of the screen.
-        for physical_row in range(32):
-            # The 64-row retained fill aliases logical row 32 onto resident row
-            # zero after logical row zero.  That is observable on Plane B.
-            logical_row = 32 if plane == "B" and physical_row == 0 else physical_row
+        # Plane A is reseeded after the retained camera initializer has chosen
+        # the final 64-row PC080SN window.  A 32-row Genesis plane displays the
+        # same sequence by placing each selected logical row at row & 31; VSRAM
+        # then starts on top & 31.  Score exactly that selected window.  This is
+        # the distinction the old physical-row comparison missed at R1-S2.
+        #
+        # Plane B is outside this correction and retains the established gate's
+        # physical-row model (only row zero shows the final fill alias).
+        if plane == "A":
+            row_pairs = [((top + delta) & 63, (top + delta) & 31)
+                         for delta in range(32)]
+        else:
+            row_pairs = [(32 if physical_row == 0 else physical_row,
+                          physical_row)
+                         for physical_row in range(32)]
+        for logical_row, physical_row in row_pairs:
             for column in range(64):
                 # Plane A row zero is presentation-owned by the native HUD after
                 # the stage fill, and column zero is the deliberately blank
@@ -101,6 +116,9 @@ def main() -> None:
                 if arcade_code and not slot:
                     lut_missing += 1
                 pattern_bad = (actual & 0x07FF) != slot
+                expected_pattern = source_patterns[arcade_code * 32:(arcade_code + 1) * 32]
+                actual_pattern = vram_patterns[slot * 32:(slot + 1) * 32]
+                resident_bad = bool(arcade_code and slot and expected_pattern != actual_pattern)
                 # Plane A intentionally uses one authored carrier line.  Attribute
                 # comparison here is restricted to orientation, which is independent
                 # of RG-022 palette authorship.
@@ -110,7 +128,10 @@ def main() -> None:
                 pattern_mismatch += int(pattern_bad)
                 attr_mismatch += int(attr_bad)
                 vram_mismatch += int(vram_bad)
-                if (pattern_bad or attr_bad or vram_bad) and len(details) < 256:
+                vram_pattern_mismatch += int(resident_bad)
+                if resident_bad:
+                    bad_slots.add(slot)
+                if (pattern_bad or attr_bad or vram_bad or resident_bad) and len(details) < 256:
                     details.append({
                         "plane": plane, "physical_row": physical_row,
                         "logical_row": logical_row, "column": column,
@@ -119,6 +140,9 @@ def main() -> None:
                         "expected_slot": f"0x{slot:04X}",
                         "staged_word": f"0x{actual:04X}",
                         "vram_word": f"0x{hardware:04X}",
+                        "resident_pattern_match": not resident_bad,
+                        "expected_pattern_prefix": expected_pattern[:8].hex(),
+                        "resident_pattern_prefix": actual_pattern[:8].hex(),
                     })
         summary[f"plane_{plane.lower()}_visible_top"] = top
         summary[f"plane_{plane.lower()}_cells_compared"] = compared
@@ -127,6 +151,8 @@ def main() -> None:
         summary[f"plane_{plane.lower()}_orientation_mismatches"] = attr_mismatch
         summary[f"plane_{plane.lower()}_lut_missing"] = lut_missing
         summary[f"plane_{plane.lower()}_vram_mismatches"] = vram_mismatch
+        summary[f"plane_{plane.lower()}_vram_pattern_mismatches"] = vram_pattern_mismatch
+        summary[f"plane_{plane.lower()}_bad_resident_slots"] = len(bad_slots)
 
     arcade_collision = (args.arcade / "collision_map.bin").read_bytes()
     genesis_collision = (args.genesis / "collision_map.bin").read_bytes()

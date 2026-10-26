@@ -128,16 +128,13 @@ fg_boundary_install_post_reseed:
     tst.b   genesistan_scene_present_pending
     beq.s   .Lpost_reseed_done
 
-    /* Build 0394: arcade_pc 0x050482 is reached only after the authoritative
-     * 64-iteration scene fill has completed both native Plane-A and Plane-B
-     * staging.  Publish the two existing full-plane initial name DMAs here,
-     * then make that coherent presentation visible. */
+    /* Build 0394: arcade_pc 0x050482 is reached after the authoritative
+     * 64-iteration scene fill, but before 0x0504FA installs the final camera
+     * tuple. Plane B is already final and publishes here. Plane A publication
+     * is deliberately deferred: the post-0x0504FA native helper rebuilds its
+     * exact 32-row resident window and arms the ordinary VBlank row commit. */
     lea     staged_bg_buffer, %a0
     move.l  #VRAM_PLANE_B_BASE, %d0
-    move.w  #PLANE_NAME_WORDS, %d1
-    bsr     vdp_dma_words_to_vram
-    lea     staged_fg_buffer, %a0
-    move.l  #VRAM_PLANE_A_BASE, %d0
     move.w  #PLANE_NAME_WORDS, %d1
     bsr     vdp_dma_words_to_vram
     clr.l   bg_row_dirty
