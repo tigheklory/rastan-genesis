@@ -54094,3 +54094,14 @@ Client: "Move Bank <hex> → Line N" button appears when the Bank filter is set;
 onlyBank) sends only_bank with skip=[]; mappings override the usage's prior line (plane map keyed by
 usage_id). Works for Line 2 (reuse) and 0/1/3 (author). Verified: move bank 0x01F → Line 2 maps only
 that bank (25 usages, all line 2); → Line 1 authors only its colors. Tests 42/42 + 9/9.
+
+## Fix: Clear Line wiped the shared base (cross-subround data loss) (Andy, 2026-10-26, Tighe)
+
+BUG: clearLine nulled the SHARED base target_palette_lines[line], so clearing R1-S2 Line 3 also erased
+R1-S1's Line 3 (R1-S1's colors live in the base, inherited via r01.p01). Restored R1-S1's base Line 3
+from git HEAD into the user's Test.json (R1-S2 moves preserved: own tpl[3] + 16 flame mappings to L2).
+FIX: clearLine now blanks the line at the ACTIVE scope ONLY — drops this scope's tpl override then writes
+null-shadow overrides (cp[SCOPE].tpl[line][i]=null) for any base/inherited color, so the line reads blank
+at this scope without touching the shared base or other subrounds; removes only THIS scope's plane
+mappings (shared/global/sprite left alone). Tests: verify_scene_automap.py 44/44 (H1-H6 rewritten: H5
+proves base PRESERVED, H3b proves R1-S1 intact); independent 9/9.

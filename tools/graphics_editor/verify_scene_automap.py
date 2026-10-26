@@ -160,35 +160,48 @@ def main() -> int:
        set((L2["context_policies"][CASTLE1].get("tpl") or {}).keys()) == {"3"},
        (L2["context_policies"][CASTLE1].get("tpl") or {}).keys())
 
-    # --- H: Clear Line isolation (mirror of app.js clearLine) ---
+    # --- H: Clear Line isolation (mirror of app.js clearLine) — NEVER touches the shared base ---
+    def eff_at(pol, scope, line, i):
+        c = (pol["target_palette_lines"][line] or [None]*16)[i]
+        t = ((pol.get("context_policies", {}).get(scope) or {}).get("tpl") or {}).get(str(line)) or {}
+        return t[str(i)] if str(i) in t else c
     def clear_line(pol, scope, line):
         cp = pol.setdefault("context_policies", {})
         if scope in cp and "tpl" in cp[scope]:
             cp[scope]["tpl"].pop(str(line), None)
-        tpl_base = pol["target_palette_lines"][line]
+        # shadow any still-effective (base/inherited) color with null at THIS scope; base untouched
         for i in range(1, 16):
-            tpl_base[i] = None
-        for holder in [cp.get(scope, {}).get("plane_usage_palette_mappings", {}),
-                       pol.get("plane_usage_palette_mappings", {}),
-                       pol.get("usage_palette_mappings", {})]:
-            for k in [k for k, m in holder.items() if m and m.get("line") == line]:
-                del holder[k]
+            if eff_at(pol, scope, line, i) is not None:
+                cp.setdefault(scope, {}).setdefault("tpl", {}).setdefault(str(line), {})[str(i)] = None
+        # remove ONLY this scope's own plane mappings on the line (shared/global/sprite left alone)
+        holder = cp.get(scope, {}).get("plane_usage_palette_mappings", {})
+        for k in [k for k, m in holder.items() if m and m.get("line") == line]:
+            del holder[k]
     prof3 = {"profile_id": "t_clear", "target_palette_lines": [[None]*16, [None]*16, [None]*16,
-             [None] + ["0x0111"]*15],           # base Line 3 populated (legacy/shared)
+             [None] + ["0x0111"]*15],           # base Line 3 populated (R1-S1's colors live here)
              "context_policies": {
                 CASTLE1: {"tpl": {"3": {"1": "0x0ABC"}}, "plane_usage_palette_mappings": {"LA-0005": {"line": 3, "index_map": {"4": 1}}}},
                 R1S1: {"tpl": {"3": {"2": "0x0DEF"}}, "plane_usage_palette_mappings": {"LA-0000": {"line": 3, "index_map": {"5": 2}}}}},
-             "usage_palette_mappings": {}, "plane_usage_palette_mappings": {}, "reserved_lines": [2]}
+             "usage_palette_mappings": {}, "plane_usage_palette_mappings": {"LA-9999": {"line": 3, "index_map": {"1": 4}}},
+             "reserved_lines": [2]}
+    base3_before = list(prof3["target_palette_lines"][3])
     clear_line(prof3, CASTLE1, 3)
-    ck("H1. clearing R1-S2 Line 3 removed its tpl override",
-       not prof3["context_policies"][CASTLE1].get("tpl", {}).get("3"), prof3["context_policies"][CASTLE1].get("tpl"))
-    ck("H2. clearing R1-S2 Line 3 removed its plane mapping on that line",
+    ck("H1. clearing R1-S2 Line 3 blanks it at that scope (all 15 null-shadowed)",
+       all(eff_at(prof3, CASTLE1, 3, i) is None for i in range(1, 16)),
+       (prof3["context_policies"][CASTLE1].get("tpl")))
+    ck("H2. clearing R1-S2 Line 3 removed its own plane mapping on that line",
        not prof3["context_policies"][CASTLE1]["plane_usage_palette_mappings"])
     ck("H3. R1-S1's own Line 3 override is UNTOUCHED",
        prof3["context_policies"][R1S1]["tpl"].get("3") == {"2": "0x0DEF"}, prof3["context_policies"][R1S1]["tpl"])
+    ck("H3b. R1-S1's Line 3 is still intact (eff via base/override, NOT wiped)",
+       eff_at(prof3, R1S1, 3, 2) == "0x0DEF" and eff_at(prof3, R1S1, 3, 1) == "0x0111",
+       (eff_at(prof3, R1S1, 3, 2), eff_at(prof3, R1S1, 3, 1)))
     ck("H4. R1-S1's own plane mapping on Line 3 is UNTOUCHED",
        prof3["context_policies"][R1S1]["plane_usage_palette_mappings"] == {"LA-0000": {"line": 3, "index_map": {"5": 2}}})
-    ck("H5. shared base Line 3 cleared", all(x is None for x in prof3["target_palette_lines"][3]))
+    ck("H5. shared base Line 3 is PRESERVED (NOT cleared) — the bug fix",
+       prof3["target_palette_lines"][3] == base3_before, prof3["target_palette_lines"][3][:4])
+    ck("H5b. shared/global plane mapping on the line is left alone (not this scope's)",
+       prof3["plane_usage_palette_mappings"] == {"LA-9999": {"line": 3, "index_map": {"1": 4}}})
     ck("H6. profile with cleared line still saves", post("/api/policy", prof3)[0].get("ok"))
 
     # --- I: Line-2 REUSE mapping allowed; Line-2 color authoring still rejected ---

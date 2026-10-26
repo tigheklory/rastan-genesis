@@ -689,30 +689,31 @@ async function deriveScenePalette(line,onlyBank){
  if(s.usages_blocked)P.appendChild(el('div','vitem WARN',s.usages_blocked+' usage(s) need >15 distinct colors — still UNMAPPED.'));
  else P.appendChild(el('div','vitem PASS',(reuse?'All remaining tiles mapped onto Line 2 (Layer B unchanged).':'All remaining banks placed on Line '+line+'.')+' Isolated to '+destId+'.'));
  $('#status').textContent=(reuse?'mapped → Line ':'scene palette derived → Line ')+line+': '+s.usages_mapped+' usages, '+s.usages_blocked+' blocked';}
-// Clear ALL colors + mappings on `line` at the active scope. Removes this scope's per-scene color
-// overrides for the line AND the shared base entries, plus the Layer-A/sprite mappings that target it.
-// Other subrounds keep their OWN Line `line` (their private tpl overrides are untouched). Line 2 protected.
+// Blank `line` at the ACTIVE scope ONLY. Removes this scope's own color overrides for the line and,
+// for any color still showing (inherited from the SHARED BASE), writes a null override at this scope so
+// the line reads blank HERE without ever clearing the shared base (which other subrounds inherit — the
+// base-clear was what wiped R1-S1 when clearing R1-S2). Removes only THIS scope's own plane mappings on
+// the line; the shared base and other scopes are never touched. Line 2 protected.
 function clearLine(line){
  if(POL.immutable)return alert('Create an editable profile first.');
  if(guardProtected(line))return;
  const cp=ctxPolicies();
- const scopeTplN=(cp[SCOPE]&&cp[SCOPE].tpl&&cp[SCOPE].tpl[line])?Object.keys(cp[SCOPE].tpl[line]).length:0;
- const baseN=(POL.target_palette_lines[line]||[]).filter((x,i)=>i>0&&x!=null).length;
+ const savedScope=SCOPE;   // measure what's effective on this line at THIS scope
+ let effN=0;for(let i=1;i<16;i++)if(tcram(line,i)!=null)effN++;
  const scopePlane=(cp[SCOPE]&&cp[SCOPE].plane_usage_palette_mappings)||{};
- const globPlane=POL.plane_usage_palette_mappings||{};
- const spr=POL.usage_palette_mappings||{};
- const planeN=Object.values(scopePlane).filter(m=>m&&m.line===line).length+Object.values(globPlane).filter(m=>m&&m.line===line).length;
- const sprN=Object.values(spr).filter(m=>m&&m.line===line).length;
- if(!scopeTplN&&!baseN&&!planeN&&!sprN)return alert('Line '+line+' is already empty at '+ctxName(SCOPE)+'.');
- if(!confirm('Clear Genesis Line '+line+'?\nscope: '+ctxName(SCOPE)+'\ncolors removed (this scope + shared base): '+(scopeTplN+baseN)
-   +'\nLayer-A mappings removed: '+planeN+'\nsprite mappings removed: '+sprN
-   +'\nOther subrounds keep their own Line '+line+'. Line 2 is never affected. One Undo.'))return;
+ const planeN=Object.values(scopePlane).filter(m=>m&&m.line===line).length;
+ if(!effN&&!planeN)return alert('Line '+line+' is already empty at '+ctxName(SCOPE)+'.');
+ if(!confirm('Clear Genesis Line '+line+' at '+ctxName(SCOPE)+' ONLY?\n'
+   +'colors blanked at this scope: '+effN+'\nthis scope\'s Layer-A mappings removed: '+planeN
+   +'\nThe shared base and every OTHER subround are left untouched. Line 2 is never affected. One Undo.'))return;
  pushUndo();
+ // drop this scope's own overrides, then shadow any base/inherited color with a null override here
  if(cp[SCOPE]&&cp[SCOPE].tpl)delete cp[SCOPE].tpl[line];
- if(POL.target_palette_lines[line])for(let i=1;i<16;i++)POL.target_palette_lines[line][i]=null;
- [scopePlane,globPlane,spr].forEach(d=>Object.keys(d).forEach(k=>{if(d[k]&&d[k].line===line)delete d[k];}));
+ for(let i=1;i<16;i++){if(tcram(line,i)!=null)tplSetAt(SCOPE,line,i,null);}
+ // remove only THIS scope's plane mappings on the line (shared global/sprite maps are left alone)
+ Object.keys(scopePlane).forEach(k=>{if(scopePlane[k]&&scopePlane[k].line===line)delete scopePlane[k];});
  afterChange();if(TAB==='layera')renderLayerA($('#list'));else renderList();
- $('#status').textContent='cleared Line '+line+' at '+ctxName(SCOPE);}
+ $('#status').textContent='cleared Line '+line+' at '+ctxName(SCOPE)+' (base + other subrounds untouched)';}
 let PHASE_RESULT=null;
 function renderPhaseResult(){const R=PHASE_RESULT;if(!R)return;const P=$('#props');P.innerHTML='';const s=R.res.summary;
  const kind=R.scene?'SCENE AUTO-MAP':'PHASE AUTO-MAP';
