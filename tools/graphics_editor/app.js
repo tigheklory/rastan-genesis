@@ -272,7 +272,7 @@ function renderTarget(){const G=$('#genlines');G.innerHTML='';if(!POL)return;
  for(let line=0;line<4;line++){const prot=isProtected(line);const row=el('div','line'+(line===ACTIVE&&!prot?' activeline':'')+(prot?' protline':''));
   const lb=el('span','lbl'+(line===ACTIVE&&!prot?' on':''),prot?('L'+line+' 🔒'):('LINE '+line+(line===ACTIVE?' ▸':'')));lb.style.cursor='pointer';
   lb.title=prot?'LINE '+line+' — LAYER B — ARCADE CONTROLLED — PROTECTED':'';
-  lb.onclick=()=>{ACTIVE=line;renderTarget();if(prot)showProtected(line);else if(SRC)showColorProps(SRC);};row.appendChild(lb);
+  lb.onclick=()=>{ACTIVE=line;renderTarget();if(TAB==='layera')renderLayerA($('#list'));if(prot)showProtected(line);else if(SRC)showColorProps(SRC);};row.appendChild(lb);
   const clc=(SRC&&!prot)?closestInLine(SRC,line):null;
   // current object's existing target assignments on this line (for the "assigned to index" tags)
   const curMap=U?(POL.usage_palette_mappings[MK(U)]||{}):{};const curRev={};

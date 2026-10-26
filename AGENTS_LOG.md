@@ -53992,3 +53992,9 @@ distribute as desired. Server `derive_scene_palette(scene,lines,skip_usages)`; `
 passes skip_usages; summary adds `banks_already_placed`. Colors still per-scene override, Line 2 never a
 target, scene identity + stale guards intact. Tests: verify_scene_automap.py 28/28 (G1-G12, incremental
 G5/G6).
+
+## Fix: Derive/Auto-map button label stale after selecting a line (Andy, 2026-10-25)
+
+Clicking a LINE 0/1/3 label set ACTIVE + re-rendered the palette but not the Layer-A left panel, so
+"Derive Scene Palette → Line N" / "Auto-map → Line N" kept showing the old line. The LINE-label click
+now also re-renders the Layer-A panel when that tab is active, so the buttons track the selected line.
