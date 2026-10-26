@@ -53906,3 +53906,25 @@ no Audio Composer touched, no palette-registry duplication, no rts/NOP/stub.
   `tools/mame/scripts/arcade_reach_r2.lua`; transient `states/traces/reach_r2/`.
 - Report: `docs/design/Andy_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0006_palette_composer_fixes.md`
 - Manual browser steps remain (scene load / Line-3 isolation / Undo-Redo / banners); headless data-layer all PASS.
+
+## PROMPT-ID-0005 / resume 0007 — Castle rebuilt-metatile correction (Cody, Build 0503, 2026-10-25)
+
+- Build 0503 normal ROM: `dist/rastan-direct/rastan_direct_video_test_build_0503.bin`, SHA-256
+  `d8c2cd1aee9d78efb8ec2c780161d21119c03a96a734f2887126b2530b02297d`; R1-S2 ROM:
+  `dist/rastan-direct/rastan_direct_video_test_build_0503_S1-2.bin`, SHA-256
+  `ea4098472e48d1d5a412b87953c6d9c07d7228da4c89310835040d0936973fe2`; exact ROM-producing source
+  `78fe99b4ea6c92716a9f5b5536f4107b07765459`. Candidate only; not accepted.
+- Root cause: Build 0502 treated `A5+0x1040` as another descriptor pointer, but original `0x055904`
+  already rebuilds it as the metatile-data pointer (`0x200 + word1`) and places the independent
+  attribute in `A5+0x1080`. The extra dereference selected unrelated visual and collision records,
+  explaining the broadly corrupted upper castle and missing authentic chain collision.
+- Correction consumes the rebuilt metatile identity once, uses the parallel attribute, and selects
+  the preconverted native metatile record. No runtime transformation, PC080SN emulation, shadow,
+  hitbox, teleport, fallback, palette change, or gameplay bypass was added; runtime work is reduced.
+- Static gates, canonical/gameplay/seven-epoch gates, matched initial original-arcade vs Genesis NTSC
+  Plane-A/B/collision capture, R1-S2 functional start, selector-0/64-row protection, and deterministic
+  `795/795/795` rope benchmark all pass. The earlier arcade-authentic ceiling is unchanged.
+- Exact later fourth-chain attachment/climb and full screenshot-route upper-castle presentation remain
+  Tighe manual acceptance items; no completed playthrough is claimed. Build 0504 was not consumed.
+- Report:
+  `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0005_r1s2_fourth_chain.md`.
