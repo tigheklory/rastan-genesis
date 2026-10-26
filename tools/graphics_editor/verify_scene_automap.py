@@ -105,6 +105,44 @@ def main() -> int:
        all(all(x is None for x in ln) for ln in loaded.get("target_palette_lines", [])),
        loaded.get("target_palette_lines"))
 
+    # --- G: whole-scene derive (/api/scene_palette) is scene-scoped + isolated ---
+    d, dc = post("/api/scene_palette", {"scene": CASTLE1, "lines": [0, 1, 3]})
+    ck("G1. derive echoes scene + 200", dc == 200 and d.get("scene") == CASTLE1, (dc, d.get("scene")))
+    dmap = d.get("mappings", {})
+    ck("G2. derive mappings ⊆ R1-S2 corpus", dmap and set(dmap) <= c1_ids, len(dmap))
+    ck("G3. lines filled with CRAM strings (≤15, idx0 empty)",
+       all(ln[0] is None and 1 <= sum(1 for x in ln if x) <= 15 and
+           all(isinstance(x, str) and x.startswith("0x") for x in ln if x) for ln in d["lines"].values()),
+       {k: sum(1 for x in v if x) for k, v in d["lines"].items()})
+    ck("G4. every mapped usage draws from exactly ONE line",
+       all(isinstance(m["line"], int) for m in dmap.values()))
+    _, g5 = post("/api/scene_palette", {"scene": "PAL-R9-S9-PLANEA-NOPE", "lines": [0, 1, 3]})
+    ck("G5. unknown scene derive fails (404), no R1/P1", g5 == 404, g5)
+
+    # apply like the client (colors -> cp[scene].tpl, mappings -> cp[scene].plane map) and prove isolation
+    prof2 = {"profile_id": "t_derive", "display_name": "t_derive", "parent": "baseline_current",
+             "target_palette_lines": [[None]*16, [None]*16, [None]*16, [None]*16],
+             "usage_palette_mappings": {}, "plane_usage_palette_mappings": {},
+             "context_policies": {R1S1: {"plane_usage_palette_mappings": {"LA-0000": {"line": 3, "index_map": {"5": 7}}}}},
+             "reserved_lines": [2]}
+    tgt = prof2["context_policies"].setdefault(CASTLE1, {})
+    tpl = tgt.setdefault("tpl", {})
+    for ln, arr in d["lines"].items():
+        for i, c in enumerate(arr):
+            if i and c: tpl.setdefault(ln, {})[str(i)] = c
+    tgt.setdefault("plane_usage_palette_mappings", {}).update({k: v for k, v in dmap.items()})
+    r, _ = post("/api/policy", prof2); ck("G6. save derived scene profile ok", r.get("ok"))
+    L2 = g("/api/policy?p=t_derive")
+    ck("G7. derived colors stored as per-scene override (cp[scene].tpl), base still empty",
+       bool(L2["context_policies"][CASTLE1].get("tpl")) and
+       all(all(x is None for x in ln) for ln in L2["target_palette_lines"]),
+       L2["target_palette_lines"])
+    ck("G8. R1-S1 mappings untouched by derive",
+       L2["context_policies"][R1S1] == {"plane_usage_palette_mappings": {"LA-0000": {"line": 3, "index_map": {"5": 7}}}},
+       L2["context_policies"][R1S1])
+    ck("G9. Line 2 never written by derive",
+       all("2" not in (L2["context_policies"][CASTLE1].get("tpl") or {}) for _ in [0]))
+
     httpd.shutdown()
     print(f"\n{'SCENE_AUTOMAP PASS' if not F else str(len(F))+' FAILED'}  (pass={len(P)})")
     return 1 if F else 0

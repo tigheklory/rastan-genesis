@@ -1294,6 +1294,117 @@ def _cram_rgb(cram):
     return LV3[R], LV3[G], LV3[B]
 
 
+def _nearest_cram(rgb, taken=None):
+    """Closest legal Genesis CRAM to rgb by CIEDE2000; if `taken` (a set of cram strings) is given,
+    skip those so a tile's distinct source colors stay distinct (MRD=0)."""
+    best = None
+    for B in range(8):
+        for G in range(8):
+            for R in range(8):
+                cram = "0x%04X" % ((B << 9) | (G << 5) | (R << 1))
+                if taken is not None and cram in taken:
+                    continue
+                d = _de00(rgb, [LV3[R], LV3[G], LV3[B]])
+                if best is None or d < best[1]:
+                    best = (cram, d)
+    return best[0] if best else "0x0000"
+
+
+def derive_scene_palette(scene, lines=(0, 1, 3)):
+    """PROMPT-ID-0010: derive the WHOLE scene's closest-possible Genesis palette in one pass and the
+    per-usage mappings, honoring Plane-A semantics (each tile/usage draws from exactly ONE palette line).
+
+    Method:
+      - Each Layer-A usage uses one arcade bank; collect, per bank, the distinct arcade colors its
+        usages actually use, each quantized to its nearest legal CRAM (distinct within the bank, so a
+        bank never self-merges -> MRD 0).
+      - Pack the banks into the authorable lines (default 0,1,3), each line holding <=15 CRAMs, merging
+        banks that share colors; a bank that cannot fit any line is BLOCKED (its usages are reported,
+        never silently dropped or substituted).
+      - Emit each line's palette (index 1..15) and, per usage, line + index_map onto those entries.
+    Target CRAM colors are proposed, not written, until the client applies. Line 2 is never a target.
+    """
+    la = build_layera(scene)
+    banks = la["banks"]
+    usages = la["usages"]
+    lines = [l for l in lines if l not in RESERVED_LINES]
+
+    # bank -> {src_index: nearest distinct CRAM} (distinct within the bank)
+    bank_used = {}
+    for u in usages:
+        bank_used.setdefault(u["palette_bank"], set()).update(u.get("used_indices", []))
+    bank_colors = {}
+    for b, idxs in bank_used.items():
+        pal = banks.get(b, [[0, 0, 0]] * 16)
+        taken, cmap = set(), {}
+        for si in sorted(idxs):
+            rgb = pal[si] if si < len(pal) else [0, 0, 0]
+            c = _nearest_cram(rgb, taken)
+            taken.add(c); cmap[si] = c
+        bank_colors[b] = cmap
+    bank_cramset = {b: set(cmap.values()) for b, cmap in bank_colors.items()}
+
+    # greedy pack banks (hardest first) into line-bins of capacity 15, preferring the least growth
+    bins = [{"line": ln, "crams": set(), "banks": []} for ln in lines]
+    blocked_banks = []
+    for b in sorted(bank_cramset, key=lambda x: -len(bank_cramset[x])):
+        cs = bank_cramset[b]
+        if len(cs) > 15:
+            blocked_banks.append(b); continue
+        best = None
+        for bn in bins:
+            union = bn["crams"] | cs
+            if len(union) <= 15:
+                growth = len(union) - len(bn["crams"])
+                if best is None or growth < best[1]:
+                    best = (bn, growth, union)
+        if best is None:
+            blocked_banks.append(b)
+        else:
+            bn, _, union = best
+            bn["crams"] = union; bn["banks"].append(b)
+
+    # stable ordered line palettes + index lookup
+    line_pal, cram_index, bank_line = {}, {}, {}
+    for bn in bins:
+        arr = [None] * 16
+        for i, c in enumerate(sorted(bn["crams"]), start=1):
+            arr[i] = c; cram_index[(bn["line"], c)] = i
+        line_pal[bn["line"]] = arr
+        for b in bn["banks"]:
+            bank_line[b] = bn["line"]
+
+    mappings, blocked_usages = {}, []
+    for u in usages:
+        b = u["palette_bank"]
+        if b not in bank_line:
+            blocked_usages.append(u["usage_id"]); continue
+        ln, cmap, im = bank_line[b], bank_colors[b], {}
+        for si in u.get("used_indices", []):
+            c = cmap.get(si)
+            if c is None:
+                continue
+            idx = cram_index.get((ln, c))
+            if idx is not None:
+                im[str(si)] = idx
+        if im:
+            mappings[u["usage_id"]] = {"line": ln, "index_map": im}
+    return {
+        "scene": scene,
+        "lines": {str(ln): line_pal.get(ln, [None] * 16) for ln in lines},
+        "mappings": mappings,
+        "blocked_banks": sorted(blocked_banks, key=lambda x: int(x, 16)),
+        "blocked_usages": blocked_usages,
+        "summary": {
+            "banks_total": len(bank_cramset), "banks_placed": len(bank_line),
+            "banks_blocked": len(blocked_banks),
+            "usages_total": len(usages), "usages_mapped": len(mappings),
+            "usages_blocked": len(blocked_usages),
+            "line_fill": {str(ln): sum(1 for x in line_pal.get(ln, []) if x) for ln in lines},
+        },
+    }
+
+
 def layera_solver_usages(ids, scene=None):
     """Build solve_group-shaped usage dicts for selected Layer-A logical usages (LA-NNNN).
     Each logical usage is its own palette domain; used_colors + pixel MRD come from the real tile pixels.
@@ -1586,6 +1697,21 @@ class Hd(BaseHTTPRequestHandler):
                     return self._s(404, json.dumps({"error": "no Layer-A corpus for scene %s — auto-map "
                                    "disabled for this scene (R1/P1 is NOT substituted)" % scene}).encode())
             return self._s(200, json.dumps(phase_layera_automap(line, tcs, scene)).encode())
+        if u.path == "/api/scene_palette":
+            # PROMPT-ID-0010: derive the whole scene's closest Genesis palette + per-usage mappings in
+            # one pass. Same fail-safe scene rule as auto-map (unknown/corpus-less -> error, no R1/P1).
+            scene = body.get("scene") or None
+            if scene is not None:
+                if not isinstance(scene, str) or not scene.startswith("PAL-"):
+                    return self._s(400, json.dumps({"error": "invalid scene key: %r" % scene}).encode())
+                if _scene_corpus_dir(scene) is None:
+                    return self._s(404, json.dumps({"error": "no Layer-A corpus for scene %s — derive "
+                                   "disabled for this scene (R1/P1 is NOT substituted)" % scene}).encode())
+            lines = body.get("lines") or [0, 1, 3]
+            lines = [int(x) for x in lines if int(x) not in RESERVED_LINES and int(x) in (0, 1, 3)]
+            if not lines:
+                return self._s(400, json.dumps({"error": "no editable target lines (0/1/3)"}).encode())
+            return self._s(200, json.dumps(derive_scene_palette(scene, tuple(lines))).encode())
         if u.path == "/api/solve":
             idlist = body.get("usage_ids", [])
             ids = set(idlist)

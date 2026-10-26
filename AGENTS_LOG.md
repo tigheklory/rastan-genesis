@@ -53953,3 +53953,31 @@ rts/NOP, no registry duplication.
   `verify_independent_scopes.py` 9/9 (no regression). Browser items (dialog text, Undo/Redo, stale
   abort) remain manual.
 - Report: `docs/design/Andy_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0009_scene_automap_fix.md`
+
+### MAME Exit Summary (2026-10-25 21:38:51)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-25 21:44:38)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## One-click "Derive Scene Palette" (Andy, 2026-10-25, Tighe direct request)
+
+Composer-only. No ROM build, no native code, no Audio Composer, no approved-palette overwrite, no rts/NOP.
+
+- New button "Derive Scene Palette → Lines 0/1/3" (Layer-A left panel) + `POST /api/scene_palette`
+  (`derive_scene_palette`): derives the WHOLE selected subround's closest Genesis palette and maps every
+  usage in one click — replaces per-usage checkbox hunting / per-tile Copy Used Colors.
+- Bank-centric (each Plane-A tile uses ONE line): per bank, distinct used colors → nearest-ΔE CRAM
+  (distinct within bank = MRD 0); greedy-pack banks into Lines 0/1/3 (≤15 each, merge shared); banks
+  that fit no line are BLOCKED + reported (never merged/substituted). New server `_nearest_cram`.
+- Isolation: colors → `context_policies[scene].tpl` (per-scene override, NOT shared base so scenes don't
+  clobber); mappings → `context_policies[scene].plane_usage_palette_mappings`; one Undo; Line 2 never
+  written; scene identity verified + stale guard; unknown/corpus-less scene → 404 (no R1/P1 substitution).
+- Observed: R1-S2 CASTLE 14/15 banks, 501/520 usages mapped (1 bank blocked — 45 slots < 15 banks'
+  distinct colors); R2-S2 CASTLE 5/5 banks, 234/234 usages.
+- Tests: `verify_scene_automap.py` 25/25 (G1–G9 added). Report:
+  `docs/design/Andy_scene_palette_one_click_derive.md`.

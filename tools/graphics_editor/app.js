@@ -506,6 +506,14 @@ async function renderLayerA(L){
  pbtn.onclick=()=>phaseAutoMap(ph,ACTIVE);pbar.appendChild(pbtn);
  pbar.appendChild(el('div','dim',canPhase?(amName+(isScene?' ['+ph.id+']':'')+' · Line '+ACTIVE+' · existing colors only'):'Pick an editable line (click LINE 0/1/3 label at right)'));
  L.appendChild(pbar);
+ // PROMPT-ID-0010: one-click whole-scene derive — closest Genesis palette for EVERY usage across all
+ // banks, packed into Lines 0/1/3, then mapped. No per-usage checkbox hunting.
+ const dbar=el('div','groupbar');
+ const dbtn=el('button','act','Derive Scene Palette → Lines 0/1/3');dbtn.disabled=!ph;
+ dbtn.title=ph?('Derive the closest Genesis palette for the ENTIRE '+amName+' tileset and map every usage'):'Open a subround scene (or phase) first';
+ dbtn.onclick=()=>deriveScenePalette();dbar.appendChild(dbtn);
+ dbar.appendChild(el('div','dim',ph?('whole tileset · fills Lines 0/1/3 · one Undo · scoped to '+amName):'no scene selected'));
+ L.appendChild(dbar);
  const q=el('input');q.placeholder='search id / code / hash / usage';q.value=LAFILT.q;q.style.width='96%';q.oninput=()=>{LAFILT.q=q.value;LAPAGE=0;renderLAGrid();};L.appendChild(q);
  const mk=(lbl,key,opts)=>{const w=el('div','line');w.appendChild(el('span','lbl',lbl));const s=el('select');s.appendChild(new Option('(all)',''));opts.forEach(o=>s.appendChild(new Option(o[1],o[0])));s.value=LAFILT[key];s.onchange=()=>{LAFILT[key]=s.value;LAPAGE=0;renderLAGrid();};w.appendChild(s);L.appendChild(w);};
  mk('Segment','seg',(()=>{const _r=SCENE_RECORDS||[0,15],o=[];for(let i=_r[0];i<=_r[1];i++)o.push([''+i,(ACTIVE_SCENE?'rec ':'seg ')+i]);return o;})());
@@ -589,6 +597,45 @@ async function phaseAutoMap(ph,line){
  afterChange();
  PHASE_RESULT={ph:destId,scene:reqScene,label,line,res,nw:fresh.length,rep:repApplied,skipped:repl.length-repApplied};renderPhaseResult();
  $('#status').textContent='auto-map done: '+fresh.length+' new, '+repApplied+' replaced, '+res.summary.blocked+' blocked';}
+// PROMPT-ID-0010: write a CRAM into a SPECIFIC context's per-scene override (tpl), so each subround's
+// derived palette is isolated and never clobbers another scene's base colors.
+function tplSetAt(cid,line,i,cram){const cp=ctxPolicies();cp[cid]=cp[cid]||{};cp[cid].tpl=cp[cid].tpl||{};cp[cid].tpl[line]=cp[cid].tpl[line]||{};cp[cid].tpl[line][i]=cram;}
+async function deriveScenePalette(){
+ const ctx=automapContext();
+ if(!ctx)return alert('Open a subround scene (or a phase context) first.');
+ if(POL.immutable)return alert('Create an editable profile first.');
+ const destId=ctx.id, reqScene=ctx.scene||null, reqScope=SCOPE, reqActive=ACTIVE_SCENE, label=ctxName(destId)+(ctx.kind==='scene'?' ['+destId+']':'');
+ $('#status').textContent='deriving scene palette for '+label+'…';
+ let res;
+ try{res=await j('/api/scene_palette',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({scene:reqScene,lines:[0,1,3]})});}
+ catch(e){$('#status').textContent='';return alert('derive failed: '+e);}
+ if(res.error){$('#status').textContent='';return alert(res.error);}
+ // stale + identity guards (never apply a result to a different scene than we asked for)
+ if(SCOPE!==reqScope||ACTIVE_SCENE!==reqActive){$('#status').textContent='derive discarded (selection changed)';return;}
+ if((res.scene||null)!==reqScene){$('#status').textContent='';return alert('Derive scene mismatch — NO changes applied.');}
+ const s=res.summary;
+ // would any EXISTING effective color on these lines change at this scope?
+ const savedScope=SCOPE;SCOPE=destId;let changed=0;
+ Object.entries(res.lines).forEach(([ln,arr])=>arr.forEach((cc,i)=>{if(i>0&&cc!=null){const cur=tcram(+ln,i);if(cur!=null&&cur!==cc)changed++;}}));
+ SCOPE=savedScope;
+ const msg='Derive Scene Palette: '+label+'\n'
+  +'banks placed: '+s.banks_placed+'/'+s.banks_total+'  (blocked: '+s.banks_blocked+')\n'
+  +'usages mapped: '+s.usages_mapped+'/'+s.usages_total+'  (blocked: '+s.usages_blocked+')\n'
+  +'target fill: L0 '+(s.line_fill['0']||0)+' · L1 '+(s.line_fill['1']||0)+' · L3 '+(s.line_fill['3']||0)+' colors\n'
+  +(changed?('WARNING: '+changed+' existing color(s) on these lines will be overwritten.\n'):'')
+  +'Fills Lines 0/1/3 and maps every usage, scoped ONLY to '+label+'. One Undo. Line 2 untouched.\n\nProceed?';
+ if(!confirm(msg)){$('#status').textContent='derive canceled (no changes)';return;}
+ pushUndo();
+ // colors -> the destination context's per-scene override (NOT the shared base)
+ Object.entries(res.lines).forEach(([ln,arr])=>arr.forEach((cc,i)=>{if(i>0&&cc!=null)tplSetAt(destId,+ln,i,cc);}));
+ // mappings -> the destination context's plane map
+ const dest=ctxPlaneMaps(destId);Object.entries(res.mappings).forEach(([uid,m])=>{dest[uid]={line:m.line,index_map:m.index_map};});
+ afterChange();
+ PHASE_RESULT=null;const P=$('#props');P.innerHTML='';
+ P.appendChild(txt('DERIVE SCENE PALETTE — '+label+'\nbanks placed: '+s.banks_placed+'/'+s.banks_total+'\nusages mapped: '+s.usages_mapped+'/'+s.usages_total+'\nblocked banks: '+s.banks_blocked+'\nblocked usages: '+s.usages_blocked+'\nLine fill: L0 '+(s.line_fill['0']||0)+'  L1 '+(s.line_fill['1']||0)+'  L3 '+(s.line_fill['3']||0)+'\ncolors written to: per-scene override ('+destId+')'));
+ if(s.banks_blocked)P.appendChild(el('div','vitem WARN',s.banks_blocked+' bank(s) did not fit 3 lines — their usages are left UNMAPPED (never merged or substituted).'));
+ else P.appendChild(el('div','vitem PASS','All banks placed. Lines 0/1/3 filled + every usage mapped, isolated to '+destId+'.'));
+ $('#status').textContent='scene palette derived: '+s.usages_mapped+' usages mapped, '+s.banks_blocked+' banks blocked';}
 let PHASE_RESULT=null;
 function renderPhaseResult(){const R=PHASE_RESULT;if(!R)return;const P=$('#props');P.innerHTML='';const s=R.res.summary;
  const kind=R.scene?'SCENE AUTO-MAP':'PHASE AUTO-MAP';
