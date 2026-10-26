@@ -54023,3 +54023,12 @@ closestInLine already read effective. Sprite-side color writes (autoFill/mapWith
 use the base and are out of scope here (sprites are per-scene roster pending). verify_scene_automap 28/28,
 verify_independent_scopes 9/9. NOTE for existing sessions: Reload to discard base colors already leaked
 before this fix.
+
+## Feature: Clear Line (Andy, 2026-10-26, Tighe request)
+
+Added "Clear Line N" button (Layer-A left panel, targets the active line) + clearLine(line). Empties the
+line at the active scope: deletes this scope's per-scene tpl override for the line AND the shared base
+entries, and removes Layer-A (scope+global) and sprite mappings that target that line. Other subrounds'
+private Line-N overrides are untouched; Line 2 protected; one Undo; confirm shows counts. Tests:
+verify_scene_automap.py 34/34 (H1-H6 prove isolation: clearing R1-S2 Line 3 leaves R1-S1's own Line 3
+intact).

@@ -520,6 +520,13 @@ async function renderLayerA(L){
  dbtn.onclick=()=>deriveScenePalette(ACTIVE);dbar.appendChild(dbtn);
  dbar.appendChild(el('div','dim',canDerive?('whole tileset → Line '+ACTIVE+' · one Undo · scoped to '+amName):'Pick an editable line (click LINE 0/1/3 at right)'));
  L.appendChild(dbar);
+ // Clear the active line (colors + mappings) at this scope — isolated from other subrounds.
+ const cbar=el('div','groupbar');
+ const cbtn=el('button','mini','Clear Line '+ACTIVE);cbtn.disabled=isProtected(ACTIVE)||!editableLines().includes(ACTIVE);
+ cbtn.title=isProtected(ACTIVE)?'Line 2 is protected':('Remove ALL colors + mappings on Line '+ACTIVE+' at '+ctxName(SCOPE)+' (other subrounds keep theirs)');
+ cbtn.onclick=()=>clearLine(ACTIVE);cbar.appendChild(cbtn);
+ cbar.appendChild(el('div','dim',isProtected(ACTIVE)?'Line 2 protected':('empties Line '+ACTIVE+' at '+ctxName(SCOPE)+' · one Undo')));
+ L.appendChild(cbar);
  const q=el('input');q.placeholder='search id / code / hash / usage';q.value=LAFILT.q;q.style.width='96%';q.oninput=()=>{LAFILT.q=q.value;LAPAGE=0;renderLAGrid();};L.appendChild(q);
  const mk=(lbl,key,opts)=>{const w=el('div','line');w.appendChild(el('span','lbl',lbl));const s=el('select');s.appendChild(new Option('(all)',''));opts.forEach(o=>s.appendChild(new Option(o[1],o[0])));s.value=LAFILT[key];s.onchange=()=>{LAFILT[key]=s.value;LAPAGE=0;renderLAGrid();};w.appendChild(s);L.appendChild(w);};
  mk('Segment','seg',(()=>{const _r=SCENE_RECORDS||[0,15],o=[];for(let i=_r[0];i<=_r[1];i++)o.push([''+i,(ACTIVE_SCENE?'rec ':'seg ')+i]);return o;})());
@@ -651,6 +658,30 @@ async function deriveScenePalette(line){
  if(s.banks_blocked)P.appendChild(el('div','vitem WARN',s.banks_blocked+' bank(s) do not fit Line '+line+' (>15 colors together) — still UNMAPPED. Select another editable line (0/1/3) and run again to place them there.'));
  else P.appendChild(el('div','vitem PASS','All remaining banks placed on Line '+line+'. Isolated to '+destId+'.'));
  $('#status').textContent='scene palette derived → Line '+line+': '+s.usages_mapped+' usages mapped, '+s.banks_blocked+' banks blocked';}
+// Clear ALL colors + mappings on `line` at the active scope. Removes this scope's per-scene color
+// overrides for the line AND the shared base entries, plus the Layer-A/sprite mappings that target it.
+// Other subrounds keep their OWN Line `line` (their private tpl overrides are untouched). Line 2 protected.
+function clearLine(line){
+ if(POL.immutable)return alert('Create an editable profile first.');
+ if(guardProtected(line))return;
+ const cp=ctxPolicies();
+ const scopeTplN=(cp[SCOPE]&&cp[SCOPE].tpl&&cp[SCOPE].tpl[line])?Object.keys(cp[SCOPE].tpl[line]).length:0;
+ const baseN=(POL.target_palette_lines[line]||[]).filter((x,i)=>i>0&&x!=null).length;
+ const scopePlane=(cp[SCOPE]&&cp[SCOPE].plane_usage_palette_mappings)||{};
+ const globPlane=POL.plane_usage_palette_mappings||{};
+ const spr=POL.usage_palette_mappings||{};
+ const planeN=Object.values(scopePlane).filter(m=>m&&m.line===line).length+Object.values(globPlane).filter(m=>m&&m.line===line).length;
+ const sprN=Object.values(spr).filter(m=>m&&m.line===line).length;
+ if(!scopeTplN&&!baseN&&!planeN&&!sprN)return alert('Line '+line+' is already empty at '+ctxName(SCOPE)+'.');
+ if(!confirm('Clear Genesis Line '+line+'?\nscope: '+ctxName(SCOPE)+'\ncolors removed (this scope + shared base): '+(scopeTplN+baseN)
+   +'\nLayer-A mappings removed: '+planeN+'\nsprite mappings removed: '+sprN
+   +'\nOther subrounds keep their own Line '+line+'. Line 2 is never affected. One Undo.'))return;
+ pushUndo();
+ if(cp[SCOPE]&&cp[SCOPE].tpl)delete cp[SCOPE].tpl[line];
+ if(POL.target_palette_lines[line])for(let i=1;i<16;i++)POL.target_palette_lines[line][i]=null;
+ [scopePlane,globPlane,spr].forEach(d=>Object.keys(d).forEach(k=>{if(d[k]&&d[k].line===line)delete d[k];}));
+ afterChange();if(TAB==='layera')renderLayerA($('#list'));else renderList();
+ $('#status').textContent='cleared Line '+line+' at '+ctxName(SCOPE);}
 let PHASE_RESULT=null;
 function renderPhaseResult(){const R=PHASE_RESULT;if(!R)return;const P=$('#props');P.innerHTML='';const s=R.res.summary;
  const kind=R.scene?'SCENE AUTO-MAP':'PHASE AUTO-MAP';

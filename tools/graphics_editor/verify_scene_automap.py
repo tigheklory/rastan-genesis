@@ -159,6 +159,37 @@ def main() -> int:
        set((L2["context_policies"][CASTLE1].get("tpl") or {}).keys()) == {"3"},
        (L2["context_policies"][CASTLE1].get("tpl") or {}).keys())
 
+    # --- H: Clear Line isolation (mirror of app.js clearLine) ---
+    def clear_line(pol, scope, line):
+        cp = pol.setdefault("context_policies", {})
+        if scope in cp and "tpl" in cp[scope]:
+            cp[scope]["tpl"].pop(str(line), None)
+        tpl_base = pol["target_palette_lines"][line]
+        for i in range(1, 16):
+            tpl_base[i] = None
+        for holder in [cp.get(scope, {}).get("plane_usage_palette_mappings", {}),
+                       pol.get("plane_usage_palette_mappings", {}),
+                       pol.get("usage_palette_mappings", {})]:
+            for k in [k for k, m in holder.items() if m and m.get("line") == line]:
+                del holder[k]
+    prof3 = {"profile_id": "t_clear", "target_palette_lines": [[None]*16, [None]*16, [None]*16,
+             [None] + ["0x0111"]*15],           # base Line 3 populated (legacy/shared)
+             "context_policies": {
+                CASTLE1: {"tpl": {"3": {"1": "0x0ABC"}}, "plane_usage_palette_mappings": {"LA-0005": {"line": 3, "index_map": {"4": 1}}}},
+                R1S1: {"tpl": {"3": {"2": "0x0DEF"}}, "plane_usage_palette_mappings": {"LA-0000": {"line": 3, "index_map": {"5": 2}}}}},
+             "usage_palette_mappings": {}, "plane_usage_palette_mappings": {}, "reserved_lines": [2]}
+    clear_line(prof3, CASTLE1, 3)
+    ck("H1. clearing R1-S2 Line 3 removed its tpl override",
+       not prof3["context_policies"][CASTLE1].get("tpl", {}).get("3"), prof3["context_policies"][CASTLE1].get("tpl"))
+    ck("H2. clearing R1-S2 Line 3 removed its plane mapping on that line",
+       not prof3["context_policies"][CASTLE1]["plane_usage_palette_mappings"])
+    ck("H3. R1-S1's own Line 3 override is UNTOUCHED",
+       prof3["context_policies"][R1S1]["tpl"].get("3") == {"2": "0x0DEF"}, prof3["context_policies"][R1S1]["tpl"])
+    ck("H4. R1-S1's own plane mapping on Line 3 is UNTOUCHED",
+       prof3["context_policies"][R1S1]["plane_usage_palette_mappings"] == {"LA-0000": {"line": 3, "index_map": {"5": 2}}})
+    ck("H5. shared base Line 3 cleared", all(x is None for x in prof3["target_palette_lines"][3]))
+    ck("H6. profile with cleared line still saves", post("/api/policy", prof3)[0].get("ok"))
+
     httpd.shutdown()
     print(f"\n{'SCENE_AUTOMAP PASS' if not F else str(len(F))+' FAILED'}  (pass={len(P)})")
     return 1 if F else 0
