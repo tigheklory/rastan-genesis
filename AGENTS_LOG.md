@@ -54059,3 +54059,14 @@ reuse-only Line-2 mapping; extended the SAME to Layer A:
 Finding for Tighe: the editor's Line-2 display IS R1's real Layer-B palette; its sky-blues (i7/i8) are
 simply never drawn in the castle (R1 uses one background bank), so the flame colors to reuse
 (yellows/oranges/reds/white) are present. Tests: verify_scene_automap.py 38/38 (I1-I4), independent 9/9.
+
+## Build 0508 — R1-S2 selector-1 record streaming (Cody, PROMPT-ID-0012, 2026-10-26)
+
+- ROM-producing commit: `d1ad940452dfa2ba31f67e826807582fbbb379b4`; Build 0508 canonical/entry/epoch gates PASS.
+- Root cause after exact record-16 scene fill: the no-publication vertical camera route reused selector-0 source geometry while records 17/21 use selector 1's swapped block axes. Build 0505 mismatches grew 116→328→487 cells with scrolling although stage→VDP and resident patterns were coherent.
+- Offline compiler now emits final physical scene images and final logical selector-1/2 pan rows after stable package slot allocation. Runtime copies 4 KiB once at scene entry or 128 bytes per entering row; no descriptor reconstruction, transpose, C-window shadow, or collision change.
+- Build 0508 actual Genesis record-17 captures at Y=$0131/$014E/$0166: 0/1,953 final-word mismatches, 0 stage→VDP mismatches, 0 resident-pattern mismatches at each position. Initial R1-S2 capture also has zero Plane-A/B and collision mismatches versus arcade.
+- Exact cycles: scene reseed 119,056→31,154 (-73.8%); selector-1 row 26,252→1,412 (-94.6%); VBlank dirty/DMA contract unchanged.
+- Normal SHA-256 `6cd134226f82cfb6d4c7c3929f7297d1fefd2bd998eb36a7b6780603b136674a`; R1-S2 SHA-256 `96f63e694874622818763a62b33881ec07a106b7c611a8d4edeff33e67fc508c`.
+- Records 18–20 (selector 0) and 21 (selector 1) pass exhaustive/static native gates and remain package 5, but the bounded route did not naturally reach them. Tighe must verify their transitions, multiple record-21 positions, fourth-chain attachment, R1-S3, and boss progression. Candidate NOT ACCEPTED.
+- Full evidence: `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0012_r1s2_complete_record_streaming.md`.
