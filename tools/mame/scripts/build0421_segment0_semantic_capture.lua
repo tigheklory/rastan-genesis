@@ -20,6 +20,59 @@ local tileset_addr = tonumber(os.getenv("TILESET_ADDR") or "")
 local active_record_addr = tonumber(os.getenv("ACTIVE_RECORD_ADDR") or "")
 local active_package_addr = tonumber(os.getenv("ACTIVE_PACKAGE_ADDR") or "")
 
+-- Optional host-only cycle probes.  Addresses come from the matching ELF;
+-- ordinary captures install no debugger breakpoints and production ROM state
+-- is never modified by this instrumentation.
+local perf_scene_entry = tonumber(os.getenv("STAGE_PERF_SCENE_ENTRY") or "", 16)
+local perf_scene_exit = tonumber(os.getenv("STAGE_PERF_SCENE_EXIT") or "", 16)
+local perf_row_entry = tonumber(os.getenv("STAGE_PERF_ROW_ENTRY") or "", 16)
+local perf_row_copy_done = tonumber(os.getenv("STAGE_PERF_ROW_COPY_DONE") or "", 16)
+local debug_log, debug_log_index = nil, 0
+local scene_start, row_start = nil, nil
+local scene_cycles, row_cycles = {}, {}
+if perf_scene_entry and perf_scene_exit and perf_row_entry and perf_row_copy_done then
+  debug_log = assert(machine.debugger and machine.debugger.consolelog,
+    "cycle probes require -debug -debugger none")
+  cpu.debug:bpset(perf_scene_entry, "b@ffb2c7==1",
+    'printf "RG12,SCENE_ENTRY,%d,%d\\n",totalcycles,frame; g')
+  cpu.debug:bpset(perf_scene_exit, "1",
+    'printf "RG12,SCENE_EXIT,%d,%d\\n",totalcycles,frame; g')
+  cpu.debug:bpset(perf_row_entry, "w@ff10a8!=0",
+    'printf "RG12,ROW_ENTRY,%d,%d\\n",totalcycles,frame; g')
+  cpu.debug:bpset(perf_row_copy_done, "w@ff10a8!=0",
+    'printf "RG12,ROW_COPY_DONE,%d,%d\\n",totalcycles,frame; g')
+end
+
+local function drain_cycles()
+  if not debug_log then return end
+  for index = debug_log_index + 1, #debug_log do
+    local tag, cycles = tostring(debug_log[index]):match("^RG12,([A-Z_]+),(%d+),%d+")
+    cycles = tonumber(cycles)
+    if tag == "SCENE_ENTRY" then scene_start = cycles
+    elseif tag == "SCENE_EXIT" and scene_start then
+      scene_cycles[#scene_cycles + 1] = cycles - scene_start; scene_start = nil
+    elseif tag == "ROW_ENTRY" then row_start = cycles
+    elseif tag == "ROW_COPY_DONE" and row_start then
+      row_cycles[#row_cycles + 1] = cycles - row_start; row_start = nil
+    end
+  end
+  debug_log_index = #debug_log
+end
+
+local function write_cycles()
+  if not debug_log then return end
+  drain_cycles()
+  local out = assert(io.open(trace_dir .. "/native_stage_cycles.tsv", "w"))
+  out:write("kind\tsample\tcycles\n")
+  for index, cycles in ipairs(scene_cycles) do
+    out:write(string.format("scene_reseed\t%d\t%d\n", index, cycles))
+  end
+  for index, cycles in ipairs(row_cycles) do
+    out:write(string.format("selector_pan_row\t%d\t%d\n", index, cycles))
+  end
+  out:close()
+end
+
 local function r8(address) return program:read_u8(address) & 0xff end
 local function r16(address) return program:read_u16(address) & 0xffff end
 
@@ -97,6 +150,7 @@ end
 
 emu.register_frame_done(function()
   frame = frame + 1
+  drain_cycles()
   drive_inputs()
 
   local player_x = r16(0xff10be)
@@ -137,11 +191,13 @@ emu.register_frame_done(function()
       r8(0xff0118), r16(0xff1360), r16(0xff1362)))
     out:close()
   elseif captured_frame and frame >= captured_frame + 2 then
+    write_cycles()
     machine:exit()
   elseif frame >= (r1s2_route and 6000 or 1200) then
     local out = assert(io.open(trace_dir .. "/capture_failed.txt", "w"))
     out:write("initial Segment-0 state not reached\n")
     out:close()
+    write_cycles()
     machine:exit()
   end
 end)
