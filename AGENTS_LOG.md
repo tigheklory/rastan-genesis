@@ -53998,3 +53998,14 @@ G5/G6).
 Clicking a LINE 0/1/3 label set ACTIVE + re-rendered the palette but not the Layer-A left panel, so
 "Derive Scene Palette → Line N" / "Auto-map → Line N" kept showing the old line. The LINE-label click
 now also re-renders the Layer-A panel when that tab is active, so the buttons track the selected line.
+
+## Fix: derive weighting + black Tile Library (Andy, 2026-10-25, Tighe feedback)
+
+- Derive over-weighted localized accents (flames) because banks were packed hardest-first (most colors).
+  Now packs banks by screen-area prevalence (summed map_cell_count), so ubiquitous structure (grey
+  stone, green) wins the 15 slots and low-area accents are the ones blocked. R1-S2 Line 3 now places
+  banks 0x008/009/00A (9552/6704/2624 cells) first; flame-ish 0x010-0x01F blocked (put on another line).
+- Tile Library / ARCADE SOURCE thumbnails rendered all-black for subround scenes: /api/render_tile used
+  build_layera() (R1/P1 banks), so scene bank ids fell back to [[0,0,0]]. Made render_tile scene-aware
+  (accepts &scene=) and the client thumbnail + ARCADE SOURCE URLs now pass the scene. Same scene-fallback
+  bug class as project_composer_scene_fallback_bug_class.

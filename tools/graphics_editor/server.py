@@ -1351,10 +1351,21 @@ def derive_scene_palette(scene, lines=(0, 1, 3), skip_usages=()):
         bank_colors[b] = cmap
     bank_cramset = {b: set(cmap.values()) for b, cmap in bank_colors.items()}
 
-    # greedy pack banks (hardest first) into line-bins of capacity 15, preferring the least growth
+    # PROMPT-ID-0010 fix: prioritize banks by how much of the scene they actually COVER (summed
+    # map_cell_count = screen area), so ubiquitous structure (grey stone, green) wins the limited 15
+    # slots and localized accents (flames) are the ones blocked — not the reverse. Tie-break: fewer
+    # colors (easier to fit).
+    bank_area = {}
+    for u in usages:
+        b = u["palette_bank"]
+        if b in placed_banks:
+            continue
+        bank_area[b] = bank_area.get(b, 0) + (u.get("map_cell_count") or 1)
+
+    # greedy pack banks (most-covering first) into line-bins of capacity 15, preferring the least growth
     bins = [{"line": ln, "crams": set(), "banks": []} for ln in lines]
     blocked_banks = []
-    for b in sorted(bank_cramset, key=lambda x: -len(bank_cramset[x])):
+    for b in sorted(bank_cramset, key=lambda x: (-bank_area.get(x, 0), len(bank_cramset[x]))):
         cs = bank_cramset[b]
         if len(cs) > 15:
             blocked_banks.append(b); continue
@@ -1612,7 +1623,10 @@ class Hd(BaseHTTPRequestHandler):
                 if "pal" in q:
                     pal = json.loads(q["pal"][0])
                 else:
-                    pal = build_layera()["banks"].get(q.get("bank", ["0x003"])[0], [[0, 0, 0]] * 16)
+                    # scene-aware bank palette: a subround scene's bank ids live in ITS corpus, not R1/P1,
+                    # so without the scene they fall back to all-black (the "black Tile Library" bug).
+                    scene = (q.get("scene", [""])[0] or None)
+                    pal = build_layera(scene)["banks"].get(q.get("bank", ["0x003"])[0], [[0, 0, 0]] * 16)
                 z = max(1, min(32, int(q.get("z", ["8"])[0])))
                 return self._s(200, render_tile8(code, pal, z), "image/png")
             except Exception as e:

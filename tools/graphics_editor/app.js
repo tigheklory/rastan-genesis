@@ -682,7 +682,7 @@ function renderLAGrid(){LADET=null;const C=$('#center');C.innerHTML='';
  head.appendChild(prev);head.appendChild(next);C.appendChild(head);
  const grid=el('div','laGrid');
  all.slice(LAPAGE*LAPP,(LAPAGE+1)*LAPP).forEach(p=>{const card=el('div','laCard');
-  const im=new Image();im.className='pimg';im.loading='lazy';im.width=8*LAZOOM;im.height=8*LAZOOM;im.src=`/api/render_tile?code=${p.rep_tile_code}&bank=${p.palette_banks[0]}&z=${LAZOOM}`;card.appendChild(im);
+  const im=new Image();im.className='pimg';im.loading='lazy';im.width=8*LAZOOM;im.height=8*LAZOOM;im.src=`/api/render_tile?code=${p.rep_tile_code}&bank=${p.palette_banks[0]}&z=${LAZOOM}`+sceneQS('&');card.appendChild(im);
   card.appendChild(el('div','laId',p.pattern_id));card.appendChild(el('div','dim',p.n_uses+'u · '+p.n_palettes+'p'+(p.multi_palette?' ✳':'')));
   card.onclick=()=>openLAPattern(p.pattern_id);grid.appendChild(card);});
  C.appendChild(grid);}
@@ -709,7 +709,7 @@ function laGenPal(u){const pal=[[0,0,0]];for(let i=1;i<16;i++)pal[i]=[60,60,72];
 function renderLAUsage(){const C=$('#center');const u=LAUSAGE;
  C.appendChild(el('h3',null,'SELECTED USAGE '+u.usage_id+' — Arcade source vs Genesis target'));
  const pv=el('div','laVariants');
- const a=el('div','pv');a.appendChild(el('div','pvh','ARCADE SOURCE (bank '+u.palette_bank+')'));const ia=new Image();ia.className='pimg';ia.width=ia.height=8*20;ia.src=`/api/render_tile?code=${u.tile_code}&bank=${u.palette_bank}&z=20`;a.appendChild(ia);pv.appendChild(a);
+ const a=el('div','pv');a.appendChild(el('div','pvh','ARCADE SOURCE (bank '+u.palette_bank+')'));const ia=new Image();ia.className='pimg';ia.width=ia.height=8*20;ia.src=`/api/render_tile?code=${u.tile_code}&bank=${u.palette_bank}&z=20`+sceneQS('&');a.appendChild(ia);pv.appendChild(a);
  const g=el('div','pv');g.appendChild(el('div','pvh','GENESIS TARGET (mapped colors) — click a pixel to pick its CRAM entry'));const ig=new Image();ig.className='pimg pickable';ig.width=ig.height=8*20;ig.src=`/api/render_tile?code=${u.tile_code}&pal=${encodeURIComponent(JSON.stringify(laGenPal(u)))}&z=20`;
  ig.onclick=e=>{const rc=ig.getBoundingClientRect();const nx=Math.floor((e.clientX-rc.left)/rc.width*8),ny=Math.floor((e.clientY-rc.top)/rc.height*8);const px=(LADET&&LADET.pixels)||[];const vi=px[ny*8+nx];if(!vi){$('#status').textContent='Transparent pixel — no palette entry';return;}const mm=planeMap(u.usage_id);const c=u.used_colors.find(x=>x.src_index===vi);if(c){LASRC=c;renderLADetail();laFindMatch(c);}if(mm&&mm.index_map[vi]!=null){TGT={line:mm.line,index:mm.index_map[vi]};ACTIVE=mm.line;renderTarget();showTarget();$('#status').textContent=`picked src i${vi} → L${mm.line}:${mm.index_map[vi]}`;}else $('#status').textContent=`clicked src i${vi} (unmapped) — selected as source`;};g.appendChild(ig);pv.appendChild(g);
  C.appendChild(pv);
