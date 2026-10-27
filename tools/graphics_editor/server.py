@@ -1745,7 +1745,14 @@ class Hd(BaseHTTPRequestHandler):
                 usage = next((x for x in build_usages(banks) if x["usage_id"] == uid), None) if uid else None
                 if usage is None:
                     return self._s(404, b'{"error":"usage not found"}')
-                pal = banks.get(int(usage["sprite_bank"], 16), [[0, 0, 0]] * 16)
+                pal = [list(x) for x in banks.get(int(usage["sprite_bank"], 16), [[0, 0, 0]] * 16)]
+                # Overlay the usage's OWN resolved arcade colors so the composite is never all-black when
+                # its bank is absent from sprite_bank_colors() (e.g. reward/pickup banks 0x31/0x37): these
+                # per-index arcade_rgb8 values are the authoritative colors the editor already shows.
+                for c in usage.get("used_colors", []):
+                    si = c.get("src_index")
+                    if isinstance(si, int) and 0 <= si < len(pal) and c.get("arcade_rgb8"):
+                        pal[si] = list(c["arcade_rgb8"])
                 if "target" in q:
                     pal = json.loads(q["target"][0])
                 bnd = q.get("boundaries", ["0"])[0] == "1"

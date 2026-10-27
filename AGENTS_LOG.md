@@ -54171,3 +54171,14 @@ architecture-respecting fix is palette allocation within Cody's per-subround pal
 bounded by an explicit palette-budget decision; reserve S/H for genuinely half/double effects. Proposed
 an isolated-worktree diagnostic experiment to confirm the overshoot on hardware if Tighe wants certainty.
 Report: docs/design/Andy_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0023_genesis_shadow_highlight_research.md
+
+## Fix: Sprites tab — black arcade composite + empty Target-color for Line-2 maps (Andy, 2026-10-27)
+
+Two Sprites-tab render bugs on reward/pickup objects (banks 0x31/0x37) mapped to Line 2:
+- /api/render (arcade composite) used banks.get(int(sprite_bank,16)) and fell back to all-black when the
+  bank isn't in sprite_bank_colors() (0x31/0x37 are item banks, not enemy/palette_states banks). Now
+  overlays the usage's own used_colors (authoritative arcade_rgb8) onto the palette -> composite renders
+  (verified 95-100% non-black for 0x31/0x37).
+- renderMapTable "Target color" + renderPreviews GENESIS TARGET read target_palette_lines[map.line][ti]/
+  tcram, which are null for Line 2 -> "—"/natural fallback. Now use effCramAt so reused Layer-B (Line 2)
+  colors resolve. No regression: verify_scene_automap 44/44, independent 9/9.

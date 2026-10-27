@@ -272,7 +272,7 @@ function animatedIndices(line){const o=((POL&&POL.line_owners)||{})[line+'']||{}
 
 function renderMapTable(){const T=$('#maptable');T.innerHTML='';if(!U)return;const map=(POL.usage_palette_mappings[MK(U)]||{});const im=map.index_map||{};
  const head=el('div','maprow mono');head.innerHTML='<b>Source</b><b>Arcade</b><b>Mapped To</b><b>Target color</b><b></b>';T.appendChild(head);
- U.used_colors.forEach(c=>{const r=el('div','maprow mono');const ti=im[c.src_index];const tcram=ti!=null?POL.target_palette_lines[map.line][ti]:null;const trgb=cramToRGB(tcram);
+ U.used_colors.forEach(c=>{const r=el('div','maprow mono');const ti=im[c.src_index];const tcram=ti!=null?effCramAt(map.line,ti):null;const trgb=cramToRGB(tcram);
   r.appendChild(el('span',null,'i'+c.src_index));const a=el('span');a.appendChild(swBox(c.arcade_rgb8));a.appendChild(el('span',null,' '+c.hex));r.appendChild(a);
   r.appendChild(el('span',null,ti!=null?('L'+map.line+':'+ti):'—'));const t=el('span');if(trgb){t.appendChild(swBox(trgb));t.appendChild(el('span',null,' '+tcram));}else t.textContent='—';r.appendChild(t);
   const rm=el('span');if(ti!=null){const b=el('button','mini','unmap');b.onclick=()=>{pushUndo();delete im[c.src_index];afterChange();};rm.appendChild(b);}r.appendChild(rm);T.appendChild(r);});}
@@ -380,7 +380,7 @@ async function renderPreviews(){const P=$('#previews');P.innerHTML='';if(!U)retu
  const s=el('div','pv');s.appendChild(el('div','pvh',(U.composite_proven?'TRUE ARCADE COMPOSITE':'PROVEN CELL SHEET — NOT COMPOSITE')));
  const i1=new Image();i1.className='pimg';i1.onload=()=>sizeImg(i1);i1.src=`/api/render?usage=${uid}${b}`;s.appendChild(i1);P.appendChild(s);
  const map=POL.usage_palette_mappings[MK(U)];const pal=[[0,0,0]];for(let i=1;i<16;i++)pal[i]=[60,60,72];
- U.used_colors.forEach(c=>{let rgb=c.genesis_rgb8;if(map&&map.index_map[c.src_index]!=null){const cr=tcram(map.line,map.index_map[c.src_index]);const g=cramToRGB(cr);if(g)rgb=g;}pal[c.src_index]=rgb;});
+ U.used_colors.forEach(c=>{let rgb=c.genesis_rgb8;if(map&&map.index_map[c.src_index]!=null){const cr=effCramAt(map.line,map.index_map[c.src_index]);const g=cramToRGB(cr);if(g)rgb=g;}pal[c.src_index]=rgb;});
  const t=el('div','pv');t.appendChild(el('div','pvh','GENESIS TARGET (same geometry, mapped colors) — click a pixel to pick its CRAM entry'));
  const i2=new Image();i2.className='pimg pickable';i2.onload=()=>sizeImg(i2);i2.src=`/api/render?usage=${uid}&target=${encodeURIComponent(JSON.stringify(pal))}${b}`;
  i2.onclick=e=>spritePixelPick(e,i2);t.appendChild(i2);P.appendChild(t);}
