@@ -57,6 +57,97 @@ SLOT_MIN = SAFE_PLANE_SLOT_FIRST
 SLOT_MAX = SAFE_PLANE_SLOT_LAST - BG_RESERVE                 # Plane-A (FG) band top: 64..703
 PLANE_SLOTS = SLOT_MAX - SLOT_MIN + 1                        # 640 FG slots
 TILE_BYTES = 32
+AUTHORED_SYNTHETIC_FIRST = 0x1600
+AUTHORED_DESC_FIRST = 0x1691C
+AUTHORED_DESC_END = 0x3951C
+AUTHORED_DESC_ENTRY_BYTES = 4
+AUTHORED_VISUAL_RECORD_BYTES = 16 * 4
+
+
+class AuthoredLayerA:
+    """Offline-only Palette Composer realization for the two authored R1 scenes."""
+    SCENES = (
+        ("context:gameplay.r01.p01", range(0, 16),
+         ROOT / "analysis/graphics_optimizer/round1_phase1/plane_a_uses.json"),
+        ("PAL-R1-S2-PLANEA-CASTLE", range(16, 22),
+         ROOT / "analysis/graphics_optimizer/subround_corpus/PAL-R1-S2-PLANEA-CASTLE/plane_a_uses.json"),
+    )
+
+    def __init__(self, profile_path: Path, raw_patterns: bytes):
+        self.profile_path = profile_path
+        self.profile_bytes = profile_path.read_bytes()
+        profile = json.loads(self.profile_bytes)
+        pending = []
+        self.by_record = {}
+        self.by_context = []
+        self.raw_required_by_record = {}
+        self.mapped = 0
+        self.unmapped = 0
+        for context, records, uses_path in self.SCENES:
+            record_set = set(records)
+            uses = json.loads(uses_path.read_text())
+            mappings = profile["context_policies"][context]["plane_usage_palette_mappings"]
+            lookups = {record: {} for record in record_set}
+            raw_required = {record: set() for record in record_set}
+            for index, use in enumerate(uses):
+                mapping = mappings.get(f"LA-{index:04d}")
+                if mapping is None:
+                    self.unmapped += 1
+                    for record in set(use["records"]) & record_set:
+                        raw_required[record].add(use["tile_code"])
+                    continue
+                code = use["tile_code"]
+                blob = bytearray(raw_patterns[code * TILE_BYTES:(code + 1) * TILE_BYTES])
+                index_map = {int(k): int(v) for k, v in mapping["index_map"].items()}
+                for offset, value in enumerate(blob):
+                    hi, lo = value >> 4, value & 15
+                    blob[offset] = (index_map.get(hi, hi) << 4) | index_map.get(lo, lo)
+                key = (code, use["palette_bank"], use["flip"])
+                value = (bytes(blob), mapping["line"], f"LA-{index:04d}")
+                for record in set(use["records"]) & record_set:
+                    lookup = lookups[record]
+                    if key in lookup and lookup[key][:2] != value[:2]:
+                        raise SystemExit(f"ambiguous authored Layer-A usage {context} {key}")
+                    lookup[key] = value
+                pending.append(bytes(blob))
+                self.mapped += 1
+            self.by_record.update(lookups)
+            self.raw_required_by_record.update(raw_required)
+            merged = {}
+            for lookup in lookups.values():
+                for key, value in lookup.items():
+                    if key in merged and merged[key][:2] != value[:2]:
+                        raise SystemExit(f"ambiguous context-wide authored Layer-A usage {context} {key}")
+                    merged[key] = value
+            self.by_context.append(merged)
+
+        unique = sorted(set(pending))
+        if AUTHORED_SYNTHETIC_FIRST + len(unique) > BOUNDARY_LUT_WORDS:
+            raise SystemExit("authored Layer-A variants exceed native logical-code band")
+        self.code_for_blob = {blob: AUTHORED_SYNTHETIC_FIRST + index
+                              for index, blob in enumerate(unique)}
+        self.synthetic_patterns = {code: blob for blob, code in self.code_for_blob.items()}
+
+    def resolve(self, record: int, code: int, attr: int, raw_patterns: bytes):
+        key = (code, attr & 0x1FF, (attr >> 14) & 3)
+        authored = None
+        for context_index, (_context, records, _uses_path) in enumerate(self.SCENES):
+            if record in records:
+                authored = self.by_context[context_index].get(key)
+                break
+        if authored is None:
+            return code, raw_patterns[code * TILE_BYTES:(code + 1) * TILE_BYTES], 3, None
+        blob, line, usage = authored
+        return self.code_for_blob[blob], blob, line, usage
+
+    def resolve_context(self, context_index: int, code: int, attr: int,
+                        raw_patterns: bytes):
+        key = (code, attr & 0x1FF, (attr >> 14) & 3)
+        authored = self.by_context[context_index].get(key)
+        if authored is None:
+            return code, raw_patterns[code * TILE_BYTES:(code + 1) * TILE_BYTES], 3, None
+        blob, line, usage = authored
+        return self.code_for_blob[blob], blob, line, usage
 
 # Build 0302 boundary-loaded experiment.  Ordinary records use one of eight row bands selected
 # once from Plane-B Y at the semantic record transition.  An eight-row Y class needs 36 source
@@ -363,7 +454,8 @@ def be32(v): return bytes([(v >> 24) & 0xFF, (v >> 16) & 0xFF,
                            (v >> 8) & 0xFF, v & 0xFF])
 
 
-def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_index: int = 0, reuse=None):
+def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_index: int = 0,
+                              reuse=None, authored: AuthoredLayerA | None = None):
     """Compile the zero-drop native gameplay ownership model for Rounds 1 and 2.
 
     Each round owns an exact, offline Plane-B vocabulary and a deterministic set of
@@ -373,6 +465,11 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
     """
     if stage_index != 0:
         raise SystemExit("the canonical multi-round package must begin at stage_index=0")
+    native_pattern_region = bytearray(patterns)
+    if authored is not None:
+        for code, blob in authored.synthetic_patterns.items():
+            native_pattern_region[code * TILE_BYTES:(code + 1) * TILE_BYTES] = blob
+    (outdir / "native_pattern_region.bin").write_bytes(native_pattern_region)
     round_records = [decode_plane_b_progression(mc, first) for first in (0, 23)]
     records = round_records[0] + round_records[1]
     if [record["segment"] for record in records] != list(range(46)):
@@ -380,7 +477,10 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
 
     def u16(addr): return int.from_bytes(mc[addr:addr + 2], "big")
     def u24(addr): return int.from_bytes(mc[addr:addr + 4], "big") & 0xFFFFFF
-    def tile_bytes(code): return patterns[code * TILE_BYTES:(code + 1) * TILE_BYTES]
+    def tile_bytes(code):
+        if authored is not None and code in authored.synthetic_patterns:
+            return authored.synthetic_patterns[code]
+        return patterns[code * TILE_BYTES:(code + 1) * TILE_BYTES]
 
     # Exact pattern bytes, not source-code identity, are the physical VRAM unit.
     # A round's descriptor cursor is decoded from original arcade progression; the
@@ -470,6 +570,12 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
         codes = sorted((seg_fg_tiles(mc, record["segment"]) - {0})
                        | set(PLANE_A_SURFACE_MARK_CODES))
         code_blob = {code: tile_bytes(code) for code in codes}
+        if authored is not None:
+            for (source_code, _bank, _flip), (blob, _line, _usage) in \
+                    authored.by_record.get(record["segment"], {}).items():
+                if source_code not in authored.raw_required_by_record.get(record["segment"], set()):
+                    code_blob.pop(source_code, None)
+                code_blob[authored.code_for_blob[blob]] = blob
         record_code_blob.append(code_blob)
         record_pattern_sets.append(set(code_blob.values()))
 
@@ -553,12 +659,15 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
 
     def record_map(record_index, selector):
         cells = [[0] * 64 for _ in range(64)]
+        attrs = [[0] * 64 for _ in range(64)]
+        lines = [[3] * 64 for _ in range(64)]
         for source_row in range(64):
             table_index, descriptor_row = divmod(source_row, 4)
             table_base = source_table_bases[table_index] + record_index * 0x40
             for source_column in range(64):
                 descriptor_column, descriptor_subcolumn = divmod(source_column, 4)
                 entry = table_base + descriptor_column * 4
+                attr = u16(entry)
                 descriptor = u16(entry + 2)
                 if descriptor:
                     destination_row = source_row
@@ -568,13 +677,23 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
                                            descriptor_row)
                         destination_column = (table_index * 4 +
                                               descriptor_subcolumn)
-                    cells[destination_row][destination_column] = (
-                        u16(descriptor + descriptor_row * 8 + descriptor_subcolumn * 2)
-                        & 0x3FFF)
-        return cells
+                    source_code = (u16(descriptor + descriptor_row * 8 + descriptor_subcolumn * 2)
+                                   & 0x3FFF)
+                    logical_code = source_code
+                    line = 3
+                    if authored is not None and source_code:
+                        logical_code, _blob, line, _usage = authored.resolve(
+                            record_index, source_code, attr, patterns)
+                    cells[destination_row][destination_column] = logical_code
+                    attrs[destination_row][destination_column] = attr
+                    lines[destination_row][destination_column] = line
+        return cells, attrs, lines
 
-    record_maps = [record_map(index, decode_record_selector(mc, index))
-                   for index in range(len(records))]
+    decoded_record_maps = [record_map(index, decode_record_selector(mc, index))
+                           for index in range(len(records))]
+    record_maps = [entry[0] for entry in decoded_record_maps]
+    record_attrs = [entry[1] for entry in decoded_record_maps]
+    record_lines = [entry[2] for entry in decoded_record_maps]
 
     # Scene fill runs before 0x504FA installs the record's final camera/scroll
     # tuple.  A 64-row PC080SN could retain both halves until that later
@@ -761,9 +880,12 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
                 if code:
                     waterfall_cells.append((row, column, code))
     waterfall_codes = {code for _, _, code in waterfall_cells}
-    if (len({tile_bytes(code) for code in rope_codes}),
-            len({tile_bytes(code) for code in waterfall_codes})) != (12, 224):
+    rope_waterfall_counts = (len({tile_bytes(code) for code in rope_codes}),
+                             len({tile_bytes(code) for code in waterfall_codes}))
+    if authored is None and rope_waterfall_counts != (12, 224):
         raise SystemExit("rope/waterfall exact-pattern contract changed")
+    if authored is not None and (not rope_waterfall_counts[0] or not rope_waterfall_counts[1]):
+        raise SystemExit("authored rope/waterfall pattern set became empty")
 
     # Project-owned compiler gates: every transition state and every publisher-resolved incoming
     # row must map to the correct exact pattern; retained old identities must keep their slots.
@@ -869,6 +991,99 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
         record_to_package[spec["in_record"]] = package_id
     record_table = [(package, 1) for package in record_to_package]
 
+    # Complete final native Plane-A maps. Dynamic producers retain arcade camera/collision
+    # semantics, but fetch their visual word here by (active record,row,column); palette line,
+    # flip, reindexed pattern identity and VRAM slot are all resolved offline.
+    native_record_table = bytearray()
+    native_record_data = bytearray()
+    line2_cells = []
+    for record_index in range(len(records)):
+        stable_package = record_to_epoch[record_index]
+        alternate_package = record_to_package[record_index]
+        package_ids = [stable_package]
+        if alternate_package != stable_package:
+            package_ids.append(alternate_package)
+        offsets = []
+        for package_id in package_ids:
+            offsets.append(len(native_record_data))
+            slot_by_code = dict(packages[package_id]["map"])
+            for row in range(64):
+                for column in range(64):
+                    code = record_maps[record_index][row][column]
+                    attr = record_attrs[record_index][row][column]
+                    line = record_lines[record_index][row][column]
+                    slot = slot_by_code.get(code, 0)
+                    if code and not slot and package_id == stable_package:
+                        raise SystemExit(
+                            f"native record map {record_index}/{package_id}: "
+                            f"code {code:#06x} has no slot")
+                    word = (line << 13) | ((attr & 0xC000) >> 3) | slot
+                    native_record_data += be16(word)
+                    if line == 2 and code and package_id == stable_package:
+                        line2_cells.append([record_index, row, column, code, slot])
+        native_record_table += be32(offsets[0])
+        native_record_table += be16(alternate_package if len(offsets) == 2 else 0xFFFF)
+        native_record_table += be16(0)
+        native_record_table += be32(offsets[1] if len(offsets) == 2 else 0xFFFFFFFF)
+    native_record_maps = native_record_table + native_record_data
+    (outdir / "record_native_maps.bin").write_bytes(native_record_maps)
+
+    # Compact runtime selection metadata. The native helper consumes only this
+    # prepared stage->asset ID table; context/range interpretation remains an
+    # offline compiler responsibility. Zero is the established fallback.
+    palette_scene_select = bytearray(6 * 23)
+    if authored is not None:
+        for asset_id, (_, stage_range, _) in enumerate(AuthoredLayerA.SCENES, 1):
+            for stage_index in stage_range:
+                palette_scene_select[stage_index] = asset_id
+    (outdir / "palette_scene_select.bin").write_bytes(palette_scene_select)
+
+    # Preserve the retained producer's live descriptor/ring decision. For each
+    # authored context, map the exact source descriptor-entry address to one
+    # deduplicated, fully prepared 4x4 visual record. Runtime chooses only the
+    # descriptor entry and context; code/attribute/palette interpretation and
+    # pixel reindexing are completed here.
+    authored_context_count = len(AuthoredLayerA.SCENES) if authored is not None else 0
+    authored_desc_count = ((AUTHORED_DESC_END - AUTHORED_DESC_FIRST) //
+                           AUTHORED_DESC_ENTRY_BYTES)
+    authored_visual_record_ids = []
+    authored_visual_records = bytearray()
+    authored_record_ids = {}
+    authored_context_record_counts = []
+    for context_index in range(authored_context_count):
+        context_ids = set()
+        for entry in range(AUTHORED_DESC_FIRST, AUTHORED_DESC_END,
+                           AUTHORED_DESC_ENTRY_BYTES):
+            attr = u16(entry)
+            descriptor = u16(entry + 2)
+            payload = bytearray()
+            valid = not (descriptor & 1) and 0x200 <= descriptor <= 0x5FDFC
+            for cell in range(16):
+                source_code = ((u16(descriptor + cell * 2) & 0x3FFF)
+                               if valid else 0)
+                code, _blob, line, _usage = authored.resolve_context(
+                    context_index, source_code, attr, patterns)
+                payload += be16(code)
+                payload += be16((line << 13) | ((attr & 0xC000) >> 3))
+            frozen = bytes(payload)
+            record_id = authored_record_ids.get(frozen)
+            if record_id is None:
+                record_id = len(authored_record_ids) + 1
+                if record_id > 0xFFFF:
+                    raise SystemExit("authored descriptor visual record index overflow")
+                authored_record_ids[frozen] = record_id
+                authored_visual_records += frozen
+            authored_visual_record_ids.append(record_id)
+            context_ids.add(record_id)
+        authored_context_record_counts.append(len(context_ids))
+    authored_visual_index_bytes = authored_desc_count * authored_context_count * 4
+    authored_visual_indexes = bytearray()
+    for record_id in authored_visual_record_ids:
+        authored_visual_indexes += be32(
+            authored_visual_index_bytes + (record_id - 1) * AUTHORED_VISUAL_RECORD_BYTES)
+    authored_visual_blob = authored_visual_indexes + authored_visual_records
+    (outdir / "authored_descriptor_visuals.bin").write_bytes(authored_visual_blob)
+
     # Finish the scene-fill artifact only after stable package allocation has
     # assigned final Genesis slots.  Each record is a complete physical 64x32
     # Plane-A image of final Genesis name words, already projected using the
@@ -899,14 +1114,19 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
                 attr = u16(entry)
                 descriptor = u16(entry + 2)
                 code = 0
+                line = 3
                 if descriptor:
-                    code = u16(descriptor + descriptor_row * 8 +
-                               descriptor_subcolumn * 2) & 0x3FFF
+                    source_code = u16(descriptor + descriptor_row * 8 +
+                                      descriptor_subcolumn * 2) & 0x3FFF
+                    code = source_code
+                    if authored is not None and source_code:
+                        code, _blob, line, _usage = authored.resolve(
+                            record_index, source_code, attr, patterns)
                 slot = slot_by_code.get(code, 0)
                 if code and not slot:
                     raise SystemExit(
                         f"scene-fill record {record_index}: code {code:#06x} has no native slot")
-                native_attr = 0x6000 | ((attr & 0xC000) >> 3)
+                native_attr = (line << 13) | ((attr & 0xC000) >> 3)
                 physical_words[physical_row * 64 + source_column] = native_attr | slot
         for word in physical_words:
             scene_fill_data += be16(word)
@@ -938,9 +1158,14 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
                 attr = u16(entry)
                 descriptor = u16(entry + 2)
                 code = 0
+                line = 3
                 if descriptor:
-                    code = u16(descriptor + descriptor_row * 8 +
-                               descriptor_subcolumn * 2) & 0x3FFF
+                    source_code = u16(descriptor + descriptor_row * 8 +
+                                      descriptor_subcolumn * 2) & 0x3FFF
+                    code = source_code
+                    if authored is not None and source_code:
+                        code, _blob, line, _usage = authored.resolve(
+                            record_index, source_code, attr, patterns)
                 destination_row = source_row
                 destination_column = source_column
                 if selector == 1:
@@ -950,7 +1175,7 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
                 if code and not slot:
                     raise SystemExit(
                         f"pan-row record {record_index}: code {code:#06x} has no native slot")
-                native_attr = 0x6000 | ((attr & 0xC000) >> 3)
+                native_attr = (line << 13) | ((attr & 0xC000) >> 3)
                 logical_words[destination_row * 64 + destination_column] = native_attr | slot
         for word in logical_words:
             pan_row_data += be16(word)
@@ -1071,6 +1296,18 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
         f".equ FG_SCENE_FILL_MAP_TABLE_BYTES, {len(scene_fill_table)}\n"
         f".equ FG_SCENE_FILL_MAP_BYTES, {len(scene_fill_binary)}\n"
         f".equ FG_PAN_ROW_MAP_BYTES, {len(pan_row_binary)}\n"
+        f".equ FG_AUTHORED_DESC_FIRST, 0x{AUTHORED_DESC_FIRST:08X}\n"
+        f".equ FG_AUTHORED_DESC_END, 0x{AUTHORED_DESC_END:08X}\n"
+        f".equ FG_AUTHORED_DESC_COUNT, {authored_desc_count}\n"
+        f".equ FG_AUTHORED_DESC_CONTEXTS, {authored_context_count}\n"
+        f".equ FG_AUTHORED_DESC_INDEX_BYTES, {authored_desc_count * 4}\n"
+        f".equ FG_AUTHORED_DESC_PAYLOAD_OFFSET, {len(authored_visual_indexes)}\n"
+        f".equ FG_AUTHORED_DESC_RECORD_BYTES, {AUTHORED_VISUAL_RECORD_BYTES}\n"
+        f".equ FG_AUTHORED_DESC_BLOB_BYTES, {len(authored_visual_blob)}\n"
+        f".equ FG_RECORD_NATIVE_MAP_BYTES, {len(native_record_maps)}\n"
+        f".equ FG_RECORD_NATIVE_MAP_TABLE_BYTES, {len(native_record_table)}\n"
+        f".equ FG_RECORD_NATIVE_MAP_ENTRY_BYTES, 12\n"
+        f".equ FG_RECORD_NATIVE_MAP_RECORD_BYTES, {64 * 64 * 2}\n"
         f".equ FG_BOUNDARY_SCRATCH_WORD, {scratch_word}\n"
         + "".join(
             f".equ FG_BOUNDARY_FIXED_B_R{item['round']}_OFFSET, {item['offset']}\n"
@@ -1106,6 +1343,22 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
         "pan_row_records": pan_row_records,
         "pan_row_offsets": pan_row_offsets,
         "pan_row_map_bytes": len(pan_row_binary),
+        "record_native_map_bytes": len(native_record_maps),
+        "record_native_line2_cells": len(line2_cells),
+        "record_native_line2_samples": line2_cells[:32],
+        "palette_scene_select": list(palette_scene_select),
+        "authored_descriptor_visuals": {
+            "entry_first": AUTHORED_DESC_FIRST,
+            "entry_end": AUTHORED_DESC_END,
+            "entry_count": authored_desc_count,
+            "contexts": authored_context_count,
+            "context_record_counts": authored_context_record_counts,
+            "unique_records": len(authored_record_ids),
+            "index_bytes": len(authored_visual_indexes),
+            "payload_bytes": len(authored_visual_records),
+            "total_bytes": len(authored_visual_blob),
+            "sha256": hashlib.sha256(authored_visual_blob).hexdigest(),
+        },
         "minimum_contiguous_epoch_count_at_cap": minimum_epoch_count,
         "minimum_contiguous_segmentations": [
             [[first, last] for first, last in segmentation]
@@ -1153,6 +1406,14 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
         "runtime_search": False,
         "runtime_lru": False,
         "runtime_visibility_scan": False,
+        "authoring_mode": "diagnostic-profile" if authored is not None else "approved-policy",
+        "authoring_profile": (str(authored.profile_path) if authored is not None else None),
+        "authoring_profile_sha256": (hashlib.sha256(authored.profile_bytes).hexdigest()
+                                      if authored is not None else None),
+        "authoring_mapped_usages": authored.mapped if authored is not None else 0,
+        "authoring_unmapped_usages": authored.unmapped if authored is not None else 0,
+        "authoring_synthetic_patterns": (len(authored.synthetic_patterns)
+                                          if authored is not None else 0),
         "transition_handoff_column": BOUNDARY_TRANSITION_HANDOFF_COLUMN,
         "transition_gates": transition_gate_reports,
         "rope_object": {
@@ -1426,6 +1687,8 @@ def main():
                     help="emit Build-0302 boundary-loaded Stage-1 package assets")
     ap.add_argument("--pattern-reuse", default=str(ROOT / "build/regions/pattern_reuse_resolved.json"),
                     help="resolved canonical pattern-reuse artifact (provenance recorded into boundary_report.json)")
+    ap.add_argument("--authoring-profile", default=None,
+                    help="explicit diagnostic Palette Composer profile; never implies approval")
     a = ap.parse_args()
 
     mc = Path(a.maincpu).read_bytes()
@@ -1438,7 +1701,8 @@ def main():
         reuse = json.loads(Path(a.pattern_reuse).read_text())
 
     if a.boundary_experiment:
-        return build_boundary_experiment(mc, pat, outdir, a.stage_index, reuse)
+        authored = AuthoredLayerA(Path(a.authoring_profile), pat) if a.authoring_profile else None
+        return build_boundary_experiment(mc, pat, outdir, a.stage_index, reuse, authored)
 
     if a.final_capacity_audit:
         sprite_patterns = Path(a.pc090oj_genesis).read_bytes()

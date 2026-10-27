@@ -91,6 +91,7 @@ RASTAN_MODE_RACK_ADVANCE ?= 0
 # asserts the original arcade A5+0x0040 debug gate at its startup source. The
 # standard numbered ROM defaults to 0 and retains normal enemy damage.
 RASTAN_INVINCIBLE ?= 0
+RASTAN_PALETTE_TEST_PROFILE ?= 0
 CRASH_BUILD_USE_CURRENT ?= 0
 PC090OJ_CONFIG_INC := $(OUT_DIR)/pc090oj_config.inc
 CRASH_BUILD_INC := $(OUT_DIR)/crash_build.inc
@@ -110,6 +111,10 @@ TEST_PALETTE_LINE1 := $(ROOT)/build/rastan-direct/test_palette_line1.bin
 TEST_PALETTE_LINE3 := $(ROOT)/build/rastan-direct/test_palette_line3.bin
 TEST_PALETTE_CRAM_REPORT := $(ROOT)/build/rastan-direct/test_palette_cram_report.json
 TEST_PALETTE_CRAM_GEN := $(ROOT)/tools/graphics_editor/gen_test_palette_cram.py
+PALETTE_SCENE_EXPORTER := $(ROOT)/tools/graphics_editor/export_subround_palette_manifest.py
+PALETTE_SCENE_MANIFEST := $(ROOT)/build/palette_export/palette_scene_manifest.json
+PALETTE_R1S1_CRAM := $(ROOT)/build/palette_export/cram/PAL-R1-S1-PLANEA-OUTDOOR.bin
+PALETTE_R1S2_CRAM := $(ROOT)/build/palette_export/cram/PAL-R1-S2-PLANEA-CASTLE.bin
 # Canonical approved pattern reference-substitution policy (offline only). Consumed automatically by the
 # normal build: apply_pattern_reuse.py validates every approved entry against the real plane-A usage
 # inventory and fails the build on any unresolved entry. Editing the policy re-triggers validation.
@@ -160,6 +165,11 @@ PC080SN_BOUNDARY_CONSTANTS := $(PC080SN_BOUNDARY_DIR)/boundary_constants.inc
 PC080SN_BOUNDARY_REPORT := $(PC080SN_BOUNDARY_DIR)/boundary_report.json
 PC080SN_SCENE_FILL_MAPS := $(PC080SN_BOUNDARY_DIR)/scene_fill_maps.bin
 PC080SN_PAN_ROW_MAPS := $(PC080SN_BOUNDARY_DIR)/pan_row_maps.bin
+PC080SN_RECORD_NATIVE_MAPS := $(PC080SN_BOUNDARY_DIR)/record_native_maps.bin
+PC080SN_AUTHORED_DESCRIPTOR_VISUALS := $(PC080SN_BOUNDARY_DIR)/authored_descriptor_visuals.bin
+PC080SN_NATIVE_PATTERN_REGION := $(PC080SN_BOUNDARY_DIR)/native_pattern_region.bin
+PC080SN_PALETTE_SCENE_SELECT := $(PC080SN_BOUNDARY_DIR)/palette_scene_select.bin
+PC080SN_AUTHORING_MODE_RECEIPT := $(OUT_DIR)/pc080sn_authoring_mode.txt
 PC080SN_TRANSITION_RETENTION_STAMP := $(OUT_DIR)/build0311_transition_retention_gate.stamp
 PC090OJ_REGION := $(ROOT)/build/regions/pc090oj.bin
 PC090OJ_PRECONV := $(ROOT)/build/pc090oj_genesis.bin
@@ -272,13 +282,13 @@ INVINCIBLE_VARIANT_VERIFY := $(ROOT)/tools/translation/verify_invincible_variant
 # prevents a recursively built variant from inheriting the preceding member's
 # generated pc090oj_config.inc state.  Mode 2 remains the canonical default;
 # mode 1 differs only by enabling the existing full gameplay HUD.
-CANONICAL_BUILD_FLAGS := PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) RASTAN_GAMEPLAY_HUD_SPRITES=2 RASTAN_DIAG_CPU_BAR=0 RASTAN_DIAG_SCORE_METRIC=0 RASTAN_VBLANK_DISPLAY_OFF=0 RASTAN_MODE_RACK_ADVANCE=0 RASTAN_INVINCIBLE=0
-DIAG_BUILD_FLAGS := PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) RASTAN_GAMEPLAY_HUD_SPRITES=2 RASTAN_DIAG_CPU_BAR=1 RASTAN_DIAG_SCORE_METRIC=0 RASTAN_VBLANK_DISPLAY_OFF=0 RASTAN_MODE_RACK_ADVANCE=0 RASTAN_INVINCIBLE=0
-SCORE_BUILD_FLAGS := PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) RASTAN_GAMEPLAY_HUD_SPRITES=2 RASTAN_DIAG_CPU_BAR=0 RASTAN_DIAG_SCORE_METRIC=1 RASTAN_VBLANK_DISPLAY_OFF=0 RASTAN_MODE_RACK_ADVANCE=0 RASTAN_INVINCIBLE=0
-DISPLAY_OFF_BUILD_FLAGS := PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) RASTAN_GAMEPLAY_HUD_SPRITES=2 RASTAN_DIAG_CPU_BAR=0 RASTAN_DIAG_SCORE_METRIC=0 RASTAN_VBLANK_DISPLAY_OFF=1 RASTAN_MODE_RACK_ADVANCE=0 RASTAN_INVINCIBLE=0
-CHEAT_BUILD_FLAGS := PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) RASTAN_GAMEPLAY_HUD_SPRITES=2 RASTAN_DIAG_CPU_BAR=0 RASTAN_DIAG_SCORE_METRIC=0 RASTAN_VBLANK_DISPLAY_OFF=0 RASTAN_MODE_RACK_ADVANCE=1 RASTAN_INVINCIBLE=0
-FULL_HUD_BUILD_FLAGS := PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) RASTAN_GAMEPLAY_HUD_SPRITES=1 RASTAN_DIAG_CPU_BAR=0 RASTAN_DIAG_SCORE_METRIC=0 RASTAN_VBLANK_DISPLAY_OFF=0 RASTAN_MODE_RACK_ADVANCE=0 RASTAN_INVINCIBLE=0
-INVINCIBLE_BUILD_FLAGS := PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) RASTAN_GAMEPLAY_HUD_SPRITES=2 RASTAN_DIAG_CPU_BAR=0 RASTAN_DIAG_SCORE_METRIC=0 RASTAN_VBLANK_DISPLAY_OFF=0 RASTAN_MODE_RACK_ADVANCE=0 RASTAN_INVINCIBLE=1
+CANONICAL_BUILD_FLAGS := PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) RASTAN_GAMEPLAY_HUD_SPRITES=2 RASTAN_DIAG_CPU_BAR=0 RASTAN_DIAG_SCORE_METRIC=0 RASTAN_VBLANK_DISPLAY_OFF=0 RASTAN_MODE_RACK_ADVANCE=0 RASTAN_INVINCIBLE=0 RASTAN_PALETTE_TEST_PROFILE=$(RASTAN_PALETTE_TEST_PROFILE)
+DIAG_BUILD_FLAGS := $(CANONICAL_BUILD_FLAGS) RASTAN_DIAG_CPU_BAR=1
+SCORE_BUILD_FLAGS := $(CANONICAL_BUILD_FLAGS) RASTAN_DIAG_SCORE_METRIC=1
+DISPLAY_OFF_BUILD_FLAGS := $(CANONICAL_BUILD_FLAGS) RASTAN_VBLANK_DISPLAY_OFF=1
+CHEAT_BUILD_FLAGS := $(CANONICAL_BUILD_FLAGS) RASTAN_MODE_RACK_ADVANCE=1
+FULL_HUD_BUILD_FLAGS := $(CANONICAL_BUILD_FLAGS) RASTAN_GAMEPLAY_HUD_SPRITES=1
+INVINCIBLE_BUILD_FLAGS := $(CANONICAL_BUILD_FLAGS) RASTAN_INVINCIBLE=1
 
 .DELETE_ON_ERROR:
 .PHONY: all clean release FORCE_ASM_REBUILD dual-build diag-variant score-variant do-variant cheat-variant full-hud-variant invincible-variant verify-variant-set test-subround test-subrounds
@@ -347,7 +357,7 @@ $(OUT_DIR) $(DIST_DIR) $(VARIANT_CONFIG_DIR):
 $(OUT_DIR)/boot.o: $(SRC_DIR)/boot/boot.s FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-$(OUT_DIR)/vdp_comm.o: $(SRC_DIR)/vdp_comm.s $(SRC_DIR)/crash_handler.s $(PC090OJ_CONFIG_INC) $(CRASH_BUILD_INC) FORCE_ASM_REBUILD | $(OUT_DIR)
+$(OUT_DIR)/vdp_comm.o: $(SRC_DIR)/vdp_comm.s $(SRC_DIR)/crash_handler.s $(PC090OJ_CONFIG_INC) $(CRASH_BUILD_INC) $(PC080SN_BOUNDARY_CONSTANTS) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
 $(OUT_DIR)/dma.o: $(SRC_DIR)/dma.s $(PC090OJ_CONFIG_INC) FORCE_ASM_REBUILD | $(OUT_DIR)
@@ -363,10 +373,10 @@ $(CRASH_BUILD_INC): FORCE_ASM_REBUILD | $(OUT_DIR)
 	printf '/* GENERATED build number by apps/rastan-direct/Makefile -- do not hand-edit. */\ncrash_build_number_str: .asciz "%s"\n' "$$tag" > $@; \
 	echo "crash build number -> $$tag ($@)"
 
-$(OUT_DIR)/tilemap_hooks.o: $(SRC_DIR)/tilemap_hooks.s $(PC090OJ_CONFIG_INC) $(PC080SN_BOUNDARY_CONSTANTS) $(PC080SN_SCENE_FILL_MAPS) $(PC080SN_PAN_ROW_MAPS) $(BEST5_NUMBER_TABLE) $(BEST5_NAME_TABLE) FORCE_ASM_REBUILD | $(OUT_DIR)
+$(OUT_DIR)/tilemap_hooks.o: $(SRC_DIR)/tilemap_hooks.s $(PC090OJ_CONFIG_INC) $(PC080SN_BOUNDARY_CONSTANTS) $(PC080SN_SCENE_FILL_MAPS) $(PC080SN_PAN_ROW_MAPS) $(PC080SN_AUTHORED_DESCRIPTOR_VISUALS) $(BEST5_NUMBER_TABLE) $(BEST5_NAME_TABLE) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-$(OUT_DIR)/palette_hooks.o: $(SRC_DIR)/palette_hooks.s $(PC090OJ_CONFIG_INC) $(TEST_PALETTE_LINE0) $(TEST_PALETTE_LINE1) $(TEST_PALETTE_LINE3) FORCE_ASM_REBUILD | $(OUT_DIR)
+$(OUT_DIR)/palette_hooks.o: $(SRC_DIR)/palette_hooks.s $(PC090OJ_CONFIG_INC) $(TEST_PALETTE_LINE0) $(TEST_PALETTE_LINE1) $(TEST_PALETTE_LINE3) $(PALETTE_R1S1_CRAM) $(PALETTE_R1S2_CRAM) $(PC080SN_PALETTE_SCENE_SELECT) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
 # Validated pattern-reuse resolution: canonical policy -> resolved (code,bank) substitutions. Hard gate:
@@ -386,6 +396,12 @@ $(TEST_PALETTE_CRAM_REPORT): $(EDITOR_PALETTE_PROFILE) $(TEST_PALETTE_CRAM_GEN)
 		--report "$@"
 
 $(TEST_PALETTE_CRAM_LINES): $(TEST_PALETTE_CRAM_REPORT)
+	@test -f "$@"
+
+$(PALETTE_SCENE_MANIFEST): $(EDITOR_PALETTE_PROFILE) $(ROOT)/specs/palette_subround_map.json $(PALETTE_DECISIONS) $(PALETTE_SCENE_EXPORTER)
+	$(PYTHON) "$(PALETTE_SCENE_EXPORTER)" --profile Test
+
+$(PALETTE_R1S1_CRAM) $(PALETTE_R1S2_CRAM): $(PALETTE_SCENE_MANIFEST)
 	@test -f "$@"
 
 $(PC080SN_EDITOR_LAYERA): $(PC080SN_REGION) $(EDITOR_PALETTE_PROFILE) $(PATTERN_REUSE_RESOLVED) $(ROOT)/analysis/graphics_optimizer/round1_phase1/plane_a_uses.json $(ROOT)/tools/graphics_editor/gen_reindexed_region.py
@@ -570,6 +586,7 @@ $(PC090OJ_FRAME_TABLE) $(PC090OJ_PLAYER_PIECE_TABLE) $(PC090OJ_FRAME_INDEX) $(PC
 # an override (PC090OJ_MIRROR_RECORDS=N) is always applied without hand-editing.
 $(PC090OJ_CONFIG_INC): FORCE_ASM_REBUILD | $(OUT_DIR)
 	@printf '/* GENERATED from PC090OJ_MIRROR_RECORDS=%s RASTAN_GAMEPLAY_HUD_SPRITES=%s RASTAN_DIAG_CPU_BAR=%s RASTAN_DIAG_SCORE_METRIC=%s RASTAN_VBLANK_DISPLAY_OFF=%s RASTAN_MODE_RACK_ADVANCE=%s RASTAN_INVINCIBLE=%s by apps/rastan-direct/Makefile -- do not hand-edit. */\n.equ PC090OJ_MIRROR_RECORDS, %s\n.equ PC090OJ_MIRROR_BYTES, (PC090OJ_MIRROR_RECORDS * 8)\n.equ PC090OJ_BITSET_BYTES, ((PC090OJ_MIRROR_RECORDS + 7) / 8)\n.equ RASTAN_GAMEPLAY_HUD_SPRITES, %s\n.equ RASTAN_DIAG_CPU_BAR, %s\n.equ RASTAN_DIAG_SCORE_METRIC, %s\n.equ RASTAN_VBLANK_DISPLAY_OFF, %s\n.equ RASTAN_MODE_RACK_ADVANCE, %s\n.equ RASTAN_INVINCIBLE, %s\n' '$(PC090OJ_MIRROR_RECORDS)' '$(RASTAN_GAMEPLAY_HUD_SPRITES)' '$(RASTAN_DIAG_CPU_BAR)' '$(RASTAN_DIAG_SCORE_METRIC)' '$(RASTAN_VBLANK_DISPLAY_OFF)' '$(RASTAN_MODE_RACK_ADVANCE)' '$(RASTAN_INVINCIBLE)' '$(PC090OJ_MIRROR_RECORDS)' '$(RASTAN_GAMEPLAY_HUD_SPRITES)' '$(RASTAN_DIAG_CPU_BAR)' '$(RASTAN_DIAG_SCORE_METRIC)' '$(RASTAN_VBLANK_DISPLAY_OFF)' '$(RASTAN_MODE_RACK_ADVANCE)' '$(RASTAN_INVINCIBLE)' > $@
+	@printf '.equ RASTAN_PALETTE_TEST_PROFILE, %s\n' '$(RASTAN_PALETTE_TEST_PROFILE)' >> $@
 	@echo "PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) RASTAN_GAMEPLAY_HUD_SPRITES=$(RASTAN_GAMEPLAY_HUD_SPRITES) RASTAN_DIAG_CPU_BAR=$(RASTAN_DIAG_CPU_BAR) RASTAN_DIAG_SCORE_METRIC=$(RASTAN_DIAG_SCORE_METRIC) RASTAN_VBLANK_DISPLAY_OFF=$(RASTAN_VBLANK_DISPLAY_OFF) RASTAN_MODE_RACK_ADVANCE=$(RASTAN_MODE_RACK_ADVANCE) RASTAN_INVINCIBLE=$(RASTAN_INVINCIBLE) -> $@"
 
 # Build 0340 OPT-003: generate the prebaked (scene,effective_bank)->palette-line LUT from the authored
@@ -606,7 +623,7 @@ $(OUT_DIR)/scene_load.o: \
 	$(PC080SN_NATIVE_METATILE_RECORDS) \
 	$(PC080SN_PLANE_B_VISUAL_RECORDS) \
 	$(PC080SN_REGION) \
-	$(PC080SN_EDITOR_LAYERA) \
+	$(PC080SN_NATIVE_PATTERN_REGION) \
 	$(PC080SN_SCENE_PRELOAD_TITLE) \
 	$(PC080SN_SCENE_PRELOAD_GAMEPLAY) \
 	$(PC080SN_SCENE_PRELOAD_GAMEPLAY_CAVE) \
@@ -677,6 +694,8 @@ $(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(R1_SELECTOR_STREAM
 	$(PYTHON) "$(PLANE_A_SCENE_FILL_GATE)" --maincpu "$(MAINCPU_REGION)" \
 		--pc080sn "$(PC080SN_REGION)" --maps "$(PC080SN_SCENE_FILL_MAPS)" \
 		--pan-maps "$(PC080SN_PAN_ROW_MAPS)" \
+		--record-maps "$(PC080SN_RECORD_NATIVE_MAPS)" \
+		--authored-descriptor-visuals "$(PC080SN_AUTHORED_DESCRIPTOR_VISUALS)" \
 		--packages "$(PC080SN_BOUNDARY_PACKAGES)" --report "$(PC080SN_BOUNDARY_REPORT)" \
 		--source "$(SRC_DIR)/tilemap_hooks.s" --cache-source "$(SRC_DIR)/fg_tile_cache.s" \
 		--spec "$(PATCH_SPEC)"
@@ -706,7 +725,7 @@ $(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(R1_SELECTOR_STREAM
 		--assembly "$(SRC_DIR)/item_native.s" --sprite-source "$(SRC_DIR)/pc090oj_hooks.s" \
 		--palette-lut "$(PC090OJ_PALSEL_LUT_INC)" \
 		--spec "$(PATCH_SPEC)"
-	$(PYTHON) "$(VDP_DMA_BOUNDARY_GATE)" --symbols "$(SYMBOLS)" --patterns "$(PC080SN_EDITOR_LAYERA)"
+	$(PYTHON) "$(VDP_DMA_BOUNDARY_GATE)" --symbols "$(SYMBOLS)" --patterns "$(PC080SN_NATIVE_PATTERN_REGION)"
 	$(PYTHON) "$(BOOT_GUARD)" --rom "$(PREPATCH_BIN)"
 	cp "$(PREPATCH_BIN)" "$@"
 	$(PYTHON) "$(ROOT)/tools/build_rastan_regions.py" --variant "$(VARIANT)"
@@ -716,7 +735,8 @@ $(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(R1_SELECTOR_STREAM
 		--rom "$@" \
 		--symbols "$(SYMBOLS)" \
 		--manifest "$(PATCH_MANIFEST)" \
-		--spec "$(PATCH_SPEC)"
+		--spec "$(PATCH_SPEC)" \
+		--genesis-coverage-delta 0x58000
 	$(PYTHON) "$(R1_SELECTOR_STREAM_VERIFY)" --rom "$@" --maincpu "$(MAINCPU_REGION)" \
 		--address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
 	$(PYTHON) "$(FINAL_LIFE_TRANSITION_VERIFY)" --rom "$@" \
@@ -774,7 +794,8 @@ $(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(R1_SELECTOR_STREAM
 		--numbered-counter "$$counter_file" \
 		--numbered-name "$$numbered_name" \
 		--bookmark-revert "$(BOOKMARK_REVERT)" \
-		--state-file "$(BOOKMARK_STATE_FILE)"; then \
+		--state-file "$(BOOKMARK_STATE_FILE)" \
+		--genesis-coverage-delta 0x58000; then \
 		gate_status="canonical=PASS"; \
 	else \
 		gate_status="canonical=FAIL"; \
@@ -824,7 +845,7 @@ $(DIAG_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(R1_SELECTOR_S
 		--rom "$@" \
 		--symbols "$(SYMBOLS)" \
 		--manifest "$(OUT_DIR)/diag_patch_manifest.json" \
-		--spec "$(PATCH_SPEC)"
+		--spec "$(PATCH_SPEC)" --genesis-coverage-delta 0x58000
 	$(PYTHON) "$(R1_SELECTOR_STREAM_VERIFY)" --rom "$@" --maincpu "$(MAINCPU_REGION)" \
 		--address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
 	$(PYTHON) "$(FINAL_LIFE_TRANSITION_VERIFY)" --rom "$@" --address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
@@ -856,7 +877,7 @@ $(SCORE_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(R1_SELECTOR_
 		--rom "$@" \
 		--symbols "$(SYMBOLS)" \
 		--manifest "$(OUT_DIR)/score_patch_manifest.json" \
-		--spec "$(PATCH_SPEC)"
+		--spec "$(PATCH_SPEC)" --genesis-coverage-delta 0x58000
 	$(PYTHON) "$(R1_SELECTOR_STREAM_VERIFY)" --rom "$@" --maincpu "$(MAINCPU_REGION)" \
 		--address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
 	$(PYTHON) "$(FINAL_LIFE_TRANSITION_VERIFY)" --rom "$@" --address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
@@ -887,7 +908,7 @@ $(DO_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(R1_SELECTOR_STR
 		--rom "$@" \
 		--symbols "$(SYMBOLS)" \
 		--manifest "$(OUT_DIR)/do_patch_manifest.json" \
-		--spec "$(PATCH_SPEC)"
+		--spec "$(PATCH_SPEC)" --genesis-coverage-delta 0x58000
 	$(PYTHON) "$(R1_SELECTOR_STREAM_VERIFY)" --rom "$@" --maincpu "$(MAINCPU_REGION)" \
 		--address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
 	$(PYTHON) "$(FINAL_LIFE_TRANSITION_VERIFY)" --rom "$@" --address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
@@ -921,7 +942,7 @@ $(CHEAT_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(R1_SELECTOR_
 		--rom "$@" \
 		--symbols "$(SYMBOLS)" \
 		--manifest "$(OUT_DIR)/cheat_patch_manifest.json" \
-		--spec "$(PATCH_SPEC)"
+		--spec "$(PATCH_SPEC)" --genesis-coverage-delta 0x58000
 	$(PYTHON) "$(R1_SELECTOR_STREAM_VERIFY)" --rom "$@" --maincpu "$(MAINCPU_REGION)" \
 		--address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
 	$(PYTHON) "$(FINAL_LIFE_TRANSITION_VERIFY)" --rom "$@" --address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
@@ -950,7 +971,7 @@ $(FULL_HUD_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(R1_SELECT
 		--rom "$@" \
 		--symbols "$(SYMBOLS)" \
 		--manifest "$(OUT_DIR)/full_hud_patch_manifest.json" \
-		--spec "$(PATCH_SPEC)"
+		--spec "$(PATCH_SPEC)" --genesis-coverage-delta 0x58000
 	$(PYTHON) "$(R1_SELECTOR_STREAM_VERIFY)" --rom "$@" --maincpu "$(MAINCPU_REGION)" \
 		--address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
 	$(PYTHON) "$(FINAL_LIFE_TRANSITION_VERIFY)" --rom "$@" --address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
@@ -981,7 +1002,7 @@ $(INVINCIBLE_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(R1_SELE
 		--symbols "$(SYMBOLS)" \
 		--manifest "$(OUT_DIR)/invincible_patch_manifest.json" \
 		--invincible \
-		--spec "$(PATCH_SPEC)"
+		--spec "$(PATCH_SPEC)" --genesis-coverage-delta 0x58000
 	$(PYTHON) "$(R1_SELECTOR_STREAM_VERIFY)" --rom "$@" --maincpu "$(MAINCPU_REGION)" \
 		--address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
 	$(PYTHON) "$(FINAL_LIFE_TRANSITION_VERIFY)" --rom "$@" --address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
@@ -1002,21 +1023,26 @@ clean:
 $(OUT_DIR)/fg_tile_cache.o: $(SRC_DIR)/fg_tile_cache.s FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -m68000 -o $@ $<
 
-$(PC080SN_BOUNDARY_PACKAGES) $(PC080SN_BOUNDARY_CONSTANTS) $(PC080SN_BOUNDARY_REPORT) $(PC080SN_SCENE_FILL_MAPS) $(PC080SN_PAN_ROW_MAPS): \
-		$(MAINCPU_REGION) $(PC080SN_REGION) $(PC080SN_EDITOR_LAYERA) $(PATTERN_REUSE_RESOLVED) $(ROOT)/tools/translation/compile_pc080sn_genesis.py
+$(PC080SN_AUTHORING_MODE_RECEIPT): FORCE_ASM_REBUILD | $(OUT_DIR)
+	@tmp="$@.tmp"; printf '%s\n' 'RASTAN_PALETTE_TEST_PROFILE=$(RASTAN_PALETTE_TEST_PROFILE)' > "$$tmp"; \
+	if [ -f "$@" ] && cmp -s "$$tmp" "$@"; then rm -f "$$tmp"; else mv "$$tmp" "$@"; fi
+
+$(PC080SN_BOUNDARY_PACKAGES) $(PC080SN_BOUNDARY_CONSTANTS) $(PC080SN_BOUNDARY_REPORT) $(PC080SN_SCENE_FILL_MAPS) $(PC080SN_PAN_ROW_MAPS) $(PC080SN_RECORD_NATIVE_MAPS) $(PC080SN_AUTHORED_DESCRIPTOR_VISUALS) $(PC080SN_NATIVE_PATTERN_REGION) $(PC080SN_PALETTE_SCENE_SELECT): \
+        $(MAINCPU_REGION) $(PC080SN_REGION) $(PATTERN_REUSE_RESOLVED) $(EDITOR_PALETTE_PROFILE) $(PC080SN_AUTHORING_MODE_RECEIPT) $(ROOT)/tools/translation/compile_pc080sn_genesis.py
 	$(PYTHON) "$(ROOT)/tools/translation/compile_pc080sn_genesis.py" \
-		--maincpu "$(MAINCPU_REGION)" --pc080sn "$(PC080SN_EDITOR_LAYERA)" \
+		--maincpu "$(MAINCPU_REGION)" --pc080sn "$(PC080SN_REGION)" \
 		--pattern-reuse "$(PATTERN_REUSE_RESOLVED)" \
-		--out "$(PC080SN_BOUNDARY_DIR)" --boundary-experiment
+		--out "$(PC080SN_BOUNDARY_DIR)" --boundary-experiment \
+		$(if $(filter 1,$(RASTAN_PALETTE_TEST_PROFILE)),--authoring-profile "$(EDITOR_PALETTE_PROFILE)",)
 
 $(PC080SN_TRANSITION_RETENTION_STAMP): $(PC080SN_BOUNDARY_PACKAGES) \
 		$(PC080SN_BOUNDARY_CONSTANTS) $(PC080SN_BOUNDARY_REPORT) \
-		$(PC080SN_REGION) $(TRANSITION_RETENTION_GATE) | $(OUT_DIR)
+		$(PC080SN_NATIVE_PATTERN_REGION) $(TRANSITION_RETENTION_GATE) | $(OUT_DIR)
 	LAYERA_EDITOR_CANDIDATE=1 $(PYTHON) "$(TRANSITION_RETENTION_GATE)" \
 		--report "$(PC080SN_BOUNDARY_REPORT)" \
 		--packages "$(PC080SN_BOUNDARY_PACKAGES)" \
 		--constants "$(PC080SN_BOUNDARY_CONSTANTS)" \
-		--patterns "$(PC080SN_REGION)"
+		--patterns "$(PC080SN_NATIVE_PATTERN_REGION)"
 	touch "$@"
 
 $(OUT_DIR)/fg_tile_cache.o: $(PC080SN_BOUNDARY_PACKAGES) \

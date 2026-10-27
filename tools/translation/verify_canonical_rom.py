@@ -555,13 +555,14 @@ def check_postpatcher_invariant(
     rom: bytes,
     manifest_path: Path,
     state_context: str,
+    genesis_coverage_delta: int = 0,
 ) -> None:
     manifest = read_json(manifest_path, FAIL_2_3, "patch manifest")
     address_map_path = manifest_path.with_name("address_map.json")
     address_map = read_json(address_map_path, FAIL_2_3, "address map")
 
     expected_count = CANONICAL_OPCODE_REPLACE_COUNT
-    expected_coverage = CANONICAL_TOTAL_GENESIS_BYTES_COVERED
+    expected_coverage = CANONICAL_TOTAL_GENESIS_BYTES_COVERED + genesis_coverage_delta
     expected_context = "canonical"
     if state_context == "diagnostic":
         expected_context = "diagnostic"
@@ -938,6 +939,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--numbered-name", required=True)
     parser.add_argument("--bookmark-revert", default="")
     parser.add_argument("--state-file", default="")
+    parser.add_argument("--genesis-coverage-delta", type=lambda value: int(value, 0), default=0)
     return parser.parse_args()
 
 
@@ -984,6 +986,7 @@ def main() -> int:
         rom,
         manifest_path,
         state_context=state_context,
+        genesis_coverage_delta=args.genesis_coverage_delta,
     )  # §2.3
     check_rom_naming(args.numbered_name, counter_path)  # §2.4
     check_symbol_resolution(rom, symbols, spec_path, args.helper_symbol, incbins)  # §2.5

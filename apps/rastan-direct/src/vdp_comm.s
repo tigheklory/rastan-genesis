@@ -1,4 +1,5 @@
     .include "pc090oj_config.inc"
+    .include "../../build/pc080sn_boundary/boundary_constants.inc"
 
     .section .text,"ax"
 
@@ -17,9 +18,16 @@
     .extern genesistan_current_scene_id
     .extern vdp_commit_palette             /* Build 0345: CRAM palette DMA now lives in dma.s */
     .global vdp_install_test_lines
+    .global diagnostic_palette_active_asset
+    .global diagnostic_palette_active_visual_index
     .extern editor_layera_palette
     .extern test_sprite_line0
     .extern test_sprite_line1
+    .extern diagnostic_palette_r1s1
+    .extern diagnostic_palette_r1s2
+    .extern diagnostic_palette_scene_select
+    .extern diagnostic_palette_asset_ptrs
+    .extern genesistan_plane_a_authored_descriptor_visuals
     .global vdp_commit_scroll
     .extern dma_publish_frame
     .global _vblank_service
@@ -393,25 +401,49 @@ vdp_commit_scroll:
  * Offsets: staged_palette_words is 4 lines x 16 words; line N at +N*32 bytes. */
 vdp_install_test_lines:
     movem.l %d2/%a0-%a1, -(%sp)
+    clr.w   diagnostic_palette_active_asset
+    clr.l   diagnostic_palette_active_visual_index
+.if RASTAN_PALETTE_TEST_PROFILE
+    /* The arcade stage authority has already chosen the environment at this
+     * boundary. Consume the offline stage->asset ID table; ID zero is the
+     * established safe fallback for every missing/unapproved context. */
+    moveq   #0, %d2
+    move.w  0x1242(%a5), %d2
+    cmpi.w  #(6 * 23), %d2
+    bhs.s   .Liti_done
+    lea     diagnostic_palette_scene_select, %a0
+    move.b  0(%a0,%d2.w), %d2
+    beq.s   .Liti_done
+    move.w  %d2, diagnostic_palette_active_asset
+    lea     genesistan_plane_a_authored_descriptor_visuals, %a1
+    cmpi.w  #2, %d2
+    bne.s   .Liti_visual_index_ready
+    adda.l  #FG_AUTHORED_DESC_INDEX_BYTES, %a1
+.Liti_visual_index_ready:
+    move.l  %a1, diagnostic_palette_active_visual_index
+    subq.w  #1, %d2
+    lsl.w   #2, %d2
+    lea     diagnostic_palette_asset_ptrs, %a0
+    movea.l 0(%a0,%d2.w), %a0
+.Liti_source_ready:
     lea     staged_palette_words, %a1          /* Line 0 */
-    lea     test_sprite_line0, %a0
     moveq   #(16 - 1), %d2
 .Liti_l0:
     move.w  (%a0)+, (%a1)+
     dbra    %d2, .Liti_l0
     lea     staged_palette_words + 32, %a1     /* Line 1 */
-    lea     test_sprite_line1, %a0
     moveq   #(16 - 1), %d2
 .Liti_l1:
     move.w  (%a0)+, (%a1)+
     dbra    %d2, .Liti_l1
     lea     staged_palette_words + 96, %a1     /* Line 3 */
-    lea     editor_layera_palette, %a0
     moveq   #(16 - 1), %d2
 .Liti_l3:
     move.w  (%a0)+, (%a1)+
     dbra    %d2, .Liti_l3
     move.b  #1, palette_pending
+.endif
+.Liti_done:
     movem.l (%sp)+, %d2/%a0-%a1
     rts
 
@@ -446,6 +478,12 @@ fg_row_dirty:
     .long 0
 fg_native_gameplay_owner:
     .byte 0
+
+    .align 2
+diagnostic_palette_active_asset:
+    .word 0
+diagnostic_palette_active_visual_index:
+    .long 0
 
     .align 2
 fg_narrow_desc_table:

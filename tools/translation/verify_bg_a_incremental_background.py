@@ -127,6 +127,7 @@ def static_contract() -> None:
                     "cmpi.w  #BG_LOGICAL_SPAN, %d4",
                     "fg_row_dirty"), "Plane-A row producer")
     require(block4, ("movea.l %a4, %a0",
+                     "MAP_GET_AUTHORED_VISUAL_A0",
                      "MAP_GET_NAME_A_GAMEPLAY_ROW",
                      ".Lplane_a_block_ring_seam_loop",
                      "bsr     resolve_plane_a_cell",

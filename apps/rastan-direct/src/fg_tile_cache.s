@@ -30,6 +30,7 @@
     .global fg_boundary_slots_retained
     .global fg_boundary_slots_reassigned
     .global fg_boundary_active_record
+    .global fg_boundary_active_package
     .global fg_boundary_active_variant
     .global fg_boundary_active_lut
     .global fg_scene_scroll_reseed_pending

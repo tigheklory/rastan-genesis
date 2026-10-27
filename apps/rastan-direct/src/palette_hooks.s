@@ -173,6 +173,7 @@ genesistan_palette_hook_59ad4:
     moveq   #1, %d0                 /* arcade bank 3 -> Genesis line 1 */
     bra.s   .L59_dest_ready
 .L59_not_bank3:
+.if RASTAN_PALETTE_TEST_PROFILE
     /* Build 0334 EXPERIMENTAL: type-9 waterfall route.  In scene 1 the arcade water banks 0x1A-0x1D
      * carry the type-9 frame data whose only non-0xFFFF entries are 14 and 15.  Publish those two
      * animated colors POSITIONALLY to Line-3 entries 14/15 (dominant authored mapping = identity),
@@ -188,6 +189,7 @@ genesistan_palette_hook_59ad4:
     bhi.s   .L59_not_water
     bra.w   .L59_water
 .L59_not_water:
+.endif
     cmpi.w  #4, %d0
     bcc.s   .L59_done
 .L59_dest_ready:
@@ -196,12 +198,14 @@ genesistan_palette_hook_59ad4:
      * activation).  Frontend / other scenes stage all lines.  Line 2 is partial-dynamic: the loop
      * rewrites only the entries the arcade actually changes and marks palette_dirty only on a real
      * change, so a static sky costs no per-frame CRAM commit. */
+.if RASTAN_PALETTE_TEST_PROFILE
     cmpi.b  #1, genesistan_current_scene_id
     bne.s   .L59_dest_ok
     cmpi.w  #23, 0x1242(%a5)
     bhs.s   .L59_dest_ok
     cmpi.w  #2, %d0
     bne     .L59_done
+.endif
 .L59_dest_ok:
     move.w  %d1, %d2
     mulu.w  #32, %d2
@@ -445,12 +449,14 @@ genesistan_palette_hook_3ba64:
      * Only Layer-B Line 2 may still be written by this arcade producer; skip any 0/1/3 target so
      * the static Test palette is not re-owned per stage/segment load.  Frontend / other scenes are
      * unaffected (they keep full arcade palette staging). */
+.if RASTAN_PALETTE_TEST_PROFILE
     cmpi.b  #1, genesistan_current_scene_id
     bne.s   .L3ba64_line_store
     cmpi.w  #23, 0x1242(%a5)
     bhs.s   .L3ba64_line_store
     cmpi.w  #2, %d6
     bne     .L3ba64_next
+.endif
 .L3ba64_line_store:
 
     move.l  %d4, %d7
@@ -501,3 +507,21 @@ test_sprite_line0:
     .global test_sprite_line1
 test_sprite_line1:
     .incbin "../../build/rastan-direct/test_palette_line1.bin"
+
+    /* Explicit diagnostic-profile scene assets. Layout is Lines 0,1,3, sixteen
+     * big-endian Genesis CRAM words each. Line 2 is deliberately absent. */
+    .global diagnostic_palette_r1s1
+diagnostic_palette_r1s1:
+    .incbin "../../build/palette_export/cram/PAL-R1-S1-PLANEA-OUTDOOR.bin"
+    .global diagnostic_palette_r1s2
+diagnostic_palette_r1s2:
+    .incbin "../../build/palette_export/cram/PAL-R1-S2-PLANEA-CASTLE.bin"
+
+    .global diagnostic_palette_scene_select
+diagnostic_palette_scene_select:
+    .incbin "../../build/pc080sn_boundary/palette_scene_select.bin"
+    .align 2
+    .global diagnostic_palette_asset_ptrs
+diagnostic_palette_asset_ptrs:
+    .long diagnostic_palette_r1s1
+    .long diagnostic_palette_r1s2

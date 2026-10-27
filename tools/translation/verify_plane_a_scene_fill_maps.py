@@ -41,6 +41,8 @@ def main() -> None:
     parser.add_argument("--pc080sn", type=Path, required=True)
     parser.add_argument("--maps", type=Path, required=True)
     parser.add_argument("--pan-maps", type=Path, required=True)
+    parser.add_argument("--record-maps", type=Path, required=True)
+    parser.add_argument("--authored-descriptor-visuals", type=Path, required=True)
     parser.add_argument("--packages", type=Path, required=True)
     parser.add_argument("--report", type=Path, required=True)
     parser.add_argument("--source", type=Path, required=True)
@@ -55,8 +57,58 @@ def main() -> None:
     patterns = args.pc080sn.read_bytes()
     actual = args.maps.read_bytes()
     pan_actual = args.pan_maps.read_bytes()
+    record_maps = args.record_maps.read_bytes()
+    authored_descriptor_visuals = args.authored_descriptor_visuals.read_bytes()
     packages = args.packages.read_bytes()
     report = json.loads(args.report.read_text())
+    authored = report.get("authoring_mode") == "diagnostic-profile"
+    record_table_bytes = RECORDS * 12
+
+    descriptor_checked = 0
+    descriptor_meta = report.get("authored_descriptor_visuals", {})
+    if authored:
+        profile = Path(report["authoring_profile"])
+        if not profile.is_file():
+            profile = ROOT / "analysis/graphics_optimizer/editor_policy" / profile.name
+        authored_model = compiler.AuthoredLayerA(profile, patterns)
+        first = descriptor_meta["entry_first"]
+        end = descriptor_meta["entry_end"]
+        count = descriptor_meta["entry_count"]
+        contexts = descriptor_meta["contexts"]
+        payload_offset = descriptor_meta["index_bytes"]
+        if len(authored_descriptor_visuals) != descriptor_meta["total_bytes"]:
+            raise SystemExit("FAIL authored descriptor visual size disagrees with report")
+        for context in range(contexts):
+            index_base = context * count * 4
+            for entry_index, entry in enumerate(range(first, end, 4)):
+                record_offset = be32(authored_descriptor_visuals, index_base + entry_index * 4)
+                if not record_offset:
+                    raise SystemExit(f"FAIL authored descriptor {context}/{entry:#x} has no record")
+                if record_offset + 64 > len(authored_descriptor_visuals):
+                    raise SystemExit(f"FAIL authored descriptor {context}/{entry:#x} record overflow")
+                attr = be16(maincpu, entry)
+                descriptor = be16(maincpu, entry + 2)
+                valid = not (descriptor & 1) and 0x200 <= descriptor <= 0x5FDFC
+                for cell in range(16):
+                    source_code = ((be16(maincpu, descriptor + cell * 2) & 0x3FFF)
+                                   if valid else 0)
+                    code, _blob, line, _usage = authored_model.resolve_context(
+                        context, source_code, attr, patterns)
+                    expected_attr = (line << 13) | ((attr & 0xC000) >> 3)
+                    actual_code = be16(authored_descriptor_visuals, record_offset + cell * 4)
+                    actual_attr = be16(authored_descriptor_visuals, record_offset + cell * 4 + 2)
+                    if (actual_code, actual_attr) != (code, expected_attr):
+                        raise SystemExit(
+                            f"FAIL authored descriptor {context}/{entry:#x}/{cell}: "
+                            f"{actual_code:04X}/{actual_attr:04X} != {code:04X}/{expected_attr:04X}")
+                    descriptor_checked += 1
+
+    def compiled_word(record: int, package: int, row: int, column: int) -> int:
+        entry = record * 12
+        offset = be32(record_maps, entry)
+        if be16(record_maps, entry + 4) == package:
+            offset = be32(record_maps, entry + 8)
+        return be16(record_maps, record_table_bytes + offset + (row * 64 + column) * 2)
 
     decoded = (compiler.decode_plane_b_progression(maincpu, 0) +
                compiler.decode_plane_b_progression(maincpu, 23))
@@ -96,6 +148,13 @@ def main() -> None:
             row = (visible_top + delta) & 63
             physical_row = row & 31
             for column in range(64):
+                if authored:
+                    expected = compiled_word(record, package_index, row, column)
+                    entry = offset + (physical_row * 64 + column) * 2
+                    if be16(actual, entry) != expected:
+                        raise SystemExit(f"FAIL authored record {record} row {row} column {column}")
+                    checked += 1
+                    continue
                 cell = by_position.get((row, column))
                 code = cell.tile_code if cell else 0
                 attr = cell.attr if cell else 0
@@ -143,6 +202,14 @@ def main() -> None:
         }
         for logical_row in range(64):
             for column in range(64):
+                if authored:
+                    expected = compiled_word(record, package_index, logical_row, column)
+                    entry = offset + (logical_row * 64 + column) * 2
+                    if be16(pan_actual, entry) != expected:
+                        raise SystemExit(
+                            f"FAIL authored pan record {record} row {logical_row} column {column}")
+                    pan_checked += 1
+                    continue
                 cell = by_position.get((logical_row, column))
                 code = cell.tile_code if cell else 0
                 attr = cell.attr if cell else 0
@@ -174,10 +241,17 @@ def main() -> None:
         "move.l  #0xFFFFFFFF, fg_row_dirty",
         '.incbin "../../build/pc080sn_boundary/scene_fill_maps.bin"',
         '.incbin "../../build/pc080sn_boundary/pan_row_maps.bin"',
+        '.incbin "../../build/pc080sn_boundary/authored_descriptor_visuals.bin"',
+        ".macro MAP_GET_AUTHORED_VISUAL_A0",
+        "diagnostic_palette_active_asset",
     )
     for token in required_source:
         if token not in source:
             raise SystemExit(f"FAIL scene-fill source omits {token}")
+    for token in (".Lplane_a_precompiled_name_from_d0_d1",
+                  '.incbin "../../build/pc080sn_boundary/record_native_maps.bin"'):
+        if token in source:
+            raise SystemExit(f"FAIL dynamic visual path retains rejected static-record token {token}")
     cache_source = args.cache_source.read_text()
     for token in (".global fg_scene_scroll_reseed_pending",
                   "move.b  #1, fg_scene_scroll_reseed_pending",
@@ -205,6 +279,7 @@ def main() -> None:
     print(f"PASS native scene-fill/pan maps: scene_records={scene_records} "
           f"scene_cells={checked} scene_bytes={len(actual)}; pan_records={pan_records} "
           f"pan_cells={pan_checked} pan_bytes={len(pan_actual)}; "
+          f"authored_descriptor_cells={descriptor_checked}; "
           "post-scroll boundary=0x050538; collision untouched")
 
 

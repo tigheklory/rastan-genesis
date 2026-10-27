@@ -56,6 +56,7 @@
     .extern fg_cache_resolve
     .extern fg_boundary_install
     .extern fg_boundary_active_record
+    .extern fg_boundary_active_package
     .extern fg_boundary_resolve_b
     .extern fg_boundary_active_lut
     .extern fg_scene_scroll_reseed_pending
@@ -67,6 +68,8 @@
     .extern genesistan_pc080sn_native_metatile_index
     .extern genesistan_pc080sn_native_metatile_records
     .extern genesistan_pc080sn_plane_b_visual_records
+    .extern diagnostic_palette_active_asset
+    .extern diagnostic_palette_active_visual_index
     .extern palette_route_lookup
     .extern native_sprite_emit
     .extern native_sprite_lane
@@ -163,6 +166,29 @@
 .endm
 .macro MAP_GET_COLLISION
     bsr     resolve_plane_a_collision_cell
+.endm
+/* Hot producer form of the offline-authored descriptor visual lookup.  The
+ * outer producer already saves registers, and its descriptor address has
+ * already passed the retained broad validity check.  A1 returns the prepared
+ * record or zero; D0/D1 are scratch. */
+.macro MAP_GET_AUTHORED_VISUAL_A0
+    movea.l diagnostic_palette_active_visual_index, %a1
+    move.l  %a1, %d0
+    beq.s   .Lmap_authored_done\@
+    cmpa.l  #FG_AUTHORED_DESC_FIRST, %a0
+    blo.s   .Lmap_authored_missing\@
+    cmpa.l  #FG_AUTHORED_DESC_END, %a0
+    bhs.s   .Lmap_authored_missing\@
+    move.l  %a0, %d0
+    subi.l  #FG_AUTHORED_DESC_FIRST, %d0
+    move.l  0(%a1,%d0.l), %d1
+    beq.s   .Lmap_authored_missing\@
+    lea     genesistan_plane_a_authored_descriptor_visuals, %a1
+    adda.l  %d1, %a1
+    bra.s   .Lmap_authored_done\@
+.Lmap_authored_missing\@:
+    suba.l  %a1, %a1
+.Lmap_authored_done\@:
 .endm
 /* Build 0419 BG-B: when a producer needs both products for one logical cell,
  * traverse the live descriptor/metatile chain once.  D0 returns the final
@@ -396,6 +422,8 @@ genesistan_hook_tilemap_plane_a_selector0_native:
     blo.s   .Lplane_a_sel0_shared_blank
     cmpa.l  #PC080SN_DESC_ARCADE_END, %a0
     bhs.s   .Lplane_a_sel0_shared_blank
+    MAP_GET_AUTHORED_VISUAL_A0
+    move.l  %a1, 12(%sp)
     suba.l  #PC080SN_DESC_ARCADE_START, %a0
     adda.l  #PC080SN_DESC_GENESIS_START, %a0
 
@@ -415,6 +443,7 @@ genesistan_hook_tilemap_plane_a_selector0_native:
     bra.s   .Lplane_a_sel0_shared_ready
 .Lplane_a_sel0_shared_blank:
     suba.l  %a4, %a4
+    clr.l   12(%sp)
     moveq   #0, %d0
     move.w  %d0, 6(%sp)
 .Lplane_a_sel0_shared_ready:
@@ -429,8 +458,17 @@ genesistan_hook_tilemap_plane_a_selector0_native:
     move.l  %a4, %d1
     beq.s   .Lplane_a_sel0_outputs_ready
     move.w  0x20(%a4,%d0.w), %d2             /* independent collision field */
+    movea.l 12(%sp), %a1
+    move.l  %a1, %d3
+    beq.s   .Lplane_a_sel0_unauthored
+    add.w   %d0, %d0
+    move.w  0(%a1,%d0.w), %d3
+    move.w  2(%a1,%d0.w), 6(%sp)
+    bra.s   .Lplane_a_sel0_visual_code_ready
+.Lplane_a_sel0_unauthored:
     move.w  0(%a4,%d0.w), %d3                /* independent visual field */
     andi.w  #0x3FFF, %d3
+.Lplane_a_sel0_visual_code_ready:
 
     /* Exact inline fg_cache_resolve leaf using the once-per-column context.
      * Zero remains blank without a miss.  The static LUT's masked domain is
@@ -572,7 +610,6 @@ genesistan_hook_tilemap_plane_a_selector12_native:
     move.w  %d0, 2(%sp)             /* visible top logical row */
 
     lea     PC080SN_DESC_REBUILD_PTR_TABLE, %a3
-    lea     PC080SN_DESC_REBUILD_WORD_TABLE, %a1
     lea     genesistan_pc080sn_tile_vram_lut, %a2
     lea     staged_fg_buffer, %a6
 
@@ -580,7 +617,10 @@ genesistan_hook_tilemap_plane_a_selector12_native:
     moveq   #0, %d4                 /* descriptor segment */
 .Lplane_a_sel12_segment_loop:
     move.l  (%a3)+, %d6
-    move.w  (%a1)+, 10(%sp)        /* exact parallel arcade attribute word */
+    move.w  %d4, %d0
+    add.w   %d0, %d0
+    lea     PC080SN_DESC_REBUILD_WORD_TABLE, %a1
+    move.w  0(%a1,%d0.w), 10(%sp)  /* exact parallel arcade attribute word */
     btst    #0, %d6
     bne     .Lplane_a_sel12_next_segment
     cmpi.l  #0x00000200, %d6
@@ -598,6 +638,12 @@ genesistan_hook_tilemap_plane_a_selector12_native:
      * records throughout selector-1/2 stages.  Undo only the copy relocation
      * to recover the canonical word1 used by the generated native index; take
      * the attribute from the exact parallel word table. */
+    move.w  %d4, %d2
+    lsl.w   #2, %d2
+    lea     PC080SN_DESC_REBUILD_SRC_TABLE, %a0
+    movea.l 0(%a0,%d2.w), %a0
+    MAP_GET_AUTHORED_VISUAL_A0
+    move.l  %a1, 12(%sp)
     move.l  %d6, %d2
     subi.l  #PC080SN_DESC_SECOND_WORD_BASE, %d2
     btst    #0, %d2
@@ -624,6 +670,7 @@ genesistan_hook_tilemap_plane_a_selector12_native:
     bra.s   .Lplane_a_sel12_shared_ready
 .Lplane_a_sel12_shared_blank:
     suba.l  %a4, %a4
+    clr.l   12(%sp)
     clr.w   6(%sp)
 .Lplane_a_sel12_shared_ready:
     moveq   #0, %d5
@@ -641,8 +688,17 @@ genesistan_hook_tilemap_plane_a_selector12_native:
     andi.w  #0x003F, %d1
     cmpi.w  #32, %d1
     bhs.s   .Lplane_a_sel12_shared_outputs_ready
+    movea.l 12(%sp), %a1
+    move.l  %a1, %d3
+    beq.s   .Lplane_a_sel12_unauthored
+    add.w   %d0, %d0
+    move.w  0(%a1,%d0.w), %d3
+    move.w  2(%a1,%d0.w), 6(%sp)
+    bra.s   .Lplane_a_sel12_visual_code_ready
+.Lplane_a_sel12_unauthored:
     move.w  0(%a4,%d0.w), %d3                /* visual only when row resident */
     andi.w  #0x3FFF, %d3
+.Lplane_a_sel12_visual_code_ready:
     bsr     fg_cache_resolve
     or.w    6(%sp), %d3
 .Lplane_a_sel12_shared_outputs_ready:
@@ -933,6 +989,7 @@ resolve_plane_a_cell:
     blo.w   .Lrpc_blank
     cmpa.l  #PC080SN_DESC_ARCADE_END, %a0
     bhs.w   .Lrpc_blank
+    MAP_GET_AUTHORED_VISUAL_A0
     suba.l  #PC080SN_DESC_ARCADE_START, %a0
     adda.l  #PC080SN_DESC_GENESIS_START, %a0
 
@@ -953,8 +1010,16 @@ resolve_plane_a_cell:
 
     move.w  0(%sp), %d0
     add.w   2(%sp), %d0                      /* metatile offset = row_byte + col_byte */
+    move.l  %a1, %d3
+    beq.s   .Lrpc_unauthored
+    add.w   %d0, %d0                         /* authored pair is {code,attr}: four bytes/cell */
+    move.w  0(%a1,%d0.w), %d3
+    move.w  2(%a1,%d0.w), 4(%sp)
+    bra.s   .Lrpc_visual_code_ready
+.Lrpc_unauthored:
     move.w  0(%a0,%d0.w), %d3
     andi.w  #0x3FFF, %d3
+.Lrpc_visual_code_ready:
     bsr     fg_cache_resolve                 /* D3 code -> D3 residency-resolved code */
     or.w    4(%sp), %d3
     move.w  %d3, %d0                         /* final Genesis name word */
@@ -1028,6 +1093,7 @@ resolve_plane_a_name_collision_cell:
     blo.w   .Lrpncc_blank
     cmpa.l  #PC080SN_DESC_ARCADE_END, %a0
     bhs.w   .Lrpncc_blank
+    MAP_GET_AUTHORED_VISUAL_A0
     suba.l  #PC080SN_DESC_ARCADE_START, %a0
     adda.l  #PC080SN_DESC_GENESIS_START, %a0
 
@@ -1051,8 +1117,16 @@ resolve_plane_a_name_collision_cell:
     move.w  %d0, 4(%sp)
     move.w  0(%sp), %d0
     add.w   2(%sp), %d0
+    move.l  %a1, %d3
+    beq.s   .Lrpncc_unauthored
+    add.w   %d0, %d0
+    move.w  0(%a1,%d0.w), %d3
+    move.w  2(%a1,%d0.w), 4(%sp)
+    bra.s   .Lrpncc_visual_code_ready
+.Lrpncc_unauthored:
     move.w  0(%a0,%d0.w), %d3
     andi.w  #0x3FFF, %d3
+.Lrpncc_visual_code_ready:
     bsr     fg_cache_resolve
     or.w    4(%sp), %d3
     move.w  %d3, %d0
@@ -1276,7 +1350,7 @@ resolve_plane_a_collision_cell:
  * invariant payload decode is shared across the four required logical cells.
  * in: D0.W logical row, D1.W aligned logical start column; preserves registers. */
 .Lplane_a_publish_name_block4_native:
-    movem.l %d4/%d7, -(%sp)
+    movem.l %d4/%d7/%a4, -(%sp)
     move.w  %d0, %d4
     move.w  %d1, %d5
 
@@ -1324,9 +1398,18 @@ resolve_plane_a_collision_cell:
     adda.l  %d2, %a0
 
     cmpa.l  #PC080SN_DESC_ARCADE_START, %a0
-    blo.s   .Lplane_a_block_blank
+    blo.w   .Lplane_a_block_blank
     cmpa.l  #PC080SN_DESC_ARCADE_END, %a0
-    bhs.s   .Lplane_a_block_blank
+    bhs.w   .Lplane_a_block_blank
+    MAP_GET_AUTHORED_VISUAL_A0
+    movea.l %a1, %a4
+    move.l  %a4, %d0
+    beq.s   .Lplane_a_block_authored_row_ready
+    move.w  %d4, %d0
+    andi.w  #0x0003, %d0
+    lsl.w   #4, %d0
+    adda.w  %d0, %a4
+.Lplane_a_block_authored_row_ready:
     suba.l  #PC080SN_DESC_ARCADE_START, %a0
     adda.l  #PC080SN_DESC_GENESIS_START, %a0
     move.w  (%a0), %d6
@@ -1349,6 +1432,7 @@ resolve_plane_a_collision_cell:
     bra.s   .Lplane_a_block_stage
 .Lplane_a_block_blank:
     suba.l  %a3, %a3
+    suba.l  %a4, %a4
     moveq   #0, %d6
 
 .Lplane_a_block_stage:
@@ -1358,16 +1442,23 @@ resolve_plane_a_collision_cell:
     moveq   #3, %d5
 .Lplane_a_block_stage_loop:
     moveq   #0, %d3
+    move.l  %a4, %d0
+    beq.s   .Lplane_a_block_unauthored
+    move.w  (%a4)+, %d3
+    move.w  (%a4)+, %d6
+    bra.s   .Lplane_a_block_resolve
+.Lplane_a_block_unauthored:
     move.l  %a3, %d0
     beq.s   .Lplane_a_block_word_ready
     move.w  (%a3)+, %d3
+.Lplane_a_block_resolve:
     MAP_GET_NAME_A_GAMEPLAY_ROW
     or.w    %d6, %d3
 .Lplane_a_block_word_ready:
     move.w  %d3, (%a1)+
     dbra    %d5, .Lplane_a_block_stage_loop
 .Lplane_a_block_done:
-    movem.l (%sp)+, %d4/%d7
+    movem.l (%sp)+, %d4/%d7/%a4
     rts
 
     .align 2
@@ -4949,6 +5040,9 @@ genesistan_plane_a_scene_fill_maps:
     .incbin "../../build/pc080sn_boundary/scene_fill_maps.bin"
 genesistan_plane_a_pan_row_maps:
     .incbin "../../build/pc080sn_boundary/pan_row_maps.bin"
+    .global genesistan_plane_a_authored_descriptor_visuals
+genesistan_plane_a_authored_descriptor_visuals:
+    .incbin "../../build/pc080sn_boundary/authored_descriptor_visuals.bin"
 
     .section .bss
     .align 2
