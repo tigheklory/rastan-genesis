@@ -54120,3 +54120,54 @@ consumed) and take the Cody handoff. Wrote
 docs/design/Cody_runtime_per_subround_palette_selection_handoff.md. Updated stale memory
 project_editor_to_production_bridge_gap (base bridge now exists; per-subround is the remaining gap).
 No ROM build consumed.
+
+### MAME Exit Summary (2026-10-26 16:55:28)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-26 17:01:32)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-26 17:06:48)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-27 09:32:31)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## PROMPT-ID-0018: Build 0512 live-descriptor palette correction (Cody, 2026-10-27)
+
+Builds 0509–0511 replaced Build 0508's live Plane-A descriptor/ring selection with a static full-record
+map; the first matched R1-S1 divergence was scroll offset 40 despite equal retained state. Commit
+`c8fd3e5d4e8b9bce73a45233aa078b761b57a5f0` restores the live semantic producer and indexes fully
+offline-prepared authored visual payloads by its exact descriptor address. Independent R1-S1/R1-S2
+Lines 0/1/3 assets remain data-driven; Line 2 remains arcade-owned, including R1-S2 flames. Build 0512
+and its S1-2 derivative are byte-identical to the runtime-tested final candidate pair. Canonical,
+gameplay-entry, epoch, exhaustive descriptor/scene/pan/selector, collision and 64-row gates pass.
+Matched R1-S1 captures have zero normalized geometry mismatches through cave/ring-wrap coverage; tested
+R1-S2 record-17 geometry and collision match Build 0508. Selector-1 stays 1,412 cycles; selector-0 adds
+6,252 mean cycles per 8-pixel entering-column event, outside VBlank. A real record-17 climb collision was
+observed, but the fourth chain and later R1-S2 traversal remain explicitly unverified pending Tighe.
+Standalone report: `docs/design/Cody_PROMPT_ID_0018_build0512_live_descriptor_palette_correction.md`.
+
+## PROMPT-ID-0023 — Genesis shadow/highlight research for R1-S2 masonry (Andy, 2026-10-27)
+
+Research/report only. No native code, compiler, Composer, Test.json, palette decisions, audio, or ROM
+build changed; no build number consumed. Findings: the arcade's darker castle masonry is a PALETTE-BANK
+effect (same brick tile codes 0x818.. appear across banks 0x008-0x013/0x01F; 37 multi-palette patterns),
+NOT lost pixel detail. The brightness gradient is SUBTLE (bank luma ~86-102, ~1.15x) with a grey<->warm
+HUE shift. Genesis S/H only offers fixed x0.5 (shadow)/x1.5 (highlight) steps (reg12 bit3 STE; current
+project reg12=0x8C81=OFF per crash_handler.s) -> it OVERSHOOTS the subtle gradient and cannot reproduce
+the hue shift, and it is a GLOBAL mode that overloads the priority bit (layering) with brightness, risking
+window/Plane-B/sprite/HUD/Line-2 regressions. Sprite operators (Option C) infeasible for wall-sized
+regions (sprites-per-scanline/SAT). RECOMMENDATION: do NOT use S/H for the masonry; the faithful,
+architecture-respecting fix is palette allocation within Cody's per-subround palette path (Option A),
+bounded by an explicit palette-budget decision; reserve S/H for genuinely half/double effects. Proposed
+an isolated-worktree diagnostic experiment to confirm the overshoot on hardware if Tighe wants certainty.
+Report: docs/design/Andy_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0023_genesis_shadow_highlight_research.md
