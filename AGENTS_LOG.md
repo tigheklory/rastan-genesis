@@ -54267,3 +54267,20 @@ Static only, NO traces. No ROM/runtime/compiler/Test.json/palette-decision chang
 - NOT DONE (honest): Composer integration (Deliverable D) — castle actors not yet browsable; blocked on
   their sprite palette-bank resolution + additive scene-labeled catalog + browser verification.
 - Report: docs/design/Andy_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0025_r1s2_actor_sprite_inventory.md
+
+## PROMPT-ID-0028 — per-piece arcade palette in the PC090OJ compositor (Andy, 2026-10-28)
+
+Implemented (code, not a report). PC090OJ composites now colour EACH piece with its OWN arcade palette
+bank. Changes in tools/graphics_editor/server.py:
+- _manifest_vm_pieces now preserves each piece's compositor-VM `palette` nibble.
+- new attach_arcade_piece_palettes(pieces, rnd): resolves each piece's 16-colour `pal` from its nibble via
+  the per-round line palette (0x3BA88->0x4FD02, same math as _arcade_round_palette/Bestiary); input not
+  mutated; pieces without a nibble pass through unchanged.
+- render_composite now uses each piece's own `pal` when present, else the shared `pal` (single-bank
+  behaviour preserved).
+- /api/render gained a base/anim[/round] mode: direct per-piece arcade render (target= still overrides to
+  a single mapped palette). Source palette-bank identity is exposed on each piece (the `palette` field).
+Regression: tools/graphics_editor/verify_per_piece_palette.py 6/6 (case base 0x0224 anim 0x91, nibbles
+3+12): both banks retained; each piece resolves its own colours; composite uses pixels unique to BOTH
+banks; single-bank + shared-palette paths unchanged. No regression: verify_scene_automap 44/44,
+verify_independent_scopes 9/9. No Test.json / palette-decision / native / ROM change; no build number.

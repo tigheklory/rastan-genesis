@@ -121,10 +121,31 @@ def _manifest_vm_pieces(base, anim, table):
     def s9(v):
         v &= 0x1FF
         return v - 0x200 if v & 0x100 else v
+    # PROMPT-ID-0028: preserve EACH piece's own arcade palette bank (the compositor-VM `palette` nibble),
+    # so a sprite whose pieces use different banks can be coloured per piece (base 0x0224 anim 0x91 uses
+    # nibbles 3 and 12). Single-bank sprites simply have one nibble across all pieces.
     raw = [{"code": q.tile & 0x1FFF, "x": s9(q.x), "y": s9(q.y),
-            "fx": bool(q.hflip), "fy": bool(q.vflip)} for q in sat]
+            "fx": bool(q.hflip), "fy": bool(q.vflip), "palette": int(q.palette) & 0xF} for q in sat]
     ox = min(q["x"] for q in raw); oy = min(q["y"] for q in raw)
-    return [{"code": q["code"], "x": q["x"] - ox, "y": q["y"] - oy, "fx": q["fx"], "fy": q["fy"]} for q in raw]
+    return [{"code": q["code"], "x": q["x"] - ox, "y": q["y"] - oy, "fx": q["fx"], "fy": q["fy"],
+             "palette": q["palette"]} for q in raw]
+
+
+def attach_arcade_piece_palettes(pieces, rnd):
+    """PROMPT-ID-0028: resolve EACH piece's OWN arcade colours from its `palette` nibble via the per-round
+    line palette (same 0x3BA88->0x4FD02 math as the Bestiary). Returns NEW piece dicts each carrying a
+    resolved 16-colour `pal`; pieces without a `palette` key are returned unchanged so single-bank callers
+    keep the shared-palette path in render_composite. The input list is not mutated."""
+    out, cache = [], {}
+    for p in pieces:
+        q = dict(p)
+        nib = p.get("palette")
+        if nib is not None:
+            if nib not in cache:
+                cache[nib] = _arcade_round_palette(rnd, nib)
+            q["pal"] = cache[nib]
+        out.append(q)
+    return out
 
 
 _CSVROWS = None
@@ -1606,7 +1627,8 @@ def png(w, h, rows):
 
 def render_composite(pieces, pal, boundaries=False):
     """TRUE composite: place each 16x16 cell at its relative (x,y) with flips; bbox-normalize + 1px pad.
-    Same geometry regardless of palette (source vs target differ only in `pal`)."""
+    PROMPT-ID-0028: each piece may carry its OWN resolved 16-colour `pal` (per-piece arcade palette bank);
+    pieces without one fall back to the shared `pal`, preserving single-bank behaviour."""
     if not pieces:
         return png(2, 2, [[30, 30, 38] * 2 for _ in range(2)])
     minx = min(p["x"] for p in pieces); miny = min(p["y"] for p in pieces)
@@ -1615,6 +1637,7 @@ def render_composite(pieces, pal, boundaries=False):
     rows = [[30, 30, 38] * W for _ in range(H)]
     for p in sorted(pieces, key=lambda q: -q.get("rec", 0)):  # painter's: high rec first, low on top
         idx = cell_indices(p["code"])
+        ppal = p.get("pal") or pal                            # per-piece palette, else shared
         ox = p["x"] - minx + 1; oy = p["y"] - miny + 1
         for y in range(16):
             sy = 15 - y if p["fy"] else y
@@ -1622,7 +1645,7 @@ def render_composite(pieces, pal, boundaries=False):
                 sx = 15 - x if p["fx"] else x
                 v = idx[sy * 16 + sx]
                 if v:
-                    c = pal[v] if v < len(pal) else [255, 0, 255]
+                    c = ppal[v] if v < len(ppal) else [255, 0, 255]
                     px = (ox + x) * 3
                     rows[oy + y][px:px + 3] = list(c)
         if boundaries:
@@ -1741,6 +1764,20 @@ class Hd(BaseHTTPRequestHandler):
         if u.path == "/api/render":
             try:
                 banks = sprite_bank_colors()
+                # PROMPT-ID-0028: direct per-piece arcade render of a base/anim — EACH piece keeps its own
+                # arcade palette bank (resolved from its `palette` nibble via the per-round line palette).
+                # `round` selects the per-round palette (default R1). `target` (a 16-colour array) overrides
+                # to a single mapped palette for all pieces (single-bank preview path).
+                if "base" in q:
+                    base = int(str(q["base"][0]), 16)
+                    anim = int(str(q.get("anim", ["0"])[0]), 16)
+                    rnd = int(q.get("round", ["1"])[0])
+                    bnd = q.get("boundaries", ["0"])[0] == "1"
+                    pieces = _manifest_vm_pieces(base, anim, 0)
+                    if "target" in q:
+                        return self._s(200, render_composite(pieces, json.loads(q["target"][0]), bnd), "image/png")
+                    pieces = attach_arcade_piece_palettes(pieces, rnd)
+                    return self._s(200, render_composite(pieces, [[0, 0, 0]] * 16, bnd), "image/png")
                 uid = q.get("usage", [None])[0]
                 usage = next((x for x in build_usages(banks) if x["usage_id"] == uid), None) if uid else None
                 if usage is None:
