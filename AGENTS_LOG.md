@@ -54182,3 +54182,88 @@ Two Sprites-tab render bugs on reward/pickup objects (banks 0x31/0x37) mapped to
 - renderMapTable "Target color" + renderPreviews GENESIS TARGET read target_palette_lines[map.line][ti]/
   tcram, which are null for Line 2 -> "—"/natural fallback. Now use effCramAt so reused Layer-B (Line 2)
   colors resolve. No regression: verify_scene_automap 44/44, independent 9/9.
+
+### MAME Exit Summary (2026-10-27 22:41:11)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## PROMPT-ID-0022: Builds 0513/0514 R1-S2 Plane-B entry/ring correction (Cody, 2026-10-27)
+
+Preserved Test profile rev40 (`86505de8...e9fb`) and all concurrent Composer/audio/Andy edits. Build
+0512 filled Plane B before the final camera tuple and left logical rows 0..31 staged while Y=$0100
+selected top row 33; the verifier shared that bad physical-row assumption. Build 0513 compiles final
+native Plane-B scene maps offline and performs one bounded 4 KiB copy after the retained camera
+decision. Corrected arcade-oracle scoring changes Plane B from 2,048/2,048 wrong cells to zero at entry,
+first scroll Y=$0104, and Y=$0131; reached selector-1 Plane-A rows, VDP publication, resident patterns,
+attributes, LUT and collision also pass. Scene reseed is 62,008 cycles once (+30,854); row hot path and
+VDP volume are unchanged. Andy's 37-pattern masonry result was audited: current authoring preserves 11
+multi-variant groups, 26 remain collapsed; exact warm `$0226` needs one Tighe-authorized Line-3 entry.
+Six new reward/death mappings are saved but absent from the production PC090OJ corpus and remain an
+explicit integration gap. Early artifacts: 0513 normal `a287897e...725f5a`, S1-2
+`821e8ca1...22174`. Exact-current handoff: 0514 normal `7547fafb...a04c`, S1-2
+`94480f1c...a835`; all are 3,825,336 bytes. 0513 and 0514 differ only in checksum/build-label bytes.
+Candidate only; later records, chains, object appearances,
+full masonry variation, and gameplay acceptance remain Tighe's tests. Standalone report:
+`docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0022_r1s2_entry_and_scroll_correction.md`.
+
+### MAME Exit Summary (2026-10-27 22:52:10)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-28 13:17:16)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## PROMPT-ID-0024: Build 0515 generalized Plane-A ring origin lifecycle (Cody, 2026-10-28)
+
+- **Semantic cut:** retained camera/selector/descriptor decision -> camera-independent offline-native
+  64x64 logical map -> live-scroll-derived bounded 32-row Genesis ring. Removed tail remains PC080SN
+  C-window/name RAM/chip addressing/full-map projection; no shadow, device emulator, spawn hardcode,
+  precompiled per-spawn ring, NOP/RTS bypass, fallback, or runtime descriptor interpreter.
+- **Root cause:** retained `0x0503DC` fill precedes `0x0504FA` authoritative camera load. Rejected 0514
+  compiled one physical ring from the table camera and first diverged at runtime PC `0x07096C`
+  (`move.l (%a0)+,(%a6)+`) when the live restart origin differed. 0515 reads post-`0x0504FA`
+  `A5+0x10B0`, computes `((-Y+8)&0x1ff)>>3`, and maps 32 logical rows by `row&31`; all 64 columns
+  remain resident modulo 64 for arbitrary X scroll.
+- **Static/exhaustive gate:** PASS for 24,576 Plane-A scene cells, all 512 Y origins × six fill records
+  = 3,072 complete ring projections, 12,288 Plane-B cells, 16,384 selector pan cells, 1,138,688
+  authored descriptor cells; collision untouched.
+- **Runtime:** matched R1-S1 and R1-S2 entries have zero staged/VDP, orientation, resident-pattern,
+  Plane-B and collision mismatches under the applicable authored oracle. Reached R1-S2 Y=`$0131`
+  rows 26–32 pass with zero compiled/staged and staged/VDP differences. Final-life harness PASS:
+  3 deaths, two non-final respawns, GAME OVER/Continue, no unsafe visible generation; initial plus two
+  restart Plane-A rings are identical (`9b98f87c...e6b0`) at the same retained start origin.
+- **Cost:** scene initializer 65,882 cycles once (+3,874 vs 0514); VDP volume remains 4 KiB Plane A +
+  4 KiB Plane B once per scene init; no new per-frame work. Plane-A artifact grows +24,576 bytes but
+  final ROM remains 3,825,336 bytes due alignment.
+- **Artifact:** `dist/rastan-direct/rastan_direct_video_test_build_0515.bin`, SHA-256
+  `cf7134bc...8b01`, 3,825,336 bytes; R1-S2 variant `..._0515_S1-2.bin`, SHA-256
+  `877c5668...f19c`. Counter/ledger = 515; canonical/gameplay-entry/epoch gates and mandatory NTSC
+  MAME trace pass; standard family preserved. Test profile unchanged (`86505de8...e9fb`).
+- **Acceptance boundary:** automated route still does not naturally traverse records 18–21. Exact
+  R1-S2 entry/Y=`$0131` output is byte-identical to rejected 0513/0514, as expected when live and
+  table origins both equal `$0100`; later-chain gameplay symptom therefore remains Tighe's required
+  manual acceptance test. Candidate only. Standalone report:
+  `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0024_plane_a_ring_origin_lifecycle.md`.
+
+## PROMPT-ID-0025 — R1-S2 actor decompilation audit + static roster (Andy, 2026-10-28)
+
+Static only, NO traces. No ROM/runtime/compiler/Test.json/palette-decision change; no build number.
+- AUDIT (premise corrected): the repo already has 141 maintained C files / 16,659 lines with REAL bodies
+  (function_coverage.csv: 141 COMPLETE / 10 PARTIAL). The actor subsystem is substantially decompiled
+  (rastan_actor_behavior/_dispatch/_materialization/_tables/_creation.c + rastan_arcade_types.h). Armored
+  Men ARE already decompiled (actor_armored_40ccc, base 0x0A73). The "little C exists" premise is outdated.
+- R1-S2 CASTLE ROSTER (static, verified): marker 'E' (0x45, 6x) -> state 0x18 (0x44082) -> sprite bases
+  0x0224 (primary) + 0x00F4 (retarget); marker 'M' (0x4d, 1x) -> state 0x1B (0x43ECC) burst spawner.
+  Both 'E' bases decode to real 8-10 piece humanoid sprites via static compositor_vm (Bestiary route, not
+  a trace). R1-S3 boss is record-type (body 0x061D), not marker driven. These bases are NOT in the
+  Composer catalog = the gap. Per-scene S2-vs-S3 marker split remains the documented open blocker
+  (A5+0x10D000 runtime populator). Armored-Man-vs-Wizard visual labeling deferred to the Composer view.
+- Tools: gen_r1s2_actor_roster.py -> analysis/actor_decompilation/r1s2_actor_roster.json;
+  verify_r1s2_actor_roster.py 5/5 PASS.
+- NOT DONE (honest): Composer integration (Deliverable D) — castle actors not yet browsable; blocked on
+  their sprite palette-bank resolution + additive scene-labeled catalog + browser verification.
+- Report: docs/design/Andy_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0025_r1s2_actor_sprite_inventory.md
