@@ -25,14 +25,22 @@ H6 = ROOT / "analysis/actor_decompilation/h6_marker_materialization_routes.tsv"
 H13 = ROOT / "analysis/actor_decompilation/h13_phase2_marker_occurrences.tsv"
 OUT = ROOT / "analysis/actor_decompilation/r1s2_actor_roster.json"
 
-# State -> visible sprite base(s), read from the maintained decompilation (rastan_actor_behavior.c handlers).
-# Each entry: state -> (handler_pc, [bases], note). Bases verified present in rastan_actor_behavior.c.
+# CORRECTION (PROMPT-ID-0038): the original 0025 roster mapped marker->state->base WITHOUT the handler
+# PROGRESS GUARD, which over-attributed bases to R1. Reconciled against the source + Bestiary H14:
+# handler 0x44082 (state 0x18) does `if (progress_13e < 0x18) arcade_4092e()` (RETIRE) — R1-S2 progress is
+# 0x11..0x16 (< 0x18), so the R1 'E' marker RETIRES and base 0x0224 does NOT materialize in R1. Base
+# 0x0224 materializes in R2,R4; base 0x00F4 in R4,R5,R6; marker 'M' burst is the R1 castle actor (children
+# PENDING). The authoritative record is docs/design/rastan_actor_graphics_manifest.json (H14) — this file
+# is a derived cross-check, NOT a competing roster.
 STATE_BASES = {
-    0x18: ("0x44082", [0x0224, 0x00F4], "h5_44082: 'E' chain -> base 0x0224 then retarget 'U'/'O' -> base 0x00F4"),
+    0x18: ("0x44082", [0x0224, 0x00F4], "h5_44082: 'E' -> base 0x0224 / retarget 'O' -> 0x00F4 ONLY when "
+                                        "progress_13e >= 0x18 (R2+); RETIRES in R1 (guard prog<0x18)"),
     0x1B: ("0x43ECC", [],               "h5_43ecc: 'M' burst spawner (arcade_43f4e_burst, 5 children, anim 0x7A); "
-                                        "coordinate-only child presentation (seeded SAT), no single static base"),
-    0x1C: ("0x4415A", [0x0224],         "h5_4415a: 'G' (R2 castle) -> base 0x0224"),
+                                        "R1 castle actor (H14 R1 prog 0x11); coordinate-only children, no static base"),
+    0x1C: ("0x4415A", [0x0224],         "h5_4415a: 'G' -> base 0x0224 (R2 castle)"),
 }
+# Rounds where each base actually materializes (Bestiary H14, exact +0x1E write). NOT R1 for 0x0224/0x00F4.
+BASE_ROUNDS = {0x0224: [2, 4], 0x00F4: [4, 5, 6]}
 
 
 def _rows(path):
@@ -90,19 +98,29 @@ def main() -> int:
         hb = STATE_BASES.get(st_int, (handler, [], "state->base not yet pinned in decompilation"))
         bases = []
         for b in hb[1]:
-            bases.append({"base": "0x%04X" % b, "graphics": _decode_base(b)})
+            bases.append({"base": "0x%04X" % b, "materializes_in_rounds": BASE_ROUNDS.get(b, []),
+                          "r1_status": "RETIRES in R1 (handler guard prog<0x18) — NOT an R1 actor",
+                          "graphics": _decode_base(b)})
         actors.append({
             "marker": marker, "marker_char": occ.get("route_note", ""),
             "occurrences": int(occ["occurrences"]),
             "state": state, "handler": handler,
             "state_handler_note": hb[2],
             "sprite_bases": bases,
-            "status": ("RESOLVED_MARKER_TO_BASE" if bases else "MARKER_RESOLVED_BASE_UNPINNED"),
+            "status": ("MARKER_PRESENT_IN_R1_BUT_BASE_RETIRES" if (bases and st_int == 0x18)
+                       else "RESOLVED_MARKER_TO_BASE" if bases else "MARKER_RESOLVED_BASE_UNPINNED"),
         })
 
     roster = {
-        "schema": "rastan-r1s2-actor-roster/v1",
-        "prompt": "PROMPT-ID-0025",
+        "schema": "rastan-r1s2-actor-roster/v2",
+        "prompt": "PROMPT-ID-0025 (corrected under PROMPT-ID-0038)",
+        "authority": ("docs/design/rastan_actor_graphics_manifest.json (Bestiary H14) is AUTHORITATIVE for "
+                      "round placement; this file is a derived cross-check, not a competing roster."),
+        "correction_0038": ("Original v1 over-attributed bases 0x0224/0x00F4 to R1-S2 by mapping "
+                            "marker->state->base WITHOUT the handler PROGRESS GUARD. Source: handler 0x44082 "
+                            "`if (progress_13e < 0x18) arcade_4092e()`; R1-S2 progress is 0x11..0x16 (<0x18) "
+                            "so the R1 'E' marker RETIRES. H14: 0x0224 -> R2,R4; 0x00F4 -> R4,R5,R6. The "
+                            "ONLY R1-S2 marker actor is the 'M' burst (children identity PENDING)."),
         "scope_note": ("R1 phase-2 MARKER-driven castle (S2) actors. S3 boss is record-type driven "
                        "(table 0x45592, body base 0x061D) and is listed separately. The exact per-scene "
                        "S2-vs-S3 marker split is the open blocker (A5+0x10D000 runtime populator)."),

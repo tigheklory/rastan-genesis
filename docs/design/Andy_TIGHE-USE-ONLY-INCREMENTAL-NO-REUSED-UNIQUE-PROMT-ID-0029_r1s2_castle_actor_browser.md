@@ -69,3 +69,28 @@ No regression: `verify_per_piece_palette` 6/6, `verify_scene_automap` 44/44, `ve
 - `tools/graphics_editor/app.js`
 - `tools/graphics_editor/verify_r1s2_castle_browser.py` (new)
 - `AGENTS_LOG.md`, this design note.
+
+---
+
+## CORRECTION (PROMPT-ID-0038, 2026-10-29) — round attribution reconciled from source
+
+My 0029 (and the 0025 roster) **mis-attributed bases `0x0224`/`0x00F4` to R1-S2.** Reconciled against the
+maintained C and Bestiary H14:
+
+- Handler `0x44082` (`h5_44082`, state 0x18) has a progress guard: `if (progress_13e < 0x18) arcade_4092e()`
+  (RETIRE, no base write). R1-S2's progress is `0x11..0x16` (< `0x18`), so **the R1 'E' marker retires and
+  `0x0224` never materializes in R1.** H14 confirms: Round 1 prog 0x15 'E' → "prog<0x18 → 4092e", base `-`.
+- **Correct rounds (Bestiary H14, exact `+0x1E` write):** `0x0224` → **R2, R4**; `0x00F4` → **R4, R5, R6**.
+- The **only** R1-S2 marker actor is the **'M' burst** (`0x4d`→`0x43ECC`, H14 R1 prog 0x11) — children
+  identity PENDING, kept INCOMPLETE (no fabricated art).
+
+**Fix applied:** `r1s2_castle_usages()` now emits one browsable object per `(base, round)` — `0x0224`@R2 /
+`0x0224`@R4 (PAL-R2-S2 / PAL-R4-S2), `0x00F4`@R4/R5/R6 — each with its correct per-round palette; the
+`'M'` burst stays R1-S2. The scene filter is unchanged (one `scene_key` per instance). The **Bestiary
+manifest already carried the correct H14 attribution**, so no Bestiary change was needed — it is
+authoritative; the 0025 roster JSON was corrected (v2) to a derived cross-check pointing at it.
+
+Verification: `verify_r1s2_castle_browser.py` **11/11** (R1-S2 = only the 'M' burst; `0x0224`=R2/R4,
+`0x00F4`=R4/R5/R6; multi-bank `0x91` uses both banks; per-round mechanism round-sensitive; R1/P1 intact;
+Test.json unchanged). `verify_r1s2_actor_roster.py` 5/5. No new C was needed — the guard was already in
+`rastan_actor_behavior.c`; the error was my roster tooling not applying it.

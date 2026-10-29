@@ -54373,3 +54373,16 @@ palette-decision change, no new editing/persistence (0030).
   idempotent; Test.json sha unchanged). No regression: per_piece 6/6, scene_automap 44/44, independent 9/9.
 - Identity NOT asserted: provisional source-derived labels only (base $0224/$00F4); Armored Man/Wizard
   naming deferred to visual confirmation.
+
+## PROMPT-ID-0038 (partial; prompt truncated at §3) — reconcile castle-actor round attribution (Andy, 2026-10-29)
+
+Static source reconciliation, no traces, no new roster DB, no ROM/Test.json change. CORRECTED my own
+0025/0029 error: bases 0x0224/0x00F4 were wrongly tagged R1-S2. Handler 0x44082 (h5_44082) guard
+`if(progress_13e<0x18) arcade_4092e()` retires the R1 'E' marker (R1-S2 prog 0x11..0x16<0x18); H14 pins
+0x0224->R2,R4 and 0x00F4->R4,R5,R6; the only R1-S2 marker actor is the 'M' burst (children PENDING). Fixed
+r1s2_castle_usages() to emit per-(base,round) instances tagged to the CORRECT subround with the correct
+per-round palette. Bestiary manifest already had the right H14 attribution (authoritative; unchanged); the
+C already had the guard (no new C needed — the fault was my roster tooling). Corrected the 0025 roster
+JSON to v2 (derived cross-check pointing at the manifest). Tests: verify_r1s2_castle_browser 11/11,
+verify_r1s2_actor_roster 5/5, per_piece 6/6. NOTE: the 0038 prompt was truncated at "### 3" so the broader
+C-decompilation-expansion requirements (§3+) were not available this session.

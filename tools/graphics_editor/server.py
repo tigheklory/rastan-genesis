@@ -172,77 +172,101 @@ def _castle_used_colors(pieces, rnd):
 
 
 _CASTLE_USAGES_CACHE = None
+_CASTLE_FRAMES_CACHE = {}
+
+def _castle_frames(base):
+    """Distinct static compositor frames for a castle sprite base, deduped by piece signature, ranked so
+    route-documented anims (h6/h5) and multi-bank frames surface first. Round-independent geometry (only
+    the palette differs per round). Cached per base."""
+    if base in _CASTLE_FRAMES_CACHE:
+        return _CASTLE_FRAMES_CACHE[base]
+    PREFERRED = {0x0224: [0x91, 0x27], 0x00F4: [0x70]}
+    distinct = {}
+    for anim in range(0x100):
+        pcs = _manifest_vm_pieces(base, anim, 0)
+        if len(pcs) < 2:
+            continue
+        sig = tuple((p["code"], p["x"], p["y"], p["fx"], p["fy"], p["palette"]) for p in pcs)
+        if sig not in distinct:
+            distinct[sig] = (anim, pcs)
+    pref = PREFERRED.get(base, [])
+    def _rank(item):
+        an, pc = item
+        nibs = {p["palette"] for p in pc}
+        return (0 if an in pref else 1, 0 if len(nibs) > 1 else 1, -len(pc), an)
+    ranked = sorted(distinct.values(), key=_rank)
+    _CASTLE_FRAMES_CACHE[base] = (ranked, len(distinct))
+    return _CASTLE_FRAMES_CACHE[base]
+
 
 def r1s2_castle_usages():
-    """PROMPT-ID-0029: the verified R1-S2 CASTLE marker-driven actors (PROMPT-ID-0025 roster) as browsable
-    sprite usages, decoded STATICALLY via the compositor VM with PER-PIECE arcade palettes (PROMPT-ID-0028).
-    No trace, no fabricated frames; provisional source-derived labels only (identity 'Armored Man'/'Wizard'
-    NOT asserted). `scene_key` tags them for R1-S2-only display. Cached module-level so repeated /api/oracle
-    calls neither re-decode nor duplicate entries. Additive: does not touch the existing R1/P1 catalog."""
+    """PROMPT-ID-0029 (CORRECTED under PROMPT-ID-0038): the castle marker-driven actors as browsable sprite
+    usages, decoded STATICALLY via the compositor VM with PER-PIECE arcade palettes (PROMPT-ID-0028). No
+    trace, no fabricated frames; provisional source-derived labels only.
+
+    ROUND ATTRIBUTION reconciled against the source (handler progress guards) and the Bestiary H14:
+      - base 0x0224 materializes ONLY in R2 and R4. In R1 the 'E' marker RETIRES — handler 0x44082 has
+        `if (progress_13e < 0x18) arcade_4092e()`, and R1-S2 progress is 0x11..0x16 (< 0x18). (My original
+        0029 R1-S2 tag was WRONG; corrected.)
+      - base 0x00F4 materializes in R4, R5, R6 (absent R1).
+      - marker 'M' (0x4d, state 0x1B/0x43ECC) burst IS an R1 actor (H14 R1 prog 0x11) — a 5-child spawner
+        whose child identity/graphics are PENDING (coordinate-only), kept INCOMPLETE with no fabricated art.
+    Each (base, round) is a separate browsable object so its per-round palette is correct. `scene_key` tags
+    each instance for that subround only. Cached module-level (idempotent, additive)."""
     global _CASTLE_USAGES_CACHE
     if _CASTLE_USAGES_CACHE is not None:
         return _CASTLE_USAGES_CACHE
-    SCENE, RND, MAXF = "PAL-R1-S2-PLANEA-CASTLE", 1, 24
-    # Route-documented anims (h6_marker_materialization_routes / h5 handlers) are surfaced FIRST so the
-    # browser shows the real castle frames (incl. the multi-bank 0x91) rather than only the low default
-    # anims. Factual from the roster, not fabricated.
-    PREFERRED = {0x0224: [0x91, 0x27], 0x00F4: [0x70]}
-    specs = [
-        ("0224", "R1-S2 Castle actor · base $0224 (marker 'E')", 0x0224,
-         "marker 'E' (0x45) -> state 0x18 (handler 0x44082); primary castle humanoid"),
-        ("00F4", "R1-S2 Castle actor · base $00F4 (marker 'E' retarget)", 0x00F4,
-         "retarget via 0x40E88; secondary castle presentation"),
+    MAXF = 24
+    # (base, round, scene_key, label, provenance) — rounds proven by H14 marker-chain base writes.
+    INSTANCES = [
+        (0x0224, 2, "PAL-R2-S2-PLANEA-CASTLE", "Castle actor · base $0224 (R2)",
+         "marker 'G'(0x47)->state 0x1C / 'E'(0x45)->state 0x18 -> base 0x0224; H14: present in R2"),
+        (0x0224, 4, "PAL-R4-S2-PLANEA-CASTLE", "Castle actor · base $0224 (R4)",
+         "state 0x18 (high prog) -> base 0x0224; H14: present in R4"),
+        (0x00F4, 4, "PAL-R4-S2-PLANEA-CASTLE", "Castle actor · base $00F4 (R4)",
+         "state 0x1D -> base 0x00F4; H14: present in R4"),
+        (0x00F4, 5, "PAL-R5-S2-PLANEA-CASTLE", "Castle actor · base $00F4 (R5)",
+         "state 0x1A/0x1D -> base 0x00F4; H14: present in R5"),
+        (0x00F4, 6, "PAL-R6-S2-PLANEA-CASTLE", "Castle actor · base $00F4 (R6)",
+         "state 0x21 -> base 0x00F4; H14: present in R6"),
     ]
     out = []
-    for sfx, name, base, note in specs:
-        obj_id = "object:castle.base_0x%s" % sfx
-        distinct = {}
-        for anim in range(0x100):
-            pcs = _manifest_vm_pieces(base, anim, 0)
-            if len(pcs) < 2:
-                continue
-            sig = tuple((p["code"], p["x"], p["y"], p["fx"], p["fy"], p["palette"]) for p in pcs)
-            if sig not in distinct:
-                distinct[sig] = (anim, pcs)
-        total = len(distinct)
-        pref = PREFERRED.get(base, [])
-        def _rank(item):
-            an, pc = item
-            nibs = {p["palette"] for p in pc}
-            return (0 if an in pref else 1, 0 if len(nibs) > 1 else 1, -len(pc), an)
-        frames = sorted(distinct.values(), key=_rank)[:MAXF]
-        for order, (anim, pcs) in enumerate(frames):
+    for base, rnd, scene, name, note in INSTANCES:
+        frames, total = _castle_frames(base)
+        obj_id = "object:castle.base_0x%04X.r%d" % (base, rnd)
+        for order, (anim, pcs) in enumerate(frames[:MAXF]):
             nibs = sorted({p["palette"] for p in pcs})
             xs = [p["x"] for p in pcs]; ys = [p["y"] for p in pcs]
             out.append({
-                "usage_id": "usage:castle_0x%s:anim0x%02X" % (sfx, anim),
+                "usage_id": "usage:castle_0x%04X_r%d:anim0x%02X" % (base, rnd, anim),
                 "object_id": obj_id, "map_key": obj_id,
                 "frame_category": None, "frame_label": "anim 0x%02X" % anim, "frame_order": order,
                 "player_counts": None, "weapon_counts": None,
                 "display_name": name, "sprite_bank": "0x%02X" % nibs[0],
                 "sprite_banks": ["0x%X" % n for n in nibs], "multi_bank": len(nibs) > 1,
-                "scene_key": SCENE, "round": RND, "base": "0x%04X" % base,
+                "scene_key": scene, "round": rnd, "base": "0x%04X" % base,
                 "provisional": True, "identity_note": note,
                 "pieces": pcs, "n_pieces": len(pcs),
                 "bounds": [max(xs) - min(xs) + 16, max(ys) - min(ys) + 16],
                 "composite_proven": True, "preview_type": "TRUE ARCADE COMPOSITE",
-                "used_colors": _castle_used_colors(pcs, RND), "mrd_pairs": [],
+                "used_colors": _castle_used_colors(pcs, rnd), "mrd_pairs": [],
                 "n_used": len({(p["palette"], v) for p in pcs for v in cell_indices(p["code"]) if v}),
                 "frames_total_distinct": total,
             })
-    # marker 'M' burst: coordinate-only child presentation (seeded SAT) -> NOT statically decodable as a
-    # single composite. Represented honestly, with NO fabricated frames (per 0029: identify incomplete data).
+    # marker 'M' burst: R1-S2 (H14 R1 prog 0x11). Coordinate-only child presentation -> NOT statically
+    # decodable as one composite; represented honestly with NO fabricated frames.
     out.append({
-        "usage_id": "usage:castle_mburst:info", "object_id": "object:castle.marker_M_burst",
-        "map_key": "object:castle.marker_M_burst",
+        "usage_id": "usage:castle_mburst_r1:info", "object_id": "object:castle.marker_M_burst.r1",
+        "map_key": "object:castle.marker_M_burst.r1",
         "frame_category": None, "frame_label": "burst (coordinate-only)", "frame_order": 0,
         "player_counts": None, "weapon_counts": None,
         "display_name": "R1-S2 Castle marker 'M' burst (5-child spawner)",
         "sprite_bank": "0x00", "sprite_banks": [], "multi_bank": False,
-        "scene_key": SCENE, "round": RND, "base": None, "provisional": True, "incomplete": True,
-        "identity_note": ("marker 'M' (0x4d) -> state 0x1B (handler 0x43ECC) burst (arcade_43f4e_burst, 5 "
-                          "children); coordinate-only child presentation (seeded SAT) is NOT statically "
-                          "decodable as one composite — graphics INCOMPLETE pending the child data."),
+        "scene_key": "PAL-R1-S2-PLANEA-CASTLE", "round": 1, "base": None,
+        "provisional": True, "incomplete": True,
+        "identity_note": ("marker 'M' (0x4d) -> state 0x1B (0x43ECC) burst (arcade_43f4e_burst, 5 children, "
+                          "parent anim 0x7a); H14: present in R1 (prog 0x11). Child identity/graphics are "
+                          "PENDING (coordinate-only / seeded SAT) — NOT statically decodable; no fabricated art."),
         "pieces": [], "n_pieces": 0, "bounds": [16, 16], "composite_proven": False,
         "preview_type": "INCOMPLETE — coordinate-only burst (no static composite)",
         "used_colors": [], "mrd_pairs": [], "n_used": 0,

@@ -76,11 +76,12 @@ def main() -> int:
     ck("4. R1 boss body base 0x061D present in record_type_45592[0x0E]",
        "0x061D" in tbl and "R1 boss body" in tbl)
 
-    # 5. castle bases are the GAP (not in the Composer sprite catalog's hardcoded enemy defs)
+    # 5. castle bases are now IN the Composer catalog (0029), attributed to their CORRECT rounds (0038):
+    # NOT R1-S2 for 0x0224/0x00F4 (that was the corrected error).
     srv = (ROOT / "tools/graphics_editor/server.py").read_text()
-    ck("5. castle bases 0x0224/0x00F4 are NOT in the current Composer enemy catalog (the gap)",
-       ("0x0224" not in srv) and ("0x00F4" not in srv),
-       "found in server.py" if ("0x0224" in srv or "0x00F4" in srv) else "")
+    ck("5. castle bases 0x0224/0x00F4 are in the Composer, NOT tagged R1-S2 (0038 correction)",
+       ("0x0224" in srv) and ("0x00F4" in srv) and
+       ('(0x0224, 2, "PAL-R2-S2' in srv) and ('(0x00F4, 4, "PAL-R4-S2' in srv))
 
     print(f"\n{'R1S2_ROSTER PASS' if not F else str(len(F))+' FAILED'}  (pass={len(P)})")
     return 1 if F else 0
