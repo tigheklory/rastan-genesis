@@ -54386,3 +54386,25 @@ C already had the guard (no new C needed — the fault was my roster tooling). C
 JSON to v2 (derived cross-check pointing at the manifest). Tests: verify_r1s2_castle_browser 11/11,
 verify_r1s2_actor_roster 5/5, per_piece 6/6. NOTE: the 0038 prompt was truncated at "### 3" so the broader
 C-decompilation-expansion requirements (§3+) were not available this session.
+
+## PROMPT-ID-0038 — arcade actor C decompilation + Bestiary/Composer correction (Andy, 2026-10-29)
+
+SOURCE CODE -> BESTIARY -> EDITOR. Static only, no traces, no ROM/Test.json/palette change, no build number.
+- C: decompiled the FIELD-SCHEDULE DISPATCHER 0x4A02A -> rastan_actor_creation.c (sched_dispatch_4a02a,
+  COMPLETE); it reads a5@0x13E/0x118 -> 0x4A104 table -> 0x49F30 -> 0x4A086 install; base resolved by
+  0x4544E from the FAMILY TABLE. function_coverage.csv +1.
+- R1-S2 contradiction RESOLVED from source: 0x0224/0x00F4 absent from R1-S2. Marker path retires (0x44082
+  guard prog<0x18; R1-S2 prog 0x11..0x16); field-schedule path can place only family-table bases (0x0224/
+  0x00F4 not family bases). H14: 0x0224->R2,R4; 0x00F4->R4,R5,R6; only R1 Phase-2 marker actor is the 'M'
+  burst (children PENDING). Prior 0029 R1-S2 assignment was incorrect (corrected previously, commit 44f83ebe).
+- Manifest: added phase2_marker_round_membership (authoritative by_round + source-cited R1 exclusion +
+  evidence_c). Generator: removed hardcoded _pins, now READS membership from the manifest. HTML
+  regenerated in place (consistency_check PASS; R1 'no materialized base', R2 0x0224).
+- Composer §10: usages tagged membership (field_phase1 enemies / shared); client filter hides FIELD
+  enemies from the castle (S2), shows them in field/S1; "All Assets" research toggle. Mixed-bank per-piece
+  rendering + frame browser unchanged.
+- Tests: verify_r1s2_castle_browser 15/15 (incl. §10 + Test.json hash unchanged), roster 5/5, per_piece 6/6.
+- LIMITS (honest, not claimed complete): scene-kind 0x050F6B/0x050EE0 + scripted 0x0450D8 + full S1/S2/S3
+  partition NOT decompiled this task; 'M' burst children PENDING; field enemies classed field-vs-castle,
+  not yet per-round-exact. Not all six rounds fully decoded.
+- Report: docs/design/Andy_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0038_arcade_actor_c_decompilation_bestiary_correction.md

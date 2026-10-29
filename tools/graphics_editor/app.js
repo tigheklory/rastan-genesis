@@ -129,10 +129,20 @@ function renderList(){const L=$('#list');L.innerHTML='';
     if(Array.isArray(cov.roster)&&cov.roster.length){const rl=el('div','dim');rl.style.cssText='margin:2px 0 6px;font-size:11px;';rl.textContent='known for this scene: '+cov.roster.join(', ');L.appendChild(rl);}
    }
   }
-  // PROMPT-ID-0029: scene-aware filter. Usages tagged with a scene_key (R1-S2 castle actors) appear ONLY
-  // when that scene is the active editing scope; untagged usages (general R1/P1 enemies/player/items) always
-  // show, so castle-only graphics are never presented as R1-S1 assets.
-  const sceneUsages=O.usages.filter(u=>!u.scene_key || u.scene_key===ACTIVE_SCENE);
+  // PROMPT-ID-0038 §10: scene-membership filter (from the corrected Bestiary). A scene-tagged usage (the
+  // marker-chain castle actors) shows only for its subround; FIELD enemies (membership=field_phase1) show
+  // only in field/S1 scenes, NOT the castle/S2 — so Lizardman/Chimera no longer appear in R1-S2 Castle;
+  // SHARED assets (player/weapons/items/effects) always show. "All Assets" reveals everything (research).
+  const isFieldScene=!ACTIVE_SCENE||/-S1-/.test(ACTIVE_SCENE)||ACTIVE_SCENE==='context:gameplay.r01.p01';
+  const tb=el('div','groupbar');const ck0=el('input');ck0.type='checkbox';ck0.checked=!!window._allAssets;
+  ck0.onchange=()=>{window._allAssets=ck0.checked;renderList();};const lab=el('label','dim');lab.appendChild(ck0);
+  lab.appendChild(el('span',null,' All Assets (research — show every sprite regardless of scene)'));tb.appendChild(lab);L.appendChild(tb);
+  const sceneUsages=O.usages.filter(u=>{
+    if(window._allAssets)return true;
+    if(u.scene_key)return u.scene_key===ACTIVE_SCENE;        // marker-chain actor: its subround only
+    if(u.membership==='field_phase1')return isFieldScene;    // field enemy: field/S1 scenes only
+    return true;                                             // shared (player/weapons/items/effects)
+  });
   // group usages by object_id -> ONE palette-domain row (preview frames are representations, not consumers)
   const doms={};sceneUsages.forEach(u=>{(doms[u.object_id]=doms[u.object_id]||[]).push(u);});
   Object.entries(doms).forEach(([oid,reps])=>{const u0=reps[0];const dname=u0.display_name.split(' (')[0];

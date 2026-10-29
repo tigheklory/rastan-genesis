@@ -150,3 +150,4 @@ arcade_pc,raw_file,semantic_file,status,provenance,original_export_present,confi
 00041d26,,rastan_actor_tables.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"RG-007: airborne per-state config DATA table g_airborne_state_config_41d26[16][8] consumed by 0x41CFA"
 00045b18,raw/00045b18.c,rastan_actor_creation.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"RG-013: scripted fixed-slot bat group; full-clear then Large Bat type 0A/base03F6/comp0 except R2 type12, plus 1/2/3 Small Bats type0B/base0268/comp0 by round"
 00045be8,raw/00045be8.c,rastan_actor_creation.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"RG-013: fixed bat placement copies X/Y anchors and sets +0x27 bit7 only; bit6 remains clear after creator's 0x4092E"
+0x0004A02A,,rastan_actor_creation.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,HIGH,"field-schedule dispatcher (PROMPT-0038); scene index -> 0x4A104 table -> 0x4A086 install; family->base via 0x4544E (base 0x0224 not schedulable)"

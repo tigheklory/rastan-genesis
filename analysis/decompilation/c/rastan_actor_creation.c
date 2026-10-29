@@ -73,6 +73,61 @@ void sched_install_4a086(ActorRecord *a4, const uint8_t entry[8])
     actor_palette_45684(a4, variant, 0);        /* palette line +0x27 (reads A4+0x752); creation-only */
 }
 
+/* 0x4A104 field-schedule table (40 bytes per scene; five 8-byte spawn sub-records). Data, read-only. */
+extern const uint8_t sched_table_4a104[];
+extern uint16_t g_scene_index_29e;   /* A5+0x29E per-round scene index (written here) */
+extern uint16_t g_sched_sel_c58;     /* A5+0xC58 selected schedule sub-record */
+extern uint8_t  g_sched_owner_c59;   /* A5+0xC59 schedule-owner id copied into +0x26 */
+
+/*
+ * ORIGINAL ARCADE PC: 0x0004A02A  field-schedule dispatcher (per-scene spawn step)
+ * Provenance: RECONSTRUCTED_FROM_68000 (build/maincpu.disasm.txt 0x4a02a..0x4a084). Status: COMPLETE.
+ *
+ * Per-scene entry point of the FIELD (Phase-1) actor schedule. Derives the per-round SCENE INDEX from the
+ * global progression a5@0x13E and the round a5@0x118, indexes the 40-byte-per-scene table at 0x4A104, asks
+ * 0x49F30 for a schedule sub-record to spawn (0xFF = none this step), finds a free field-pool slot (a5@0x4C8
+ * downward, nine 0x40-byte records), and installs the 8-byte spawn entry via 0x4A086.
+ *
+ *   4a02e movew a5@(0x13E),d0 ; subq #1 ; 4a036 moveb a5@(0x118),d1 ; subq #1 ; sub d1,d0
+ *   4a03e lsrw #1,d0          -> scene index (a5@0x29E); 4a044 lsl#3 ; mulu#5 -> *40 ; adda d0,a0
+ *   4a04c bsr 0x49F30 -> d0   ; 4a050 cmp #0xFF -> none ; 4a05a lsl#3 ; adda -> +sel*8 (8-byte record)
+ *   4a05e lea a5@(0x4C8),a4   ; 9 tries, -0x40 each, tstb a4@(0)==0 -> free ; 4a07a bsr 0x4A086 install
+ *
+ * SCENE-MEMBERSHIP SIGNIFICANCE (PROMPT-ID-0038): the installer (0x4A086) sets only FAMILY (+0x3E) and
+ * VARIANT (+0x752); the visible BASE (+0x1E) is resolved by 0x4544E FROM THE FAMILY TABLE (0x45502 var0 /
+ * 0x45562 varN). So the field schedule can place ONLY the 12 family bases — it can NEVER write an arbitrary
+ * base such as 0x0224 / 0x00F4. Those are marker-chain handler bases (0x44082 state 0x18 / 0x4415A state
+ * 0x1C), written directly into +0x1E and gated by progress_13e >= 0x18 (R2+). Therefore the field-schedule
+ * path does not — and by construction cannot — create 0x0224 in R1-S2. Combined with the marker path
+ * (handler 0x44082 `if (progress_13e < 0x18) arcade_4092e()`, R1-S2 progress 0x11..0x16), this excludes
+ * both reachable R1 creation paths: 0x0224/0x00F4 are absent from R1-S2.
+ */
+void sched_dispatch_4a02a(void)
+{
+    const uint8_t *rec = &sched_table_4a104[0];                       /* lea 0x4A104,a0 */
+    uint16_t scene = (uint16_t)(((uint16_t)(G.progress_13e - 1)) - (uint16_t)(G.round - 1)) >> 1;
+    g_scene_index_29e = scene;                                        /* a5@0x29E */
+    rec += (int)scene * 40;                                           /* scene*8*5 = 40-byte scene record */
+
+    uint16_t sel = sched_occupancy_scan_49f30();                      /* bsr 0x49F30 -> d0 */
+    if (sel == 0x00FF)                                                /* nothing to spawn this step */
+        return;
+    g_sched_sel_c58 = sel;                                            /* a5@0xC58 */
+    rec += (int)sel * 8;                                              /* 8-byte spawn sub-record */
+
+    /* free field-pool slot: top at a5@0x4C8 (== blk_2c8[8]); walk down 0x40 bytes, up to 9 slots */
+    ActorRecord *slot = &blk_2c8[8];                                  /* lea a5@(0x4C8),a4 */
+    for (int tries = 9; tries > 0; --tries) {                         /* a5@0x29C = 9 */
+        if (slot->active == 0) {                                      /* tstb a4@(0): free */
+            sched_install_4a086(slot, rec);                           /* bsr 0x4A086 */
+            slot->sched_slot = g_sched_owner_c59;                     /* a5@0xC59 -> +0x26 */
+            return;
+        }
+        --slot;                                                       /* subaw #64,a4 */
+    }
+    /* no free slot: nothing spawned this step */
+}
+
 /*
  * ORIGINAL ARCADE PC: 0x0004103E  latent hunter RE-ARM / child-hunter creation
  * Provenance: RECONSTRUCTED_FROM_68000. Status: COMPLETE.

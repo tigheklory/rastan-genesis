@@ -1076,6 +1076,10 @@ def build_usages(banks):
                        "pieces": pieces, "n_pieces": len(pieces), "bounds": bounds,
                        "composite_proven": proven,
                        "preview_type": "TRUE ARCADE COMPOSITE" if proven else "PROVEN CELL SHEET",
+                       # PROMPT-ID-0038 §10: scene-membership class so the editor does not show field
+                       # enemies in the castle. Enemies are FIELD (Phase-1/S1) actors (field schedule
+                       # 0x4A02A -> family table); player/weapons/items/effects/hazards are SHARED.
+                       "membership": "field_phase1" if obj_id.startswith("object:enemy.") else "shared",
                        "used_colors": used_colors, "mrd_pairs": mrd_pairs, "n_used": len(used_colors)})
     return usages
 

@@ -4943,5 +4943,36 @@
   "flying_demon": "two components: component_A base 0x0129 (79 cells) + component_B anim 0x0275 (70 cells), both bank 0x35; body/wing labels not proven -> neutral component terminology",
   "bats": "Small Bat base 0x0268 (3 cells) and Large Bat base 0x03F6 + anim 0x0275 (14 cells), both bank 0x3E, DISJOINT codes -> distinct palette objects",
   "coverage_matrix": "analysis/actor_decompilation/r1p1_sprite_coverage_matrix.tsv"
+ },
+ "phase2_marker_round_membership": {
+  "authority": "H14 marker-chain base writes (exact +0x1E), cross-checked from source by the field-schedule dispatcher 0x4A02A and the marker handler 0x44082 progress guard (PROMPT-ID-0038). This is the authoritative round->base membership for Phase-2 marker-driven actors; the Bestiary generator READS it (no longer hardcodes it).",
+  "by_round": {
+   "2": [
+    "0x0224"
+   ],
+   "4": [
+    "0x0224",
+    "0x00F4"
+   ],
+   "5": [
+    "0x00F4",
+    "0x09EA"
+   ],
+   "6": [
+    "0x0179",
+    "0x00F4"
+   ]
+  },
+  "round1_note": "No marker-chain base materializes in R1 Phase-2. SOURCE: handler 0x44082 (state 0x18, marker 'E') retires via `if (progress_13e < 0x18) arcade_4092e()` and R1-S2 progress is 0x11..0x16 (<0x18); the field schedule 0x4A02A can place only family-table bases (0x45502/0x45562) so 0x0224/0x00F4 (not family bases) are not schedulable either. The ONLY R1 Phase-2 marker actor is the 'M' burst (0x4d -> state 0x1B 0x43ECC), children identity PENDING (coordinate-only).",
+  "excluded_bases_r1": [
+   "0x0224",
+   "0x00F4"
+  ],
+  "exclusion_scope": "proven absent from BOTH reachable R1 creation paths (marker chain + field schedule); record-type/boss and scripted paths do not write these bases either.",
+  "evidence_c": [
+   "rastan_actor_creation.c: sched_dispatch_4a02a (0x4A02A)",
+   "rastan_actor_behavior.c: h5_44082 (0x44082)",
+   "rastan_actor_tables.c: family_var0_45502 / family_varN_45562"
+  ]
  }
 }

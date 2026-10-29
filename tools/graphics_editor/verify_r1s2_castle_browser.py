@@ -87,8 +87,31 @@ def main() -> int:
     ck("8. R1/P1 catalog intact + untagged", len(r1p1) >= 380 and any("Lizardman" in u["display_name"] for u in r1p1))
     us2 = g("/api/oracle")["usages"]
     ck("9. oracle idempotent", len([u for u in us2 if u.get("scene_key")]) == len([u for u in us if u.get("scene_key")]))
+    # §10 scene-membership: field enemies tagged field_phase1, shared assets tagged shared; the membership
+    # filter hides field enemies from the castle (mirror of the client rule).
+    enemies = [u for u in us if u.get("object_id", "").startswith("object:enemy.")]
+    shared = [u for u in us if (u.get("object_id") or "").startswith(("object:player", "object:weapon", "object:effect", "object:hazard")) or "reward" in u.get("display_name", "").lower()]
+    ck("10. field enemies tagged membership=field_phase1", enemies and all(u.get("membership") == "field_phase1" for u in enemies), len(enemies))
+    ck("11. shared assets tagged membership=shared", shared and all(u.get("membership") == "shared" for u in shared), len(shared))
+    def visible(active):
+        isfield = (not active) or ("-S1-" in active) or active == "context:gameplay.r01.p01"
+        out = []
+        for u in us:
+            if u.get("scene_key"):
+                if u["scene_key"] == active: out.append(u)
+            elif u.get("membership") == "field_phase1":
+                if isfield: out.append(u)
+            else:
+                out.append(u)
+        return out
+    cv = visible("PAL-R1-S2-PLANEA-CASTLE")
+    ck("12. R1-S2 Castle view hides field enemies (Lizardman etc. not shown)",
+       not any("Lizardman" in u["display_name"] for u in cv) and not any(u.get("membership") == "field_phase1" for u in cv))
+    fv = visible("PAL-R1-S1-PLANEA-OUTDOOR")
+    ck("13. R1-S1 field view shows the field enemies (Lizardman present)", any("Lizardman" in u["display_name"] for u in fv))
+
     t_after = hashlib.sha256(tjson.read_bytes()).hexdigest() if tjson.is_file() else None
-    ck("10. Test.json unchanged", t_before == t_after)
+    ck("14. Test.json unchanged", t_before == t_after)
 
     httpd.shutdown()
     print(f"\n{'CASTLE_BROWSER PASS' if not F else str(len(F))+' FAILED'}  (pass={len(P)})")

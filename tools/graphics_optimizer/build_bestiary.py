@@ -303,7 +303,9 @@ for r in range(1,7):
         sctab='<p class="muted">No individually-proven Round-'+str(r)+' scripted route yet (dispatch family identified).</p>'
     boss=boss_card(bosses[r]) if r in bosses else ''
     _p2=M.get("scene_phase_state_machine",{}).get("phase2_starts_PROVEN_H11",{}).get(f"R{r}","(pending)")
-    _pins={2:['0x0224'],4:['0x0224','0x00F4'],5:['0x00F4','0x09EA'],6:['0x0179','0x00F4']}
+    # PROMPT-ID-0038 §9: round->base Phase-2 membership is now AUTHORITATIVE in the manifest; the generator
+    # only renders it (no hardcoded roster). Source: rastan_actor_creation.c sched_dispatch_4a02a + h5_44082.
+    _pins={int(k):v for k,v in M.get("phase2_marker_round_membership",{}).get("by_round",{}).items()}
     _pintxt=('materialized bases proven present this round by exact +0x1E write (H14): '
              +", ".join(f'<span class="mono">{b}</span>' for b in _pins[r])) if r in _pins else \
             'no materialized base writes an exact +0x1E for this round\'s Phase-2 markers (H14)'
