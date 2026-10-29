@@ -24,7 +24,8 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 from build_subround_variant import (  # noqa: E402
     ARCADE_SELECTOR_PC, DEFAULT_SELECTOR, LITERAL_READ_OFFSET, STAGE_DECODE_READ_OPCODES,
-    SUBROUNDS, genesis_offset, selector_value,
+    R1S2_DIRECT_START_COMMAND_BYTES, R1S2_DIRECT_START_COMMAND_PC,
+    R1S2_AUTHENTIC_COMMAND, SUBROUNDS, genesis_offset, selector_value,
 )
 
 LABEL_RE = re.compile(r"Round\s+(\d)(?:\s+(Castle|Boss))?\s*$", re.I)
@@ -63,6 +64,8 @@ def main() -> int:
     canon = args.canonical.read_bytes()
     # The stage decoder reads the unrelocated literal operand; patch there.
     off = LITERAL_READ_OFFSET if any(op in canon for op in STAGE_DECODE_READ_OPCODES) else relocated
+    direct_start_pc = genesis_offset(amap, R1S2_DIRECT_START_COMMAND_PC)
+    direct_start_command_off = direct_start_pc + 3
     fails: list[str] = []
 
     def ck(name: str, cond: bool, extra: str = "") -> None:
@@ -72,6 +75,10 @@ def main() -> int:
 
     ck("canonical selector byte is the default 0xFF",
        off < len(canon) and canon[off] == DEFAULT_SELECTOR, f"0x{canon[off]:02X} @0x{off:06X}")
+    ck("canonical retained direct-start publisher is command 0x25",
+       canon[direct_start_pc:direct_start_pc + len(R1S2_DIRECT_START_COMMAND_BYTES)] ==
+       R1S2_DIRECT_START_COMMAND_BYTES,
+       canon[direct_start_pc:direct_start_pc + len(R1S2_DIRECT_START_COMMAND_BYTES)].hex())
 
     # 1 + 8: selector values match the cheat and the pure derivation
     cheat = cheat_values(args.cheat_xml)
@@ -89,7 +96,7 @@ def main() -> int:
             bad += 1
     ck("invalid round/subround inputs rejected", bad == 4, f"{bad}/4")
 
-    # 3 + 4 + 6: each present variant patches exactly the one byte, named correctly
+    # 3 + 4 + 6: each present variant patches only its declared bytes.
     present = 0
     for rnd in range(1, 7):
         for sub in range(1, 4):
@@ -106,15 +113,20 @@ def main() -> int:
             want = selector_value(rnd, sub)
             # Round 1 Outside (0xFF) is the canonical default -> byte-identical variant.
             expected_diffs = [] if want == DEFAULT_SELECTOR else [off]
-            ck(f"{name}: only the selector byte at 0x{off:06X} is 0x{want:02X}",
-               same_len and diffs == expected_diffs and data[off] == want,
+            if (rnd, sub) == (1, 2):
+                expected_diffs.append(direct_start_command_off)
+            expected_diffs.sort()
+            audio_ok = ((rnd, sub) != (1, 2) or
+                        data[direct_start_command_off] == R1S2_AUTHENTIC_COMMAND)
+            ck(f"{name}: declared selector/audio initialization bytes only",
+               same_len and diffs == expected_diffs and data[off] == want and audio_ok,
                f"len_eq={same_len} diffs={[hex(d) for d in diffs[:4]]}")
 
     if args.require_all:
         ck("all 18 variants generated", present == 18, f"{present}/18")
 
     print(f"\n{'ALL SUBROUND-VARIANT CHECKS PASS' if not fails else str(len(fails)) + ' CHECK(S) FAILED'}"
-          f"  (selector byte @ genesis 0x{off:06X} = arcade 0x{ARCADE_SELECTOR_PC:05X})")
+          f"  (selector @0x{off:06X}; R1-S2 command @0x{direct_start_command_off:06X})")
     return 1 if fails else 0
 
 

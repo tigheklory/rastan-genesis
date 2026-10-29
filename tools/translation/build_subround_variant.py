@@ -14,9 +14,11 @@ and the 0x04527E gameplay stage decoder).  Its bits select the starting stage:
 The MAME cheat "Select Starting Round/Sub-Round" (tools/mame/cheat/output.xml) writes
 this same arcade byte.  This tool performs the Genesis-native equivalent: it looks up
 the relocated Genesis ROM offset of arcade 0x05FF9F via the maintained address map and
-patches that single byte on a COPY of the parent canonical ROM.  Nothing else changes,
-so the variant shares the parent's build number and embedded crash-handler stamp and
-initializes through the game's normal stage setup (no teleport, no new gameplay code).
+patches that byte on a COPY of the parent canonical ROM.  The R1-S2 derivative also
+restores authentic command 0x27 at the retained direct-start stage initializer because
+direct start bypasses the natural 0x03A848 -> 0x055F68 transition that emits 0x27.
+No runtime scene poller or gameplay code is added; the variant shares the parent's
+build number and embedded crash-handler stamp.
 """
 from __future__ import annotations
 
@@ -39,6 +41,9 @@ SUBROUNDS = {1: "Outside", 2: "Castle", 3: "Boss"}
 # if a future build relocates the operand, we fall back to the address-map location.
 STAGE_DECODE_READ_OPCODES = (b"\x30\x39\x00\x05\xff\x9e", b"\x32\x39\x00\x05\xff\x9e")
 LITERAL_READ_OFFSET = 0x0005FF9F
+R1S2_DIRECT_START_COMMAND_PC = 0x050690
+R1S2_DIRECT_START_COMMAND_BYTES = bytes.fromhex("303c0025")
+R1S2_AUTHENTIC_COMMAND = 0x27
 
 
 def selector_value(round_no: int, subround: int) -> int:
@@ -95,11 +100,32 @@ def main() -> int:
             f"default 0x{DEFAULT_SELECTOR:02X}; refusing to patch a non-canonical parent")
     data[off] = value
 
-    # Safety: only the selector byte may change. Round 1 Outside (0xFF) is the
-    # canonical default, so that variant is legitimately byte-identical to the parent.
+    audio_patch = None
+    if (args.round, args.subround) == (1, 2):
+        command_pc = genesis_offset(amap, R1S2_DIRECT_START_COMMAND_PC)
+        actual = bytes(data[command_pc:command_pc + len(R1S2_DIRECT_START_COMMAND_BYTES)])
+        if actual != R1S2_DIRECT_START_COMMAND_BYTES:
+            raise SystemExit(
+                f"R1-S2 direct-start publisher @0x{command_pc:06X} is {actual.hex()}, "
+                f"expected {R1S2_DIRECT_START_COMMAND_BYTES.hex()}")
+        command_byte_offset = command_pc + 3
+        data[command_byte_offset] = R1S2_AUTHENTIC_COMMAND
+        audio_patch = {
+            "arcade_pc": f"0x{R1S2_DIRECT_START_COMMAND_PC:05X}",
+            "genesis_command_byte_offset": f"0x{command_byte_offset:06X}",
+            "original_command": "0x25",
+            "replacement_command": f"0x{R1S2_AUTHENTIC_COMMAND:02X}",
+            "reason": "restore natural R1-S2 command 0x27 in direct-start initialization",
+        }
+
+    # Safety: only the selector byte and the declared R1-S2 initialization
+    # command may change. Round 1 Outside (0xFF) is legitimately identical.
     parent = args.rom.read_bytes()
     changed = [i for i in range(len(parent)) if parent[i] != data[i]]
     expected = [] if value == DEFAULT_SELECTOR else [off]
+    if audio_patch:
+        expected.append(int(audio_patch["genesis_command_byte_offset"], 0))
+    expected.sort()
     if changed != expected:
         raise SystemExit(f"expected changed bytes {expected or '[] (default)'} , got {changed}")
 
@@ -115,6 +141,7 @@ def main() -> int:
         "read_form": read_form,
         "address_map_relocated_offset": f"0x{relocated:06X}",
         "selector_value": f"0x{value:02X}",
+        "audio_initialization_patch": audio_patch,
         "sha256": sha,
     }, indent=2))
     return 0

@@ -15,6 +15,8 @@ local max_frames = tonumber(os.getenv("AUDIO015_MAX_FRAMES") or "1100")
 local no_input = os.getenv("AUDIO015_NO_INPUT") == "1"
 local route = os.getenv("AUDIO015_ROUTE") or "gameplay_right"
 local seed_source = tonumber(os.getenv("AUDIO015_SEED_SOURCE") or "")
+local expected_command = tonumber(os.getenv("AUDIO015_EXPECT_COMMAND") or "")
+local expected_source = tonumber(os.getenv("AUDIO015_EXPECT_SOURCE") or "")
 local seed_applied = false
 
 local driver_file = assert(io.open(driver_path, "rb"))
@@ -30,6 +32,7 @@ local function zreg(name)
 end
 local function z8(address) return zprog:read_u8(address) & 0xff end
 local function m16(address) return mprog:read_u16(address) & 0xffff end
+local function m32(address) return mprog:read_u32(address) & 0xffffffff end
 
 local fields = {}
 for _, port in pairs(machine.ioport.ports) do
@@ -79,6 +82,9 @@ local command_resets = 0
 local natural_loops = 0
 local loop_entries = 0
 local last_active = 0
+local expected_command_seen = false
+local expected_command_armed = false
+local expected_source_seen = false
 
 local function event(kind, address, data, note)
   local source = z8(0x1fa0) | (z8(0x1fa1) << 8) | (z8(0x1fa2) << 16)
@@ -145,6 +151,11 @@ taps[#taps + 1] = zprog:install_write_tap(0x1fa3, 0x1fa3, "audio015_active",
         active_frame = frame
         timer_control_at_active = timer_control_writes
       end
+      if expected_command_armed and expected_source then
+        local source = z8(0x1fa0) | (z8(0x1fa1) << 8) | (z8(0x1fa2) << 16)
+        if source == expected_source then expected_source_seen = true end
+        expected_command_armed = false
+      end
     end
     event("ACTIVE_WRITE", address, data, "")
     return data
@@ -192,11 +203,34 @@ taps[#taps + 1] = mprog:install_write_tap(0x00a01fd0, 0x00a01fd1, "audio015_qhea
     event("QHEAD_WRITE", address & 0xffff, data, "68000 publication")
     return data
   end)
+-- Retained arcade six-slot sound queue (A5+0x0292..0x0297).  Recording its
+-- producer PC distinguishes a lost arcade request from a native dispatch error.
+taps[#taps + 1] = mprog:install_write_tap(0x00ff0292, 0x00ff0297, "audio015_arcade_sound_queue",
+  function(address, data, _)
+    local sp = assert(maincpu.state["SP"] or maincpu.state["A7"], "68000 SP unavailable").value & 0xffffff
+    local stack = {}
+    for offset = 0, 12, 4 do
+      stack[#stack + 1] = string.format("%06X", m32(sp + offset) & 0xffffff)
+    end
+    event("ARCADE_QUEUE_WRITE", address & 0xffff, data,
+      string.format("retained 68000 producer sp=%06X stack=%s", sp, table.concat(stack, ",")))
+    return data
+  end)
 taps[#taps + 1] = mprog:install_write_tap(0x00a01fe0, 0x00a01fef, "audio015_qdata",
   function(address, data, _)
     command_data_writes = command_data_writes + 1
     command_values[#command_values + 1] = data & 0xff
-    event("COMMAND_WRITE", address & 0xffff, data, "68000 publication")
+    if expected_command and (data & 0xff) == expected_command then
+      expected_command_seen = true
+      expected_command_armed = true
+    end
+    local sp = assert(maincpu.state["SP"] or maincpu.state["A7"], "68000 SP unavailable").value & 0xffffff
+    local stack = {}
+    for offset = 0, 28, 4 do
+      stack[#stack + 1] = string.format("%06X", m32(sp + offset) & 0xffffff)
+    end
+    event("COMMAND_WRITE", address & 0xffff, data,
+      string.format("68000 publication sp=%06X stack=%s", sp, table.concat(stack, ",")))
     return data
   end)
 local function write_summary(result, reason)
@@ -214,6 +248,11 @@ local function write_summary(result, reason)
   out:write(string.format("first_invalid_access=%s\n", first_invalid_address and string.format("%04X", first_invalid_address) or "NONE"))
   out:write("command_values=", table.concat(commands, ","), "\n")
   out:write("consumed_values=", table.concat(consumed, ","), "\n")
+  out:write(string.format("expected_command=%s\nexpected_command_seen=%s\nexpected_source=%s\nexpected_source_seen=%s\n",
+    expected_command and string.format("%02X", expected_command) or "NONE",
+    expected_command_seen and "YES" or "NO",
+    expected_source and string.format("%06X", expected_source) or "NONE",
+    expected_source_seen and "YES" or "NO"))
   out:write(string.format("command_data_writes=%d\nqhead_writes=%d\nqtail_writes=%d\n", command_data_writes, qhead_writes, qtail_writes))
   out:write(string.format("active_writes=%d\nactive_seen=%s\n", active_writes, active_seen and "YES" or "NO"))
   out:write(string.format("timer_status_reads=%d\ntimer_overflow_reads=%d\ntimer_control_writes=%d\n", timer_status_reads, timer_overflow_reads, timer_control_writes))
@@ -262,7 +301,20 @@ emu.register_frame_done(function()
     set_input("P1 A", frame >= 120 and frame <= 132)
     set_input("1 Player Start", frame >= 175 and frame <= 187)
     set_input("P1 Start", frame >= 175 and frame <= 187)
-    set_input("P1 Right", route == "gameplay_right" and frame >= 360)
+    if route == "r1s2_natural" and frame >= 360 then
+      local t = frame - 360
+      local left = (t < 1200) or (t >= 1800 and t < 3000)
+      local right = (t >= 1200 and t < 1800) or t >= 3000
+      local up = (t % 360) >= 120 and (t % 360) < 330
+      local jump = (t % 90) < 12
+      set_input("P1 Left", left)
+      set_input("P1 Right", right)
+      set_input("P1 Up", up)
+      set_input("P1 B", jump)
+      set_input("P1 C", jump)
+    else
+      set_input("P1 Right", route == "gameplay_right" and frame >= 360)
+    end
     if route == "final_life" then
       for _, name in ipairs({"P1 Up", "P1 Down", "P1 Left", "P1 Right", "P1 B", "P1 C"}) do
         set_input(name, false)
@@ -299,7 +351,12 @@ emu.register_frame_done(function()
     local music_periods = timer_control_at_active and math.floor((timer_control_writes - timer_control_at_active) / 2) or 0
     local expected_periods = active_frame and math.floor((frame - active_frame) * 1.011 + 0.5) or 0
     local pass
-    if seed_source then
+    if expected_command and expected_source then
+      pass = active_seen and expected_command_seen and expected_source_seen and
+        command_data_writes >= 2 and qtail_writes >= 2 and music_periods > 500 and
+        ym_data_writes > 32 and psg_writes > 4 and banked_reads > 32 and
+        banked_mismatches == 0 and bank_value_count >= 1 and cur_changes > 8
+    elseif seed_source then
       pass = seed_applied and first_invalid_pc == nil and banked_reads > 32 and
         banked_mismatches == 0 and bank_value_count >= 2
     else
