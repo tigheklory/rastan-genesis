@@ -54408,3 +54408,26 @@ SOURCE CODE -> BESTIARY -> EDITOR. Static only, no traces, no ROM/Test.json/pale
   partition NOT decompiled this task; 'M' burst children PENDING; field enemies classed field-vs-castle,
   not yet per-round-exact. Not all six rounds fully decoded.
 - Report: docs/design/Andy_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0038_arcade_actor_c_decompilation_bestiary_correction.md
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0040 — restore R1-S2 Re-In-Carnation selection (Cody, 2026-10-29)
+
+- Root cause: the direct R1-S2 derivative selected the subround but retained the stage initializer's
+  `move.w #$25,d0` at arcade `0x050690` (runtime `0x0508A0`), so it requested Aggressive instead of
+  the original R1 transition's established Re-In-Carnation command `$27` at arcade `0x055F68`.
+- Fix: derivative builder validates `303c0025` and changes only the immediate low byte `$25->$27`;
+  verifier requires exactly that byte plus the existing selector byte. No song data, polling path,
+  shadow, fallback, NOP, RTS bypass, or credit behavior was added or changed.
+- Size correction: Build 0520 (4,103,864 bytes) accidentally regenerated unrelated audio and is
+  task-rejected but preserved as consumed. Build 0521 restores the exact Build 0519 audio receipt;
+  0519 normal, 0521 normal, and 0521 S1-2 are all 4,054,712 bytes. Normal-to-S1-2 is exactly two bytes.
+- Build 0521 canonical gate, mandatory MAME trace, and seven standard variants PASS. Direct R1-S2 audio
+  trace PASS: command `$27`, Re-In intro source `0x35A4EC`, loop `0x35B054`, 11,089 YM writes,
+  127 PSG writes, 23,220 banked reads, zero bank mismatches. Evidence:
+  `states/traces/prompt0040_build0521_r1s2_direct_audio_validated/`.
+- Normal SHA-256: `375ad212465e57557197ba2e6399f44ad395bcb2e0810a4a38fd7ae3a0a722b3`.
+  S1-2 SHA-256: `b2ce6df864d95aa6a0ccccf36bb30cbc192d3125da8a2053c751ed933c3ea350`.
+- Implementation commit: `327d6c417102802150e19007ff3da212ce9b92fc`; exact tracked production-source
+  receipt: `ca8b33340a4c6bc2f8bd754187b10826c1d79080`.
+- Natural-play automation did not reach R1-S2 (stalled at X `$00A7` after 6,000 frames), so Tighe's
+  normal-progression listening check remains required. Original static path to `$27` is retained.
+- Report: `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0040_r1s2_reincarnation_music_selection.md`.
