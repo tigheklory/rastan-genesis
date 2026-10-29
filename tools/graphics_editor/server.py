@@ -148,6 +148,109 @@ def attach_arcade_piece_palettes(pieces, rnd):
     return out
 
 
+def _castle_used_colors(pieces, rnd):
+    """Distinct source colours painted across a (possibly multi-bank) castle frame, for the SOURCE chips.
+    Keyed by (palette nibble, pixel index) so BOTH banks' colours show; synthetic `src_index` keeps the UI
+    list unique and `arcade_index`/`palette` preserve provenance. Display only (mapping is PROMPT-ID-0030)."""
+    cache, agg = {}, {}
+    for p in pieces:
+        nib = p.get("palette", 0)
+        for v in cell_indices(p["code"]):
+            if v:
+                agg[(nib, v)] = agg.get((nib, v), 0) + 1
+    out = []
+    for si, ((nib, v), cnt) in enumerate(sorted(agg.items())):
+        if nib not in cache:
+            cache[nib] = _arcade_round_palette(rnd, nib)
+        pal = cache[nib]
+        rgb = pal[v] if v < len(pal) else [0, 0, 0]
+        disp, cram, _ = gen_quant(rgb)
+        out.append({"src_index": si, "arcade_index": v, "palette": "0x%X" % nib,
+                    "arcade_rgb8": rgb, "hex": "#%02X%02X%02X" % tuple(rgb),
+                    "pixel_count": cnt, "genesis_rgb8": disp, "genesis_cram": cram})
+    return out
+
+
+_CASTLE_USAGES_CACHE = None
+
+def r1s2_castle_usages():
+    """PROMPT-ID-0029: the verified R1-S2 CASTLE marker-driven actors (PROMPT-ID-0025 roster) as browsable
+    sprite usages, decoded STATICALLY via the compositor VM with PER-PIECE arcade palettes (PROMPT-ID-0028).
+    No trace, no fabricated frames; provisional source-derived labels only (identity 'Armored Man'/'Wizard'
+    NOT asserted). `scene_key` tags them for R1-S2-only display. Cached module-level so repeated /api/oracle
+    calls neither re-decode nor duplicate entries. Additive: does not touch the existing R1/P1 catalog."""
+    global _CASTLE_USAGES_CACHE
+    if _CASTLE_USAGES_CACHE is not None:
+        return _CASTLE_USAGES_CACHE
+    SCENE, RND, MAXF = "PAL-R1-S2-PLANEA-CASTLE", 1, 24
+    # Route-documented anims (h6_marker_materialization_routes / h5 handlers) are surfaced FIRST so the
+    # browser shows the real castle frames (incl. the multi-bank 0x91) rather than only the low default
+    # anims. Factual from the roster, not fabricated.
+    PREFERRED = {0x0224: [0x91, 0x27], 0x00F4: [0x70]}
+    specs = [
+        ("0224", "R1-S2 Castle actor · base $0224 (marker 'E')", 0x0224,
+         "marker 'E' (0x45) -> state 0x18 (handler 0x44082); primary castle humanoid"),
+        ("00F4", "R1-S2 Castle actor · base $00F4 (marker 'E' retarget)", 0x00F4,
+         "retarget via 0x40E88; secondary castle presentation"),
+    ]
+    out = []
+    for sfx, name, base, note in specs:
+        obj_id = "object:castle.base_0x%s" % sfx
+        distinct = {}
+        for anim in range(0x100):
+            pcs = _manifest_vm_pieces(base, anim, 0)
+            if len(pcs) < 2:
+                continue
+            sig = tuple((p["code"], p["x"], p["y"], p["fx"], p["fy"], p["palette"]) for p in pcs)
+            if sig not in distinct:
+                distinct[sig] = (anim, pcs)
+        total = len(distinct)
+        pref = PREFERRED.get(base, [])
+        def _rank(item):
+            an, pc = item
+            nibs = {p["palette"] for p in pc}
+            return (0 if an in pref else 1, 0 if len(nibs) > 1 else 1, -len(pc), an)
+        frames = sorted(distinct.values(), key=_rank)[:MAXF]
+        for order, (anim, pcs) in enumerate(frames):
+            nibs = sorted({p["palette"] for p in pcs})
+            xs = [p["x"] for p in pcs]; ys = [p["y"] for p in pcs]
+            out.append({
+                "usage_id": "usage:castle_0x%s:anim0x%02X" % (sfx, anim),
+                "object_id": obj_id, "map_key": obj_id,
+                "frame_category": None, "frame_label": "anim 0x%02X" % anim, "frame_order": order,
+                "player_counts": None, "weapon_counts": None,
+                "display_name": name, "sprite_bank": "0x%02X" % nibs[0],
+                "sprite_banks": ["0x%X" % n for n in nibs], "multi_bank": len(nibs) > 1,
+                "scene_key": SCENE, "round": RND, "base": "0x%04X" % base,
+                "provisional": True, "identity_note": note,
+                "pieces": pcs, "n_pieces": len(pcs),
+                "bounds": [max(xs) - min(xs) + 16, max(ys) - min(ys) + 16],
+                "composite_proven": True, "preview_type": "TRUE ARCADE COMPOSITE",
+                "used_colors": _castle_used_colors(pcs, RND), "mrd_pairs": [],
+                "n_used": len({(p["palette"], v) for p in pcs for v in cell_indices(p["code"]) if v}),
+                "frames_total_distinct": total,
+            })
+    # marker 'M' burst: coordinate-only child presentation (seeded SAT) -> NOT statically decodable as a
+    # single composite. Represented honestly, with NO fabricated frames (per 0029: identify incomplete data).
+    out.append({
+        "usage_id": "usage:castle_mburst:info", "object_id": "object:castle.marker_M_burst",
+        "map_key": "object:castle.marker_M_burst",
+        "frame_category": None, "frame_label": "burst (coordinate-only)", "frame_order": 0,
+        "player_counts": None, "weapon_counts": None,
+        "display_name": "R1-S2 Castle marker 'M' burst (5-child spawner)",
+        "sprite_bank": "0x00", "sprite_banks": [], "multi_bank": False,
+        "scene_key": SCENE, "round": RND, "base": None, "provisional": True, "incomplete": True,
+        "identity_note": ("marker 'M' (0x4d) -> state 0x1B (handler 0x43ECC) burst (arcade_43f4e_burst, 5 "
+                          "children); coordinate-only child presentation (seeded SAT) is NOT statically "
+                          "decodable as one composite — graphics INCOMPLETE pending the child data."),
+        "pieces": [], "n_pieces": 0, "bounds": [16, 16], "composite_proven": False,
+        "preview_type": "INCOMPLETE — coordinate-only burst (no static composite)",
+        "used_colors": [], "mrd_pairs": [], "n_used": 0,
+    })
+    _CASTLE_USAGES_CACHE = out
+    return out
+
+
 _CSVROWS = None
 def _trace_rows():
     """Real emitted PC090OJ records from the accepted capture (code + x/y + flip) — TRUE composition."""
@@ -907,7 +1010,7 @@ def build_usages(banks):
                                  "frame_label": label, "object_id": obj_id}
             defs.append((key, label, bank, pieces, True))
 
-    usages = []
+    usages = list(r1s2_castle_usages())   # PROMPT-ID-0029: scene-tagged R1-S2 castle actors (cached)
     for key, name, bank, pieces, proven in defs:
         pal = banks.get(bank)
         if not pal or not pieces:
@@ -1797,6 +1900,12 @@ class Hd(BaseHTTPRequestHandler):
                 if q.get("mode", [""])[0] == "cells":  # CELL SHEET debug (grid)
                     pieces = [{"code": p["code"], "x": (i % 6) * 18, "y": (i // 6) * 18, "fx": False, "fy": False}
                               for i, p in enumerate(pieces)]
+                # PROMPT-ID-0029: R1-S2 castle actors are (possibly) multi-bank — render EACH piece with its
+                # own arcade palette (PROMPT-ID-0028). Authored Genesis mapping is PROMPT-ID-0030, so the
+                # unmapped target preview also shows the per-piece arcade source.
+                elif usage.get("round") is not None and any("palette" in p for p in pieces):
+                    pp = attach_arcade_piece_palettes(pieces, usage["round"])
+                    return self._s(200, render_composite(pp, [[0, 0, 0]] * 16, bnd), "image/png")
                 return self._s(200, render_composite(pieces, pal, bnd), "image/png")
             except Exception as e:
                 return self._s(500, json.dumps({"error": str(e)}).encode())

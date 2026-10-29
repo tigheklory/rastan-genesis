@@ -54284,3 +54284,92 @@ Regression: tools/graphics_editor/verify_per_piece_palette.py 6/6 (case base 0x0
 3+12): both banks retained; each piece resolves its own colours; composite uses pixels unique to BOTH
 banks; single-bank + shared-palette paths unchanged. No regression: verify_scene_automap 44/44,
 verify_independent_scopes 9/9. No Test.json / palette-decision / native / ROM change; no build number.
+
+### MAME Exit Summary (2026-10-28 20:28:35)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-28 20:33:23)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## PROMPT-ID-0026: Build 0517 Plane-A checkpoint respawn correction (Cody, 2026-10-28)
+
+- **Cause/cut:** retained death teardown clears the staged Plane-A ring; checkpoint restore reaches the
+  established post-camera `$050538` native boundary with scene pending clear, so Build 0515 returned
+  without reconstructing it. Retained checkpoint/record/camera -> offline final-native record map ->
+  active package -> camera-derived 64x32 ring -> staged VDP remains the cut; PC080SN name RAM/tail stays
+  removed.
+- Proper shift replacements preserve `$055F26/$056014` record restores and arm a one-shot checkpoint
+  pending byte. The post-camera helper consumes it, selects all 46 records plus package alternatives,
+  uses live `A5+$10B0`, stages 32x64 final words, dirties all A rows, and leaves Plane B/collision alone.
+  No hardcoded record 11, origin, rope, NOP/RTS, fallback, shadow tilemap, or per-frame rebuild.
+- Record `$000B` is the reported rope checkpoint. Its live overlap package is 10 (not stable package 3);
+  rope codes `$025B/$025E/$0260-$0263` resolve to slots `$0429/$0473/$046A/$0474/$0470/$046D` and
+  name words `$6429/$6473/$646A/$6474/$6470/$646D`.
+- Full maps exceeded the Genesis 4 MiB window. Offline whole-row dedupe preserves exact output in a
+  216,616-byte linked artifact (1,638 unique rows). Independent gate PASS: 204,800 all-record/package
+  cells, compressed/full equality, 23,552 checkpoint origin projections, existing scene/Plane-B/pan
+  gates, collision untouched.
+- Canonical/gameplay-entry/epoch/boot/mandatory NTSC trace PASS. Record 11 package fixture: runtime
+  package 10, 608 patterns, full A and fixed-B LUT PASS, no exceptions. Real zero-input death route:
+  3 deaths, 2 visible respawns, rings hash `3e1da614...f4403c8`, publication/display release in the next
+  frame, zero unsafe display enables. No per-frame work added.
+- **Artifact:** `dist/rastan-direct/rastan_direct_video_test_build_0517.bin`, SHA-256
+  `4848935bd926bcbcb1a4d6a8a277ccec9d88582148702e3a1c5938922607d57e`, 3,727,032 bytes. S1-2:
+  `..._0517_S1-2.bin`, SHA-256 `3ae2e9df...f99d11`. Complete seven-ROM family verified. Counter/ledger
+  517; 0516 is consumed/invalid (>4 MiB attempt), not a candidate. Test profile unchanged
+  (`86505de8...e9fb`).
+- **Acceptance boundary:** automation did not naturally traverse/death-respawn at record 11 or take a
+  terminal actual-VRAM dump there. Immediate rope/scenery, exact staged-to-VDP equality, scrolling and
+  interaction at that checkpoint, plus later R1-S2 chain play, remain Tighe's manual acceptance tests.
+  Candidate only. Report:
+  `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0026_checkpoint_respawn_plane_a.md`.
+
+## 2026-10-29 — PROMPT-ID-0033 authored-palette restoration (Build 0519 candidate)
+
+- Preserved the dirty active tree and exact ROM-producing inputs before work; isolated tracked source
+  commit `ca8b33340a4c6bc2f8bd754187b10826c1d79080` and durable receipt under
+  `states/source_snapshots/build_0519_prompt0033/`. No reset/stash/push or saved-profile edit.
+- Root cause: Build 0517 compiled `vdp_install_test_lines` with
+  `RASTAN_PALETTE_TEST_PROFILE=0`; ROM `0x070204` only cleared diagnostics and returned, so authored
+  R1-S1/R1-S2 CRAM was never installed. Its captured CRAM hash was `33cfa081...1234`.
+- Narrow correction: normal Makefile builds now enable the saved P1 profile and use profile-aware strict
+  coverage accounting. Semantic cut remains scene/stage -> offline authored palette/index assets -> final
+  Genesis patterns/name/SAT + CRAM DMA; the PC080SN/PC090OJ chip tail remains removed. No checkpoint,
+  map/ring, scroll, residency, collision, actor, or audio behavior change.
+- P0→P1 audit: no existing target-color or R1-S1 policy change; P1 adds one 517-entry R1-S2 Castle
+  context, six Line-2 object mappings, read-only Line-2 display metadata, and removes five empty global
+  Line-3 mappings. P1 hash remains `86505de8...e9fb`; palette registry remains `2780a06f...da47`.
+- Build 0518 was consumed/preserved but rejected for this task after the binary audit found an unrelated
+  concurrent audio refresh. Build 0519 reuses the archived Build-0517 audio library; all nine linked track
+  payloads are byte-identical to 0517.
+- Canonical/boot/gameplay-entry/six-epoch/full-LUT/palette-family/30-second Genesis NTSC gates PASS;
+  complete seven-ROM family PASS. R1-S1 and R1-S2 runtime actual CRAM equal staged CRAM and their
+  independent authored Lines 0/1/3 assets byte-for-byte (`0d08b515...1dd5`, `0cd324a4...c1d6`).
+- **Artifact:** `dist/rastan-direct/rastan_direct_video_test_build_0519.bin`, SHA-256
+  `ab34fc39a1cf635e0cdd1c69a37b6e0d46eab90f4ec1104bf7e2962eced43706`, 4,054,712 bytes;
+  R1-S2 derivative `..._0519_S1-2.bin`, SHA-256 `7b5aa95d...0de8`; counter/ledger 519.
+- **Still open:** R1-S1 checkpoint Plane A and R1-S2 later-chain acceptance. Color aesthetics remain
+  Tighe's judgment; candidate only. Report: `docs/design/Cody_build0519_restore_authored_palette_default.md`.
+
+## PROMPT-ID-0029 (resumed) — R1-S2 castle actors in the Palette Composer browser (Andy, 2026-10-29)
+
+Finished the interrupted server integration + client scene filter. No ROM, no Ghidra, no Test.json/
+palette-decision change, no new editing/persistence (0030).
+- server.py: r1s2_castle_usages() (cached) adds the verified R1-S2 castle actors to build_usages
+  additively: bases 0x0224 + 0x00F4 as browsable objects (24 distinct static compositor frames each,
+  route-documented anims incl. multi-bank 0x91 surfaced first), each piece carrying its per-piece arcade
+  palette nibble (PROMPT-0028). _castle_used_colors() lists the distinct per-bank source colours. The
+  marker-'M' burst is represented honestly as INCOMPLETE (coordinate-only, 0 pieces, no fabricated frames).
+  All castle usages tagged scene_key=PAL-R1-S2-PLANEA-CASTLE. /api/render usage path renders castle actors
+  with per-piece arcade palettes (source + unmapped preview). Oracle idempotent (module cache).
+- app.js: Objects list filters usages by scene_key so castle actors appear ONLY when R1-S2 is the active
+  scope; untagged R1/P1 enemies always show. Existing frame browser (reps>1) navigates the castle frames.
+- Tests: verify_r1s2_castle_browser.py 11/11 (oracle has 49 castle usages + 382 untagged R1/P1 intact;
+  0x0224/0x00F4 browsable; anim 0x91 multi-bank composite uses BOTH banks 3+12; 'M' burst incomplete;
+  idempotent; Test.json sha unchanged). No regression: per_piece 6/6, scene_automap 44/44, independent 9/9.
+- Identity NOT asserted: provisional source-derived labels only (base $0224/$00F4); Armored Man/Wizard
+  naming deferred to visual confirmation.
