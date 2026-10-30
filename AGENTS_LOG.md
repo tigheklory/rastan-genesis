@@ -54431,3 +54431,22 @@ SOURCE CODE -> BESTIARY -> EDITOR. Static only, no traces, no ROM/Test.json/pale
 - Natural-play automation did not reach R1-S2 (stalled at X `$00A7` after 6,000 frames), so Tighe's
   normal-progression listening check remains required. Original static path to `$27` is retained.
 - Report: `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0040_r1s2_reincarnation_music_selection.md`.
+
+## PROMPT-ID-0042 — Plane A initialization & R2-S1 graphics (Andy, READ-ONLY investigation, 2026-10-30)
+- Role: read-only engineering investigation; implementation owner is Cody (concurrent PROMPT-ID-0041).
+  No production ASM/C/ROM, sprites, audio, Palette Composer, Test.json, palette decisions, Bestiary, or
+  Cody's worktree were modified. Deliverable: the report + this log entry only.
+- Finding: Build 0503 published the whole authoritative `staged_fg_buffer` (full-plane DMA); it is filled
+  by `genesistan_hook_pc080sn_descriptor_rebuild` walking the live arcade descriptor chain (0x00FF1040),
+  retaining the arcade collision word and looking up only the visual name word — so it is correct for any
+  round and any spawn. Build 0504 replaced that with two partial precompiled tables.
+- Problem A (checkpoint): `build/pc080sn_boundary/scene_fill_maps.bin` carries only stage/epoch-entry
+  records {0x00,0x10,0x16,0x17,0x27,0x2d}; mid-stage checkpoint record 0x0B is ABSENT → reseed no-op →
+  incomplete Plane A. (Record axis.)
+- Problem B (R2-S1): `tools/translation/compile_pc080sn_genesis.py::AuthoredLayerA.SCENES` authors only the
+  two R1 scenes; R2 records 23+ have no authored visual → raw fallback decode → R2-specific tiles wrong,
+  collision correct (retained arcade word). (Round axis.)
+- Conclusion: shared root (0504 swapped one authoritative wholesale publish for two independently-authored
+  partial tables), two distinct defects on orthogonal axes; fixing one does not fix the other. Handoff
+  A–G for Cody in the report.
+- Report: `docs/design/Andy_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0042_plane_a_initialization_r2s1_research.md`.
