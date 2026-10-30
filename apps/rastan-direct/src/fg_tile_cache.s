@@ -34,7 +34,6 @@
     .global fg_boundary_active_variant
     .global fg_boundary_active_lut
     .global fg_scene_scroll_reseed_pending
-    .global fg_checkpoint_scroll_reseed_pending
 
     .extern genesistan_current_scene_id
     .extern genesistan_pc080sn_tile_vram_lut
@@ -48,7 +47,6 @@
     .extern fg_narrow_desc_count
     .extern fg_narrow_pending_rows
     .extern genesistan_scene_present_pending
-    .extern genesistan_presentation_mark_ready_after_publish
     .extern vdp_set_reg
     .extern vdp_dma_words_to_vram
 
@@ -150,9 +148,9 @@ fg_boundary_install_post_reseed:
     clr.w   fg_narrow_pending_rows
     move.b  #1, fg_scene_scroll_reseed_pending
     clr.b   genesistan_scene_present_pending
-    /* RG-015: names are complete, but the matching CRAM/SAT/scroll generation
-     * is not visible until the next normal VBlank publication completes. */
-    bsr     genesistan_presentation_mark_ready_after_publish
+    /* Plane A is not complete yet: retained 0x0504FA must first install the
+     * final camera tuple.  The post-camera 0x050538 helper stages the complete
+     * live-descriptor ring and only then marks presentation ready. */
 .Lpost_reseed_done:
     movem.l (%sp)+, %d0-%d7/%a0-%a4
     rts
@@ -761,5 +759,4 @@ fg_boundary_active_round:               .space 2
 fg_boundary_pending_round:              .space 2
 fg_boundary_reseed_pending:             .space 1
 fg_scene_scroll_reseed_pending:         .space 1
-fg_checkpoint_scroll_reseed_pending:    .space 1
     .align 2

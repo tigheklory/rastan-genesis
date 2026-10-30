@@ -399,27 +399,21 @@ def main() -> None:
     source = args.source.read_text()
     required_source = (
         "genesistan_plane_a_scene_scroll_reseed_native:",
-        "genesistan_plane_a_checkpoint_restore_arm:",
-        "tst.b   fg_scene_scroll_reseed_pending",
-        "tst.b   fg_checkpoint_scroll_reseed_pending",
-        "clr.b   fg_scene_scroll_reseed_pending",
-        "move.w  0x013E(%a5), %d0",
-        "subq.w  #1, %d0",
-        "genesistan_plane_a_scene_fill_maps",
-        "genesistan_plane_a_record_native_row_maps",
-        "FG_RECORD_NATIVE_MAP_ENTRY_BYTES",
-        "fg_boundary_active_package",
-        "ARCADE_PC080SN_SCROLL_Y_FG_OFFSET(%a5)",
-        ".Lplane_a_visible_top_from_scroll_d0",
-        ".Lscene_scroll_reseed_row:",
+        "plane_a_initial_ring_rebuild_active",
+        "ARCADE_PC080SN_SELECTOR_OFFSET(%a5)",
+        "ARCADE_PC080SN_STRIP_INDEX_OFFSET(%a5)",
+        "ARCADE_PC080SN_STRIP_GROUP_OFFSET(%a5)",
+        ".Lscene_scroll_reseed_selector0_loop:",
+        ".Lscene_scroll_reseed_selector12_loop:",
+        "bsr     genesistan_hook_tilemap_plane_a_selector0_native",
+        "bsr     genesistan_hook_tilemap_plane_a_selector12_native",
+        "moveq   #63, %d7",
         "genesistan_plane_b_scene_fill_maps",
-        "move.l  (%a1)+, (%a4)+",
         "genesistan_plane_a_pan_row_maps",
         "FG_PAN_ROW_MAP_BYTES",
         ".Lplane_a_row_precompiled_copy:",
         "move.l  #0xFFFFFFFF, fg_row_dirty",
-        '.incbin "../../build/pc080sn_boundary/scene_fill_maps.bin"',
-        '.incbin "../../build/pc080sn_boundary/record_native_row_maps.bin"',
+        "bsr     genesistan_presentation_mark_ready_after_publish",
         '.incbin "../../build/pc080sn_boundary/plane_b_scene_fill_maps.bin"',
         '.incbin "../../build/pc080sn_boundary/pan_row_maps.bin"',
         '.incbin "../../build/pc080sn_boundary/authored_descriptor_visuals.bin"',
@@ -429,17 +423,26 @@ def main() -> None:
     for token in required_source:
         if token not in source:
             raise SystemExit(f"FAIL scene-fill source omits {token}")
-    for token in (".Lplane_a_precompiled_name_from_d0_d1",):
+    for token in (".Lplane_a_precompiled_name_from_d0_d1",
+                  "genesistan_plane_a_checkpoint_restore_arm",
+                  "fg_checkpoint_scroll_reseed_pending",
+                  "genesistan_plane_a_scene_fill_maps",
+                  "genesistan_plane_a_record_native_row_maps",
+                  '.incbin "../../build/pc080sn_boundary/scene_fill_maps.bin"',
+                  '.incbin "../../build/pc080sn_boundary/record_native_row_maps.bin"'):
         if token in source:
             raise SystemExit(f"FAIL dynamic visual path retains rejected static-record token {token}")
     cache_source = args.cache_source.read_text()
     for token in (".global fg_scene_scroll_reseed_pending",
-                  ".global fg_checkpoint_scroll_reseed_pending",
                   "move.b  #1, fg_scene_scroll_reseed_pending",
-                  "fg_scene_scroll_reseed_pending:         .space 1",
-                  "fg_checkpoint_scroll_reseed_pending:    .space 1"):
+                  "fg_scene_scroll_reseed_pending:         .space 1"):
         if token not in cache_source:
             raise SystemExit(f"FAIL scene-fill handoff omits {token}")
+    for token in ("fg_checkpoint_scroll_reseed_pending",
+                  "genesistan_plane_a_checkpoint_restore_arm",
+                  "bsr     genesistan_presentation_mark_ready_after_publish"):
+        if token in cache_source:
+            raise SystemExit(f"FAIL retired scene-fill handoff remains in cache source: {token}")
     forbidden = ("staged_fg_tall_buffer", "C08000", "runtime transpose",
                  "fg_cache_resolve", "fg_boundary_active_lut")
     helper = source[source.index("genesistan_plane_a_scene_scroll_reseed_native:"):
@@ -451,8 +454,8 @@ def main() -> None:
     spec = json.loads(args.spec.read_text())
     if "genesistan_plane_a_scene_scroll_reseed_native" not in spec["required_symbols"]:
         raise SystemExit("FAIL scene-fill helper missing from required_symbols")
-    if "genesistan_plane_a_checkpoint_restore_arm" not in spec["required_symbols"]:
-        raise SystemExit("FAIL checkpoint helper missing from required_symbols")
+    if "genesistan_plane_a_checkpoint_restore_arm" in spec["required_symbols"]:
+        raise SystemExit("FAIL retired checkpoint helper remains in required_symbols")
     replacements = [row for row in spec["shift_replacements"]
                     if row.get("arcade_pc", "").lower() == "0x050538"]
     if len(replacements) != 1 or "genesistan_plane_a_scene_scroll_reseed_native" not in \
@@ -461,9 +464,8 @@ def main() -> None:
     for pc in ("0x055f26", "0x056014"):
         rows = [row for row in spec["shift_replacements"]
                 if row.get("arcade_pc", "").lower() == pc]
-        if len(rows) != 1 or "genesistan_plane_a_checkpoint_restore_arm" not in \
-                rows[0].get("replacement_bytes", ""):
-            raise SystemExit(f"FAIL missing checkpoint restore arm at {pc}")
+        if rows:
+            raise SystemExit(f"FAIL retired checkpoint restore arm remains at {pc}")
 
     print(f"PASS native scene-fill/pan maps: scene_records={scene_records} "
           f"scene_cells={checked} plane_b_scene_cells={plane_b_checked} "
@@ -473,7 +475,7 @@ def main() -> None:
           f"scene_bytes={len(actual)}; pan_records={pan_records} "
           f"pan_cells={pan_checked} pan_bytes={len(pan_actual)}; "
           f"authored_descriptor_cells={descriptor_checked}; "
-          "post-scroll boundary=0x050538; collision untouched")
+          "post-scroll live-producer boundary=0x050538; collision retained")
 
 
 if __name__ == "__main__":
