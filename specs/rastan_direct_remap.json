@@ -121,6 +121,7 @@
   "genesistan_hook_tilemap_plane_a_selector0_native",
   "genesistan_hook_tilemap_plane_a_selector12_native",
   "genesistan_plane_a_scene_scroll_reseed_native",
+  "genesistan_plane_a_checkpoint_restore_arm",
   "genesistan_plane_a_pan_publish_entering_rows_up",
   "genesistan_plane_a_pan_publish_entering_rows_down",
   "fg_boundary_advance_segment",
@@ -409,7 +410,19 @@
    "arcade_pc": "0x050538",
    "original_bytes": "4E75",
    "replacement_bytes": "4EB9{symbol:genesistan_plane_a_scene_scroll_reseed_native}4E75",
-   "note": "RG-024 native scene-fill resident-window completion. Preserve all of original 0x0504FA, which has just selected the authoritative record and installed its six scroll/camera words, then select the offline-compiled native scene-fill map and stage exactly the final 32-row Genesis Plane-A window. This retires the implicit dependence on a 64-row PC080SN retaining both halves between the earlier 0x0503DC fill and this later scroll decision. Collision, descriptor/ring progression, selector-1/2 rebuilt-pointer semantics, and gameplay state are unchanged. Proper 2-to-8-byte shift-table replacement preserves the original return; no shadow map, runtime transpose, fallback, or chip-address interpretation is introduced."
+   "note": "RG-024/RG-022 native scene-fill resident-window completion. Preserve all of original 0x0504FA, which has just selected the authoritative record and installed its six scroll/camera words, then select the two offline-compiled native scene-fill maps and stage exactly the final 32-row Genesis Plane-A and Plane-B windows. This retires the implicit dependence on a 64-row PC080SN retaining both halves between the earlier 0x0503DC fill and this later scroll decision. Collision, descriptor/ring progression, selector-1/2 rebuilt-pointer semantics, and gameplay state are unchanged. Proper 2-to-8-byte shift-table replacement preserves the original return; runtime performs only bounded native-name copies and introduces no shadow map, runtime transpose, descriptor walk, fallback, or chip-address interpretation."
+  },
+  {
+   "arcade_pc": "0x055F26",
+   "original_bytes": "3B40013E",
+   "replacement_bytes": "3B40013E4EB9{symbol:genesistan_plane_a_checkpoint_restore_arm}",
+   "note": "RG-026 checkpoint Plane-A lifecycle. Preserve the retained arcade restore A5+0x013E=A5+0x13B8, then arm the generalized post-camera native ring realization. The later 0x050538 boundary selects the all-record offline-native map from live record/package and live scroll; this site contains no graphics, camera, rope, or checkpoint special case. Proper 4-to-10-byte shift replacement; no bypass or padding."
+  },
+  {
+   "arcade_pc": "0x056014",
+   "original_bytes": "3B40013E",
+   "replacement_bytes": "3B40013E4EB9{symbol:genesistan_plane_a_checkpoint_restore_arm}",
+   "note": "RG-026 alternate retained checkpoint completion. Preserve A5+0x013E=A5+0x13B8-1 and arm the identical generalized post-camera Plane-A realization used by the ordinary restore path. Proper shift replacement; no per-checkpoint data or gameplay-state change."
   },
   {
    "arcade_pc": "0x05105A",

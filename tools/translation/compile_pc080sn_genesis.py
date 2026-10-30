@@ -1028,6 +1028,46 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
     native_record_maps = native_record_table + native_record_data
     (outdir / "record_native_maps.bin").write_bytes(native_record_maps)
 
+    # Runtime form of the same complete final-native maps.  Whole 128-byte
+    # rows are deduplicated offline; each map is only 64 big-endian row IDs.
+    # This keeps the generalized all-record checkpoint contract inside the
+    # Genesis 4 MiB address space without reintroducing any PC080SN state or
+    # runtime tile/attribute interpretation.
+    native_map_count = len(native_record_data) // (64 * 64 * 2)
+    native_row_pool = bytearray()
+    native_row_ids: dict[bytes, int] = {}
+    native_row_indexes = bytearray()
+    for map_index in range(native_map_count):
+        map_start = map_index * 64 * 64 * 2
+        for row in range(64):
+            row_start = map_start + row * 64 * 2
+            row_blob = bytes(native_record_data[row_start:row_start + 64 * 2])
+            row_id = native_row_ids.get(row_blob)
+            if row_id is None:
+                row_id = len(native_row_ids)
+                if row_id > 0xFFFF:
+                    raise SystemExit("native row pool exceeds 16-bit row IDs")
+                native_row_ids[row_blob] = row_id
+                native_row_pool += row_blob
+            native_row_indexes += be16(row_id)
+
+    native_row_table = bytearray()
+    for record_index in range(len(records)):
+        entry = record_index * 12
+        stable_map = int.from_bytes(native_record_table[entry:entry + 4], "big")
+        alternate_package = int.from_bytes(
+            native_record_table[entry + 4:entry + 6], "big")
+        alternate_map = int.from_bytes(native_record_table[entry + 8:entry + 12], "big")
+        native_row_table += be32((stable_map // (64 * 64 * 2)) * (64 * 2))
+        native_row_table += be16(alternate_package)
+        native_row_table += be16(0)
+        native_row_table += be32(
+            0xFFFFFFFF if alternate_map == 0xFFFFFFFF else
+            (alternate_map // (64 * 64 * 2)) * (64 * 2))
+    native_row_pool_offset = len(native_row_table) + len(native_row_indexes)
+    native_record_row_maps = native_row_table + native_row_indexes + native_row_pool
+    (outdir / "record_native_row_maps.bin").write_bytes(native_record_row_maps)
+
     # Compact runtime selection metadata. The native helper consumes only this
     # prepared stage->asset ID table; context/range interpretation remains an
     # offline compiler responsibility. Zero is the established fallback.
@@ -1085,10 +1125,11 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
     (outdir / "authored_descriptor_visuals.bin").write_bytes(authored_visual_blob)
 
     # Finish the scene-fill artifact only after stable package allocation has
-    # assigned final Genesis slots.  Each record is a complete physical 64x32
-    # Plane-A image of final Genesis name words, already projected using the
-    # immutable camera tuple consumed by original 0x0504FA.  Runtime therefore
-    # performs only a bounded 4 KiB copy after that semantic decision.
+    # assigned final Genesis slots.  Each entry is a camera-independent 64x64
+    # logical Plane-A map of final Genesis name words.  Original 0x0504FA is
+    # allowed to choose any legitimate camera origin; the bounded native scene
+    # helper then selects the 32 resident logical rows and projects them into
+    # the 32-row physical VDP ring.  No spawn/camera tuple is compiled here.
     scene_fill_table = bytearray(b"\xff\xff\xff\xff" * len(records))
     scene_fill_data = bytearray()
     scene_fill_offsets = {}
@@ -1099,13 +1140,8 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
         scene_fill_offsets[record_index] = offset
         scene_fill_table[record_index * 4:record_index * 4 + 4] = be32(offset)
         slot_by_code = dict(packages[record_to_package[record_index]]["map"])
-        camera_record = record_index + 1
-        scroll_y = u16(0x50850 + camera_record * 12 + 2)
-        visible_top = ((-scroll_y + 8) & 0x1FF) >> 3
-        physical_words = [0] * (32 * 64)
-        for delta in range(32):
-            source_row = (visible_top + delta) & 63
-            physical_row = source_row & 31
+        logical_words = [0] * (64 * 64)
+        for source_row in range(64):
             table_index, descriptor_row = divmod(source_row, 4)
             table_base = source_table_bases[table_index] + record_index * 0x40
             for source_column in range(64):
@@ -1127,11 +1163,56 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
                     raise SystemExit(
                         f"scene-fill record {record_index}: code {code:#06x} has no native slot")
                 native_attr = (line << 13) | ((attr & 0xC000) >> 3)
-                physical_words[physical_row * 64 + source_column] = native_attr | slot
-        for word in physical_words:
+                logical_words[source_row * 64 + source_column] = native_attr | slot
+        for word in logical_words:
             scene_fill_data += be16(word)
     scene_fill_binary = scene_fill_table + scene_fill_data
     (outdir / "scene_fill_maps.bin").write_bytes(scene_fill_binary)
+
+    # Plane B has the same 64-logical-row -> 32-physical-row scene-entry
+    # requirement as Plane A.  Compile the post-fill descriptor cursor and the
+    # final camera tuple into complete Genesis name words here.  Runtime then
+    # performs only a bounded 4 KiB copy; it does not walk arcade descriptors or
+    # reinterpret PC080SN attributes at scene entry.
+    plane_b_scene_fill_table = bytearray(b"\xff\xff\xff\xff" * len(records))
+    plane_b_scene_fill_data = bytearray()
+    plane_b_scene_fill_offsets = {}
+    for record_index in scene_fill_records:
+        record = records[record_index]
+        offset = len(plane_b_scene_fill_table) + len(plane_b_scene_fill_data)
+        plane_b_scene_fill_offsets[record_index] = offset
+        plane_b_scene_fill_table[record_index * 4:record_index * 4 + 4] = be32(offset)
+        camera_record = record_index + 1
+        scroll_y = u16(0x50850 + camera_record * 12 + 2)
+        visible_top = ((-scroll_y + 8) & 0x1FF) >> 3
+        descriptor_base = record["descriptor_before"]
+        # After the four-descriptor scene fill, the retained walker points one
+        # descriptor beyond the filled span and subcolumn is zero: AR=4*16.
+        absolute_right = 64
+        b_slots = round_b[0 if record_index < 23 else 1]["slot"]
+        physical_words = [0] * (32 * 64)
+        for delta in range(32):
+            logical_row = (visible_top + delta) & 63
+            physical_row = logical_row & 31
+            for column in range(64):
+                relative = (absolute_right - column) & 63
+                absolute_column = absolute_right - relative
+                descriptor_index = descriptor_base + (absolute_column >> 4)
+                descriptor = PLANE_B_DESC_TABLE + descriptor_index * PLANE_B_DESC_STRIDE
+                attr = u16(descriptor)
+                source = u24(descriptor + 2)
+                source_code = u16(source + logical_row * 0x20 + (column & 15) * 2) & 0x3FFF
+                blob = tile_bytes(source_code)
+                slot = b_slots.get(blob, 0)
+                native_attr = ((((attr >> 13) & 1) << 15) |
+                               ((attr & 0x0003) << 13) |
+                               (((attr >> 15) & 1) << 12) |
+                               (((attr >> 14) & 1) << 11))
+                physical_words[physical_row * 64 + column] = native_attr | slot
+        for word in physical_words:
+            plane_b_scene_fill_data += be16(word)
+    plane_b_scene_fill_binary = plane_b_scene_fill_table + plane_b_scene_fill_data
+    (outdir / "plane_b_scene_fill_maps.bin").write_bytes(plane_b_scene_fill_binary)
 
     # No-publication camera routes do not invoke the ordinary selector row
     # producer.  Selector-1 swaps the source block axes, so compile its final
@@ -1295,6 +1376,7 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
         f".equ FG_SCENE_FILL_MAP_RECORDS, {len(records)}\n"
         f".equ FG_SCENE_FILL_MAP_TABLE_BYTES, {len(scene_fill_table)}\n"
         f".equ FG_SCENE_FILL_MAP_BYTES, {len(scene_fill_binary)}\n"
+        f".equ BG_SCENE_FILL_MAP_BYTES, {len(plane_b_scene_fill_binary)}\n"
         f".equ FG_PAN_ROW_MAP_BYTES, {len(pan_row_binary)}\n"
         f".equ FG_AUTHORED_DESC_FIRST, 0x{AUTHORED_DESC_FIRST:08X}\n"
         f".equ FG_AUTHORED_DESC_END, 0x{AUTHORED_DESC_END:08X}\n"
@@ -1308,6 +1390,11 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
         f".equ FG_RECORD_NATIVE_MAP_TABLE_BYTES, {len(native_record_table)}\n"
         f".equ FG_RECORD_NATIVE_MAP_ENTRY_BYTES, 12\n"
         f".equ FG_RECORD_NATIVE_MAP_RECORD_BYTES, {64 * 64 * 2}\n"
+        f".equ FG_RECORD_NATIVE_ROW_MAP_BYTES, {len(native_record_row_maps)}\n"
+        f".equ FG_RECORD_NATIVE_ROW_MAP_TABLE_BYTES, {len(native_row_table)}\n"
+        f".equ FG_RECORD_NATIVE_ROW_INDEX_BYTES, {64 * 2}\n"
+        f".equ FG_RECORD_NATIVE_ROW_POOL_OFFSET, {native_row_pool_offset}\n"
+        f".equ FG_RECORD_NATIVE_ROW_COUNT, {len(native_row_ids)}\n"
         f".equ FG_BOUNDARY_SCRATCH_WORD, {scratch_word}\n"
         + "".join(
             f".equ FG_BOUNDARY_FIXED_B_R{item['round']}_OFFSET, {item['offset']}\n"
@@ -1340,10 +1427,16 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
         "scene_fill_records": scene_fill_records,
         "scene_fill_offsets": scene_fill_offsets,
         "scene_fill_map_bytes": len(scene_fill_binary),
+        "plane_b_scene_fill_offsets": plane_b_scene_fill_offsets,
+        "plane_b_scene_fill_map_bytes": len(plane_b_scene_fill_binary),
         "pan_row_records": pan_row_records,
         "pan_row_offsets": pan_row_offsets,
         "pan_row_map_bytes": len(pan_row_binary),
         "record_native_map_bytes": len(native_record_maps),
+        "record_native_row_map_bytes": len(native_record_row_maps),
+        "record_native_row_map_count": native_map_count,
+        "record_native_unique_rows": len(native_row_ids),
+        "record_native_row_pool_offset": native_row_pool_offset,
         "record_native_line2_cells": len(line2_cells),
         "record_native_line2_samples": line2_cells[:32],
         "palette_scene_select": list(palette_scene_select),

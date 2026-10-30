@@ -34,6 +34,7 @@
     .global fg_boundary_active_variant
     .global fg_boundary_active_lut
     .global fg_scene_scroll_reseed_pending
+    .global fg_checkpoint_scroll_reseed_pending
 
     .extern genesistan_current_scene_id
     .extern genesistan_pc080sn_tile_vram_lut
@@ -760,4 +761,5 @@ fg_boundary_active_round:               .space 2
 fg_boundary_pending_round:              .space 2
 fg_boundary_reseed_pending:             .space 1
 fg_scene_scroll_reseed_pending:         .space 1
+fg_checkpoint_scroll_reseed_pending:    .space 1
     .align 2

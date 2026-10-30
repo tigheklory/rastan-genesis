@@ -25,22 +25,29 @@ local active_package_addr = tonumber(os.getenv("ACTIVE_PACKAGE_ADDR") or "")
 -- is never modified by this instrumentation.
 local perf_scene_entry = tonumber(os.getenv("STAGE_PERF_SCENE_ENTRY") or "", 16)
 local perf_scene_exit = tonumber(os.getenv("STAGE_PERF_SCENE_EXIT") or "", 16)
+local perf_scene_pending = tonumber(os.getenv("STAGE_PERF_SCENE_PENDING") or "", 16)
 local perf_row_entry = tonumber(os.getenv("STAGE_PERF_ROW_ENTRY") or "", 16)
 local perf_row_copy_done = tonumber(os.getenv("STAGE_PERF_ROW_COPY_DONE") or "", 16)
 local debug_log, debug_log_index = nil, 0
 local scene_start, row_start = nil, nil
 local scene_cycles, row_cycles = {}, {}
-if perf_scene_entry and perf_scene_exit and perf_row_entry and perf_row_copy_done then
+if (perf_scene_entry and perf_scene_exit) or (perf_row_entry and perf_row_copy_done) then
   debug_log = assert(machine.debugger and machine.debugger.consolelog,
     "cycle probes require -debug -debugger none")
-  cpu.debug:bpset(perf_scene_entry, "b@ffb2c7==1",
-    'printf "RG12,SCENE_ENTRY,%d,%d\\n",totalcycles,frame; g')
-  cpu.debug:bpset(perf_scene_exit, "1",
-    'printf "RG12,SCENE_EXIT,%d,%d\\n",totalcycles,frame; g')
-  cpu.debug:bpset(perf_row_entry, "w@ff10a8!=0",
-    'printf "RG12,ROW_ENTRY,%d,%d\\n",totalcycles,frame; g')
-  cpu.debug:bpset(perf_row_copy_done, "w@ff10a8!=0",
-    'printf "RG12,ROW_COPY_DONE,%d,%d\\n",totalcycles,frame; g')
+  if perf_scene_entry and perf_scene_exit then
+    local scene_condition = perf_scene_pending and
+      string.format("b@%x==1", perf_scene_pending) or "1"
+    cpu.debug:bpset(perf_scene_entry, scene_condition,
+      'printf "RG12,SCENE_ENTRY,%d,%d\\n",totalcycles,frame; g')
+    cpu.debug:bpset(perf_scene_exit, "1",
+      'printf "RG12,SCENE_EXIT,%d,%d\\n",totalcycles,frame; g')
+  end
+  if perf_row_entry and perf_row_copy_done then
+    cpu.debug:bpset(perf_row_entry, "w@ff10a8!=0",
+      'printf "RG12,ROW_ENTRY,%d,%d\\n",totalcycles,frame; g')
+    cpu.debug:bpset(perf_row_copy_done, "w@ff10a8!=0",
+      'printf "RG12,ROW_COPY_DONE,%d,%d\\n",totalcycles,frame; g')
+  end
 end
 
 local function drain_cycles()

@@ -91,7 +91,17 @@ RASTAN_MODE_RACK_ADVANCE ?= 0
 # asserts the original arcade A5+0x0040 debug gate at its startup source. The
 # standard numbered ROM defaults to 0 and retains normal enemy damage.
 RASTAN_INVINCIBLE ?= 0
-RASTAN_PALETTE_TEST_PROFILE ?= 0
+# Tighe's saved Palette Composer profile is the production Round-1 palette
+# authority.  Keep an explicit command-line override for controlled comparisons,
+# but never silently omit the authored scene palettes from a normal build.
+RASTAN_PALETTE_TEST_PROFILE ?= 1
+ifeq ($(RASTAN_PALETTE_TEST_PROFILE),1)
+GENESIS_COVERAGE_DELTA := 0x9C000
+FULL_HUD_GENESIS_COVERAGE_DELTA := 0x9C000
+else
+GENESIS_COVERAGE_DELTA := 0x40000
+FULL_HUD_GENESIS_COVERAGE_DELTA := 0x38000
+endif
 CRASH_BUILD_USE_CURRENT ?= 0
 PC090OJ_CONFIG_INC := $(OUT_DIR)/pc090oj_config.inc
 CRASH_BUILD_INC := $(OUT_DIR)/crash_build.inc
@@ -164,8 +174,10 @@ PC080SN_BOUNDARY_PACKAGES := $(PC080SN_BOUNDARY_DIR)/boundary_packages.bin
 PC080SN_BOUNDARY_CONSTANTS := $(PC080SN_BOUNDARY_DIR)/boundary_constants.inc
 PC080SN_BOUNDARY_REPORT := $(PC080SN_BOUNDARY_DIR)/boundary_report.json
 PC080SN_SCENE_FILL_MAPS := $(PC080SN_BOUNDARY_DIR)/scene_fill_maps.bin
+PC080SN_PLANE_B_SCENE_FILL_MAPS := $(PC080SN_BOUNDARY_DIR)/plane_b_scene_fill_maps.bin
 PC080SN_PAN_ROW_MAPS := $(PC080SN_BOUNDARY_DIR)/pan_row_maps.bin
 PC080SN_RECORD_NATIVE_MAPS := $(PC080SN_BOUNDARY_DIR)/record_native_maps.bin
+PC080SN_RECORD_NATIVE_ROW_MAPS := $(PC080SN_BOUNDARY_DIR)/record_native_row_maps.bin
 PC080SN_AUTHORED_DESCRIPTOR_VISUALS := $(PC080SN_BOUNDARY_DIR)/authored_descriptor_visuals.bin
 PC080SN_NATIVE_PATTERN_REGION := $(PC080SN_BOUNDARY_DIR)/native_pattern_region.bin
 PC080SN_PALETTE_SCENE_SELECT := $(PC080SN_BOUNDARY_DIR)/palette_scene_select.bin
@@ -373,7 +385,7 @@ $(CRASH_BUILD_INC): FORCE_ASM_REBUILD | $(OUT_DIR)
 	printf '/* GENERATED build number by apps/rastan-direct/Makefile -- do not hand-edit. */\ncrash_build_number_str: .asciz "%s"\n' "$$tag" > $@; \
 	echo "crash build number -> $$tag ($@)"
 
-$(OUT_DIR)/tilemap_hooks.o: $(SRC_DIR)/tilemap_hooks.s $(PC090OJ_CONFIG_INC) $(PC080SN_BOUNDARY_CONSTANTS) $(PC080SN_SCENE_FILL_MAPS) $(PC080SN_PAN_ROW_MAPS) $(PC080SN_AUTHORED_DESCRIPTOR_VISUALS) $(BEST5_NUMBER_TABLE) $(BEST5_NAME_TABLE) FORCE_ASM_REBUILD | $(OUT_DIR)
+$(OUT_DIR)/tilemap_hooks.o: $(SRC_DIR)/tilemap_hooks.s $(PC090OJ_CONFIG_INC) $(PC080SN_BOUNDARY_CONSTANTS) $(PC080SN_SCENE_FILL_MAPS) $(PC080SN_PLANE_B_SCENE_FILL_MAPS) $(PC080SN_PAN_ROW_MAPS) $(PC080SN_RECORD_NATIVE_ROW_MAPS) $(PC080SN_AUTHORED_DESCRIPTOR_VISUALS) $(BEST5_NUMBER_TABLE) $(BEST5_NAME_TABLE) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
 $(OUT_DIR)/palette_hooks.o: $(SRC_DIR)/palette_hooks.s $(PC090OJ_CONFIG_INC) $(TEST_PALETTE_LINE0) $(TEST_PALETTE_LINE1) $(TEST_PALETTE_LINE3) $(PALETTE_R1S1_CRAM) $(PALETTE_R1S2_CRAM) $(PC080SN_PALETTE_SCENE_SELECT) FORCE_ASM_REBUILD | $(OUT_DIR)
@@ -693,8 +705,10 @@ $(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(R1_SELECTOR_STREAM
 		--index "$(PC080SN_NATIVE_METATILE_INDEX)" --records "$(PC080SN_NATIVE_METATILE_RECORDS)"
 	$(PYTHON) "$(PLANE_A_SCENE_FILL_GATE)" --maincpu "$(MAINCPU_REGION)" \
 		--pc080sn "$(PC080SN_REGION)" --maps "$(PC080SN_SCENE_FILL_MAPS)" \
+		--plane-b-maps "$(PC080SN_PLANE_B_SCENE_FILL_MAPS)" \
 		--pan-maps "$(PC080SN_PAN_ROW_MAPS)" \
 		--record-maps "$(PC080SN_RECORD_NATIVE_MAPS)" \
+		--record-row-maps "$(PC080SN_RECORD_NATIVE_ROW_MAPS)" \
 		--authored-descriptor-visuals "$(PC080SN_AUTHORED_DESCRIPTOR_VISUALS)" \
 		--packages "$(PC080SN_BOUNDARY_PACKAGES)" --report "$(PC080SN_BOUNDARY_REPORT)" \
 		--source "$(SRC_DIR)/tilemap_hooks.s" --cache-source "$(SRC_DIR)/fg_tile_cache.s" \
@@ -736,7 +750,7 @@ $(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(R1_SELECTOR_STREAM
 		--symbols "$(SYMBOLS)" \
 		--manifest "$(PATCH_MANIFEST)" \
 		--spec "$(PATCH_SPEC)" \
-		--genesis-coverage-delta 0x58000
+		--genesis-coverage-delta $(GENESIS_COVERAGE_DELTA)
 	$(PYTHON) "$(R1_SELECTOR_STREAM_VERIFY)" --rom "$@" --maincpu "$(MAINCPU_REGION)" \
 		--address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
 	$(PYTHON) "$(FINAL_LIFE_TRANSITION_VERIFY)" --rom "$@" \
@@ -795,7 +809,7 @@ $(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(R1_SELECTOR_STREAM
 		--numbered-name "$$numbered_name" \
 		--bookmark-revert "$(BOOKMARK_REVERT)" \
 		--state-file "$(BOOKMARK_STATE_FILE)" \
-		--genesis-coverage-delta 0x58000; then \
+		--genesis-coverage-delta $(GENESIS_COVERAGE_DELTA); then \
 		gate_status="canonical=PASS"; \
 	else \
 		gate_status="canonical=FAIL"; \
@@ -845,7 +859,7 @@ $(DIAG_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(R1_SELECTOR_S
 		--rom "$@" \
 		--symbols "$(SYMBOLS)" \
 		--manifest "$(OUT_DIR)/diag_patch_manifest.json" \
-		--spec "$(PATCH_SPEC)" --genesis-coverage-delta 0x58000
+		--spec "$(PATCH_SPEC)" --genesis-coverage-delta $(GENESIS_COVERAGE_DELTA)
 	$(PYTHON) "$(R1_SELECTOR_STREAM_VERIFY)" --rom "$@" --maincpu "$(MAINCPU_REGION)" \
 		--address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
 	$(PYTHON) "$(FINAL_LIFE_TRANSITION_VERIFY)" --rom "$@" --address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
@@ -877,7 +891,7 @@ $(SCORE_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(R1_SELECTOR_
 		--rom "$@" \
 		--symbols "$(SYMBOLS)" \
 		--manifest "$(OUT_DIR)/score_patch_manifest.json" \
-		--spec "$(PATCH_SPEC)" --genesis-coverage-delta 0x58000
+		--spec "$(PATCH_SPEC)" --genesis-coverage-delta $(GENESIS_COVERAGE_DELTA)
 	$(PYTHON) "$(R1_SELECTOR_STREAM_VERIFY)" --rom "$@" --maincpu "$(MAINCPU_REGION)" \
 		--address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
 	$(PYTHON) "$(FINAL_LIFE_TRANSITION_VERIFY)" --rom "$@" --address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
@@ -908,7 +922,7 @@ $(DO_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(R1_SELECTOR_STR
 		--rom "$@" \
 		--symbols "$(SYMBOLS)" \
 		--manifest "$(OUT_DIR)/do_patch_manifest.json" \
-		--spec "$(PATCH_SPEC)" --genesis-coverage-delta 0x58000
+		--spec "$(PATCH_SPEC)" --genesis-coverage-delta $(GENESIS_COVERAGE_DELTA)
 	$(PYTHON) "$(R1_SELECTOR_STREAM_VERIFY)" --rom "$@" --maincpu "$(MAINCPU_REGION)" \
 		--address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
 	$(PYTHON) "$(FINAL_LIFE_TRANSITION_VERIFY)" --rom "$@" --address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
@@ -942,7 +956,7 @@ $(CHEAT_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(R1_SELECTOR_
 		--rom "$@" \
 		--symbols "$(SYMBOLS)" \
 		--manifest "$(OUT_DIR)/cheat_patch_manifest.json" \
-		--spec "$(PATCH_SPEC)" --genesis-coverage-delta 0x58000
+		--spec "$(PATCH_SPEC)" --genesis-coverage-delta $(GENESIS_COVERAGE_DELTA)
 	$(PYTHON) "$(R1_SELECTOR_STREAM_VERIFY)" --rom "$@" --maincpu "$(MAINCPU_REGION)" \
 		--address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
 	$(PYTHON) "$(FINAL_LIFE_TRANSITION_VERIFY)" --rom "$@" --address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
@@ -971,7 +985,7 @@ $(FULL_HUD_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(R1_SELECT
 		--rom "$@" \
 		--symbols "$(SYMBOLS)" \
 		--manifest "$(OUT_DIR)/full_hud_patch_manifest.json" \
-		--spec "$(PATCH_SPEC)" --genesis-coverage-delta 0x58000
+		--spec "$(PATCH_SPEC)" --genesis-coverage-delta $(FULL_HUD_GENESIS_COVERAGE_DELTA)
 	$(PYTHON) "$(R1_SELECTOR_STREAM_VERIFY)" --rom "$@" --maincpu "$(MAINCPU_REGION)" \
 		--address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
 	$(PYTHON) "$(FINAL_LIFE_TRANSITION_VERIFY)" --rom "$@" --address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
@@ -1002,7 +1016,7 @@ $(INVINCIBLE_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(R1_SELE
 		--symbols "$(SYMBOLS)" \
 		--manifest "$(OUT_DIR)/invincible_patch_manifest.json" \
 		--invincible \
-		--spec "$(PATCH_SPEC)" --genesis-coverage-delta 0x58000
+		--spec "$(PATCH_SPEC)" --genesis-coverage-delta $(GENESIS_COVERAGE_DELTA)
 	$(PYTHON) "$(R1_SELECTOR_STREAM_VERIFY)" --rom "$@" --maincpu "$(MAINCPU_REGION)" \
 		--address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
 	$(PYTHON) "$(FINAL_LIFE_TRANSITION_VERIFY)" --rom "$@" --address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
@@ -1027,7 +1041,7 @@ $(PC080SN_AUTHORING_MODE_RECEIPT): FORCE_ASM_REBUILD | $(OUT_DIR)
 	@tmp="$@.tmp"; printf '%s\n' 'RASTAN_PALETTE_TEST_PROFILE=$(RASTAN_PALETTE_TEST_PROFILE)' > "$$tmp"; \
 	if [ -f "$@" ] && cmp -s "$$tmp" "$@"; then rm -f "$$tmp"; else mv "$$tmp" "$@"; fi
 
-$(PC080SN_BOUNDARY_PACKAGES) $(PC080SN_BOUNDARY_CONSTANTS) $(PC080SN_BOUNDARY_REPORT) $(PC080SN_SCENE_FILL_MAPS) $(PC080SN_PAN_ROW_MAPS) $(PC080SN_RECORD_NATIVE_MAPS) $(PC080SN_AUTHORED_DESCRIPTOR_VISUALS) $(PC080SN_NATIVE_PATTERN_REGION) $(PC080SN_PALETTE_SCENE_SELECT): \
+$(PC080SN_BOUNDARY_PACKAGES) $(PC080SN_BOUNDARY_CONSTANTS) $(PC080SN_BOUNDARY_REPORT) $(PC080SN_SCENE_FILL_MAPS) $(PC080SN_PLANE_B_SCENE_FILL_MAPS) $(PC080SN_PAN_ROW_MAPS) $(PC080SN_RECORD_NATIVE_MAPS) $(PC080SN_RECORD_NATIVE_ROW_MAPS) $(PC080SN_AUTHORED_DESCRIPTOR_VISUALS) $(PC080SN_NATIVE_PATTERN_REGION) $(PC080SN_PALETTE_SCENE_SELECT): \
         $(MAINCPU_REGION) $(PC080SN_REGION) $(PATTERN_REUSE_RESOLVED) $(EDITOR_PALETTE_PROFILE) $(PC080SN_AUTHORING_MODE_RECEIPT) $(ROOT)/tools/translation/compile_pc080sn_genesis.py
 	$(PYTHON) "$(ROOT)/tools/translation/compile_pc080sn_genesis.py" \
 		--maincpu "$(MAINCPU_REGION)" --pc080sn "$(PC080SN_REGION)" \

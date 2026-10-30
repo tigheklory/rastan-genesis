@@ -7,6 +7,7 @@
     .global genesistan_hook_tilemap_plane_a_selector0_native
     .global genesistan_hook_tilemap_plane_a_selector12_native
     .global genesistan_plane_a_scene_scroll_reseed_native
+    .global genesistan_plane_a_checkpoint_restore_arm
     .global genesistan_plane_a_pan_publish_entering_rows_up
     .global genesistan_plane_a_pan_publish_entering_rows_down
     .global genesistan_pc080sn_directional_dispatch_native
@@ -60,6 +61,7 @@
     .extern fg_boundary_resolve_b
     .extern fg_boundary_active_lut
     .extern fg_scene_scroll_reseed_pending
+    .extern fg_checkpoint_scroll_reseed_pending
     .extern fg_boundary_miss_a
     .extern fg_boundary_miss_b
     .extern fg_boundary_transition_step
@@ -754,17 +756,31 @@ genesistan_hook_tilemap_plane_a_selector12_native:
  * The retained 0x0503DC fill finishes before 0x0504FA installs the selected
  * record's authoritative camera tuple.  The arcade's 64-row PC080SN retains
  * both halves across that ordering; the Genesis Plane A has 32 physical rows.
- * This finite post-scroll helper selects the already compiled record map and
- * writes exactly the final 32-row native resident window.  Collision, ring,
+ * This finite post-scroll helper selects one camera-independent 64x64 logical
+ * native map, derives the resident rows from live 10B0, and projects them by
+ * the same logical-row & 31 equation used by ordinary row publication.  Plane
+ * B retains its independent final native scene map. Collision, ring,
  * descriptor rebuild, and selector progression remain owned by the retained
  * fill; this helper consumes none of their chip-shaped destinations.
  */
+/* Retained death/transition controllers restore A5+0x013E from the arcade
+ * checkpoint at 0x055F26/0x056014 after the native clear has emptied Plane A.
+ * Preserve that semantic restore and arm the same post-camera realization
+ * boundary used by scene entry.  No graphics, camera, or checkpoint identity
+ * is selected here. */
+genesistan_plane_a_checkpoint_restore_arm:
+    move.b  #1, fg_checkpoint_scroll_reseed_pending
+    rts
+
 genesistan_plane_a_scene_scroll_reseed_native:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
     lea     0x00FF0000, %a5
     tst.b   fg_scene_scroll_reseed_pending
-    beq     .Lscene_scroll_reseed_done
+    beq     .Lcheckpoint_scroll_reseed_check
+    moveq   #1, %d3                         /* scene entry also owns Plane B */
+    moveq   #0, %d4                         /* direct 64x64 native map */
     clr.b   fg_scene_scroll_reseed_pending
+    clr.b   fg_checkpoint_scroll_reseed_pending
     cmpi.b  #SCENE_GAMEPLAY_ID, genesistan_current_scene_id
     bne     .Lscene_scroll_reseed_done
 
@@ -773,26 +789,116 @@ genesistan_plane_a_scene_scroll_reseed_native:
     beq     .Lscene_scroll_reseed_done
     subq.w  #1, %d0                       /* record consumed by 0x0503DC */
     cmpi.w  #FG_SCENE_FILL_MAP_RECORDS, %d0
-    bhs.s   .Lscene_scroll_reseed_done
+    bhs     .Lscene_scroll_reseed_done
     lsl.l   #2, %d0
+    move.l  %d0, %d2                       /* preserve record-table byte offset */
     lea     genesistan_plane_a_scene_fill_maps, %a0
     move.l  0(%a0,%d0.l), %d1
     cmpi.l  #0xFFFFFFFF, %d1
-    beq.s   .Lscene_scroll_reseed_done
+    beq     .Lscene_scroll_reseed_done
     cmpi.l  #FG_SCENE_FILL_MAP_BYTES, %d1
-    bhs.s   .Lscene_scroll_reseed_done
+    bhs     .Lscene_scroll_reseed_done
     adda.l  %d1, %a0
+    bra.w   .Lscene_scroll_reseed_copy_plane_a
 
-    /* The compiler has already applied the selected record's immutable
-     * 0x0504FA scroll window, code->slot mapping, palette and orientation. */
+.Lcheckpoint_scroll_reseed_check:
+    tst.b   fg_checkpoint_scroll_reseed_pending
+    beq     .Lscene_scroll_reseed_done
+    clr.b   fg_checkpoint_scroll_reseed_pending
+    moveq   #0, %d3                         /* checkpoint correction is Plane A only */
+    moveq   #1, %d4                         /* compact row-indexed native map */
+    cmpi.b  #SCENE_GAMEPLAY_ID, genesistan_current_scene_id
+    bne     .Lscene_scroll_reseed_done
+
+    /* The compiler emits a complete final-native 64x64 map for every retained
+     * progression record and, only where required, a second map for the
+     * generated overlap package.  Select by live record + active package;
+     * neither checkpoint number nor camera origin appears in this code. */
+    moveq   #0, %d0
+    move.w  0x013E(%a5), %d0
+    cmpi.w  #FG_SCENE_FILL_MAP_RECORDS, %d0
+    bhs     .Lscene_scroll_reseed_done
+    mulu.w  #FG_RECORD_NATIVE_MAP_ENTRY_BYTES, %d0
+    lea     genesistan_plane_a_record_native_row_maps, %a0
+    lea     0(%a0,%d0.l), %a1
+    move.l  0(%a1), %d1                   /* stable-package map offset */
+    move.w  4(%a1), %d2                   /* optional overlap package */
+    cmpi.w  #0xFFFF, %d2
+    beq.s   .Lcheckpoint_map_selected
+    cmp.w   fg_boundary_active_package, %d2
+    bne.s   .Lcheckpoint_map_selected
+    move.l  8(%a1), %d1
+.Lcheckpoint_map_selected:
+    cmpi.l  #(FG_RECORD_NATIVE_ROW_POOL_OFFSET-FG_RECORD_NATIVE_ROW_MAP_TABLE_BYTES), %d1
+    bhs     .Lscene_scroll_reseed_done
+    adda.l  #FG_RECORD_NATIVE_ROW_MAP_TABLE_BYTES, %a0
+    lea     0(%a0,%d1.l), %a2              /* selected 64-entry row-ID map */
+    adda.l  #(FG_RECORD_NATIVE_ROW_POOL_OFFSET-FG_RECORD_NATIVE_ROW_MAP_TABLE_BYTES), %a0
+
+    /* The compiler has applied code->slot mapping, palette and orientation,
+     * but deliberately has not baked a camera origin.  Live 10B0 after
+     * 0x0504FA selects the first resident logical row.  Since both the
+     * logical map and the hardware ring are 64 columns wide, X placement is
+     * the identity modulo 64; the VDP scroll register supplies the subcell
+     * and viewport origin. */
+.Lscene_scroll_reseed_copy_plane_a:
+    move.w  ARCADE_PC080SN_SCROLL_Y_FG_OFFSET(%a5), %d0
+    bsr     .Lplane_a_visible_top_from_scroll_d0
+    move.w  %d0, %d6
     lea     staged_fg_buffer, %a6
-    move.w  #1023, %d7                    /* 2048 words / two per move */
+    moveq   #31, %d7
+.Lscene_scroll_reseed_row:
+    move.w  %d6, %d0
+    andi.w  #0x003F, %d0
+    tst.b   %d4
+    bne.s   .Lscene_scroll_reseed_indexed_row
+    move.w  %d0, %d1
+    lsl.w   #7, %d1                       /* 64 final words = 128 bytes */
+    lea     0(%a0,%d1.w), %a1
+    bra.s   .Lscene_scroll_reseed_row_ready
+.Lscene_scroll_reseed_indexed_row:
+    move.w  %d0, %d1
+    add.w   %d1, %d1
+    moveq   #0, %d2
+    move.w  0(%a2,%d1.w), %d2
+    lsl.l   #7, %d2                       /* final-native row ID -> byte offset */
+    lea     0(%a0,%d2.l), %a1
+.Lscene_scroll_reseed_row_ready:
+    andi.w  #0x001F, %d0
+    lsl.w   #7, %d0
+    lea     0(%a6,%d0.w), %a4
+    moveq   #31, %d5                      /* two final words per move */
 .Lscene_scroll_reseed_cell:
-    move.l  (%a0)+, (%a6)+
-    dbra    %d7, .Lscene_scroll_reseed_cell
+    move.l  (%a1)+, (%a4)+
+    dbra    %d5, .Lscene_scroll_reseed_cell
+    addq.w  #1, %d6
+    andi.w  #0x003F, %d6
+    dbra    %d7, .Lscene_scroll_reseed_row
 
     move.l  #0xFFFFFFFF, fg_row_dirty
     move.b  #1, fg_native_gameplay_owner
+
+    /* Checkpoint restoration owns Plane A only. Plane B retains its existing
+     * independent lifecycle and is deliberately outside this correction. */
+    tst.b   %d3
+    beq.s   .Lscene_scroll_reseed_done
+
+    /* Plane B is independently compiled from the retained scene-fill
+     * descriptor cursor and its final 0x0504FA camera tuple.  Copy final native
+     * name words only; no source descriptor walk occurs here. */
+    lea     genesistan_plane_b_scene_fill_maps, %a0
+    move.l  0(%a0,%d2.l), %d1
+    cmpi.l  #0xFFFFFFFF, %d1
+    beq.s   .Lscene_scroll_reseed_done
+    cmpi.l  #BG_SCENE_FILL_MAP_BYTES, %d1
+    bhs.s   .Lscene_scroll_reseed_done
+    adda.l  %d1, %a0
+    lea     staged_bg_buffer, %a6
+    move.w  #1023, %d7
+.Lscene_scroll_reseed_plane_b_cell:
+    move.l  (%a0)+, (%a6)+
+    dbra    %d7, .Lscene_scroll_reseed_plane_b_cell
+    move.l  #0xFFFFFFFF, bg_row_dirty
 .Lscene_scroll_reseed_done:
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
@@ -5038,6 +5144,10 @@ genesistan_highscore_name_descriptor_table:
     .align 2
 genesistan_plane_a_scene_fill_maps:
     .incbin "../../build/pc080sn_boundary/scene_fill_maps.bin"
+genesistan_plane_a_record_native_row_maps:
+    .incbin "../../build/pc080sn_boundary/record_native_row_maps.bin"
+genesistan_plane_b_scene_fill_maps:
+    .incbin "../../build/pc080sn_boundary/plane_b_scene_fill_maps.bin"
 genesistan_plane_a_pan_row_maps:
     .incbin "../../build/pc080sn_boundary/pan_row_maps.bin"
     .global genesistan_plane_a_authored_descriptor_visuals

@@ -49,6 +49,16 @@ needs them, not in the universal command.)
   `dist/rastan-direct/rastan_direct_video_test_build_NNNN.bin`
 - Report the artifact exactly as generated (path, SHA-256, size, counter).
 
+### Permanent runnable-ROM numbering policy
+
+Every newly generated runnable Genesis ROM must consume a unique sequential Makefile-owned build
+number and be preserved, including experimental, rejected, partially tested, and diagnostic ROMs.
+Do not protect build numbers, overwrite a numbered artifact, or use an unnumbered rolling ROM for an
+internal gameplay comparison. Standard suffix variants (for example `_S1-2`) belong to the same
+numbered build family. As soon as a runnable ROM exists, report its exact path, SHA-256, size, source
+identity and relevant inputs, change summary, limitations, and tests still pending. Compiler failures
+and non-ROM diagnostics do not consume a number. Only Tighe may accept a build.
+
 ## Current architecture status
 
 - Current accepted forward baseline as of this documentation update: **Build 0273**.

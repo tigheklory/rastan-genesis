@@ -32,7 +32,8 @@ end
 local symbols = parse_symbols(symbols_path)
 for _, name in ipairs({"genesistan_presentation_readiness", "genesistan_current_scene_id",
                         "genesistan_scene_present_pending", "palette_pending",
-                        "native_player_body_count", "pc090oj_emitted_count"}) do
+                        "native_player_body_count", "pc090oj_emitted_count",
+                        "staged_fg_buffer"}) do
   assert(symbols[name], "missing symbol: " .. name)
 end
 
@@ -64,14 +65,23 @@ local continue_visible_frames = 0
 local game_over_visible_frames = 0
 local visible_restarts = {}
 local restart_recorded_for_death = 0
+local appearance_count = 0
 local blank_seen_for_death = {}
 local last_presentation_latch = -1
 local last_ready_state = -1
 local taps = {}
 local events = assert(io.open(trace_dir .. "/events.tsv", "w"))
 local frames = assert(io.open(trace_dir .. "/bounded_frames.tsv", "w"))
+local lifecycle = assert(io.open(trace_dir .. "/plane_a_lifecycle.tsv", "w"))
 events:write("frame\tevent\tpc\tsp\touter\tphase\tsubphase\tlives\thp\tplayer_state\tdeath_step\tsession\tdata\n")
 frames:write("frame\tpc\tsp\touter\tphase\tsubphase\tlives\thp\tplayer_state\tdeath_step\tsession\tdisplay\tpresentation\tready_state\tscene\tscene_pending\tpalette_pending\tplayer_body_count\temitted_count\tplayer_x\tplayer_y\tselector_primary\tselector_secondary\n")
+lifecycle:write("appearance\tframe\trecord\tscroll_a_x\tscroll_a_y\tplayer_x\tplayer_y\tstaged_plane_a\n")
+
+local function dump_range(path, address, size)
+  local out = assert(io.open(path, "wb"))
+  for offset = 0, size - 1 do out:write(string.char(r8(address + offset))) end
+  out:close()
+end
 
 local function snapshot_line(tag, data)
   events:write(string.format("%d\t%s\t%06X\t%08X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%s\n",
@@ -166,6 +176,7 @@ local function finish(result, reason)
   end
   out:close()
   frames:close()
+  lifecycle:close()
   events:close()
   machine:exit()
 end
@@ -206,11 +217,27 @@ emu.register_frame_done(function()
     last_transition_frame = frame
   end
   if outer == 2 and phase == 3 then gameplay_seen = true end
-  if player_state == 8 and last_player_state ~= 8 then
+  local previous_player_state = last_player_state
+  if player_state == 8 and previous_player_state ~= 8 then
     death_entries = death_entries + 1
     snapshot_line("DEATH_ENTRY", string.format("count=%d", death_entries))
   end
   last_player_state = player_state
+
+  -- Capture the final native ring at the same retained player-state transition
+  -- for first appearance and both non-final respawns.  This is observation
+  -- only: no game state, camera state, or VDP state is modified.
+  if outer == 2 and phase == 3 and player_state == 3 and
+     previous_player_state ~= 3 and display_on and appearance_count < 3 then
+    appearance_count = appearance_count + 1
+    local name = string.format("staged_plane_a_appearance_%d.bin", appearance_count)
+    dump_range(trace_dir .. "/" .. name, symbols.staged_fg_buffer, 0x1000)
+    lifecycle:write(string.format("%d\t%d\t%04X\t%04X\t%04X\t%04X\t%04X\t%s\n",
+      appearance_count, frame, r16(0xff013e), r16(0xff10ae), r16(0xff10b0),
+      r16(0xff10be), r16(0xff10c0), name))
+    lifecycle:flush()
+    snapshot_line("PLANE_A_APPEARANCE", string.format("count=%d file=%s", appearance_count, name))
+  end
 
   if latch == 1 and display_on then unsafe_visible_frames = unsafe_visible_frames + 1 end
   if death_entries > 0 and latch == 1 and not display_on then blank_seen_for_death[death_entries] = true end
@@ -240,6 +267,17 @@ emu.register_frame_done(function()
     visible_restarts[#visible_restarts + 1] = restart
     restart_recorded_for_death = death_entries
     snapshot_line("FIRST_VISIBLE_RESTART", restart)
+    if appearance_count < 3 then
+      appearance_count = appearance_count + 1
+      local name = string.format("staged_plane_a_appearance_%d.bin", appearance_count)
+      dump_range(trace_dir .. "/" .. name, symbols.staged_fg_buffer, 0x1000)
+      lifecycle:write(string.format("%d\t%d\t%04X\t%04X\t%04X\t%04X\t%04X\t%s\n",
+        appearance_count, frame, r16(0xff013e), r16(0xff10ae), r16(0xff10b0),
+        r16(0xff10be), r16(0xff10c0), name))
+      lifecycle:flush()
+      snapshot_line("PLANE_A_APPEARANCE",
+        string.format("count=%d file=%s", appearance_count, name))
+    end
   end
   if gameplay_seen and death_entries >= 1 and lives == 0 and final_armed_frame < 0 then
     final_armed_frame = frame

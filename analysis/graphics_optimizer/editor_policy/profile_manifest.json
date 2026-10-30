@@ -12,8 +12,8 @@
    "profile_id": "Test",
    "display_name": "Test",
    "parent": "baseline_current",
-   "modified": "2026-10-20T09:11:05Z",
-   "revision": 33
+   "modified": "2026-10-27T14:50:41Z",
+   "revision": 40
   },
   {
    "profile_id": "Tighe",
@@ -21,6 +21,41 @@
    "parent": "Test",
    "modified": "2026-09-27T18:02:30Z",
    "revision": 2
+  },
+  {
+   "profile_id": "t_indep",
+   "display_name": "t_indep",
+   "parent": "baseline_current",
+   "modified": "2026-10-29T15:20:11Z",
+   "revision": 13
+  },
+  {
+   "profile_id": "t_automap",
+   "display_name": "t_automap",
+   "parent": "baseline_current",
+   "modified": "2026-10-29T15:20:08Z",
+   "revision": 17
+  },
+  {
+   "profile_id": "t_derive",
+   "display_name": "t_derive",
+   "parent": "baseline_current",
+   "modified": "2026-10-29T15:20:09Z",
+   "revision": 15
+  },
+  {
+   "profile_id": "t_clear",
+   "display_name": "t_clear",
+   "parent": "baseline_current",
+   "modified": "2026-10-29T15:20:09Z",
+   "revision": 11
+  },
+  {
+   "profile_id": "t_l2reuse",
+   "display_name": "t_l2reuse",
+   "parent": "baseline_current",
+   "modified": "2026-10-29T15:20:09Z",
+   "revision": 9
   }
  ]
 }

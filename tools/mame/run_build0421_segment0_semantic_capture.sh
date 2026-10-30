@@ -21,19 +21,26 @@ STAGED_FG_ADDR=$(symaddr staged_fg_buffer)
 TILESET_ADDR=$(symaddr genesistan_current_pc080sn_tileset_id)
 ACTIVE_RECORD_ADDR=$(symaddr fg_boundary_active_record)
 ACTIVE_PACKAGE_ADDR=$(symaddr fg_boundary_active_package)
+SCENE_PENDING_ADDR=$(symaddr fg_scene_scroll_reseed_pending)
 
 for required in SCENE_ADDR ACTIVE_LUT_ADDR STAGED_BG_ADDR STAGED_FG_ADDR; do
     [[ -n "${!required}" ]] || { echo "missing symbol for $required in $SYMBOLS" >&2; exit 2; }
 done
 
 mkdir -p "$OUTPUT_DIR"
+MAME_DEBUG_ARGS=()
+if [[ -n "${STAGE_PERF_SCENE_ENTRY:-}" ]]; then
+    MAME_DEBUG_ARGS=(-debug -debugger none)
+fi
 TRACE_DIR="$OUTPUT_DIR" SEGMENT0_CAPTURE_X="$PLAYER_X" \
 SCENE_ADDR="$SCENE_ADDR" ACTIVE_LUT_ADDR="$ACTIVE_LUT_ADDR" \
 STAGED_BG_ADDR="$STAGED_BG_ADDR" STAGED_FG_ADDR="$STAGED_FG_ADDR" \
 TILESET_ADDR="$TILESET_ADDR" ACTIVE_RECORD_ADDR="$ACTIVE_RECORD_ADDR" \
 ACTIVE_PACKAGE_ADDR="$ACTIVE_PACKAGE_ADDR" \
+STAGE_PERF_SCENE_PENDING="$SCENE_PENDING_ADDR" \
 timeout 120s mame genesis \
     -cart "$ROM" -video none -sound none -nothrottle -skip_gameinfo \
+    "${MAME_DEBUG_ARGS[@]}" \
     -snapshot_directory "$OUTPUT_DIR" -snapname frame \
     -autoboot_script "$SCRIPT" \
     > "$OUTPUT_DIR/mame_stdout.txt" 2> "$OUTPUT_DIR/mame_stderr.txt"

@@ -80,21 +80,14 @@ def main() -> None:
         vram_pattern_mismatch = 0
         bad_slots: set[int] = set()
         compared = excluded = 0
-        # Plane A is reseeded after the retained camera initializer has chosen
-        # the final 64-row PC080SN window.  A 32-row Genesis plane displays the
-        # same sequence by placing each selected logical row at row & 31; VSRAM
-        # then starts on top & 31.  Score exactly that selected window.  This is
-        # the distinction the old physical-row comparison missed at R1-S2.
-        #
-        # Plane B is outside this correction and retains the established gate's
-        # physical-row model (only row zero shows the final fill alias).
-        if plane == "A":
-            row_pairs = [((top + delta) & 63, (top + delta) & 31)
-                         for delta in range(32)]
-        else:
-            row_pairs = [(32 if physical_row == 0 else physical_row,
-                          physical_row)
-                         for physical_row in range(32)]
+        # Both planes are displayed through a 32-row Genesis ring.  The retained
+        # final camera tuple selects the first visible logical row independently
+        # for each plane, and each selected row belongs at logical_row & 31.
+        # The former Plane-B special case scored the pre-camera fill layout
+        # instead; at R1-S2 it therefore blessed the same half-ring error visible
+        # in gameplay (final top 33 while the staged rows still began at zero).
+        row_pairs = [((top + delta) & 63, (top + delta) & 31)
+                     for delta in range(32)]
         for logical_row, physical_row in row_pairs:
             for column in range(64):
                 # Plane A row zero is presentation-owned by the native HUD after
