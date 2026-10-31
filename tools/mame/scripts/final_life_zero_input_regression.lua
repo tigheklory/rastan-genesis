@@ -75,11 +75,26 @@ local frames = assert(io.open(trace_dir .. "/bounded_frames.tsv", "w"))
 local lifecycle = assert(io.open(trace_dir .. "/plane_a_lifecycle.tsv", "w"))
 events:write("frame\tevent\tpc\tsp\touter\tphase\tsubphase\tlives\thp\tplayer_state\tdeath_step\tsession\tdata\n")
 frames:write("frame\tpc\tsp\touter\tphase\tsubphase\tlives\thp\tplayer_state\tdeath_step\tsession\tdisplay\tpresentation\tready_state\tscene\tscene_pending\tpalette_pending\tplayer_body_count\temitted_count\tplayer_x\tplayer_y\tselector_primary\tselector_secondary\n")
-lifecycle:write("appearance\tframe\trecord\tscroll_a_x\tscroll_a_y\tplayer_x\tplayer_y\tstaged_plane_a\n")
+lifecycle:write("appearance\tframe\trecord\tscroll_a_x\tscroll_a_y\tplayer_x\tplayer_y\tstaged_plane_a\tvram_plane_a\n")
 
 local function dump_range(path, address, size)
   local out = assert(io.open(path, "wb"))
   for offset = 0, size - 1 do out:write(string.char(r8(address + offset))) end
+  out:close()
+end
+
+local function dump_vram_names(path, base)
+  -- Read actual Mega Drive VRAM through the VDP data port.  This is host-side
+  -- observation after the visible appearance boundary; it changes no game,
+  -- camera, checkpoint, or name-table content.
+  program:write_u16(0x00c00004, 0x8f02)
+  program:write_u16(0x00c00004, base & 0x3fff)
+  program:write_u16(0x00c00004, (base >> 14) & 3)
+  local out = assert(io.open(path, "wb"))
+  for _ = 0, 2047 do
+    local word = program:read_u16(0x00c00000) & 0xffff
+    out:write(string.char((word >> 8) & 0xff, word & 0xff))
+  end
   out:close()
 end
 
@@ -231,10 +246,12 @@ emu.register_frame_done(function()
      previous_player_state ~= 3 and display_on and appearance_count < 3 then
     appearance_count = appearance_count + 1
     local name = string.format("staged_plane_a_appearance_%d.bin", appearance_count)
+    local vram_name = string.format("vram_plane_a_appearance_%d.bin", appearance_count)
     dump_range(trace_dir .. "/" .. name, symbols.staged_fg_buffer, 0x1000)
-    lifecycle:write(string.format("%d\t%d\t%04X\t%04X\t%04X\t%04X\t%04X\t%s\n",
+    dump_vram_names(trace_dir .. "/" .. vram_name, 0xe000)
+    lifecycle:write(string.format("%d\t%d\t%04X\t%04X\t%04X\t%04X\t%04X\t%s\t%s\n",
       appearance_count, frame, r16(0xff013e), r16(0xff10ae), r16(0xff10b0),
-      r16(0xff10be), r16(0xff10c0), name))
+      r16(0xff10be), r16(0xff10c0), name, vram_name))
     lifecycle:flush()
     snapshot_line("PLANE_A_APPEARANCE", string.format("count=%d file=%s", appearance_count, name))
   end
@@ -270,10 +287,12 @@ emu.register_frame_done(function()
     if appearance_count < 3 then
       appearance_count = appearance_count + 1
       local name = string.format("staged_plane_a_appearance_%d.bin", appearance_count)
+      local vram_name = string.format("vram_plane_a_appearance_%d.bin", appearance_count)
       dump_range(trace_dir .. "/" .. name, symbols.staged_fg_buffer, 0x1000)
-      lifecycle:write(string.format("%d\t%d\t%04X\t%04X\t%04X\t%04X\t%04X\t%s\n",
+      dump_vram_names(trace_dir .. "/" .. vram_name, 0xe000)
+      lifecycle:write(string.format("%d\t%d\t%04X\t%04X\t%04X\t%04X\t%04X\t%s\t%s\n",
         appearance_count, frame, r16(0xff013e), r16(0xff10ae), r16(0xff10b0),
-        r16(0xff10be), r16(0xff10c0), name))
+        r16(0xff10be), r16(0xff10c0), name, vram_name))
       lifecycle:flush()
       snapshot_line("PLANE_A_APPEARANCE",
         string.format("count=%d file=%s", appearance_count, name))

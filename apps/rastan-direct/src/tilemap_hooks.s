@@ -7,6 +7,7 @@
     .global genesistan_hook_tilemap_plane_a_selector0_native
     .global genesistan_hook_tilemap_plane_a_selector12_native
     .global genesistan_plane_a_scene_scroll_reseed_native
+    .global genesistan_plane_a_scene_scroll_reseed_native_exit
     .global genesistan_plane_a_pan_publish_entering_rows_up
     .global genesistan_plane_a_pan_publish_entering_rows_down
     .global genesistan_pc080sn_directional_dispatch_native
@@ -481,7 +482,10 @@ genesistan_hook_tilemap_plane_a_selector0_native:
     /* Exact inline fg_cache_resolve leaf using the once-per-column context.
      * Zero remains blank without a miss.  The static LUT's masked domain is
      * always below 0x4000 and a zero static entry is not a counted miss.  The
-     * active LUT retains both its out-of-range and zero-entry miss accounting. */
+     * active LUT retains both its out-of-range and zero-entry miss accounting.
+     * Test D3 explicitly: the authored path's immediately preceding attribute
+     * load is allowed to be zero and therefore cannot own this blank decision. */
+    tst.w   %d3
     beq.s   .Lplane_a_sel0_residency_done
     cmp.w   %d7, %d3
     bhs.s   .Lplane_a_sel0_residency_miss
@@ -777,47 +781,67 @@ genesistan_plane_a_scene_scroll_reseed_native:
 
     /* Preserve the retained stream cursor exactly.  The bounded replay changes
      * it only to enumerate the producer domain, then restores it before return. */
+    move.w  ARCADE_PC080SN_SELECTOR_OFFSET(%a5), -(%sp)
     move.w  ARCADE_PC080SN_STRIP_INDEX_OFFSET(%a5), -(%sp)
     move.w  ARCADE_PC080SN_STRIP_GROUP_OFFSET(%a5), -(%sp)
     move.b  #1, plane_a_initial_ring_rebuild_active
 
+    /* Retained 0x0558E8 saves the selector that produced the just-completed
+     * fill in A5+0x132C before advancing A5+0x10A8 to the next record.  Replay
+     * the consumed producer, not that post-fill next-record selector. */
+    move.w  0x132C(%a5), ARCADE_PC080SN_SELECTOR_OFFSET(%a5)
     moveq   #0, %d0
     move.w  ARCADE_PC080SN_SELECTOR_OFFSET(%a5), %d0
-    beq.s   .Lscene_scroll_reseed_selector0
     cmpi.w  #2, %d0
-    bhi.s   .Lscene_scroll_reseed_restore_cursor
+    bhi     .Lscene_scroll_reseed_restore_cursor
+
+    /* Retained 0x0503DC advances each of the 16 live descriptor source
+     * pointers by four bytes after every four strips: 16 groups leave the
+     * table exactly +64 bytes from the start of this fill.  Rewind that
+     * semantic cursor, then mirror the retained advance/rebuild cadence while
+     * replaying the native producer under the final camera and active LUT.
+     * The last advance returns every pointer and rebuilt table to its exact
+     * retained post-fill value; no descriptor snapshot or name-map shadow is
+     * allocated. */
+    lea     PC080SN_DESC_REBUILD_SRC_TABLE, %a0
+    moveq   #15, %d7
+.Lscene_scroll_reseed_rewind_sources:
+    subi.l  #64, (%a0)
+    addq.l  #4, %a0
+    dbra    %d7, .Lscene_scroll_reseed_rewind_sources
 
     clr.w   ARCADE_PC080SN_STRIP_INDEX_OFFSET(%a5)
     clr.w   ARCADE_PC080SN_STRIP_GROUP_OFFSET(%a5)
-    moveq   #63, %d7
-.Lscene_scroll_reseed_selector12_loop:
+    bsr     .Lscene_scroll_reseed_rebuild_descriptors
+    moveq   #15, %d6
+.Lscene_scroll_reseed_group_loop:
+    moveq   #3, %d7
+.Lscene_scroll_reseed_strip_loop:
+    tst.w   %d0
+    beq.s   .Lscene_scroll_reseed_emit_selector0
     bsr     genesistan_hook_tilemap_plane_a_selector12_native
-    addq.w  #1, ARCADE_PC080SN_STRIP_INDEX_OFFSET(%a5)
-    cmpi.w  #4, ARCADE_PC080SN_STRIP_INDEX_OFFSET(%a5)
-    blo.s   .Lscene_scroll_reseed_selector12_next
-    clr.w   ARCADE_PC080SN_STRIP_INDEX_OFFSET(%a5)
-    addq.w  #1, ARCADE_PC080SN_STRIP_GROUP_OFFSET(%a5)
-.Lscene_scroll_reseed_selector12_next:
-    dbra    %d7, .Lscene_scroll_reseed_selector12_loop
-    bra.s   .Lscene_scroll_reseed_restore_cursor
-
-.Lscene_scroll_reseed_selector0:
-    clr.w   ARCADE_PC080SN_STRIP_INDEX_OFFSET(%a5)
-    clr.w   ARCADE_PC080SN_STRIP_GROUP_OFFSET(%a5)
-    moveq   #63, %d7
-.Lscene_scroll_reseed_selector0_loop:
+    bra.s   .Lscene_scroll_reseed_strip_done
+.Lscene_scroll_reseed_emit_selector0:
     bsr     genesistan_hook_tilemap_plane_a_selector0_native
+.Lscene_scroll_reseed_strip_done:
     addq.w  #1, ARCADE_PC080SN_STRIP_INDEX_OFFSET(%a5)
-    cmpi.w  #4, ARCADE_PC080SN_STRIP_INDEX_OFFSET(%a5)
-    blo.s   .Lscene_scroll_reseed_selector0_next
+    dbra    %d7, .Lscene_scroll_reseed_strip_loop
     clr.w   ARCADE_PC080SN_STRIP_INDEX_OFFSET(%a5)
     addq.w  #1, ARCADE_PC080SN_STRIP_GROUP_OFFSET(%a5)
-.Lscene_scroll_reseed_selector0_next:
-    dbra    %d7, .Lscene_scroll_reseed_selector0_loop
+
+    lea     PC080SN_DESC_REBUILD_SRC_TABLE, %a0
+    moveq   #15, %d7
+.Lscene_scroll_reseed_advance_sources:
+    addq.l  #4, (%a0)
+    addq.l  #4, %a0
+    dbra    %d7, .Lscene_scroll_reseed_advance_sources
+    bsr     .Lscene_scroll_reseed_rebuild_descriptors
+    dbra    %d6, .Lscene_scroll_reseed_group_loop
 
 .Lscene_scroll_reseed_restore_cursor:
     move.w  (%sp)+, ARCADE_PC080SN_STRIP_GROUP_OFFSET(%a5)
     move.w  (%sp)+, ARCADE_PC080SN_STRIP_INDEX_OFFSET(%a5)
+    move.w  (%sp)+, ARCADE_PC080SN_SELECTOR_OFFSET(%a5)
     clr.b   plane_a_initial_ring_rebuild_active
 
     move.l  #0xFFFFFFFF, fg_row_dirty
@@ -859,8 +883,39 @@ genesistan_plane_a_scene_scroll_reseed_native:
      * (and scene-entry Plane B where applicable) is staged and marked dirty. */
     bsr     genesistan_presentation_mark_ready_after_publish
 .Lscene_scroll_reseed_done:
+genesistan_plane_a_scene_scroll_reseed_native_exit:
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
+
+/* Rebuild only the retained semantic descriptor word/pointer products.  The
+ * public 0x055904 replacement additionally owns record/package selection;
+ * initialization replay must retain the already-installed post-fill package,
+ * so this local leaf deliberately performs only the proven descriptor work. */
+.Lscene_scroll_reseed_rebuild_descriptors:
+    movem.l %d0-%d1/%d7/%a0-%a4, -(%sp)
+    lea     PC080SN_DESC_REBUILD_SRC_TABLE, %a0
+    lea     PC080SN_DESC_REBUILD_PTR_TABLE, %a1
+    lea     PC080SN_DESC_REBUILD_WORD_TABLE, %a2
+    moveq   #15, %d7
+.Lscene_scroll_reseed_rebuild_loop:
+    movea.l (%a0)+, %a4
+    cmpa.l  #PC080SN_DESC_ARCADE_START, %a4
+    blo.s   .Lscene_scroll_reseed_rebuild_bad_ptr
+    cmpa.l  #PC080SN_DESC_ARCADE_END, %a4
+    bhs.s   .Lscene_scroll_reseed_rebuild_bad_ptr
+    suba.l  #PC080SN_DESC_ARCADE_START, %a4
+    adda.l  #PC080SN_DESC_GENESIS_START, %a4
+    move.w  (%a4), (%a2)+
+    clr.l   %d1
+    move.w  2(%a4), %d1
+    movea.l #PC080SN_DESC_SECOND_WORD_BASE, %a4
+    lea     0(%a4,%d1.l), %a4
+    move.l  %a4, (%a1)+
+    dbra    %d7, .Lscene_scroll_reseed_rebuild_loop
+    movem.l (%sp)+, %d0-%d1/%d7/%a0-%a4
+    rts
+.Lscene_scroll_reseed_rebuild_bad_ptr:
+    trap    #0
 
 /* Native Plane A no-publication vertical-scroll route.
  *

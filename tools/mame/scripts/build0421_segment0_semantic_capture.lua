@@ -19,6 +19,10 @@ local staged_fg_addr = assert(tonumber(os.getenv("STAGED_FG_ADDR")), "STAGED_FG_
 local tileset_addr = tonumber(os.getenv("TILESET_ADDR") or "")
 local active_record_addr = tonumber(os.getenv("ACTIVE_RECORD_ADDR") or "")
 local active_package_addr = tonumber(os.getenv("ACTIVE_PACKAGE_ADDR") or "")
+local reseed_entry_addr = tonumber(os.getenv("RESEED_ENTRY_ADDR") or "")
+local reseed_exit_addr = tonumber(os.getenv("RESEED_EXIT_ADDR") or "")
+local capture_reseed_boundaries = os.getenv("STAGE_CAPTURE_RESEED_BOUNDARIES") == "1"
+local debug_post_lut_addr = tonumber(os.getenv("STAGE_DEBUG_POST_LUT_ADDR") or "")
 
 -- Optional host-only cycle probes.  Addresses come from the matching ELF;
 -- ordinary captures install no debugger breakpoints and production ROM state
@@ -47,6 +51,22 @@ if (perf_scene_entry and perf_scene_exit) or (perf_row_entry and perf_row_copy_d
       'printf "RG12,ROW_ENTRY,%d,%d\\n",totalcycles,frame; g')
     cpu.debug:bpset(perf_row_copy_done, "w@ff10a8!=0",
       'printf "RG12,ROW_COPY_DONE,%d,%d\\n",totalcycles,frame; g')
+  end
+end
+if capture_reseed_boundaries then
+  debug_log = assert(machine.debugger and machine.debugger.consolelog,
+    "reseed boundary capture requires -debug -debugger none")
+  assert(reseed_entry_addr, "RESEED_ENTRY_ADDR is required for boundary capture")
+  assert(reseed_exit_addr, "RESEED_EXIT_ADDR is required for boundary capture")
+  cpu.debug:bpset(reseed_entry_addr, "1", string.format(
+    "save %s/staged_plane_a_before_050538.bin,%x,1000; save %s/active_lut_before_050538.bin,%x,5000; g",
+    trace_dir, staged_fg_addr, trace_dir, active_lut_addr))
+  cpu.debug:bpset(reseed_exit_addr, "1", string.format(
+    "save %s/staged_plane_a_after_050538.bin,%x,1000; save %s/active_lut_after_050538.bin,%x,5000; g",
+    trace_dir, staged_fg_addr, trace_dir, active_lut_addr))
+  if debug_post_lut_addr then
+    cpu.debug:bpset(debug_post_lut_addr,
+      "1", 'printf "RG43,%X,%X,%X,%X,%X,%X,%X\\n",d3,w@(sp+6),w@sp,d4,d5,d7,a2; g')
   end
 end
 
@@ -184,6 +204,11 @@ emu.register_frame_done(function()
     dump_vram_names(trace_dir .. "/vram_plane_b.bin", 0xc000)
     dump_vram_names(trace_dir .. "/vram_plane_a.bin", 0xe000)
     dump_vram(trace_dir .. "/vram.bin")
+    if debug_post_lut_addr and debug_log then
+      local dbg = assert(io.open(trace_dir .. "/post_lut_registers.txt", "w"))
+      for index = 1, #debug_log do dbg:write(tostring(debug_log[index]), "\n") end
+      dbg:close()
+    end
     local out = assert(io.open(trace_dir .. "/state.tsv", "w"))
     out:write("frame\tstate0\tstate2\tstate4\tscene\ttileset\tactive_record\tactive_package\tplayer_x\tplayer_y\trecord\tselector\tscroll_a_x\tscroll_a_y\tscroll_b_x\tscroll_b_y\tstrip_index\tstrip_group\tbg_subcol\tbg_walker\tbg_table_index\tstage_byte\tphase3_enable\tphase3_tick\n")
     out:write(string.format("%d\t%04X\t%04X\t%04X\t%02X\t%02X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%08X\t%04X\t%02X\t%04X\t%04X\n",
