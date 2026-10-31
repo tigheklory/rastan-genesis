@@ -54450,3 +54450,45 @@ SOURCE CODE -> BESTIARY -> EDITOR. Static only, no traces, no ROM/Test.json/pale
   partial tables), two distinct defects on orthogonal axes; fixing one does not fix the other. Handoff
   A–G for Cody in the report.
 - Report: `docs/design/Andy_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0042_plane_a_initialization_r2s1_research.md`.
+
+### MAME Exit Summary (2026-10-30 17:19:55)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-30 17:27:18)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-30 17:29:44)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-31 14:59:06)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0043/0044 — Plane A respawn completion (Cody, 2026-10-31)
+
+- Resumed the preserved Build 0524 live-producer work; Builds 0522/0523 remain rejected and Build 0524
+  remains unaccepted. Retained exact 16x4 descriptor-source cadence, saved fill selector `A5+$132C`,
+  next-selector/cursor restoration, and removal of runtime static all-record Plane A images.
+- First-writer proof: the 14 R1-S2 bad cells are written during `$050538`, not later settling. Selector 0
+  loads authored code `$1731`, then zero attribute `$0000`; stale Z makes `BEQ` skip active LUT
+  `$1731->$0301`. Fix is shared `TST.W D3` before the blank check; no code/coordinate special case.
+- Build 0525: 3,792,568 bytes; SHA-256
+  `e5f9b01205ed4a7d535488ab8b5da88522f9df33eeae70ca7d0261a694cbf98d`; counter `0525`.
+  Canonical/gameplay-entry/seven-epoch gates, mandatory trace, seven standard variants, R1-S1/S2/S3
+  initial authored spatial comparisons, R1-S2 selector-1 scrolling, and death/respawn route PASS.
+- R1-S2 direct audio PASS: command `$27`; unchanged Re-In-Carnation bytes now linked `$40000` earlier
+  after duplicate Plane A payload removal; zero bank mismatches. Coverage delta measured/validated `$50000`.
+- Direct derivatives: S1-2 SHA `12a90eb5c1b94d6a98742b26d2ccac3aa63de093d5d6aad75d0b51185d802491`;
+  S1-3 SHA `a6da6793afc621eaf73f4242974abdee6aa8786e5037e171c3ffeae52dbd9194`.
+- Not claimed accepted: Tighe must verify actual R1-S1 record `$000B` checkpoint, later R1-S2
+  scrolling/climbing, and R1-S3. Reports: PROMT-ID-0043 population restoration, PROMT-ID-0044
+  completion, and standalone Build-0525 receipt under `docs/design/`.
+- Implementation commits: `c7ac1f1c` (live-producer restoration) and `59260a9e` (final cadence,
+  saved-selector, stale-condition fix, `$50000` coverage, and evidence tools).
