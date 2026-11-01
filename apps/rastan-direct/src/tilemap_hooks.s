@@ -1455,6 +1455,53 @@ resolve_plane_a_collision_cell:
     cmpi.w  #BG_LOGICAL_SPAN, %d4
     blo.w   .Lplane_a_row_col_loop
 
+    /* A selector-0 record can begin while columns from the preceding
+     * selector-1/2 record still occupy the unreplaced side of the 64-column
+     * ring.  The arcade keeps those exact transposed/reversed cells in
+     * PC080SN RAM; it does not reinterpret them through selector-0 geometry
+     * when vertical camera motion exposes another row.  The general resolver
+     * above correctly reconstructs the current selector-0 side, but its
+     * preceding-revolution pointer walk uses selector-0 axes for the retained
+     * side.  Restore columns after the live front from the already-generated
+     * final row of the preceding selector-1/2 record.  No extra map or runtime
+     * translation is introduced: this is the same immutable pan-row asset
+     * used by the ordinary selector-1/2 no-publication path. */
+    tst.w   ARCADE_PC080SN_SELECTOR_OFFSET(%a5)
+    bne.w   .Lplane_a_row_mark_dirty
+    tst.w   0x132C(%a5)                      /* preceding record selector */
+    beq.w   .Lplane_a_row_mark_dirty
+    moveq   #0, %d1
+    move.w  0x013E(%a5), %d1                 /* current record */
+    beq.w   .Lplane_a_row_mark_dirty
+    subq.w  #1, %d1                          /* retained preceding record */
+    cmpi.w  #FG_BOUNDARY_RECORDS, %d1
+    bhs.w   .Lplane_a_row_mark_dirty
+    lsl.l   #2, %d1
+    lea     genesistan_plane_a_pan_row_maps, %a0
+    move.l  0(%a0,%d1.l), %d2
+    cmpi.l  #0xFFFFFFFF, %d2
+    beq.w   .Lplane_a_row_mark_dirty
+    cmpi.l  #FG_PAN_ROW_MAP_BYTES, %d2
+    bhs.w   .Lplane_a_row_mark_dirty
+    adda.l  %d2, %a0
+    moveq   #0, %d1
+    move.w  0(%sp), %d1
+    lsl.l   #7, %d1                          /* selected final logical row */
+    adda.l  %d1, %a0
+    move.w  %d7, %d1                         /* front is last replaced column */
+    addq.w  #1, %d1
+    cmpi.w  #BG_LOGICAL_SPAN, %d1
+    bhs.w   .Lplane_a_row_mark_dirty
+    move.w  %d1, %d2
+    add.w   %d2, %d2
+    adda.w  %d2, %a0
+    adda.w  %d2, %a6
+    move.w  #BG_LOGICAL_SPAN-1, %d2
+    sub.w   %d1, %d2                         /* DBRA count = 63 - first */
+.Lplane_a_row_restore_previous_selector:
+    move.w  (%a0)+, (%a6)+
+    dbra    %d2, .Lplane_a_row_restore_previous_selector
+
 .Lplane_a_row_mark_dirty:
     move.w  2(%sp), %d0
     move.l  fg_row_dirty, %d1
