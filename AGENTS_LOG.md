@@ -54513,3 +54513,27 @@ SOURCE CODE -> BESTIARY -> EDITOR. Static only, no traces, no ROM/Test.json/pale
   0508's generator normalized it to `$0000`; VDP backdrop still selects CRAM[0], explaining gray borders.
   Boss music needs authentic retained-command capture/mapping to the already-present boss track.
 - Report: `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0045_round1_rendering_and_palette_coverage_audit.md`.
+
+## PROMPT-ID-0046 — R1 arcade scroll / sprite / palette research (Andy, READ-ONLY, 2026-11-01)
+- READ-ONLY static arcade RE for Cody PROMPT-ID-0045. No Genesis ASM/C/remap/build-tool/audio/graphics/
+  authored-palette/Test.json/Bestiary/ROM change; no ROM built; no build number. Report + this entry only.
+  No new C decompilation was required — all needed functions were already in the maintained corpus.
+- NOTE: prompt expected arcade MAME + BlastEm screenshots; none were attached. All source analysis complete;
+  pixel/landmark confirmations marked PENDING IMAGES in the report.
+- P0 (R1-S2 vertical scroll): arcade FG plane is 64x64 tiles (512px, 64-row ring); row selected by
+  ring_row=(A5+0x10AE & 0x1FF)/8; a new map row streams per 8-px crossing (A5+0x10B2 -> 0x406A4), direction
+  A5+0x13D0 (2up/3down); descriptor rebuild 0x55904 via 0x558A2 (strip 0..3, 16 ptrs +4 every 4 strips);
+  scene index 0x013E advances downstream of column consumption. Genesis Plane A is 64x32 (reg16 0x9001,
+  PLANE_NAME_WORDS=2048, 256px/32-row ring) -> leading divergence candidate for mid-climb misplacement that
+  realigns near the end (not a palette bug). Root cause NOT proven; residency/phase check handed to Cody.
+- P1: "armored man"=base 0x0A73 is the state-0x0F DEATH/impact anim (comp 2), NOT confirmed as the walking
+  enemy base (do not conflate); walking-armored live base UNRESOLVED; "wizard" is UNIDENTIFIED anywhere in
+  the corpus. R1-S3 boss body = base 0x061D (rectype 0x0E, comp 1, slot A5+0x708), palette pool 11
+  (0x3BA88[0][15]->0x4FD02+11*32). R1-S3 Plane A/B palette source = metatile chain 0x562CA/0x563A6;
+  recommend new R1-S3 Composer source contexts (reuse shared libs, no duplication).
+- P2: multi-piece sprites use signed int8 offsets + facing negation; corrupt-vs-correct instance pair =>
+  instance/state-dependent piece-Y sign/width fault in the Genesis PC090OJ translation, not invalid assets.
+  Diagnostic plan handed to Cody; no fix.
+- Secondary: R1-S1 gray border = Genesis backdrop reg 0x87 (presentation), arcade target is black; R1 boss
+  music command NOT located (0x3A0EC is SFX, not music) - follow-up decode recommended.
+- Report: docs/design/Andy_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0046_round1_arcade_scrolling_sprite_palette_research.md
