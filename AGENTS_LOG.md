@@ -54582,3 +54582,29 @@ SOURCE CODE -> BESTIARY -> EDITOR. Static only, no traces, no ROM/Test.json/pale
 - Gray border: VERIFIED PAL-R1-S1-PLANEA-OUTDOOR.bin[0]=0x0888 vs test_palette_line0.bin[0]=0x0000; CRAM[0]
   backdrop. Boss music: track exists, authentic command UNRESOLVED (0x3A0EC is SFX).
 - Report: docs/design/Andy_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0050_cody0045_independent_review_and_rope_timing.md
+
+### MAME Exit Summary (2026-11-01 16:43:39)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0053 — R1-S2 Plane A placement (Cody, 2026-11-01)
+
+- Proven static discrepancy at record 17 selector 1 -> record 18 selector 0: the original mixed
+  PC080SN ring retains selector-1-transposed columns after the live front, while Build 0525's dynamic
+  entering-row resolver reinterpreted that preceding revolution through selector-0 axes. This selects
+  valid castle art at wrong architectural coordinates until the current record replaces the ring.
+- Build 0526 corrects only `.Lplane_a_publish_logical_row_native`: current columns `0..front` retain
+  the existing live selector-0 resolver; retained columns `front+1..63` reuse the preceding record's
+  existing final-native selector-1/2 pan row. No new map/buffer, translation layer, VDP/DMA work,
+  collision/gameplay change, Plane-B/sprite/palette/audio change, or coordinate special case.
+- Exact ROM source: `f0b7218c53af3488bd1d5276e71ba617be2f584d`. Canonical, gameplay-entry,
+  seven-epoch/package, variant-set, static Plane-A source/residency, boot, and mandatory 30-second
+  Genesis NTSC gates PASS. No diagnostic trace/instrumentation/gameplay automation was created.
+- Standard ROM: 3,792,568 bytes, SHA-256
+  `d6eca7393cd22f178cd313ee4afec9f221232755b75f711ef8cfd8446f56efda`.
+- R1-S2 direct start: 3,792,568 bytes, SHA-256
+  `f1c0a126bd1028014c1f4da1beea1f13a5e56dc39a087d273ea5740dba8a407b`.
+- Candidate only. Tighe must verify the natural 17->18 mixed-ring climb, reverse travel, records 19-21,
+  checkpoints, and unchanged collision/Plane B/actors/palette/audio/boss entry.
+- Report: `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0053_r1s2_plane_a_scroll_placement_bug.md`.
