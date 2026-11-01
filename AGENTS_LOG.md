@@ -54557,3 +54557,28 @@ SOURCE CODE -> BESTIARY -> EDITOR. Static only, no traces, no ROM/Test.json/pale
 - Gray CRAM[0] `$0888` mechanism and existing-but-unmapped boss track confirmed. Andy's claim that
   `$03A0EC` is SFX-only is contradicted by authentic music command `$27` using the shared bridge.
 - Report: `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0049_andy0046_independent_review_and_rope_regression.md`.
+
+## PROMPT-ID-0050 — Peer review of Cody 0045 + rope regression (Andy, READ-ONLY, 2026-11-01)
+- READ-ONLY review (Cody concurrent 0049). Report + this entry only. No production/Composer/Test.json/
+  audio/asset/benchmark/ROM change; no benchmark rerun; no new C needed (raw disasm sufficient).
+- Screenshots (per Tighe): first set = GENESIS/BlastEm (Build 0525), second set = ARCADE (ROUND 1).
+  Landmark-level only; no matched camera/record/scroll state -> no pixel first-divergence.
+- PROVEN scroll ownership: A5+0x10AE = FG/Plane-A Y (0x55ACC->0xC40002); A5+0x10B0 = BG/text-layer Y
+  (0x55AC4->0xC20002). Cody's "0x10B0 = live Plane A Y" is CONTRADICTED; my 0046 was right. Y updater
+  0x55832(-step,mode3)/0x55854(+step,mode2) all write 0x10AE; 8-px row stream 0x406A4 via 0x10B2.
+- RETRACTED my 0046 64x64 recommendation: 64x32 is SUFFICIENT (28 visible + 4 margin <= 32; incremental
+  row replacement; no ring collision demonstrated). Better P0 explanation = Cody's incremental
+  source-selection split (records 17/21 precompiled selector-1 pan_row_maps; 18-20 dynamic selector-0),
+  likely first divergence 17->18. SUPPORTED HYPOTHESIS.
+- Wizard scope CORRECTED: wizards are later-round, NOT R1-S2; my 0046 erred.
+- Bottom-up climb: FG Y init 0x160 (owner 0x10AE verified) = ring row 44/64 -> high start, not bottom
+  world origin. World-Y-up sign / descriptor-sequence end for a climb UNRESOLVED (needs capture).
+- Armored men = green sword-knights (multi-piece walking); living base UNRESOLVED and NOT 0x0A73 (death/
+  impact anim). Agrees with Cody that death base != species.
+- Rope 795->799 (+4, deterministic): FACTUAL. Script unchanged since Build 426 (test-drift ruled out).
+  elapsed = attach(0x13e>=2 & state4) - start(0x10be==0x20 & state1-3), progression frames not cycles.
+  Leading SUPPORTED HYPOTHESIS = 0525 scene-entry Plane A replay scheduling latency; CPU-slowdown framing
+  not supported; precise cause UNRESOLVED (needs 795-vs-0525 first-divergent-frame capture).
+- Gray border: VERIFIED PAL-R1-S1-PLANEA-OUTDOOR.bin[0]=0x0888 vs test_palette_line0.bin[0]=0x0000; CRAM[0]
+  backdrop. Boss music: track exists, authentic command UNRESOLVED (0x3A0EC is SFX).
+- Report: docs/design/Andy_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0050_cody0045_independent_review_and_rope_timing.md
