@@ -54537,3 +54537,23 @@ SOURCE CODE -> BESTIARY -> EDITOR. Static only, no traces, no ROM/Test.json/pale
 - Secondary: R1-S1 gray border = Genesis backdrop reg 0x87 (presentation), arcade target is black; R1 boss
   music command NOT located (0x3A0EC is SFX, not music) - follow-up decode recommended.
 - Report: docs/design/Andy_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0046_round1_arcade_scrolling_sprite_palette_research.md
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0049 — Andy 0046 independent review and rope regression (Cody, 2026-11-01)
+
+- READ-ONLY peer review of Build 0525. No source/spec/profile/tool/test/asset/trace/ROM/counter change and
+  no build. Existing Ghidra exports, source, reports, captures, and benchmark receipts only.
+- Andy 0046 field ownership is contradicted by original `$055AB4`: `$10B0->$C20002` is FG Y and
+  `$10AE->$C40002` is FG X. R1-S2 record-16 `$0160` initializes X; Y starts `$0000`. Direction 0/1 is Y;
+  2/3 is X. Its high-Y-band premise and 64x64 recommendation therefore do not stand.
+- Genesis 64x32 is capacity-sufficient: Build 0525 retains logical rows 0..63 until final `row&31`, and
+  32 consecutive logical rows map bijectively to the 32 physical slots. P0 root remains UNRESOLVED;
+  split selector/source rules remain the supported first-capture target.
+- Rope elapsed regression is PROVEN: accepted 0472 and builds through 0503 are 795; 0517 is 796; 0519
+  and 0525 are 799. Runner/Lua are unchanged and final semantic tuple matches. Cause is UNRESOLVED because
+  existing receipts contain no intermediate event diff.
+- R1-S2 has no wizards (Tighe correction). `$0A73` is death/impact presentation, not proven live walking
+  identity. R1-S2/R1-S3 Composer coverage remains incomplete. Downward displaced armored fragments favor
+  per-instance frame/coordinate/layout error; DMA/SAT pressure predicts omission and remains secondary.
+- Gray CRAM[0] `$0888` mechanism and existing-but-unmapped boss track confirmed. Andy's claim that
+  `$03A0EC` is SFX-only is contradicted by authentic music command `$27` using the shared bridge.
+- Report: `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0049_andy0046_independent_review_and_rope_regression.md`.
