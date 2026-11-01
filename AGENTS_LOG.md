@@ -54492,3 +54492,24 @@ SOURCE CODE -> BESTIARY -> EDITOR. Static only, no traces, no ROM/Test.json/pale
   completion, and standalone Build-0525 receipt under `docs/design/`.
 - Implementation commits: `c7ac1f1c` (live-producer restoration) and `59260a9e` (final cadence,
   saved-selector, stale-condition fix, `$50000` coverage, and evidence tools).
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0045 — Round 1 visual/coverage audit (Cody, 2026-11-01)
+
+- Read-only Build-0525 investigation; no source/spec/profile/tool/test/asset/ROM/counter change and no
+  build. Report only under `docs/design/` plus this append-only entry.
+- P0 leading cause: R1-S2 changes publication paths across records 16–21 (full replay; precompiled
+  selector-1 rows at 17/21; untested dynamic selector-0 rows at 18–20). This exactly brackets Tighe's
+  correct-entry / wrong-middle / correct-end observation, but the first bad cell requires a synchronized
+  arcade/Genesis natural-transition capture. Existing zero-mismatch gates do not reach 18–21 and use a
+  compiler-derived selector-1 oracle.
+- P1: Test exposes only R1-S1/R1-S2 Plane A. R1-S3 has a 219-use Plane-A corpus (banks 008/019) but no
+  authored/production context; Plane B is absent and Line 2 remains protected. R1-S2 sprite coverage is
+  `SCHEDULE_ONLY`; armored bases 0A73/0A5A are proven but not a complete scene-tagged Composer inventory;
+  wizard identity remains unresolved. R1 boss body/composite 061D exists but lacks complete R1-S3 context.
+- P2 leading diagnostic: capture both armored instances plus semantic queues, 12-entry DMA worklist,
+  49-cell residency, dropped count, shadow/VDP SAT, and VRAM. Silent resource truncation is the leading
+  hypothesis; simultaneous normal/corrupt actors reject a globally wrong-art explanation.
+- Secondary root cause isolated: per-scene CRAM assets preserve Test Line-0 entry-0 `$0888`, while Build
+  0508's generator normalized it to `$0000`; VDP backdrop still selects CRAM[0], explaining gray borders.
+  Boss music needs authentic retained-command capture/mapping to the already-present boss track.
+- Report: `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0045_round1_rendering_and_palette_coverage_audit.md`.
