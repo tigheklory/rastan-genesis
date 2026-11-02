@@ -54686,3 +54686,32 @@ SOURCE CODE -> BESTIARY -> EDITOR. Static only, no traces, no ROM/Test.json/pale
   with consecutive-frame state transitions around records 16/17/18, deltas 1..4, crossings, and
   one-frame direction reversals.
 - Handoff: `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0056_fast_rope_climb_scroll_handoff.md`.
+
+### MAME Exit Summary (2026-11-02 15:13:44)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0057 — Build 0529 R1-S2 rope trace diagnostic (Cody, 2026-11-02)
+
+- Preserved Build 0528 production assembly and created external, human-played JUMP/NORMAL trace
+  modes. Both modes use one Makefile-owned invincible R1-S2 derivative and never automate gameplay.
+- Reused the original arcade invincibility contract: source configuration `$FFBF` makes retained
+  startup set `A5+$0040=$0040`. The release verifier proved its paired bit/config state, 66/66
+  damage dispatches, and zero unrelated ROM differences. Movement/collision/camera code is
+  unchanged; ordinary hit-stun/knockback is suppressed and water remains lethal.
+- Diagnostic: `dist/rastan-direct/rastan_direct_video_test_build_0529_invincible_S1-2.bin`,
+  3,792,568 bytes, SHA-256
+  `f47d3ed5c91e5e7a424de8f71e7f5622fbd8a71fbbf4a98e693992bbd8421e4a`.
+- Derivative differs from `_invincible` parent only at `$0508A3` (`$25->$27`) and `$05FF9F`
+  (`$FF->$DF`). Static scope and Genesis NTSC functional start both PASS; live stage `$0010`, record
+  `$0011`, both planes populated, map misses 0.
+- Canonical, gameplay-entry, six epoch/package, boot, complete family, mandatory 1,798-frame trace,
+  invincibility, and subround gates PASS. Counter/ledger advanced 0528 -> 0529.
+- Tool/source commit used for build: `1c53a3be1ea5b832058aeb204cd09cd6513cd428`.
+- Run `tools/diagnostics/run_r1s2_rope_trace.sh jump`, then `... normal`, then
+  `tools/diagnostics/compare_r1s2_rope_traces.py`. Output root:
+  `states/traces/r1s2_rope_build_0529/`.
+- No complete human traces existed at handoff; no root cause or renderer fix is claimed.
+- Reports: `docs/design/Cody_build0529_r1s2_invincible_rope_trace_diagnostic.md` and
+  `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0057_r1s2_rope_trace_comparison.md`.

@@ -33,7 +33,7 @@ local frames=assert(io.open(td.."/frames.tsv","w"))
 local events=assert(io.open(td.."/events.tsv","w"))
 local markers=assert(io.open(td.."/markers.tsv","w"))
 local meta=assert(io.open(td.."/metadata.txt","w"))
-frames:write(table.concat({"frame","marker","input","player_x","player_y","accum_up","accum_down","accum_left","accum_right","step_y","camera_delta","scroll_flags","scroll_direction","fg_x","fg_y","staged_fg_x","staged_fg_y","record","selector","completed_selector","strip","group","player_state","facing","src_ref","fg_row_dirty","fg_col_dirty","narrow_count","selection_mode","entering_logical_rows","entering_physical_rows","vc0","vc1","vc2","vc3","vc4","vc5","vc6","plane_a_vlines","total_vlines","dirty_write_count","vc_write_sequence","path_events","staged_rows"},"\t"),"\n")
+frames:write(table.concat({"frame","marker","input","invincibility_state","player_x","player_y","accum_up","accum_down","accum_left","accum_right","step_y","camera_delta","scroll_flags","scroll_direction","fg_x","fg_y","staged_fg_x","staged_fg_y","record","selector","completed_selector","strip","group","player_state","facing","src_ref","fg_row_dirty","fg_col_dirty","narrow_count","selection_mode","entering_logical_rows","entering_physical_rows","vc0","vc1","vc2","vc3","vc4","vc5","vc6","plane_a_vlines","total_vlines","dirty_write_count","vc_write_sequence","path_events","staged_rows"},"\t"),"\n")
 events:write("frame\tevent\tpc\tdetail\n")
 markers:write("frame\tmode\tfg_y\trecord\tselector\tstrip\tgroup\tplayer_x\tplayer_y\n")
 meta:write("platform=GENESIS NTSC MAME\nmachine=genesis\nmode="..mode.."\n")
@@ -158,7 +158,7 @@ emu.register_frame_done(function()
   local paths=table.concat(path_sequence,">")
   local vc={}; for i=0,6 do vc[#vc+1]=r8(VC+i) end
   local row=table.concat({
-    frame,mark and 1 or 0,hx(r16(A5+0x0016),4),hx(r16(A5+0x10be),4),hx(r16(A5+0x10c0),4),
+    frame,mark and 1 or 0,hx(r16(A5+0x0016),4),hx(r16(A5+0x0040),4),hx(r16(A5+0x10be),4),hx(r16(A5+0x10c0),4),
     hx(r16(A5+0x1262),4),hx(r16(A5+0x1264),4),hx(r16(A5+0x1266),4),hx(r16(A5+0x1268),4),
     signed16(r16(A5+0x10de)),signed16(r16(A5+0x10da)),hx(r16(A5+0x10d0),4),direction,
     hx(r16(A5+0x10ae),4),hx(y,4),hx(r16(SCROLL_X),4),hx(r16(SCROLL_Y),4),

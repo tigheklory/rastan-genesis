@@ -10,7 +10,10 @@ COMPARE = ("selection_mode", "entering_physical_rows", "staged_rows", "fg_row_di
 
 def load(path: Path):
     with (path / "frames.tsv").open(newline="") as f:
-        return list(csv.DictReader(f, delimiter="\t"))
+        rows=list(csv.DictReader(f, delimiter="\t"))
+    # R1-S2 begins at retained record 0x10/0x11. Exclude title/READY repetition,
+    # which has no scene-progression meaning and otherwise dominates common keys.
+    return [r for r in rows if int(r.get("record", "0"), 16) >= 0x10]
 
 def key(row): return tuple(row.get(k, "") for k in KEY)
 
@@ -22,10 +25,14 @@ def main() -> int:
     a=ap.parse_args(); jump,normal=load(a.jump),load(a.normal)
     ni=defaultdict(list)
     for r in normal: ni[key(r)].append(r)
+    used=defaultdict(int)
     matched=[]
     for j in jump:
         candidates=ni.get(key(j),())
-        if candidates: matched.append((j,candidates[0]))
+        index=used[key(j)]
+        if index < len(candidates):
+            matched.append((j,candidates[index]))
+            used[key(j)]+=1
     divergences=[]
     for j,n in matched:
         diff=[f for f in COMPARE if j.get(f,"")!=n.get(f,"")]
