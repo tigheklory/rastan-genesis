@@ -54608,3 +54608,33 @@ SOURCE CODE -> BESTIARY -> EDITOR. Static only, no traces, no ROM/Test.json/pale
 - Candidate only. Tighe must verify the natural 17->18 mixed-ring climb, reverse travel, records 19-21,
   checkpoints, and unchanged collision/Plane B/actors/palette/audio/boss entry.
 - Report: `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0053_r1s2_plane_a_scroll_placement_bug.md`.
+
+### MAME Exit Summary (2026-11-02 10:02:13)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0055 — R1-S2 scrolled-row alignment (Cody, 2026-11-02)
+
+- Proven root cause: ordinary selector-1/2 entering rows were tested against pre-step `A5+$10B0`
+  residency and could be discarded. The 64x32 physical slot then retained logical row N-32. Original
+  `$055A14` and the native helper otherwise agree on rebuilt descriptor segment, metatile subcell,
+  selector direction, and destination column; the old extra-transpose theory was not revived.
+- Record-17 static data explains the opposite visual offsets without coordinate patches: intended
+  row 59 tile `$08F7` at column 58 appears in stale row 27 at column 50 (two 4-cell metatiles left),
+  while another four-cell architectural sequence moves from columns 8..11 to 12..15 (one metatile
+  right).
+- Build 0527 makes ordinary arcade-selected row publications unconditional while preserving the
+  existing residency filter exclusively for the bounded 64-row scene reseed. Collision, source and
+  destination geometry, selector directions, scroll, and Build 0526's mixed-selector correction are
+  unchanged. No new buffer/map/translation layer/VRAM/DMA/gameplay change.
+- Exact source commit: `eceb8a9c92dbfc50c0c716ddeeaced7b670b5914`.
+- Standard ROM: `dist/rastan-direct/rastan_direct_video_test_build_0527.bin`, 3,792,568 bytes,
+  SHA-256 `292c8f80d4f428bc06e56da33de1973a1e7b81a60ab58a0061af651d67fe54a8`.
+- R1-S2 direct start: `dist/rastan-direct/rastan_direct_video_test_build_0527_S1-2.bin`, 3,792,568
+  bytes, SHA-256 `e5cd193f51b6b09a9bf96a2b6c4f43dd4d51f0ae76831926336675492dbd76ec`.
+- Static selector, full-span, scene/pan, canonical, gameplay-entry, seven-epoch, boot, variant-set,
+  and mandatory 1,798-frame Genesis NTSC gates PASS. No task-specific trace or gameplay automation.
+- Candidate only. Tighe must verify upward/downward R1-S2 scrolling, both chains, the 17->18 handoff,
+  checkpoints, collision, Plane B, sprites, palettes, audio, and boss entry.
+- Report: `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0055_r1s2_scrolled_metatile_alignment.md`.
