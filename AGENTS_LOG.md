@@ -54666,3 +54666,23 @@ SOURCE CODE -> BESTIARY -> EDITOR. Static only, no traces, no ROM/Test.json/pale
   traversal was created. Candidate pending Tighe's two-chain/up-down/transition gameplay test.
 - Standalone build report: `docs/design/Cody_build0528_r1s2_no_publication_retained_row_fix.md`.
 - Full evidence report: `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0055_r1s2_scrolled_metatile_alignment.md`.
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0056 — fast rope-climb scroll handoff (Cody, 2026-11-02)
+
+- Source-only follow-up to Build 0528; no trace, ROM, production source, generated asset, or test
+  infrastructure change.
+- Jump/wall movement can feed a five-unit vertical accumulator impulse versus ordinary rope motion's
+  one-unit cadence, but the common `$0517FA` consumer caps a player-frame step at four. Both routes
+  use the same `$053850/$0538EA -> $055650` camera/scroll path; no jump-specific camera routine or
+  skipped-row-sized increment is proven.
+- The no-publication helper loops every old-to-new logical-row crossing, stages the full row before
+  marking it dirty, and VBlank publishes Plane A rows before scroll. A simple expose-before-stage
+  race is not supported by source.
+- Strongest remaining hypothesis is an unverified temporal tuple-to-retained-ring assumption across
+  ordinary publication / `$0558E0` record advance / no-publication sequences. A later same-frame
+  Plane A producer overwrite and combined VBlank workload remain secondary hypotheses.
+- Existing immutable generated rows have exhaustive per-cell checks and cannot explain intermittent
+  input-dependent behavior by themselves. Smallest next action is to extend the existing verifier
+  with consecutive-frame state transitions around records 16/17/18, deltas 1..4, crossings, and
+  one-frame direction reversals.
+- Handoff: `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0056_fast_rope_climb_scroll_handoff.md`.
