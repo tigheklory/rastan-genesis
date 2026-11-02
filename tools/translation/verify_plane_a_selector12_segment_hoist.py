@@ -74,6 +74,8 @@ def require_source_contract() -> None:
         "ARCADE_COLLISION_MAP_BASE",
         "addi.w  #63, %d0",
         ".Lplane_a_sel12_logical_row_ready:",
+        "plane_a_initial_ring_rebuild_active",
+        ".Lplane_a_sel12_stage_entering_row:",
     )
     for token in required:
         if token not in block:
@@ -169,22 +171,29 @@ def main() -> None:
                         )
                     output_cases += 1
 
-    # Every logical row and every possible visible top: collision is required
-    # in both classes; only the resident half may consume the visual product.
+    # Every logical row and every possible visible top in both call contexts.
+    # An ordinary 0x55A14 call has already selected the entering row, before
+    # the caller commits the new Y scroll, so visual publication is mandatory
+    # even when that row is outside the pre-step window.  The bounded 64-row
+    # scene-reseed replay alone filters to its final 32 resident rows.
     residency_cases = 0
+    ordinary_visual_cases = 0
     resident_cases = 0
     nonresident_cases = 0
     for logical_row in range(64):
         for top in range(64):
             resident = ((logical_row - top) & 63) < 32
             collision_consumed = True
-            visual_consumed = resident
-            if not collision_consumed or visual_consumed != resident:
+            ordinary_visual_consumed = True
+            reseed_visual_consumed = resident
+            if (not collision_consumed or not ordinary_visual_consumed or
+                    reseed_visual_consumed != resident):
                 raise SystemExit(
                     "FAIL selector-1/2 segment hoist: residency product contract differs "
                     f"row={logical_row} top={top}"
                 )
             residency_cases += 1
+            ordinary_visual_cases += ordinary_visual_consumed
             resident_cases += resident
             nonresident_cases += not resident
 
@@ -195,7 +204,8 @@ def main() -> None:
         f"{output_cases} descriptor/subcell/context "
         f"cases; {residency_cases} row/top residency cases "
         f"({resident_cases} resident, {nonresident_cases} nonresident); "
-        "collision always produced; visual resident-only"
+        f"ordinary visual publications {ordinary_visual_cases}; "
+        "collision always produced; scene-reseed visual resident-only"
     )
 
 

@@ -666,13 +666,21 @@ genesistan_hook_tilemap_plane_a_selector12_native:
     beq.s   .Lplane_a_sel12_shared_blank
     movea.l %a0, %a4
 
-    /* Attribute conversion is needed only for this row's resident visual
-     * product. Collision consumes its independent record field regardless. */
+    /* An ordinary 0x55A14 call is the arcade's semantic decision to publish
+     * exactly this entering row.  It runs before 0x55696/0x5572E commits the
+     * new Y scroll, so testing against that old window would reject the row
+     * and expose the physical row from 32 logical rows earlier.  The bounded
+     * 64-row scene reseed is the only caller that still needs the residency
+     * test to select its final 32 rows.  Collision consumes its independent
+     * record field in both cases. */
+    tst.b   plane_a_initial_ring_rebuild_active
+    beq.s   .Lplane_a_sel12_shared_attr_resident
     move.w  0(%sp), %d0
     sub.w   2(%sp), %d0
     andi.w  #0x003F, %d0
     cmpi.w  #32, %d0
     bhs.s   .Lplane_a_sel12_shared_no_attr
+.Lplane_a_sel12_shared_attr_resident:
     move.w  10(%sp), %d0
     bsr     .Lplane_a_native_attr_from_word
     move.w  %d0, 6(%sp)
@@ -695,11 +703,14 @@ genesistan_hook_tilemap_plane_a_selector12_native:
     move.l  %a4, %d1
     beq.s   .Lplane_a_sel12_shared_outputs_ready
     move.w  0x20(%a4,%d0.w), %d2             /* collision for every column */
+    tst.b   plane_a_initial_ring_rebuild_active
+    beq.s   .Lplane_a_sel12_shared_visual_resident
     move.w  0(%sp), %d1
     sub.w   2(%sp), %d1
     andi.w  #0x003F, %d1
     cmpi.w  #32, %d1
     bhs.s   .Lplane_a_sel12_shared_outputs_ready
+.Lplane_a_sel12_shared_visual_resident:
     movea.l 12(%sp), %a1
     move.l  %a1, %d3
     beq.s   .Lplane_a_sel12_unauthored
@@ -708,7 +719,7 @@ genesistan_hook_tilemap_plane_a_selector12_native:
     move.w  2(%a1,%d0.w), 6(%sp)
     bra.s   .Lplane_a_sel12_visual_code_ready
 .Lplane_a_sel12_unauthored:
-    move.w  0(%a4,%d0.w), %d3                /* visual only when row resident */
+    move.w  0(%a4,%d0.w), %d3                /* visual for selected publication context */
     andi.w  #0x3FFF, %d3
 .Lplane_a_sel12_visual_code_ready:
     bsr     fg_cache_resolve
@@ -727,12 +738,15 @@ genesistan_hook_tilemap_plane_a_selector12_native:
     move.w  %d2, 0(%a6,%d3.w)
     lea     staged_fg_buffer, %a6
 
+    tst.b   plane_a_initial_ring_rebuild_active
+    beq.s   .Lplane_a_sel12_stage_entering_row
     move.w  0(%sp), %d0
     sub.w   2(%sp), %d0
     andi.w  #0x003F, %d0
     cmpi.w  #32, %d0
     bhs.s   .Lplane_a_sel12_not_resident
 
+.Lplane_a_sel12_stage_entering_row:
     move.w  8(%sp), %d3                     /* fused final Genesis name word */
 
     move.w  0(%sp), %d0
