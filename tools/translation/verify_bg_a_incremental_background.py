@@ -114,8 +114,13 @@ def static_contract() -> None:
     require(row_a, ("movea.l 0(%a0,%d1.w), %a4",
                     "genesistan_plane_a_pan_row_maps",
                     "FG_PAN_ROW_MAP_BYTES",
+                    "tst.w   0x132C(%a5)",
+                    "subq.w  #1, %d1",
                     ".Lplane_a_row_precompiled_copy:",
                     ".Lplane_a_row_dynamic:",
+                    ".Lplane_a_row_previous_selector0:",
+                    "move.w  #0xFFFF, plane_a_src_ref_block",
+                    ".Lplane_a_row_previous_selector0_cell:",
                     ".Lplane_a_row_mark_dirty:",
                     "lea     fg_boundary_active_lut, %a2",
                     "adda.w  %d1, %a6",
@@ -126,6 +131,12 @@ def static_contract() -> None:
                     "addq.w  #4, %d4",
                     "cmpi.w  #BG_LOGICAL_SPAN, %d4",
                     "fg_row_dirty"), "Plane-A row producer")
+    resolver = section(source, "resolve_plane_a_cell:",
+                       "/* Resolve one gameplay collision word")
+    require(resolver, ("cmpi.w  #0xFFFF, plane_a_src_ref_block",
+                       ".Lrpc_source_previous_revolution:",
+                       "subi.w  #16, %d2"),
+            "Plane-A retained predecessor resolver")
     require(block4, ("movea.l %a4, %a0",
                      "MAP_GET_AUTHORED_VISUAL_A0",
                      "MAP_GET_NAME_A_GAMEPLAY_ROW",
@@ -281,6 +292,33 @@ def verify_source_rebase_and_trailing_retention() -> None:
         want = name_word(0, 9, 12, col) if col == leading else before[col]
         if ring[col] != want:
             fail(f"trailing retention changed column {col}")
+
+
+def verify_no_publication_predecessor_selection() -> None:
+    """No-publication motion exposes the completed ring, not the next record."""
+    # 0x558C6 advances all sixteen pointers by one entry after each four
+    # strips.  A completed 64-strip record therefore leaves every live pointer
+    # exactly sixteen entries beyond the retained record.  Regenerating a
+    # selector-0 predecessor must select that complete preceding revolution,
+    # independent of the current physical front.
+    for group in range(16):
+        current_pointer_entry = 16 + group
+        for column in range(LOGICAL):
+            block = column >> 2
+            selected_entry = current_pointer_entry + (block - group - 16)
+            if selected_entry != block:
+                fail(
+                    "no-publication predecessor source mismatch "
+                    f"group={group} column={column}: "
+                    f"entry {selected_entry} != {block}"
+                )
+
+    # If the completed predecessor itself used selector 1/2, the runtime must
+    # index its existing immutable row asset, not the already-advanced record.
+    vertical_records = (17, 21, 43, 44)
+    completed_records = tuple(record - 1 for record in vertical_records)
+    if completed_records != (16, 20, 42, 43):
+        fail(f"vertical predecessor inventory changed: {completed_records}")
 
 
 def verify_plane_b_independent_context() -> None:
@@ -512,6 +550,7 @@ def main() -> None:
     verify_initial_seed_and_projection()
     verify_n_n32_semantics()
     verify_source_rebase_and_trailing_retention()
+    verify_no_publication_predecessor_selection()
     verify_plane_b_independent_context()
     verify_vertical_row_hoist_equivalence()
     verify_selector0_residency_hoist_equivalence()
@@ -521,6 +560,7 @@ def main() -> None:
           "accessor PASS; Build 0422 generated semantics + ring-safe grouped "
           "row resolution PASS; initial 64x64 seed, N/N+32 semantics, "
           "source rebase, trailing retention, independent Plane-B context, "
+          "no-publication completed-record selection, "
           "Build 0434 vertical-row context/LUT/miss equivalence, "
           "Build 0439 selector-0 active/static residency context equivalence, "
           "32-row projection, dirty gather, and 32-word column DMA PASS")

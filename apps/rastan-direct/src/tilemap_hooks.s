@@ -1085,6 +1085,8 @@ resolve_plane_a_cell:
     move.w  %d5, %d2
     andi.w  #0x003F, %d2
     lsr.w   #2, %d2                          /* col_block = (col>>2) & 0xF */
+    cmpi.w  #0xFFFF, plane_a_src_ref_block
+    beq.s   .Lrpc_source_previous_revolution
     cmpi.w  #16, plane_a_src_ref_block
     bne.s   .Lrpc_source_leading_edge
 
@@ -1110,6 +1112,14 @@ resolve_plane_a_cell:
     cmp.w   %d7, %d5
     bls.s   .Lrpc_source_delta_ready
     subi.w  #16, %d2                         /* column is behind front across ring wrap */
+    bra.s   .Lrpc_source_delta_ready
+
+.Lrpc_source_previous_revolution:
+    moveq   #0, %d7
+    move.w  ARCADE_PC080SN_STRIP_GROUP_OFFSET(%a5), %d7
+    andi.w  #0x000F, %d7
+    sub.w   %d7, %d2
+    subi.w  #16, %d2                         /* retained completed selector-0 record */
     bra.s   .Lrpc_source_delta_ready
 
 .Lrpc_source_leading_edge:
@@ -1396,8 +1406,17 @@ resolve_plane_a_collision_cell:
      * final 64-word native row instead of reusing selector-0 source geometry. */
     tst.w   ARCADE_PC080SN_SELECTOR_OFFSET(%a5)
     beq.s   .Lplane_a_row_dynamic
+    /* A no-publication camera step exposes the completed record still held
+     * by the arcade PC080SN ring; A5+0x013E already names the next record.
+     * Selector-0 predecessors are regenerated from the live source pointers
+     * one complete 16-block revolution back.  Selector-1/2 predecessors use
+     * their existing final-native pan-row asset at record (0x013E-1). */
+    tst.w   0x132C(%a5)
+    beq.s   .Lplane_a_row_previous_selector0
     moveq   #0, %d1
     move.w  0x013E(%a5), %d1
+    beq.s   .Lplane_a_row_dynamic
+    subq.w  #1, %d1
     cmpi.w  #FG_BOUNDARY_RECORDS, %d1
     bhs.s   .Lplane_a_row_dynamic
     lsl.l   #2, %d1
@@ -1424,6 +1443,13 @@ resolve_plane_a_collision_cell:
     bra.w   .Lplane_a_row_mark_dirty
 
 .Lplane_a_row_dynamic:
+    move.w  #16, plane_a_src_ref_block       /* current mixed-ring seam mode */
+    bra.s   .Lplane_a_row_dynamic_context
+
+.Lplane_a_row_previous_selector0:
+    move.w  #0xFFFF, plane_a_src_ref_block   /* completed preceding revolution */
+
+.Lplane_a_row_dynamic_context:
 
     /* Row-wide context: all sixteen four-cell blocks share the row's rebuilt
      * source pointer, physical staging-row base, active residency LUT and live
@@ -1450,8 +1476,6 @@ resolve_plane_a_collision_cell:
     move.w  ARCADE_PC080SN_STRIP_INDEX_OFFSET(%a5), %d1
     andi.w  #0x0003, %d1
     add.w   %d1, %d7                         /* live horizontal ring front */
-    move.w  #16, plane_a_src_ref_block       /* retained authoritative seam-fallback mode */
-
     moveq   #0, %d4                          /* full logical destination column */
 
     /* Build 0351: resolve every cell of this entering row through the ONE shared
@@ -1463,9 +1487,20 @@ resolve_plane_a_collision_cell:
 .Lplane_a_row_col_loop:
     move.w  0(%sp), %d0                      /* logical row (fixed for this entering row) */
     move.w  %d4, %d1                         /* logical column = destination column */
+    cmpi.w  #0xFFFF, plane_a_src_ref_block
+    beq.s   .Lplane_a_row_previous_selector0_cell
     MAP_PUBLISH_NAME_A_BLOCK4
 
     addq.w  #4, %d4
+    bra.s   .Lplane_a_row_col_advance_done
+
+.Lplane_a_row_previous_selector0_cell:
+    bsr     resolve_plane_a_cell
+    move.w  %d4, %d1
+    add.w   %d1, %d1
+    move.w  %d0, 0(%a6,%d1.w)
+    addq.w  #1, %d4
+.Lplane_a_row_col_advance_done:
     cmpi.w  #BG_LOGICAL_SPAN, %d4
     blo.w   .Lplane_a_row_col_loop
 

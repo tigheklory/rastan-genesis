@@ -396,6 +396,44 @@ def main() -> None:
                         f"got {be16(pan_actual, entry):04X}, expected {expected:04X}")
                 pan_checked += 1
 
+    # The no-publication arms change Y without touching PC080SN name RAM.
+    # A5+0x013E already identifies the next record, so the exposed row must
+    # reproduce the completed predecessor.  Selector-0 predecessors are
+    # regenerated one pointer revolution back; selector-1/2 predecessors must
+    # already have the exact immutable row asset selected at (record-1).
+    no_publication_predecessor_cells = 0
+    for current_record in pan_records:
+        predecessor = current_record - 1
+        current_package = report["record_to_package"][current_record]
+        predecessor_package = report["record_to_epoch"][predecessor]
+        if current_package != predecessor_package:
+            raise SystemExit(
+                f"FAIL no-publication record {current_record}: package "
+                f"{current_package} cannot reproduce predecessor {predecessor} "
+                f"package {predecessor_package}"
+            )
+        predecessor_selector = compiler.decode_record_selector(maincpu, predecessor)
+        predecessor_pan_offset = be32(pan_actual, predecessor * 4)
+        for logical_row in range(64):
+            for column in range(64):
+                expected = compiled_word(
+                    predecessor, current_package, logical_row, column)
+                if predecessor_selector in (1, 2):
+                    if predecessor_pan_offset == 0xFFFFFFFF:
+                        raise SystemExit(
+                            f"FAIL no-publication record {current_record}: "
+                            f"predecessor {predecessor} lacks pan rows"
+                        )
+                    actual_word = be16(
+                        pan_actual, predecessor_pan_offset +
+                        (logical_row * 64 + column) * 2)
+                    if actual_word != expected:
+                        raise SystemExit(
+                            f"FAIL no-publication predecessor {predecessor} "
+                            f"row {logical_row} column {column}"
+                        )
+                no_publication_predecessor_cells += 1
+
     source = args.source.read_text()
     required_source = (
         "genesistan_plane_a_scene_scroll_reseed_native:",
@@ -416,7 +454,13 @@ def main() -> None:
         "genesistan_plane_b_scene_fill_maps",
         "genesistan_plane_a_pan_row_maps",
         "FG_PAN_ROW_MAP_BYTES",
+        "tst.w   0x132C(%a5)",
+        "subq.w  #1, %d1",
         ".Lplane_a_row_precompiled_copy:",
+        ".Lplane_a_row_previous_selector0:",
+        "move.w  #0xFFFF, plane_a_src_ref_block",
+        ".Lrpc_source_previous_revolution:",
+        "subi.w  #16, %d2",
         "move.l  #0xFFFFFFFF, fg_row_dirty",
         "bsr     genesistan_presentation_mark_ready_after_publish",
         '.incbin "../../build/pc080sn_boundary/plane_b_scene_fill_maps.bin"',
@@ -479,6 +523,7 @@ def main() -> None:
           f"checkpoint_origin_projections={record_origin_projections_checked} "
           f"scene_bytes={len(actual)}; pan_records={pan_records} "
           f"pan_cells={pan_checked} pan_bytes={len(pan_actual)}; "
+          f"no_publication_predecessor_cells={no_publication_predecessor_cells}; "
           f"authored_descriptor_cells={descriptor_checked}; "
           "post-scroll live-producer boundary=0x050538; collision retained")
 
