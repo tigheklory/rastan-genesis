@@ -54715,3 +54715,24 @@ SOURCE CODE -> BESTIARY -> EDITOR. Static only, no traces, no ROM/Test.json/pale
 - No complete human traces existed at handoff; no root cause or renderer fix is claimed.
 - Reports: `docs/design/Cody_build0529_r1s2_invincible_rope_trace_diagnostic.md` and
   `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0057_r1s2_rope_trace_comparison.md`.
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0059 — Build 0529 R1-S2 gameplay trace analysis (Cody, 2026-11-02)
+
+- Analyzed all 19 human corruption markers across aggressive jump-assisted, mixed, and minimal-
+  jumping Build 0529 captures, searching at least 120 frames backward and extending persistent
+  defects hundreds of frames to their originating row writes.
+- Confirmed the remaining architectural defect: original arcade `$055704/$055790` are semantic
+  no-publication arms, but Genesis reconstructs and overwrites a complete entering physical row.
+- Confirmed a concrete selection failure in that path: with current selector 1 and completed
+  selector 0, the helper always selects the preceding revolution. It therefore overwrites rows
+  already authored for the current record. Trace examples include record-17 L44-L46 and L12-L14,
+  and record-21 L60-L62 and L35-L42; current and later predecessor hashes differ.
+- Aggressive climbing causes more crossings/reversals and therefore more opportunities for the same
+  destructive overwrite. Minimal jumping also reaches the same writer, so jumping is cadence, not
+  a separate renderer or row-selection rule.
+- Sparse predecessor-only markers remain bounded at cell granularity because the trace records the
+  replacement hash but not the pre-write resident/VDP row. The same destructive reconstruction path
+  is implicated; offline rows are deterministic across play styles, and VBlank ordering shows no
+  skipped/partial row publication.
+- Diagnosis only: no production source, trace, generated asset, or ROM changed. Report:
+  `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0059_r1s2_gameplay_trace_analysis.md`.
