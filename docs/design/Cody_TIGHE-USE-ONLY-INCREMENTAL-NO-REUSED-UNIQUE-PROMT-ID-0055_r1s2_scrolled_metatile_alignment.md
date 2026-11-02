@@ -1,208 +1,189 @@
-# R1-S2 scrolled Plane A metatile alignment — Build 0527
+# R1-S2 scrolled Plane A metatile alignment — corrected diagnosis and Build 0528
 
 Date: 2026-11-02
 
 Assignment: `TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0055`
 
-Reference: Build 0526
-
-Candidate: Build 0527, **not accepted pending Tighe's gameplay test**
+Reference: Build 0526. Rejected intermediate: Build 0527. Candidate: Build 0528, not accepted pending Tighe's gameplay test.
 
 ## Result
 
-The defect is stale entering rows, not a global horizontal offset and not another selector-axis
-transpose. During ordinary selector-1/2 vertical scrolling, the original arcade calls the row
-publisher before committing the new foreground Y value in `A5+$10B0`. The native helper tested the
-selected row against the window derived from that pre-step Y value. The row was outside that old
-window, so its visual product was discarded. When scrolling subsequently exposed the corresponding
-32-row Genesis ring slot, it still contained the row exactly 32 logical rows earlier.
+Build 0527 did not change the reported scene because its residency change affected the ordinary
+`$055948/$055990/$055A14` row-publication path. The camera motion in Tighe's screenshots instead
+takes the original program's no-publication arm at `$055704` or `$055790`: it changes foreground Y
+without writing PC080SN name RAM. The arcade therefore exposes the completed record already retained
+in the hardware ring.
 
-That stale row is independently authored data. Its architectural features occur at different
-columns, so one feature can appear left of its intended position while another appears right. No
-single X-scroll or destination-column error is required.
+Genesis recognized the no-publication event but selected row content with the current
+`A5+$013E` record. Original `$0558E0` has already advanced that field to the next record and saved
+the completed record's selector in `A5+$132C`. In the initial R1-S2 castle state, the ring contains
+completed record 16 while `A5+$013E` names record 17. Genesis consequently substituted record 17
+content as vertical motion exposed record 16. This is the demonstrated source-record error.
 
-Build 0527 makes ordinary arcade-requested selector-1/2 publications always stage the exact selected
-entering row. The bounded 64-row scene-reseed replay retains its residency filter because that caller
-deliberately enumerates all 64 logical rows to select the final 32. Initial reconstruction therefore
-keeps its prior behavior.
-
-No coordinate adjustment, scene special case, new map, new buffer, new translation layer, additional
-VRAM/DMA work, collision change, or gameplay change was introduced.
+Build 0528 selects the completed predecessor. If its selector is 1 or 2, it copies the existing
+final-native pan-row asset for `record-1`. If its selector is 0, it resolves the row from the live
+source pointers one complete 16-entry revolution back. It adds no coordinate offset, scene special
+case, map, buffer, translation layer, VRAM allocation, DMA, collision change, or gameplay change.
 
 ## Confirmed visual symptoms
 
-Tighe's screenshots and elaboration establish:
+- R1-S2 is correct before vertical scrolling.
+- As vertical motion exposes additional scenery, the first chain appears about two metatiles left
+  and the second about one metatile right.
+- The correct graphical vocabulary exists and collision/traversal work.
+- Build 0526 and then Build 0527 produced no visible correction to this symptom.
 
-- R1-S2 scenery is correct before vertical scrolling.
-- Scenery introduced as Rastan climbs is horizontally miscomposed.
-- One chain section appears about two metatiles left and another about one metatile right.
-- Correct tile patterns exist; collision and traversal remain functional.
-- Build 0526 made no visible improvement to this earlier vertical-scroll failure.
+The opposite offsets are observations, not correction constants.
 
-The offsets are observations, not correction constants.
+## Original arcade behavior
 
-## Original arcade geometry and row publication
+The foreground fields remain:
 
-The foreground hardware ownership is unambiguous:
-
-| Field | Original commit | Meaning |
+| Field | Hardware commit | Meaning |
 |---|---|---|
-| `A5+$10B0` | `$055AC4 -> $C20002` | foreground/tilemap-1 Y |
-| `A5+$10AE` | `$055ACC -> $C40002` | foreground/tilemap-1 X |
+| `A5+$10B0` | `$055AC4 -> $C20002` | foreground Y |
+| `A5+$10AE` | `$055ACC -> $C40002` | foreground X |
 
-The PC080SN metatile is 4×4 8-pixel cells, or 32×32 pixels. Sixteen descriptor segments times four
-subcells form a 64-cell row. Sixteen groups times four strips form the 64 logical rows.
+PC080SN descriptors are 4x4 cells: a 32x32-pixel metatile. Sixteen descriptors produce one
+64-cell row. The original scene fill consumes all 16 groups of record 16. At `$0558E0` it:
 
-For selector 1, original `$055696` forms destination row
-`63 - (group*4 + strip)`; selector 2 at `$05572E` forms `group*4 + strip`. Original `$055A14` then
-iterates descriptor segment `k=0..15` and subcell `i=0..3`:
+1. saves the completed selector from `A5+$10A8` to `A5+$132C`;
+2. loads the next selector through the advanced record pointer;
+3. increments `A5+$013E` from record 16 to record 17.
 
-```text
-source row in metatile = ((~strip)&3) for selector 1, (strip&3) for selector 2
-source byte offset      = source_row*8 + i*2
-destination column      = k*4 + i
-```
+During subsequent camera motion, `$055696` with `A5+$10BA < $0100` (and the converse arm rooted at
+`$05572E`) updates the camera accumulator and commits Y but does not call `$055948`, `$055990`, or
+`$055A14`. No new name-RAM row is authored. The visible row must therefore come from the completed
+record retained in the PC080SN ring.
 
-The rebuilt tables are parallel: `$10D040[k]` is the resolved metatile pointer and `$10D080[k]` is
-its attribute word. The arcade writes the selected row into PC080SN name RAM and publishes collision,
-then `$05570C..$055718` or `$055798..$0557A4` commits the new `A5+$10B0` Y value.
+The selector-1/2 transform itself remains source-equivalent: its sixteen descriptor pointer lanes
+are destination column blocks, its four subcells remain contiguous columns, and selector direction
+controls the source subrow/destination-row ordering. Static exhaustive checks continue to pass.
 
-## Existing Genesis behavior and the actual mismatch
+## Existing Genesis mismatch
 
-`genesistan_hook_tilemap_plane_a_selector12_native` already reproduced the source and destination
-geometry above:
+`.Lplane_a_publish_logical_row_native` handles these no-publication camera steps. Before Build 0528,
+when the current selector was nonzero it indexed `genesistan_plane_a_pan_row_maps` with current
+`A5+$013E`. That is correct only if the current record is the content retained in the ring. After
+`$0558E0`, it is already the next record.
 
-- descriptor segment `k` came from the rebuilt pointer/attribute tables;
-- the metatile offset was `source_row*8 + i*2`;
-- the logical destination column was `k*4+i`;
-- selector 1 used reverse destination rows and selector 2 forward destination rows;
-- collision was always published to the retained 64×64 collision grid.
+This also explains why Build 0527 was unchanged. Build 0527 altered ordinary selector-1/2 calls to
+`$055A14`; the failing route never makes that call. Its claim that the visible defect was an entering
+row rejected against old scroll Y was therefore wrong. The Build 0527 ordinary-publication behavior
+remains in the source, but it is neither relied on nor claimed here as the correction for Tighe's
+reported defect.
 
-The error occurred only after that correct selection. The helper computed visible top from live
-`A5+$10B0` and rejected the visual unless `(logical_row - old_top) & 63 < 32`. On record 17,
-selector 1 requests rows 63, 62, 61, ... before those rows enter the post-scroll display window.
-Rejected logical row 63 aliases physical row 31, rejected row 62 aliases physical row 30, and so on.
-The old physical content therefore survives.
+## Representative source-derived mismatch
 
-### Representative source-derived mismatch
+Static generated data for exposed rows 25 through 32 compares completed record 16 with incorrectly
+selected record 17. Their differing cells per 64-cell row are respectively 53, 52, 53, 16, 16, 16,
+17, and 55. That is a record/layout substitution, not a uniform X displacement.
 
-Record 17 is selector 1. For intended logical row 63, descriptor segment 2 (destination columns
-8..11) uses original descriptor entry `$01B2DC`, metatile pointer `$50F4`, and subcell tile words
-`$0824,$0825,$0826,$0827`. If the publication is rejected, physical row 31 instead retains logical
-row 31. At the same columns that row comes from entry `$01B2FC`, pointer `$5534`, and words
-`$0824,$0825,$08F7,$0827`.
+For logical row 31:
 
-At descriptor segment 14 (columns 56..59), intended row 63 uses entry `$0353DC`, pointer `$5574`,
-and `$0824,$0825,$08F7,$0827`; stale row 31 uses entry `$0353FC`, pointer `$5034`, and
-`$0824,$0825,$0826,$0827`.
+| Columns | Intended retained record 16 | Existing wrong record 17 |
+|---|---|---|
+| 8..11 | descriptor `$3A90`; raw `$0824,$0825,$0826,$0827`; attr `$0009` | descriptor `$5534`; raw `$0824,$0825,$08F7,$0827`; attr `$000D` |
+| 56..59 | descriptor `$4064`; raw `$0824,$0825,$08F7,$0827`; attr `$000D` | descriptor `$5034`; raw `$0824,$0825,$0826,$0827`; attr `$0009` |
 
-The static row corpus also reproduces the visual displacement estimates:
+The destination columns do not move. Different architectural features occur at different authored
+columns in the two records, so replacing one whole record's row with another can make one feature
+appear left and another right. That matches the visual constraint without an arbitrary global shift.
 
-- intended row 59 has distinctive tile `$08F7` at logical column 58; stale alias row 27 has it at
-  column 50: eight cells, or two 4-cell metatiles, left;
-- an architectural four-cell sequence at intended columns 8..11 occurs at stale-alias columns
-  12..15: four cells, or one metatile, right.
+## Competing hypotheses
 
-Thus different offsets in opposite directions are expected when a different authored row is exposed.
-They do not support an arbitrary global `+1/-1/-2` correction.
-
-## Competing-hypothesis assessment
-
-| Hypothesis | Assessment |
+| Hypothesis | Finding |
 |---|---|
-| A. Stale rows | **Proven.** The ordinary selected row can be discarded by the pre-step residency test, leaving its N-32 physical alias. |
-| B. Wrong source columns | Rejected for this path. Original and native code select the same rebuilt segment and metatile subcell. |
-| C. Wrong destination columns | Rejected. Both use `segment*4+subcell`; no column offset exists in the native row writer. |
-| D. Incorrect selector/axis interpretation | Rejected here. Build 0387's extra-transpose change was user-rejected and reverted; the direct row writer already mirrors `$055A14`. |
-| E. Mixed old/new content | Observed consequence of A across the 32-row ring, not a separate descriptor-generation rule. |
-
-The previous old-window hypothesis was therefore directionally correct, but the correction is not to
-apply an assumed post-step coordinate or remove every residency guard. The valid distinction is the
-caller's semantic contract: ordinary `$055A14` has already selected exactly one entering row, while
-scene reseed is a 64-row enumeration that still requires filtering.
+| A. Stale physical N-32 row from a rejected ordinary publication | Rejected as the reported cause by Tighe's unchanged Build 0527 result and by the active no-publication control flow. |
+| B. Wrong source columns/record | Proven: the retained record is 16 while Genesis indexed advanced record 17. |
+| C. Wrong destination columns | Rejected: final columns remain `segment*4+subcell`; Build 0528 does not alter them. |
+| D. Wrong selector transpose/reversal | Rejected by original loop structure and exhaustive selector static checks. |
+| E. Mixed old/new generation | Yes as a consequence: retained record-16 geometry was being replaced by current record-17 row data. It is not a per-feature fault. |
 
 ## Minimal correction
 
-Source commit: `eceb8a9c92dbfc50c0c716ddeeaced7b670b5914`.
+Implementation source commit: `e667827c7ba776813e692d78b718887e10564fda`.
 
-Changed:
+Changed production behavior in `apps/rastan-direct/src/tilemap_hooks.s`:
 
-- `apps/rastan-direct/src/tilemap_hooks.s`
-- existing gate `tools/translation/verify_plane_a_selector12_segment_hoist.py`
+- inspect completed selector `A5+$132C` on a no-publication step;
+- for completed selector 1/2, use the existing pan-row asset at `A5+$013E-1`;
+- for completed selector 0, mark predecessor mode with the internal `$FFFF` reference sentinel and
+  resolve each cell from live source pointers exactly 16 entries back;
+- retain the existing dirty-row staging/publication and collision behavior.
 
-At the three former visual-residency gates (attribute resolution, visual resolution, and final staging):
+Two existing static verifiers were extended. All 16 groups and all 64 columns prove that
+`current_pointer_entry + (block-current_group-16) == block`, so the selector-0 path selects exactly
+the preceding completed revolution. All 16,384 predecessor cells prove that every relevant current
+package can reproduce its predecessor and that selector-1/2 predecessors have the exact existing
+pan-row asset.
 
-- normal arcade publication (`plane_a_initial_ring_rebuild_active == 0`) consumes and stages the row;
-- bounded scene replay (`plane_a_initial_ring_rebuild_active != 0`) preserves the existing 32-of-64
-  residency predicate.
+Build 0526's record-17 selector-1 to record-18 selector-0 mixed-ring suffix correction remains
+present and unchanged.
 
-Collision remains unconditional and unchanged. Upward selector 1 and downward selector 2 share the
-same corrected publication contract while retaining their independent source-row and destination-row
-direction formulas.
+## Architecture boundary
 
-Build 0526's record-17 selector-1 to record-18 selector-0 mixed-ring correction remains present and
-unchanged in `.Lplane_a_publish_logical_row_native`.
-
-## Architecture compliance
-
-- **Semantic cut retained:** the arcade has selected the entering Plane A row, descriptor segment,
-  metatile subrow, attributes, and collision product.
-- **Chip tail removed below the cut:** original `$055990/$055A14` PC080SN destination/name-RAM walk is
-  replaced by final Genesis Plane A staging plus the retained collision publication.
-- **Transitional compatibility retained:** the existing rebuilt arcade semantic descriptor tables,
-  staging buffer, dirty-row publication, and scene-reseed flag remain consumers/producers exactly as
-  before. No chip-shaped name-RAM shadow, 64×64 visual shadow, projector, or new compatibility path was
-  added. Their broader retirement boundaries are unchanged and outside this task.
-- Arcade execution, frame progression, VBlank, scrolling, and gameplay remain arcade-owned.
+- **Semantic cut retained:** the original arcade decision to move foreground Y without publishing a
+  row, which semantically retains the completed record/ring.
+- **Chip tail removed:** PC080SN name-RAM retention and exposure below that decision are realized as
+  final Genesis Plane A name words.
+- **Compatibility intentionally remaining:** existing arcade-derived descriptor tables, final-native
+  pan-row assets, staging buffer, dirty-row publisher, and collision grid remain. No legacy tail was
+  removed in this narrow correction and no new PC080SN shadow/projection was added. Their existing
+  retirement boundary is unchanged.
 
 ## Verification
 
-No task-specific MAME trace, first-divergence capture, automated traversal, or new diagnostic tooling
-was created. Existing Ghidra exports, original disassembly, generated arcade-derived row assets, and
-existing static gates were reused. The normal Makefile's mandatory Genesis NTSC 30-second trace ran as
-part of publication.
+No task-specific trace, automated gameplay traversal, save state, first-divergence capture, or new
+diagnostic infrastructure was created. Original arcade evidence was static: the canonical Ghidra
+export, original disassembly, descriptor data, and existing generated assets. The only runtime test
+was the normal Makefile-mandated Genesis-driver MAME release trace.
 
-Passed checks include:
+Passed:
 
-- selector-1/2: 128 destination-row cases, 1,869,856 rebuilt-metatile/attribute cases, 1,869,856
-  descriptor/subcell/context cases;
-- 4,096 ordinary row/top cases all publish visuals;
-- scene replay still filters 2,048 resident and 2,048 nonresident row/top cases;
-- full-span background coherence, initial N/N+32 semantics, ring seams, source rebase, dirty gather,
-  native metatiles, scene/pan maps, collision/visual independence, and selector relocation;
-- canonical gate, gameplay-entry gate, seven-epoch/package gate, boot guards, and complete variant set;
-- mandatory Genesis NTSC trace: 1,798 frames, final PC `$03B2C8`, SP `$00FEFFFC`, no unique unmapped
-  addresses in the Makefile exit summary.
+- assembler build of `tilemap_hooks.s`;
+- incremental Plane A static verifier, including exhaustive predecessor pointer arithmetic;
+- selector-1/2 gate: 128 destination cases, 1,869,856 source/attribute cases, 1,869,856 output cases,
+  and 4,096 residency cases;
+- scene/fill verifier: 24,576 scene cells, 204,800 checkpoint cells, 16,384 pan cells, 16,384
+  no-publication predecessor cells, and 1,138,688 authored descriptor cells;
+- subround derivative check: only selector `$DF` and direct-start audio command `$27` differ;
+- boot guards, canonical gate, gameplay-entry gate, seven-epoch/package gate;
+- required Genesis-driver MAME NTSC 30-second trace: 1,798 frames, final PC `$03B2C8`, SP
+  `$00FEFFFC`, no unique unmapped addresses.
 
-Existing project tools reused: Ghidra exports, `build/maincpu.disasm.txt`, arcade-derived PC080SN
-compiler outputs, selector/static verification gates, boot/canonical/gameplay/epoch gates, and the
-Makefile-owned release workflow.
+No original-arcade MAME, BlastEm, Exodus, or hardware runtime test was performed in this task.
 
-New tooling created: **none**. One existing selector-1/2 verifier was updated to encode the corrected
-ordinary-publication versus scene-reseed contract.
+## Build 0528 artifacts
 
-## Build 0527 artifacts
+Counter transition: 0527 -> 0528. Consumed ledger: `0528 PRODUCED`,
+`canonical=PASS entry=PASS epoch=PASS`.
 
-Counter and consumed ledger: `0527`, `canonical=PASS entry=PASS epoch=PASS`.
+Canonical patch manifest: 228 opcode-replacement sites; expected Genesis bytes covered
+`0x39DEB8`; coverage delta `0x50000`.
 
 | Artifact | Size | SHA-256 |
 |---|---:|---|
-| `dist/rastan-direct/rastan_direct_video_test_build_0527.bin` | 3,792,568 | `292c8f80d4f428bc06e56da33de1973a1e7b81a60ab58a0061af651d67fe54a8` |
-| `dist/rastan-direct/rastan_direct_video_test_build_0527_S1-2.bin` | 3,792,568 | `e5cd193f51b6b09a9bf96a2b6c4f43dd4d51f0ae76831926336675492dbd76ec` |
+| `dist/rastan-direct/rastan_direct_video_test_build_0528.bin` | 3,792,568 | `d814e0fec605af60e29a044bc867c4d37591828921f8546720f4aeba7d6107c2` |
+| `dist/rastan-direct/rastan_direct_video_test_build_0528_S1-2.bin` | 3,792,568 | `c4c6fbe2fbc1f684c344eecc0f9fd588b43301a82863bc4a206df02d5acfc82c` |
 
-The R1-S2 variant retains selector `$DF` and the existing direct-start command `$27` audio patch.
+The source identity for both artifacts is implementation commit
+`e667827c7ba776813e692d78b718887e10564fda`; `_S1-2` is the established same-number derivative.
 
-## Remaining uncertainty and acceptance
+## USER MUST VERIFY
 
-Static source proves that the intended row was discarded and that the stale N-32 row contains the
-opposite-direction feature displacements seen in the screenshots. This task intentionally did not
-run the natural R1-S2 climb. Build 0527 remains a candidate until Tighe verifies in gameplay:
+Build 0528 remains a candidate. In the `_S1-2` ROM, Tighe must verify:
 
-1. initial R1-S2 scenery remains correct;
-2. both chains remain horizontally continuous as rows enter during upward scrolling;
-3. downward scrolling republishes coherent rows;
-4. the record-17 to record-18 handoff still benefits from Build 0526's preserved correction;
-5. R1-S1/R1-S2 checkpoint restoration, collision, traversal, Plane B, sprites, palettes, audio, and
-   boss entry remain unchanged.
+1. the initial R1-S2 screen remains unchanged;
+2. climbing through exposed logical rows 25..32 keeps the first and second chains horizontally
+   continuous instead of showing the reported opposite offsets;
+3. downward and then upward camera motion restores the same architecture;
+4. the record-17 selector-1 to record-18 selector-0 handoff remains coherent;
+5. R1-S1 and R1-S2 checkpoint respawn, collision, traversal, Plane B, sprites, palettes,
+   Re-In-Carnation audio, and boss entry remain unchanged.
+
+Unresolved: static proof establishes the correct retained predecessor and the exact prior mismatch,
+but only Tighe's actual route can accept the visible result. STOP status: **NO**. Candidate status is
+not acceptance.
 
 `TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0055`

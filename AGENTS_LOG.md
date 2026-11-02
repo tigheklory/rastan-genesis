@@ -54638,3 +54638,31 @@ SOURCE CODE -> BESTIARY -> EDITOR. Static only, no traces, no ROM/Test.json/pale
 - Candidate only. Tighe must verify upward/downward R1-S2 scrolling, both chains, the 17->18 handoff,
   checkpoints, collision, Plane B, sprites, palettes, audio, and boss entry.
 - Report: `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0055_r1s2_scrolled_metatile_alignment.md`.
+
+### MAME Exit Summary (2026-11-02 11:57:53)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0055 — corrected diagnosis / Build 0528 (Cody, 2026-11-02)
+
+- Supersedes the Build 0527 root-cause claim above. Tighe tested 0527 unchanged because its ordinary
+  `$055A14` publication change is not on the failing no-publication camera route.
+- Original `$0558E0` completes record 16, saves its selector at `A5+$132C`, and advances
+  `A5+$013E` to record 17. The `$055704/$055790` camera arms then change foreground Y without a
+  PC080SN row write, so the arcade exposes retained record 16. Genesis incorrectly generated the
+  exposed row from advanced record 17, producing nonuniform apparent horizontal offsets.
+- Build 0528 uses existing `record-1` pan rows for retained selector 1/2 or resolves retained
+  selector 0 exactly one 16-entry pointer revolution back. Build 0526's mixed-ring correction is
+  preserved. No coordinate patch, new map/buffer, translation layer, collision/gameplay, VRAM/DMA,
+  Plane-B, sprite, palette, or audio change.
+- Exact implementation commit: `e667827c7ba776813e692d78b718887e10564fda`.
+- Standard: `dist/rastan-direct/rastan_direct_video_test_build_0528.bin`, 3,792,568 bytes,
+  SHA-256 `d814e0fec605af60e29a044bc867c4d37591828921f8546720f4aeba7d6107c2`.
+- R1-S2: `dist/rastan-direct/rastan_direct_video_test_build_0528_S1-2.bin`, 3,792,568 bytes,
+  SHA-256 `c4c6fbe2fbc1f684c344eecc0f9fd588b43301a82863bc4a206df02d5acfc82c`.
+- Static predecessor, selector, scene/checkpoint/pan, subround, boot, canonical, gameplay-entry,
+  seven-epoch, and mandatory 1,798-frame Genesis NTSC gates pass. No task-specific trace or
+  traversal was created. Candidate pending Tighe's two-chain/up-down/transition gameplay test.
+- Standalone build report: `docs/design/Cody_build0528_r1s2_no_publication_retained_row_fix.md`.
+- Full evidence report: `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0055_r1s2_scrolled_metatile_alignment.md`.
