@@ -54882,3 +54882,41 @@ TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0069
   authorable green-armor reference used now.
 - verify_green_knight.py 14/14 (incl. render-is-green + Test.json unchanged); castle_browser 15/15. Explicit
   staging; no Cody files.
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0063 — interrupted Build 0532 boundary correction (Cody, 2026-11-03)
+
+- Historical consumed task 0063 proved original `$055948` publishes at the old strip/group cursor
+  and increments afterward. Build 0531 therefore treated one next-to-author row as already current-
+  owned. At the 16→17 front-zero boundary this selected record-17 logical row 63 in physical row 31
+  instead of the retained record-16 top brick row.
+- Corrected selector-1 ownership to `[64-front,63]` and selector-2 to `[0,front-1]`, both empty at
+  front zero, while preserving Build-0531 current rows 44–46 at front 21 and all Build-0530
+  provenance. Source/verifier commit: `566e9c63e5254be6179a0948a34958c20959c68c`.
+- Build 0532 was started and had completed canonical, gameplay-entry, Round-1 package/epoch, and
+  mandatory Genesis NTSC gates when the historical session was interrupted during family
+  completion. Continuation is recorded separately under PROMT-ID-0064; 0063 is not reused.
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0064 — resumed Build 0532 R1-S2 boundary fix (Cody, 2026-11-03)
+
+- Resumed existing 0532 state without rebuilding or consuming 0533. Counter/ledger 0532 and all
+  seven configured family members verified complete. ROM-producing source is exactly
+  `566e9c63e5254be6179a0948a34958c20959c68c`.
+- Defect A proven/corrected: front 0 logical 63 / physical 31 remains record-16-owned until actual
+  record-17 publication. Actual generated record-16 and record-17 64-word rows distinguish the
+  expected and rejected choices.
+- Defect B disposition: the identical record-20→21 boundary error and its ability to accumulate
+  independently wrong rows through alias/reversal crossings are proven and corrected. Existing
+  captures do not contain a Build-0531 record-21 first bad write, so the entire larger screenshot is
+  only PARTIALLY explained pending Tighe's Build-0532 gameplay result.
+- Extended the oracle through all record-16/17 and record-20/21 fronts, actual native/pan rows,
+  aliases, both directions, immediate reversal, and three repeated crossings. Verifier-only follow-
+  up commit: `54591d124c2a017f0b4099dbedf5a3e9516151c3`.
+- Full Plane-A, selector, scene/checkpoint/pan, collision separation, boot/canonical, gameplay-entry,
+  Round-1 package/epoch, mandatory Genesis NTSC trace, complete family, and normal/invincible R1-S2
+  functional starts PASS. Direct starts reach frame 412, stage `$0010`, record `$0011`, package 5,
+  full planes, and zero map misses.
+- Candidate: `dist/rastan-direct/rastan_direct_video_test_build_0532_invincible_S1-2.bin`, 3,792,568
+  bytes, SHA-256 `adf3eb18b633f547e21b129ad026c59862a7f921734db9155fe2294c57917879`.
+  Build 0532 remains unaccepted pending minimal/aggressive record-16→17 and record-21 gameplay.
+- Reports: `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0064_resume_build0532_r1s2_boundary_fix.md`
+  and `docs/design/Cody_build0532_r1s2_next_to_author_boundary_fix.md`.
