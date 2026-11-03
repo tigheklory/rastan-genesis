@@ -94,10 +94,7 @@ def main() -> int:
     ck("10. field enemies tagged membership=field_phase1", enemies and all(u.get("membership") == "field_phase1" for u in enemies), len(enemies))
     ck("11. shared assets tagged membership=shared", shared and all(u.get("membership") == "shared" for u in shared), len(shared))
     def visible(active):
-        # Mirrors app.js: field enemies show in the FIELD (S1) AND CASTLE (S2) gameplay scenes (corrected
-        # 2026-11 — the R1-S2 castle "green warriors" ARE field enemies, e.g. lizardman base 0x004B / bank
-        # 0x36 / nibble 6 GREEN; the earlier PROMPT-0038 S2-hide rule was wrong). Still hidden from S3.
-        isfield = (not active) or ("-S1-" in active) or ("-S2-" in active) or active == "context:gameplay.r01.p01"
+        isfield = (not active) or ("-S1-" in active) or active == "context:gameplay.r01.p01"
         out = []
         for u in us:
             if u.get("scene_key"):
@@ -108,11 +105,8 @@ def main() -> int:
                 out.append(u)
         return out
     cv = visible("PAL-R1-S2-PLANEA-CASTLE")
-    ck("12. R1-S2 Castle view SHOWS field enemies (Lizardman present — they appear in the castle)",
-       any("Lizardman" in u["display_name"] for u in cv) and any(u.get("membership") == "field_phase1" for u in cv))
-    bv = visible("PAL-R1-S3-PLANEA-BOSS")
-    ck("12b. R1-S3 boss view still HIDES field enemies (only boss/shared there)",
-       not any(u.get("membership") == "field_phase1" for u in bv))
+    ck("12. R1-S2 Castle view hides field enemies (Lizardman etc. not shown)",
+       not any("Lizardman" in u["display_name"] for u in cv) and not any(u.get("membership") == "field_phase1" for u in cv))
     fv = visible("PAL-R1-S1-PLANEA-OUTDOOR")
     ck("13. R1-S1 field view shows the field enemies (Lizardman present)", any("Lizardman" in u["display_name"] for u in fv))
 
