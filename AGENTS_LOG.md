@@ -54768,3 +54768,59 @@ SOURCE CODE -> BESTIARY -> EDITOR. Static only, no traces, no ROM/Test.json/pale
 - Sparse predecessor-only corruption is not claimed fixed; its first materialization path is
   unchanged. Build 0530 remains a candidate pending Tighe's conventional/jump-assisted gameplay.
 - Report: `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0060_r1s2_no_publication_residency_fix.md`.
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0062 — Build 0530 first-bad-write capture handoff (Cody, 2026-11-03)
+
+- Tighe's aggressive chain-climbing test establishes that Build 0530 is improved but still corrupts
+  Plane A; it remains unaccepted. No production correction or Build 0531 was made without the first
+  bad write.
+- Static audit found Build 0530 updates provenance at every identity-changing live producer: final
+  scene/checkpoint replay, ordinary selector-1/2 completion, and genuine no-publication
+  materialization. Selector-0 columns, animation/fill, text/HUD, and package slot remaps change
+  contents without changing logical row identity.
+- Remaining source risk is a genuine N/N+32 materialization whose global record/selector/pointer/
+  ring-front reconstruction may not equal the arcade's exact retained mixed history. This remains a
+  hypothesis pending live evidence.
+- Added a read-only Build 0530 manual capture with complete pre-write staged and VDP rows,
+  provenance relationship, source branches/registers, ordered writer history, completed row, and
+  post-publication VDP state. Added a read-only original-arcade oracle with a full C08000 baseline,
+  ordered writes, semantic PCs, and 64 complete rows per marker.
+- Both Genesis (180 frames) and original-arcade (120 frames) launchers passed bounded headless smoke
+  initialization. Run `tools/diagnostics/run_r1s2_first_bad_write_trace.sh genesis`, then `... arcade`;
+  press M at the first visible Genesis failure and corresponding arcade traversal points.
+- Report: `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0062_r1s2_first_bad_write_diagnosis.md`.
+
+### MAME Exit Summary (2026-11-03 10:14:58)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0062 — Build 0531 first-bad-write correction (Cody, 2026-11-03)
+
+- Completed Tighe's paired manual captures: Build 0530 Genesis
+  `genesis_20261103_150809` (2,639 frames, marker 2405) and original arcade
+  `arcade_20261103_150902` (2,979 frames, marker 2855).
+- Proven first bad write: frame 2291, record 17 selector 1, logical row 46 / physical row 14,
+  first cell `$62EB->$63F8`. Rows 45 and 44 follow at frames 2299 and 2307. All three were
+  correctly authored by current record 17, their slots were legitimately reused by aliases
+  14/13/12, then Build 0530 incorrectly selected completed selector-0 data on return.
+- Original arcade C08000 rows 44-46, generated record-17 pan rows, and correct pre-alias Genesis
+  rows match at all 64 cells. The offline assets are correct; runtime partial-record source
+  selection was wrong.
+- Build 0531 derives current-authored ownership from existing selector/strip/group state: selector
+  1 owns `[63-front,63]`, selector 2 owns `[0,front]`. Current-owned alias misses use the current
+  record's existing pan row; all other misses retain the predecessor path. No new buffer, map,
+  hardware emulation, collision, gameplay, Plane-B, sprite, palette, or audio change.
+- Source/verifier commit: `244d219ff8fead00fdc84920be5ecdb89db00a45`.
+- Canonical, background, selector, scene/pan, gameplay-entry, epoch/package, mandatory Genesis NTSC,
+  complete-family, and normal/invincible R1-S2 functional-start gates PASS. Counter/ledger 0531.
+- Normal: `dist/rastan-direct/rastan_direct_video_test_build_0531.bin`, 3,792,568 bytes,
+  SHA-256 `d0161ef288d67d73b54bd9afc50a6d5adf0aace5676d9158a085decde0a3d568`.
+- R1-S2: `dist/rastan-direct/rastan_direct_video_test_build_0531_S1-2.bin`, 3,792,568 bytes,
+  SHA-256 `ca6985bf52f2af3534d9647debe594ccf1d0a54ef50f8046a215d41d7531e953`.
+- Invincible R1-S2: `dist/rastan-direct/rastan_direct_video_test_build_0531_invincible_S1-2.bin`,
+  3,792,568 bytes, SHA-256
+  `9264ea27e548f40851beb5c3de434bbf7b37bc6bcc6648e4097d26ac4d3da2e7`.
+- Build 0531 remains a candidate pending Tighe's ordinary and aggressive jump-assisted chain tests.
+  Reports: `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0062_r1s2_first_bad_write_diagnosis.md`
+  and `docs/design/Cody_build0531_r1s2_partial_record_rematerialization_fix.md`.
