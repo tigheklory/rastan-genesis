@@ -1,0 +1,260 @@
+{
+  "tool_repo": "audio/rastan_music_dump/tools/vgm2fur",
+  "records": [
+    {
+      "source_vgm": "audio/rastan_music_dump/converted_vgm/01 - Credit.vgm",
+      "source_vgz": "audio/rastan_music_dump/01 - Credit.vgz",
+      "output_fur": "audio/rastan_music_dump/converted_fur/01 - Credit.fur",
+      "attempts": [
+        {
+          "attempt": 1,
+          "mode": "vgm_input",
+          "cmd": [
+            "python3",
+            "-m",
+            "vgm2fur",
+            "/home/tighe/projects/rastan-genesis/audio/rastan_music_dump/converted_vgm/01 - Credit.vgm",
+            "-o",
+            "/home/tighe/projects/rastan-genesis/audio/rastan_music_dump/converted_fur/01 - Credit.fur"
+          ],
+          "returncode": 0,
+          "log": "audio/rastan_music_dump/conversion_attempts/vgm2fur_logs/01 - Credit__attempt1_vgm.log"
+        }
+      ],
+      "success": true,
+      "fur_exists": true,
+      "fur_size": 274,
+      "fur_nonzero_unique_bytes": 156,
+      "fur_header_hex": "789cd3752b2dca4b4c4e55c8cd4f29cd",
+      "status": "SUCCESS",
+      "failure_reason": ""
+    },
+    {
+      "source_vgm": "audio/rastan_music_dump/converted_vgm/02 - Broken The Promises (Opening).vgm",
+      "source_vgz": "audio/rastan_music_dump/02 - Broken The Promises (Opening).vgz",
+      "output_fur": "audio/rastan_music_dump/converted_fur/02 - Broken The Promises (Opening).fur",
+      "attempts": [
+        {
+          "attempt": 1,
+          "mode": "vgm_input",
+          "cmd": [
+            "python3",
+            "-m",
+            "vgm2fur",
+            "/home/tighe/projects/rastan-genesis/audio/rastan_music_dump/converted_vgm/02 - Broken The Promises (Opening).vgm",
+            "-o",
+            "/home/tighe/projects/rastan-genesis/audio/rastan_music_dump/converted_fur/02 - Broken The Promises (Opening).fur"
+          ],
+          "returncode": 0,
+          "log": "audio/rastan_music_dump/conversion_attempts/vgm2fur_logs/02 - Broken The Promises (Opening)__attempt1_vgm.log"
+        }
+      ],
+      "success": true,
+      "fur_exists": true,
+      "fur_size": 274,
+      "fur_nonzero_unique_bytes": 156,
+      "fur_header_hex": "789cd3752b2dca4b4c4e55c8cd4f29cd",
+      "status": "SUCCESS",
+      "failure_reason": ""
+    },
+    {
+      "source_vgm": "audio/rastan_music_dump/converted_vgm/03 - Aggressive World (Scene 1).vgm",
+      "source_vgz": "audio/rastan_music_dump/03 - Aggressive World (Scene 1).vgz",
+      "output_fur": "audio/rastan_music_dump/converted_fur/03 - Aggressive World (Scene 1).fur",
+      "attempts": [
+        {
+          "attempt": 1,
+          "mode": "vgm_input",
+          "cmd": [
+            "python3",
+            "-m",
+            "vgm2fur",
+            "/home/tighe/projects/rastan-genesis/audio/rastan_music_dump/converted_vgm/03 - Aggressive World (Scene 1).vgm",
+            "-o",
+            "/home/tighe/projects/rastan-genesis/audio/rastan_music_dump/converted_fur/03 - Aggressive World (Scene 1).fur"
+          ],
+          "returncode": 0,
+          "log": "audio/rastan_music_dump/conversion_attempts/vgm2fur_logs/03 - Aggressive World (Scene 1)__attempt1_vgm.log"
+        }
+      ],
+      "success": true,
+      "fur_exists": true,
+      "fur_size": 274,
+      "fur_nonzero_unique_bytes": 156,
+      "fur_header_hex": "789cd3752b2dca4b4c4e55c8cd4f29cd",
+      "status": "SUCCESS",
+      "failure_reason": ""
+    },
+    {
+      "source_vgm": "audio/rastan_music_dump/converted_vgm/04 - Bad Bible (Name Regist).vgm",
+      "source_vgz": "audio/rastan_music_dump/04 - Bad Bible (Name Regist).vgz",
+      "output_fur": "audio/rastan_music_dump/converted_fur/04 - Bad Bible (Name Regist).fur",
+      "attempts": [
+        {
+          "attempt": 1,
+          "mode": "vgm_input",
+          "cmd": [
+            "python3",
+            "-m",
+            "vgm2fur",
+            "/home/tighe/projects/rastan-genesis/audio/rastan_music_dump/converted_vgm/04 - Bad Bible (Name Regist).vgm",
+            "-o",
+            "/home/tighe/projects/rastan-genesis/audio/rastan_music_dump/converted_fur/04 - Bad Bible (Name Regist).fur"
+          ],
+          "returncode": 0,
+          "log": "audio/rastan_music_dump/conversion_attempts/vgm2fur_logs/04 - Bad Bible (Name Regist)__attempt1_vgm.log"
+        }
+      ],
+      "success": true,
+      "fur_exists": true,
+      "fur_size": 274,
+      "fur_nonzero_unique_bytes": 156,
+      "fur_header_hex": "789cd3752b2dca4b4c4e55c8cd4f29cd",
+      "status": "SUCCESS",
+      "failure_reason": ""
+    },
+    {
+      "source_vgm": "audio/rastan_music_dump/converted_vgm/05 - Re-In-Carnation (Scene 2).vgm",
+      "source_vgz": "audio/rastan_music_dump/05 - Re-In-Carnation (Scene 2).vgz",
+      "output_fur": "audio/rastan_music_dump/converted_fur/05 - Re-In-Carnation (Scene 2).fur",
+      "attempts": [
+        {
+          "attempt": 1,
+          "mode": "vgm_input",
+          "cmd": [
+            "python3",
+            "-m",
+            "vgm2fur",
+            "/home/tighe/projects/rastan-genesis/audio/rastan_music_dump/converted_vgm/05 - Re-In-Carnation (Scene 2).vgm",
+            "-o",
+            "/home/tighe/projects/rastan-genesis/audio/rastan_music_dump/converted_fur/05 - Re-In-Carnation (Scene 2).fur"
+          ],
+          "returncode": 0,
+          "log": "audio/rastan_music_dump/conversion_attempts/vgm2fur_logs/05 - Re-In-Carnation (Scene 2)__attempt1_vgm.log"
+        }
+      ],
+      "success": true,
+      "fur_exists": true,
+      "fur_size": 274,
+      "fur_nonzero_unique_bytes": 156,
+      "fur_header_hex": "789cd3752b2dca4b4c4e55c8cd4f29cd",
+      "status": "SUCCESS",
+      "failure_reason": ""
+    },
+    {
+      "source_vgm": "audio/rastan_music_dump/converted_vgm/06 - The Devil Boss Carnival (Scene 3 Boss).vgm",
+      "source_vgz": "audio/rastan_music_dump/06 - The Devil Boss Carnival (Scene 3 Boss).vgz",
+      "output_fur": "audio/rastan_music_dump/converted_fur/06 - The Devil Boss Carnival (Scene 3 Boss).fur",
+      "attempts": [
+        {
+          "attempt": 1,
+          "mode": "vgm_input",
+          "cmd": [
+            "python3",
+            "-m",
+            "vgm2fur",
+            "/home/tighe/projects/rastan-genesis/audio/rastan_music_dump/converted_vgm/06 - The Devil Boss Carnival (Scene 3 Boss).vgm",
+            "-o",
+            "/home/tighe/projects/rastan-genesis/audio/rastan_music_dump/converted_fur/06 - The Devil Boss Carnival (Scene 3 Boss).fur"
+          ],
+          "returncode": 0,
+          "log": "audio/rastan_music_dump/conversion_attempts/vgm2fur_logs/06 - The Devil Boss Carnival (Scene 3 Boss)__attempt1_vgm.log"
+        }
+      ],
+      "success": true,
+      "fur_exists": true,
+      "fur_size": 274,
+      "fur_nonzero_unique_bytes": 156,
+      "fur_header_hex": "789cd3752b2dca4b4c4e55c8cd4f29cd",
+      "status": "SUCCESS",
+      "failure_reason": ""
+    },
+    {
+      "source_vgm": "audio/rastan_music_dump/converted_vgm/07 - Scene Clear.vgm",
+      "source_vgz": "audio/rastan_music_dump/07 - Scene Clear.vgz",
+      "output_fur": "audio/rastan_music_dump/converted_fur/07 - Scene Clear.fur",
+      "attempts": [
+        {
+          "attempt": 1,
+          "mode": "vgm_input",
+          "cmd": [
+            "python3",
+            "-m",
+            "vgm2fur",
+            "/home/tighe/projects/rastan-genesis/audio/rastan_music_dump/converted_vgm/07 - Scene Clear.vgm",
+            "-o",
+            "/home/tighe/projects/rastan-genesis/audio/rastan_music_dump/converted_fur/07 - Scene Clear.fur"
+          ],
+          "returncode": 0,
+          "log": "audio/rastan_music_dump/conversion_attempts/vgm2fur_logs/07 - Scene Clear__attempt1_vgm.log"
+        }
+      ],
+      "success": true,
+      "fur_exists": true,
+      "fur_size": 274,
+      "fur_nonzero_unique_bytes": 156,
+      "fur_header_hex": "789cd3752b2dca4b4c4e55c8cd4f29cd",
+      "status": "SUCCESS",
+      "failure_reason": ""
+    },
+    {
+      "source_vgm": "audio/rastan_music_dump/converted_vgm/08 - Final Destroy (Scene 3 Round 6 Boss).vgm",
+      "source_vgz": "audio/rastan_music_dump/08 - Final Destroy (Scene 3 Round 6 Boss).vgz",
+      "output_fur": "audio/rastan_music_dump/converted_fur/08 - Final Destroy (Scene 3 Round 6 Boss).fur",
+      "attempts": [
+        {
+          "attempt": 1,
+          "mode": "vgm_input",
+          "cmd": [
+            "python3",
+            "-m",
+            "vgm2fur",
+            "/home/tighe/projects/rastan-genesis/audio/rastan_music_dump/converted_vgm/08 - Final Destroy (Scene 3 Round 6 Boss).vgm",
+            "-o",
+            "/home/tighe/projects/rastan-genesis/audio/rastan_music_dump/converted_fur/08 - Final Destroy (Scene 3 Round 6 Boss).fur"
+          ],
+          "returncode": 0,
+          "log": "audio/rastan_music_dump/conversion_attempts/vgm2fur_logs/08 - Final Destroy (Scene 3 Round 6 Boss)__attempt1_vgm.log"
+        }
+      ],
+      "success": true,
+      "fur_exists": true,
+      "fur_size": 274,
+      "fur_nonzero_unique_bytes": 156,
+      "fur_header_hex": "789cd3752b2dca4b4c4e55c8cd4f29cd",
+      "status": "SUCCESS",
+      "failure_reason": ""
+    },
+    {
+      "source_vgm": "audio/rastan_music_dump/converted_vgm/09 - The Man Of Saga (Ending).vgm",
+      "source_vgz": "audio/rastan_music_dump/09 - The Man Of Saga (Ending).vgz",
+      "output_fur": "audio/rastan_music_dump/converted_fur/09 - The Man Of Saga (Ending).fur",
+      "attempts": [
+        {
+          "attempt": 1,
+          "mode": "vgm_input",
+          "cmd": [
+            "python3",
+            "-m",
+            "vgm2fur",
+            "/home/tighe/projects/rastan-genesis/audio/rastan_music_dump/converted_vgm/09 - The Man Of Saga (Ending).vgm",
+            "-o",
+            "/home/tighe/projects/rastan-genesis/audio/rastan_music_dump/converted_fur/09 - The Man Of Saga (Ending).fur"
+          ],
+          "returncode": 0,
+          "log": "audio/rastan_music_dump/conversion_attempts/vgm2fur_logs/09 - The Man Of Saga (Ending)__attempt1_vgm.log"
+        }
+      ],
+      "success": true,
+      "fur_exists": true,
+      "fur_size": 274,
+      "fur_nonzero_unique_bytes": 156,
+      "fur_header_hex": "789cd3752b2dca4b4c4e55c8cd4f29cd",
+      "status": "SUCCESS",
+      "failure_reason": ""
+    }
+  ],
+  "total_sources": 9,
+  "success_count": 9,
+  "fail_count": 0
+}

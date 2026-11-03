@@ -1,0 +1,31 @@
+{
+ "_authority": "STATIC decompilation of maincpu.bin (0x40BAA jump-table handlers, states 0x13-0x22). No MAME. counter 360.",
+ "_key_finding": "States 0x13-0x22 are NOT 10 distinct enemy species. They are one architecture: the materialized GROUND-ACTOR MARKER-CHAIN state machine. Each handler starts with 0x40E74 (recheck the actor's target letter marker +0x0D under it); if the marker is present it CONSUMES/advances it (0x4103A) and RE-TARGETS +0x0D to the next char while REWRITING its own base graphics +0x1E (and often +0x38 comp, +0x01 anim, +0x30) per round(a5@0x118)/global(0x13e)/current-char; if the marker is absent it runs the actor's anim/movement/attack tail (generic step 0x4092E). The visible species identity is the transient +0x1E base cycled during the chain.",
+ "shared_helpers": {
+  "0x40E74": "marker recheck: reads +0x0E cell ptr, high byte vs +0x0D -> d1 match flag",
+  "0x4103A": "consume/advance current marker cell",
+  "0x4092E": "generic active-actor step (move + render-prep + retire when off-screen 0x427B2)",
+  "0x41BEE": "post-materialization setup helper",
+  "0x3A0EC": "sound trigger (d0 = sound id; seen 0x12/0x17/0x18/0x24/0x25)",
+  "0x41F9C": "jump/arc position helper (state 0x19)"
+ },
+ "handlers": {
+  "0x13_0x14": {"pc":"0x4375C","class":"ground marker-chain walker","bases":["0x0224"],"chars":["e->i"],"movement":"anim tail 0x08/0x09/0x0B; 0x4382E helper","notes":"round-gated (R2 0x13e=41 idle; R3 char 'e'->'i' base 0x0224 comp2 anim7)"},
+  "0x15": {"pc":"0x43840","class":"ground marker-chain walker (round-specific)","bases":["0x0224","0x0179","0x09EA"],"chars":["a->L","n->{ or H"],"movement":"anim tail anim=-10, timer from a5@532","notes":"R6 char 'n' & 0x13e>=0x80 -> base 0x0179 (CAVE-BLOCK sentinel!) char 'H' anim 0x70; else base 0x09EA comp2"},
+  "0x16": {"pc":"0x43AE6","class":"ground, scroll/position-triggered","bases":["0x00F4"],"chars":["`->O"],"movement":"marker-gone tail uses a5@0x200 scroll + a5@532","notes":"char 0x60 -> base 0x00F4 char 'O'"},
+  "0x17": {"pc":"0x43F88","class":"ground marker-chain walker","bases":["0x05E9","0x0546","0x09EA","0x0224"],"chars":["+4 / +9 / 89->85"],"movement":"anim tail anim=-16 timer a5@532","notes":"0x13e<35: base 0x05E9/0x0546; 0x13e<102: base 0x09EA; else base 0x0224"},
+  "0x18_0x1C": {"pc":"0x44082","class":"ground marker-chain walker","bases":["0x0224","0x00F4"],"chars":["E-relative / 85"],"movement":"anim tail (0x442D4/0x4431E branches, sound 0x18/0x24)","notes":"state 0x18 0x13e-position-gated; base 0x0224/0x00F4"},
+  "0x19": {"pc":"0x4396A","class":"JUMPING/LEAPING attacker","bases":["0x0235","0x09F6"],"chars":["saved->E / e,f"],"movement":"arc: +0x18 vertical, +0x1C timer, 0x41F9C, anim 0x8A->0x87->0x8B->0x8D; sound 0x12","notes":"R1 base 0x0235; else base 0x09F6 comp2"},
+  "0x1A": {"pc":"0x43B32","class":"MASTER ground marker-chain dispatcher (0x13e position-gated, largest)","bases":["0x0224","0x0266","0x00F4","0x09EA","0x01FC","0x0236","0x0546","0x0D5F(via)"],"chars":["S/T/U/g/h/i/L/R/... many"],"movement":"heavily 0x13e-range gated re-target; anim tail 0x43E8E uses +0x0D + a5@0x200 scroll","notes":"self-flag +0x742/+0x744 edge guard; sound 0x25 at char 'U'; the primary placed-enemy chain across a stage"},
+  "0x1B": {"pc":"0x43ECC","class":"BURST SPAWNER (emits child group when player in range)","bases":["child-dependent"],"chars":[],"movement":"if marker: 0x4092E; else range-check +0x16 vs camera a5@0x10BE -> when in range spawn 5 children via 0x43F4E (block A5+0x3C8=968, activate 0x447F0)","notes":"a4@28 timer 0x100; emits 5-actor burst; child +0x39=1"},
+  "0x1D_0x21": {"pc":"0x4415A","class":"ground marker-chain walker","bases":["0x0224","0x0266","0x00F4"],"chars":["F/l/D/q relative"],"movement":"anim tail 0x442BA (states 0x1D/0x18/0x21/0x29/0x33 anim); +0x1A vertical band gate 472..488","notes":"char-relative re-targeting via +0x2F stored"},
+  "0x22": {"pc":"0x43636","class":"ground marker-chain walker","bases":["0x00F4","0x0266","0x0224"],"chars":["s->O/D/F","g"],"movement":"anim tail 0x436E0 (+0x08/+0x09/+0x0B/+0x21/+0x33), anim=0x29+phase","notes":"R3 char 's'->base 0x00F4 char 'O'; R5 char 's'->base 0x0224 anim7 comp2 char 'g'"}
+ },
+ "materialized_base_pool": ["0x0224","0x0266","0x00F4","0x09EA","0x0179","0x0235","0x09F6","0x01FC","0x0236","0x0546","0x05E9","0x0D5F"],
+ "0x0179_in_H5": "YES - set by state 0x15 handler at 0x438B6 (round 6, target char 'n', 0x13e>=0x80 branch): base 0x0179, char->'H', anim 0x70. This is an H5-owned reference to the cave-block base; whether it is the same R1-S1 destroyable-block semantic or a reuse in R6 is NOT proven here (creation/destruction path of the R1 block is separate).",
+ "child_creation_paths": {
+  "0x43F4E (from state 0x1B/0x43ECC)": "burst of 5 actors into block A5+0x3C8 (968), 5-slot loop, activate via 0x447F0, child +0x39=1; a5@0x286=5 count"
+ },
+ "damage_death_handoffs_for_H7": ["0x4092E (generic step/retire; off-screen clear via 0x427B2)","0x447F0 (child activate/init)","0x41BEE","0x4103A (marker consume)","0x41F9C (jump arc)"],
+ "H7_targets": ["0x4092E body (generic actor step: movement+contact+retire)","0x447F0 (child init from state 0x1B burst)","score/drop hook not yet located in H5 tails"]
+}

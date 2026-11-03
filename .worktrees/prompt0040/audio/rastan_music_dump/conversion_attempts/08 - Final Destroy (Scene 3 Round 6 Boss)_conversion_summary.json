@@ -1,0 +1,32 @@
+{
+  "input_vgm": "audio/rastan_music_dump/converted_vgm/08 - Final Destroy (Scene 3 Round 6 Boss).vgm",
+  "data_start_offset": 128,
+  "commands_parsed": 87184,
+  "last_sample_clock": 3214296,
+  "last_time_seconds": 72.8865306122449,
+  "cmd_counts_hex": {
+    "0x54": 37679,
+    "0x61": 5839,
+    "0x62": 1,
+    "0x66": 1,
+    "0x70": 13193,
+    "0x71": 4933,
+    "0x72": 2247,
+    "0x73": 1856,
+    "0x74": 197,
+    "0x75": 319,
+    "0x76": 3294,
+    "0x77": 1646,
+    "0x78": 3,
+    "0x79": 9,
+    "0x7A": 1626,
+    "0x7B": 420,
+    "0x7C": 71,
+    "0x7D": 751,
+    "0x7E": 73,
+    "0x7F": 13026
+  },
+  "parse_errors": [],
+  "events_csv": "audio/rastan_music_dump/conversion_attempts/08 - Final Destroy (Scene 3 Round 6 Boss)_events.csv",
+  "ym2151_csv": "audio/rastan_music_dump/conversion_attempts/08 - Final Destroy (Scene 3 Round 6 Boss)_ym2151_writes.csv"
+}

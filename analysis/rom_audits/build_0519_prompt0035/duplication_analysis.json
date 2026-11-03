@@ -1,0 +1,121 @@
+{
+  "pattern_stats": {
+    "pc080_tiles_32": {
+      "stored_units": 16384,
+      "unique_units": 10705,
+      "stored_bytes": 524288,
+      "unique_bytes": 342560,
+      "raw_duplicate_bytes": 181728,
+      "zero_units": 2,
+      "zero_excess_bytes": 32
+    },
+    "pc090_cells_128": {
+      "stored_units": 4219,
+      "unique_units": 3550,
+      "stored_bytes": 540032,
+      "unique_bytes": 454400,
+      "raw_duplicate_bytes": 85632,
+      "zero_units": 22,
+      "zero_excess_bytes": 2688
+    },
+    "pc090_subtiles_32": {
+      "stored_units": 16876,
+      "unique_units": 9800,
+      "stored_bytes": 540032,
+      "unique_bytes": 313600,
+      "raw_duplicate_bytes": 226432,
+      "zero_units": 3539,
+      "zero_excess_bytes": 113216
+    },
+    "map_rows_128": {
+      "stored_units": 832,
+      "unique_units": 579,
+      "stored_bytes": 106496,
+      "unique_bytes": 74112,
+      "raw_duplicate_bytes": 32384,
+      "u16_index_bytes": 1664,
+      "net_saving_with_index": 30720
+    }
+  },
+  "cross_library": [
+    {
+      "asset": "native_hud_patterns.bin",
+      "duplicates_with": "PC080 corpus",
+      "bytes": 1632
+    },
+    {
+      "asset": "native_hud_patterns.bin",
+      "duplicates_with": "PC090 corpus",
+      "bytes": 2560
+    },
+    {
+      "asset": "native_item_icon_patterns.bin",
+      "duplicates_with": "PC080 corpus",
+      "bytes": 96
+    },
+    {
+      "asset": "native_item_icon_patterns.bin",
+      "duplicates_with": "PC090 corpus",
+      "bytes": 2432
+    },
+    {
+      "asset": "native_item_plane_patterns.bin",
+      "duplicates_with": "PC080 corpus",
+      "bytes": 864
+    },
+    {
+      "asset": "native_item_plane_patterns.bin",
+      "duplicates_with": "PC090 corpus",
+      "bytes": 864
+    },
+    {
+      "asset": "native_title_patterns.bin",
+      "duplicates_with": "PC080 corpus",
+      "bytes": 6912
+    },
+    {
+      "asset": "native_title_patterns.bin",
+      "duplicates_with": "PC090 corpus",
+      "bytes": 768
+    },
+    {
+      "asset": "semantic glyph profile",
+      "duplicates_with": "PC090 corpus",
+      "bytes": 1280
+    }
+  ],
+  "authored_descriptor": {
+    "span_entries_per_context": 35584,
+    "contexts": 2,
+    "dense_index_bytes": 284672,
+    "payload_bytes": 55424,
+    "unique_payload_records": 866,
+    "r1s1_live_entries": 4096,
+    "r1s2_live_entries": 1536,
+    "live_entries_total": 5632,
+    "compact_u32_band_index_bytes": 22528,
+    "compact_u16_record_id_bytes": 11264,
+    "saving_u32_band_index": 262144,
+    "saving_u16_record_ids": 273408,
+    "contexts_detail": [
+      {
+        "entries": 35584,
+        "unique_records": 664,
+        "repeated_pointer_bytes": 139680,
+        "top_pointer_repeat": 13309
+      },
+      {
+        "entries": 35584,
+        "unique_records": 625,
+        "repeated_pointer_bytes": 139836,
+        "top_pointer_repeat": 13309
+      }
+    ]
+  },
+  "savings": {
+    "cross_library_exact_pattern_copies": 14048,
+    "map_row_dedup_net": 30720,
+    "descriptor_dense_to_u32_band_index": 262144,
+    "descriptor_dense_to_u16_record_ids": 273408
+  }
+}

@@ -1,0 +1,49 @@
+<!doctype html><meta charset=utf-8>
+<title>Round 1 Phase 1 - Plane A layout reconstruction (Andy)</title>
+<style>
+body{background:#15171a;color:#ddd;font:13px/1.4 system-ui,monospace;margin:14px}
+h1{font-size:16px} .sub{color:#9aa;margin-bottom:8px}
+.controls{position:sticky;top:0;background:#15171a;padding:8px 0;z-index:9;border-bottom:1px solid #333}
+button{background:#3a3f47;color:#eee;border:1px solid #555;border-radius:4px;padding:4px 9px;cursor:pointer}
+button.on{background:#5a7;color:#000}
+.strip{display:flex;flex-direction:row;align-items:flex-start;gap:0;overflow-x:auto;padding:10px 0;background:#000;border:1px solid #333}
+figure.rec{margin:0}
+figure.rec img{--z:2;width:calc(512px*var(--z)/2);height:calc(512px*var(--z)/2);
+  image-rendering:pixelated;image-rendering:crisp-edges;display:block;
+  border-right:1px solid #2a3;}
+figcaption{font:10px monospace;color:#8ad;padding:2px 4px;white-space:nowrap;text-align:center}
+</style>
+<h1>ROUND 1 &middot; PHASE 1 &mdash; PLANE A LAYOUT RECONSTRUCTION</h1>
+<div class=sub>Foreground (Plane A / arcade fast layer 0x1691C) reconstructed from the extracted 8&times;8 patterns.
+Grayscale diagnostic palette (4bpp index&rarr;gray, 0..15&rarr;0..255); black = transparent tile (code 0, sky/Plane-B shows through in game).
+Each SECTION is one 64&times;64-tile record (512&times;512 px); records are laid LEFT&rarr;RIGHT in scroll/traversal order.
+Horizontal = group*4+colidx, vertical = strip*4+row. NOT the flip-normalized set; NOT the game palette.</div>
+<div class=controls>Zoom:
+<button id=z1 onclick="Z(1)">1&times;</button>
+<button id=z2 class=on onclick="Z(2)">2&times;</button>
+<button id=z3 onclick="Z(3)">3&times;</button>
+<button id=z4 onclick="Z(4)">4&times;</button>
+&nbsp; scroll the strip horizontally &rarr;</div>
+<script>
+function Z(z){for(const b of document.querySelectorAll('.controls button'))b.classList.remove('on');
+ document.getElementById('z'+z).classList.add('on');
+ for(const im of document.querySelectorAll('figure.rec img')){im.style.width=(512*z/2)+'px';im.style.height=(512*z/2)+'px';}}
+</script>
+<div class=strip>
+<figure class=rec><img src="record_00.png" alt="record 0"><figcaption>SECTION 1 &middot; record 0 &middot; 4096 tiles</figcaption></figure>
+<figure class=rec><img src="record_01.png" alt="record 1"><figcaption>SECTION 2 &middot; record 1 &middot; 4096 tiles</figcaption></figure>
+<figure class=rec><img src="record_02.png" alt="record 2"><figcaption>SECTION 3 &middot; record 2 &middot; 4096 tiles</figcaption></figure>
+<figure class=rec><img src="record_03.png" alt="record 3"><figcaption>SECTION 4 &middot; record 3 &middot; 4096 tiles</figcaption></figure>
+<figure class=rec><img src="record_04.png" alt="record 4"><figcaption>SECTION 5 &middot; record 4 &middot; 4096 tiles</figcaption></figure>
+<figure class=rec><img src="record_05.png" alt="record 5"><figcaption>SECTION 6 &middot; record 5 &middot; 4096 tiles</figcaption></figure>
+<figure class=rec><img src="record_06.png" alt="record 6"><figcaption>SECTION 7 &middot; record 6 &middot; 4096 tiles</figcaption></figure>
+<figure class=rec><img src="record_07.png" alt="record 7"><figcaption>SECTION 8 &middot; record 7 &middot; 4096 tiles</figcaption></figure>
+<figure class=rec><img src="record_08.png" alt="record 8"><figcaption>SECTION 9 &middot; record 8 &middot; 4096 tiles</figcaption></figure>
+<figure class=rec><img src="record_09.png" alt="record 9"><figcaption>SECTION 10 &middot; record 9 &middot; 4096 tiles</figcaption></figure>
+<figure class=rec><img src="record_10.png" alt="record 10"><figcaption>SECTION 11 &middot; record 10 &middot; 4096 tiles</figcaption></figure>
+<figure class=rec><img src="record_11.png" alt="record 11"><figcaption>SECTION 12 &middot; record 11 &middot; 4096 tiles</figcaption></figure>
+<figure class=rec><img src="record_12.png" alt="record 12"><figcaption>SECTION 13 &middot; record 12 &middot; 4096 tiles</figcaption></figure>
+<figure class=rec><img src="record_13.png" alt="record 13"><figcaption>SECTION 14 &middot; record 13 &middot; 4096 tiles</figcaption></figure>
+<figure class=rec><img src="record_14.png" alt="record 14"><figcaption>SECTION 15 &middot; record 14 &middot; 4096 tiles</figcaption></figure>
+<figure class=rec><img src="record_15.png" alt="record 15"><figcaption>SECTION 16 &middot; record 15 &middot; 4096 tiles</figcaption></figure>
+</div>

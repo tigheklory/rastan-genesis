@@ -1,0 +1,105 @@
+{
+ "schema": "rastan-r1s2-actor-roster/v1",
+ "prompt": "PROMPT-ID-0025",
+ "scope_note": "R1 phase-2 MARKER-driven castle (S2) actors. S3 boss is record-type driven (table 0x45592, body base 0x061D) and is listed separately. The exact per-scene S2-vs-S3 marker split is the open blocker (A5+0x10D000 runtime populator).",
+ "sources": {
+  "marker_routes": "analysis/actor_decompilation/h6_marker_materialization_routes.tsv",
+  "marker_occurrences": "analysis/actor_decompilation/h13_phase2_marker_occurrences.tsv",
+  "state_handlers": "analysis/decompilation/c/rastan_actor_behavior.c (h5_* handlers)",
+  "sprite_decoder": "tools/graphics_optimizer/compositor_vm (static Bestiary route; NOT a trace)"
+ },
+ "marker_driven_castle_actors": [
+  {
+   "marker": "0x45",
+   "marker_char": "char E",
+   "occurrences": 6,
+   "state": "0x18",
+   "handler": "0x44082",
+   "state_handler_note": "h5_44082: 'E' chain -> base 0x0224 then retarget 'U'/'O' -> base 0x00F4",
+   "sprite_bases": [
+    {
+     "base": "0x0224",
+     "graphics": {
+      "decodable": true,
+      "anims_with_pieces": 218,
+      "anim_ids_sample": [
+       "0x00",
+       "0x01",
+       "0x02",
+       "0x03",
+       "0x04",
+       "0x05",
+       "0x06",
+       "0x07"
+      ],
+      "representative_frame": {
+       "anim": 0,
+       "pieces": 9,
+       "tile_codes": [
+        "0x224",
+        "0x224",
+        "0x224",
+        "0x224",
+        "0x224",
+        "0x224",
+        "0x224",
+        "0x224",
+        "0x224"
+       ]
+      }
+     }
+    },
+    {
+     "base": "0x00F4",
+     "graphics": {
+      "decodable": true,
+      "anims_with_pieces": 218,
+      "anim_ids_sample": [
+       "0x00",
+       "0x01",
+       "0x02",
+       "0x03",
+       "0x04",
+       "0x05",
+       "0x06",
+       "0x07"
+      ],
+      "representative_frame": {
+       "anim": 0,
+       "pieces": 9,
+       "tile_codes": [
+        "0xF4",
+        "0xF4",
+        "0xF4",
+        "0xF4",
+        "0xF4",
+        "0xF4",
+        "0xF4",
+        "0xF4",
+        "0xF4"
+       ]
+      }
+     }
+    }
+   ],
+   "status": "RESOLVED_MARKER_TO_BASE"
+  },
+  {
+   "marker": "0x4d",
+   "marker_char": "char M",
+   "occurrences": 1,
+   "state": "0x1B",
+   "handler": "0x43ECC",
+   "state_handler_note": "h5_43ecc: 'M' burst spawner (arcade_43f4e_burst, 5 children, anim 0x7A); coordinate-only child presentation (seeded SAT), no single static base",
+   "sprite_bases": [],
+   "status": "MARKER_RESOLVED_BASE_UNPINNED"
+  }
+ ],
+ "record_type_boss_S3": {
+  "record_type": "0x0E",
+  "body_base": "0x061D",
+  "source": "rastan_actor_tables.c record_type_45592[0x0E]",
+  "note": "R1 boss body; record-type path, not marker driven"
+ },
+ "naming_status": "Tighe's labels 'Armored Men' and 'Wizards' map to the marker-'E' humanoid bases (0x0224 primary, 0x00F4 secondary/retarget) and the marker-'M' burst spawner respectively \u2014 to be CONFIRMED by viewing the decoded graphics in the Composer; this roster does not assert the visual label without that view."
+}

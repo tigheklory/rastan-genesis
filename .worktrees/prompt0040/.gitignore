@@ -1,0 +1,75 @@
+*.mp4
+states/screenshots/**/Exodus_Recording_*.mp4
+
+roms/*
+!roms/.gitkeep
+
+video/*
+!video/.gitkeep
+
+examples/*/out/
+examples/*/res/*.h
+examples/*/res/*.rs
+examples/*/res/*.d
+
+tools/local/
+tools/sgdk/
+
+# Logs
+*.log
+
+# Build & Output
+dist/
+*.bin
+*.gen
+
+# Ignore build outputs by default, but allow canonical metadata/evidence files
+build/**
+
+!build/
+!build/rastan-direct/
+!build/rastan-direct/*.json
+!build/rastan-direct/build_counter.txt
+!build/rom_inventory.json
+!build/maincpu.disasm.txt
+!build/genesis_postpatch.disasm.txt
+
+build/**/*.bin
+build/**/*.gen
+build/**/*.elf
+build/**/*.o
+build/**/*.a
+build/**/*.map
+build/**/*.lst
+build/mame/
+
+# Ghidra 
+.ghidra_cache/
+.ghidra_config/
+*.rep/
+*.gpr
+
+# Python
+__pycache__/
+*.pyc
+
+# Local Toolchain (if not already handled)
+tools/local/
+tools/sgdk/
+
+# Ignore all screenshots and recordings
+states/
+states/screenshots/**/*.png
+states/screenshots/**/*.mp4
+states/screenshots/**/*.jpg
+
+# Keep the directory structure
+!states/screenshots/**/.gitkeep
+
+audio/rastan_music_dump/tools/vgm2fur/
+
+# Local MAME source snapshots for reference only
+docs/reference/mame/
+
+# Local-only reference: Sonic 1 disassembly (NOT part of this project; do not commit)
+docs/reference/s1disasm/

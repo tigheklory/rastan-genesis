@@ -1,0 +1,19 @@
+{
+  "schema": "pc080sn_native_metatile_v1",
+  "authority": "../../build/regions/maincpu.bin",
+  "authority_sha256": "4f30b9e7aa946aa33d20e125a1726ff094f9615980107d0842efe1721cf32063",
+  "descriptor_scan": {
+    "start": 3848,
+    "end_exclusive": 237580,
+    "stride": 4,
+    "slots": 58433
+  },
+  "pointer_max": 392700,
+  "index_bytes": 392702,
+  "record_bytes": 64,
+  "record_count": 4733,
+  "record_layout": "tile_code_be16[16], collision_be16[16]",
+  "pointer_copy_base_aliases_included": true,
+  "index_sha256": "3730f569ee92cdc4422eb837d4b5b3870c15b535b1d28e809aef73b08e856ff2",
+  "records_sha256": "01ae576298663f3f9a2b2c129d9ddfcaea40937ab70fda61a794780f3171103b"
+}

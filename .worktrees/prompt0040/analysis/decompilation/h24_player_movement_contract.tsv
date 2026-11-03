@@ -1,0 +1,10 @@
+aspect	field/pc	semantics	status
+horizontal request	0x51E24/0x52550	input bit -> X velocity/position	PARTIAL
+vertical request	pending A5+0x1266/0x1268	queued for scroll (H23)	PROVEN(H23)
+step dispenser	0x51880	cap motion at 4px/frame -> A5+0x10DC	PARTIAL(H23)
+jump init	state 6 entry	sets airborne + gravity	PENDING
+gravity/fall	state 6 handler	per-frame fall accel	PENDING
+climb	state 4	feeds pending_up A5+0x1266 (H23 climb)	PARTIAL
+grounded	state 2	ground contact via collision grid 0x53A2E	PARTIAL
+landing transition	state 6->2	on ground contact	PENDING
+rope release	state 4->6/2	on input release	PENDING

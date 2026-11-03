@@ -1,0 +1,4 @@
+source	creator	status	notes
+fixed/map-placed pickups (B)	marker materialization 0x41180/0x41362	PROVEN (H6)	letter markers e.g. state 0x20 torch/light; field schedule 0x4A104 (A/B/C)
+enemy-death drops (A)	UNRESOLVED	OPEN	distinct from B; not isolated this pass
+scripted pickups (C)	0x45CFC/0x45342 scripted spawn	PARTIAL	scripted-event dispatcher 0x4580C places actors by progression

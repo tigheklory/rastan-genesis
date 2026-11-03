@@ -1,0 +1,33 @@
+{
+  "input_vgm": "audio/rastan_music_dump/converted_vgm/03 - Aggressive World (Scene 1).vgm",
+  "data_start_offset": 128,
+  "commands_parsed": 35081,
+  "last_sample_clock": 2311999,
+  "last_time_seconds": 52.42628117913832,
+  "cmd_counts_hex": {
+    "0x54": 16189,
+    "0x61": 4117,
+    "0x62": 6,
+    "0x63": 7,
+    "0x66": 1,
+    "0x70": 3786,
+    "0x71": 2529,
+    "0x72": 769,
+    "0x73": 977,
+    "0x74": 195,
+    "0x75": 307,
+    "0x76": 1517,
+    "0x77": 716,
+    "0x78": 2,
+    "0x79": 34,
+    "0x7A": 346,
+    "0x7B": 174,
+    "0x7C": 32,
+    "0x7D": 194,
+    "0x7E": 197,
+    "0x7F": 2986
+  },
+  "parse_errors": [],
+  "events_csv": "audio/rastan_music_dump/conversion_attempts/03 - Aggressive World (Scene 1)_events.csv",
+  "ym2151_csv": "audio/rastan_music_dump/conversion_attempts/03 - Aggressive World (Scene 1)_ym2151_writes.csv"
+}

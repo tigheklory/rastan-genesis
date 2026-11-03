@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "purpose": "Track where original arcade objects land in Genesis ROM builds and where generated stubs/trampolines replace original control flow.",
+  "rules": [
+    {
+      "id": "startup_common_identity_copy",
+      "applies_to": "startup_common_rom",
+      "kind": "identity_copy",
+      "policy": "When feasible, copied original code/data retains its original ROM address in the Genesis build."
+    },
+    {
+      "id": "startup_common_generated_stubs",
+      "applies_to": "startup_common_rom",
+      "kind": "generated_stub",
+      "policy": "Any generated stub or trampoline must be listed in the per-build relocation map with the original range it replaces and the reason it exists."
+    },
+    {
+      "id": "build_from_original_bytes",
+      "applies_to": "all",
+      "kind": "provenance",
+      "policy": "Relocation maps are emitted from original ROM input on every build; derived binaries are never used as translation inputs."
+    }
+  ]
+}

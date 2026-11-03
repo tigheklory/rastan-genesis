@@ -1,0 +1,8 @@
+{
+  "exact_source_colors_shared_by_multiple_sprite_families": 16,
+  "distinct_arcade_color_groups_collapsing_to_one_genesis_value": 16,
+  "sprite_plane_a_exact_reuse": 37,
+  "sprite_plane_b_exact_reuse": 4,
+  "plane_a_plane_b_exact_reuse": 4,
+  "all_three_exact_reuse": 4
+}

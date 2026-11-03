@@ -1,0 +1,79 @@
+arcade_pc: 0x03AB84
+label: reset_gate_cmp_site
+purpose_note: caller chain compare site
+confidence: MEDIUM
+ghidra_function: warm_restart_gate_caller_a
+function_entry: 0003ab7c
+function_body: [[0003ab7c, 0003ab81] [0003ab84, 0003abe1]]
+
+== Raw Disassembly Snippet (+/- 0x20) ==
+0003ab7c: tst.w (0x1c10,A5)
+0003ab80: bra.b 0x0003ab84
+0003ab84: cmpi.w #0x100,(0x12,A5)
+0003ab8a: bsr.w 0x00039fa8
+0003ab8e: cmpi.w #0x3,(0x0,A5)
+0003ab94: beq.b 0x0003abe0
+0003ab96: btst.b #0x2,(0x00390007).l
+0003ab9e: bne.b 0x0003abe0
+0003aba0: move.b #0x0,D0b
+0003aba4: bsr.w 0x0003f084
+0003aba8: move.w #0x1f,(0x4a,A5)
+0003abae: bsr.w 0x0003add8
+0003abb2: bsr.w 0x0003ae50
+0003abb6: bsr.w 0x0003ad72
+0003abba: clr.l (0x00c20000).l
+0003abc0: clr.l (0x00c40000).l
+
+== Function Disassembly ==
+0003ab7c: tst.w (0x1c10,A5)
+0003ab80: bra.b 0x0003ab84
+0003ab84: cmpi.w #0x100,(0x12,A5)
+0003ab8a: bsr.w 0x00039fa8
+0003ab8e: cmpi.w #0x3,(0x0,A5)
+0003ab94: beq.b 0x0003abe0
+0003ab96: btst.b #0x2,(0x00390007).l
+0003ab9e: bne.b 0x0003abe0
+0003aba0: move.b #0x0,D0b
+0003aba4: bsr.w 0x0003f084
+0003aba8: move.w #0x1f,(0x4a,A5)
+0003abae: bsr.w 0x0003add8
+0003abb2: bsr.w 0x0003ae50
+0003abb6: bsr.w 0x0003ad72
+0003abba: clr.l (0x00c20000).l
+0003abc0: clr.l (0x00c40000).l
+0003abc6: bsr.w 0x0003ae64
+0003abca: moveq 0xe,D0
+0003abcc: bsr.w 0x0003bb48
+0003abd0: move.w #0x10,(0x2c,A5)
+0003abd6: move.w #0x3,(0x0,A5)
+0003abdc: clr.w (0x2,A5)
+0003abe0: rts
+
+== Decompiler Output ==
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void warm_restart_gate_caller_a(void)
+
+{
+  short *unaff_A5;
+  
+  func_0x00039fa8();
+  if ((*unaff_A5 != 3) && ((DAT_00390007 & 4) == 0)) {
+    func_0x0003f084();
+    unaff_A5[0x25] = 0x1f;
+    func_0x0003add8();
+    func_0x0003ae50();
+    func_0x0003ad72();
+    _DAT_00c20000 = 0;
+    _DAT_00c40000 = 0;
+    func_0x0003ae64();
+    func_0x0003bb48();
+    unaff_A5[0x16] = 0x10;
+    *unaff_A5 = 3;
+    unaff_A5[1] = 0;
+  }
+  return;
+}
+
+

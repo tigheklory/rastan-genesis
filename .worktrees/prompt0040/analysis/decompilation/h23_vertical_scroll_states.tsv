@@ -1,0 +1,13 @@
+field	offset	meaning	values	owner	status
+Y scroll	A5+0x10AE	FG vertical scroll -> 0xC40002	0..511 (mod 512)	0x557BA/0x55854/0x55AB4	PROVEN
+X scroll	A5+0x10EC	FG horizontal scroll -> 0xC40000	0..511 (mod 512)	0x55B3C/0x55AB4	PROVEN
+player screen-Y	A5+0x10BE	camera-relative player Y	band [32,304] center 80	0x539C2	PROVEN
+scroll delta	A5+0x10DC	per-frame scroll amount	<=4 px	0x51880	PROVEN
+pending up	A5+0x1266	queued up motion	px	player movement	PARTIAL
+pending down	A5+0x1268	queued down motion	px	player movement	PARTIAL
+scroll step	A5+0x10D8	applied step	typ 4	0x539BA/0x52958	PROVEN
+dir accumulator	A5+0x10B8	up/down accumulator; limit 160	-..160	0x557BA/0x55854	PROVEN
+sub-row accum	A5+0x10B2	8px row accumulator (bit3=row)	0..	0x557BA	PROVEN
+scroll flags	A5+0x10D0	bit6 up-limit, bit7 down	bits	0x557BA/0x55854/0x539C2	PROVEN
+dir mode	A5+0x13D0	row-stream direction	2 up / 3 down	0x55832/0x55878	PROVEN
+X frac accum	A5+0x10F0	X half-step fraction	0/1	0x55B3C	PROVEN

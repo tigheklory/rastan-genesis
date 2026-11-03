@@ -1,0 +1,6 @@
+stage	pc	status	notes
+frame order	0x41F0E	PROVEN	main 0x5100A -> actor update 0x40B66 -> collision 0x449B4 -> pools -> spawn 0x450D8
+A5+0x1134 consumers	0x51ABE,0x51B04	PROVEN	only 2; both Rastan BODY box (build + world/landing). NOT the weapon-vs-enemy buffer
+enemy collision manager	0x449B4	PARTIAL	multi-pass over A5+0x2C8 (29) + A5+0x508; the H8-missing enemy-hurtbox scan
+overlap dispatch	0x44930/0x44C5A/0x44C60/0x44C66/0x44C6C/0x44C72	PARTIAL	player box source: A5+0x28C weapon / 0x2B0 / 0x1248 / 0x1254 / 0x22C / 0x1254
+AABB primitive	0x44CBA	COMPLETE	per-axis; called X then Y

@@ -1,0 +1,1379 @@
+[
+  {
+    "id": "rastan_player_body",
+    "name": "Rastan player BODY",
+    "class_resolution": "resolved",
+    "graphics_resolution": "resolved",
+    "codes": [
+      138,
+      139,
+      140,
+      141,
+      142,
+      143,
+      144,
+      145,
+      146,
+      147,
+      148,
+      149,
+      150,
+      151,
+      152,
+      153,
+      154,
+      155,
+      156,
+      157,
+      158,
+      159,
+      267,
+      268,
+      269,
+      270
+    ],
+    "palette_relationship": {
+      "status": "proven",
+      "proven_banks": [
+        "0x33"
+      ],
+      "legal_candidates": [],
+      "evidence": "original arcade player composer 0x54492-0x54686 and Palette Decision PD-SPR-R1-RASTAN-SWORD"
+    },
+    "state_chain": [
+      "player state at arcade WRAM a5+0x11B2",
+      "player composer arcade_pc 0x054492-0x054686",
+      "PC090OJ pieces records 120-137",
+      "tile codes and actor palette nibble"
+    ],
+    "pieces_per_composite": "9-13",
+    "evidence": "original arcade composer and corrected player/sword capture",
+    "composites": [
+      "standing_facing_left",
+      "standing_facing_left_variant"
+    ],
+    "palette_banks": [
+      51
+    ],
+    "palette_candidate_banks": [],
+    "physical_cells": 26,
+    "nontransparent_pixel_count": 2614,
+    "semantic_status": "class=resolved; graphics=resolved; palette=proven"
+  },
+  {
+    "id": "stage1_lizardman",
+    "name": "Stage-1 Lizardman",
+    "class_resolution": "resolved",
+    "graphics_resolution": "resolved",
+    "codes": [
+      75,
+      76,
+      77,
+      78,
+      79,
+      80,
+      81,
+      82,
+      83,
+      84,
+      85,
+      86,
+      87,
+      88,
+      89,
+      90,
+      91,
+      92,
+      93,
+      94,
+      95,
+      96,
+      97,
+      98,
+      99,
+      100,
+      101,
+      102,
+      103,
+      104,
+      105,
+      106,
+      107,
+      108,
+      109
+    ],
+    "descriptor_source": {
+      "family": 0,
+      "classes": [
+        "0x17-0x19",
+        "0x1C-0x1F"
+      ],
+      "base_tile": "0x004B"
+    },
+    "palette_relationship": {
+      "status": "proven",
+      "proven_banks": [
+        "0x36"
+      ],
+      "legal_candidates": [],
+      "evidence": "original arcade actor+0x27=0x06 under Round-1 sprite_ctrl=0x0060; effective bank 0x36"
+    },
+    "state_chain": [
+      "spawn marker selects behavior/class at arcade_pc 0x041180",
+      "actor_record_loader_4543e selects family/base tile",
+      "family-0 descriptor table 0x03D09E selects animation piece stream",
+      "default piece quartets select codes",
+      "FUN_45684 writes actor palette nibble 0x06"
+    ],
+    "pieces_per_composite": 8,
+    "evidence": "family-0 classes 0x17/0x18/0x19/0x1C/0x1D/0x1E/0x1F observed in original arcade dispatch trace",
+    "composites": [
+      "class_17_18_club_pose"
+    ],
+    "palette_banks": [
+      54
+    ],
+    "palette_candidate_banks": [],
+    "physical_cells": 35,
+    "nontransparent_pixel_count": 2790,
+    "semantic_status": "class=resolved; graphics=resolved; palette=proven"
+  },
+  {
+    "id": "collision_marker40_route",
+    "name": "Unknown Round-1 marker-0x40 object route",
+    "class_resolution": "unresolved",
+    "graphics_resolution": "unresolved",
+    "codes": [],
+    "palette_relationship": {
+      "status": "unknown",
+      "proven_banks": [],
+      "legal_candidates": [
+        "0x30-0x3F"
+      ],
+      "evidence": "original Round-1 Phase-1 map contains marker 0x40; downstream object class and palette nibble are unresolved"
+    },
+    "state_chain": [
+      "original map collision marker 0x40",
+      "actor_spawn_ground_and_activate_41180",
+      "state/class branch unresolved",
+      "frame/composer/pieces unresolved",
+      "palette nibble unresolved"
+    ],
+    "pieces_per_composite": "unresolved",
+    "evidence": "original arcade map semantics; conservatively retained until the marker route is classified",
+    "palette_banks": [],
+    "palette_candidate_banks": [
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63
+    ],
+    "composites": [],
+    "physical_cells": 0,
+    "nontransparent_pixel_count": 0,
+    "semantic_status": "class=unresolved; graphics=unresolved; palette=unknown"
+  },
+  {
+    "id": "collision_marker41_route",
+    "name": "Unknown Round-1 marker-0x41 object route",
+    "class_resolution": "unresolved",
+    "graphics_resolution": "unresolved",
+    "codes": [],
+    "palette_relationship": {
+      "status": "unknown",
+      "proven_banks": [],
+      "legal_candidates": [
+        "0x30-0x3F"
+      ],
+      "evidence": "original Round-1 Phase-1 map contains marker 0x41; downstream object class and palette nibble are unresolved"
+    },
+    "state_chain": [
+      "original map collision marker 0x41",
+      "actor_spawn_ground_and_activate_41180",
+      "state/class branch unresolved",
+      "frame/composer/pieces unresolved",
+      "palette nibble unresolved"
+    ],
+    "pieces_per_composite": "unresolved",
+    "evidence": "original arcade map semantics; conservatively retained until the marker route is classified",
+    "palette_banks": [],
+    "palette_candidate_banks": [
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63
+    ],
+    "composites": [],
+    "physical_cells": 0,
+    "nontransparent_pixel_count": 0,
+    "semantic_status": "class=unresolved; graphics=unresolved; palette=unknown"
+  },
+  {
+    "id": "family0_class70_actor",
+    "name": "Unknown family-0 class 0x70 actor",
+    "class_resolution": "unresolved",
+    "graphics_resolution": "resolved",
+    "codes": [
+      377
+    ],
+    "descriptor_source": {
+      "family": 0,
+      "classes": [
+        "0x70"
+      ],
+      "base_tile": "0x0179"
+    },
+    "palette_relationship": {
+      "status": "proven",
+      "proven_banks": [
+        "0x30"
+      ],
+      "legal_candidates": [],
+      "evidence": "original arcade dispatch trace records actor attr 0x00 under sprite_ctrl 0x0060"
+    },
+    "state_chain": [
+      "spawn/class state reaches family 0 class 0x70",
+      "actor_record_loader_4543e selects base 0x0179",
+      "family-0 descriptor table 0x03D09E",
+      "piece stream and palette nibble 0x00"
+    ],
+    "pieces_per_composite": "descriptor-dependent",
+    "evidence": "original arcade dispatch trace; semantic human identity not yet established",
+    "palette_banks": [
+      48
+    ],
+    "palette_candidate_banks": [],
+    "composites": [
+      "unresolved_pose_art_vocabulary"
+    ],
+    "physical_cells": 1,
+    "nontransparent_pixel_count": 256,
+    "semantic_status": "class=unresolved; graphics=resolved; palette=proven"
+  },
+  {
+    "id": "family2_round1_actor_cluster",
+    "name": "Unknown family-2 Round-1 actor cluster",
+    "class_resolution": "unresolved",
+    "graphics_resolution": "resolved",
+    "codes": [
+      2650,
+      2675
+    ],
+    "descriptor_source": {
+      "family": 2,
+      "classes": [
+        "0x0B-0x13"
+      ],
+      "base_tiles": [
+        "0x0A73",
+        "0x0A5A"
+      ]
+    },
+    "palette_relationship": {
+      "status": "proven",
+      "proven_banks": [
+        "0x36"
+      ],
+      "legal_candidates": [],
+      "evidence": "original arcade dispatch trace records actor attr 0x06 under sprite_ctrl 0x0060"
+    },
+    "state_chain": [
+      "actor state reaches family 2 classes 0x0B..0x13",
+      "actor_record_loader_4543e selects base tile",
+      "family-2 descriptor table 0x03F0CE",
+      "piece stream/composer and palette nibble 0x06"
+    ],
+    "pieces_per_composite": "descriptor-dependent",
+    "evidence": "original arcade dispatch trace; human enemy/object identity remains unresolved",
+    "palette_banks": [
+      54
+    ],
+    "palette_candidate_banks": [],
+    "composites": [
+      "unresolved_pose_art_vocabulary"
+    ],
+    "physical_cells": 2,
+    "nontransparent_pixel_count": 197,
+    "semantic_status": "class=unresolved; graphics=resolved; palette=proven"
+  },
+  {
+    "id": "collision_marker49_special_route",
+    "name": "Unknown Round-1 marker-0x49 special object route",
+    "class_resolution": "unresolved",
+    "graphics_resolution": "unresolved",
+    "codes": [],
+    "palette_relationship": {
+      "status": "unknown",
+      "proven_banks": [],
+      "legal_candidates": [
+        "0x30-0x3F"
+      ],
+      "evidence": "original arcade marker route is proven, but its graphics ownership and object palette nibble are not"
+    },
+    "state_chain": [
+      "original map collision marker 0x49",
+      "actor_spawn_ground_and_activate_41180",
+      "arcade_pc 0x03A2D0 then 0x04092E",
+      "graphics-bearing status/frame/composer/pieces unresolved",
+      "palette nibble unresolved"
+    ],
+    "pieces_per_composite": "unresolved",
+    "evidence": "original arcade map and spawn switch; conservatively retained until the special route is classified",
+    "palette_banks": [],
+    "palette_candidate_banks": [
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63
+    ],
+    "composites": [],
+    "physical_cells": 0,
+    "nontransparent_pixel_count": 0,
+    "semantic_status": "class=unresolved; graphics=unresolved; palette=unknown"
+  },
+  {
+    "id": "collision_marker4f_behavior20_route",
+    "name": "Unknown Round-1 marker-0x4F behavior-0x20 actor",
+    "class_resolution": "unresolved",
+    "graphics_resolution": "unresolved",
+    "codes": [],
+    "palette_relationship": {
+      "status": "unknown",
+      "proven_banks": [],
+      "legal_candidates": [
+        "0x30-0x3F"
+      ],
+      "evidence": "original arcade behavior route is proven, but record/family/art and palette nibble are not"
+    },
+    "state_chain": [
+      "original map collision marker 0x4F",
+      "actor_spawn_ground_and_activate_41180",
+      "arcade_pc 0x041C1E/0x041C60/0x041BEE",
+      "behavior 0x20",
+      "record/family/frame/composer/pieces and palette nibble unresolved"
+    ],
+    "pieces_per_composite": "unresolved",
+    "evidence": "original arcade map and spawn switch; conservatively retained as a legal graphics-bearing candidate",
+    "palette_banks": [],
+    "palette_candidate_banks": [
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63
+    ],
+    "composites": [],
+    "physical_cells": 0,
+    "nontransparent_pixel_count": 0,
+    "semantic_status": "class=unresolved; graphics=unresolved; palette=unknown"
+  },
+  {
+    "id": "record08_family2_class30",
+    "name": "Actor record value 8 / family 2 class 0x30",
+    "class_resolution": "unresolved",
+    "graphics_resolution": "unresolved",
+    "codes": [],
+    "palette_relationship": {
+      "status": "unknown",
+      "proven_banks": [],
+      "legal_candidates": [
+        "0x30-0x3F"
+      ],
+      "evidence": "actor_record_loader_4543e table row is decoded, but live phase identity, frame pieces and palette nibble remain unresolved"
+    },
+    "state_chain": [
+      "record value 8",
+      "actor_record_loader_4543e",
+      "base 0x0129 / family 2 / class 0x30",
+      "family-2 descriptor/composer unresolved",
+      "palette nibble unresolved"
+    ],
+    "pieces_per_composite": "unresolved",
+    "evidence": "original arcade record-loader table at arcade_rom/data 0x045592",
+    "palette_banks": [],
+    "palette_candidate_banks": [
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63
+    ],
+    "composites": [],
+    "physical_cells": 0,
+    "nontransparent_pixel_count": 0,
+    "semantic_status": "class=unresolved; graphics=unresolved; palette=unknown"
+  },
+  {
+    "id": "record09_family1_class57",
+    "name": "Actor record value 9 / family 1 class 0x57",
+    "class_resolution": "unresolved",
+    "graphics_resolution": "unresolved",
+    "codes": [],
+    "palette_relationship": {
+      "status": "unknown",
+      "proven_banks": [],
+      "legal_candidates": [
+        "0x30-0x3F"
+      ],
+      "evidence": "actor_record_loader_4543e table row is decoded, but live phase identity, frame pieces and palette nibble remain unresolved"
+    },
+    "state_chain": [
+      "record value 9",
+      "actor_record_loader_4543e",
+      "base 0x02AF / family 1 / class 0x57",
+      "family-1 descriptor/composer unresolved",
+      "palette nibble unresolved"
+    ],
+    "pieces_per_composite": "unresolved",
+    "evidence": "original arcade record-loader table at arcade_rom/data 0x04559A",
+    "palette_banks": [],
+    "palette_candidate_banks": [
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63
+    ],
+    "composites": [],
+    "physical_cells": 0,
+    "nontransparent_pixel_count": 0,
+    "semantic_status": "class=unresolved; graphics=unresolved; palette=unknown"
+  },
+  {
+    "id": "record0a_family1_classb6",
+    "name": "Actor record value 10 / family 1 class 0xB6",
+    "class_resolution": "unresolved",
+    "graphics_resolution": "unresolved",
+    "codes": [],
+    "palette_relationship": {
+      "status": "unknown",
+      "proven_banks": [],
+      "legal_candidates": [
+        "0x30-0x3F"
+      ],
+      "evidence": "actor_record_loader_4543e table row is decoded, but live phase identity, frame pieces and palette nibble remain unresolved"
+    },
+    "state_chain": [
+      "record value 10",
+      "actor_record_loader_4543e",
+      "base 0x03F6 / family 1 / class 0xB6",
+      "family-1 descriptor/composer unresolved",
+      "palette nibble unresolved"
+    ],
+    "pieces_per_composite": "unresolved",
+    "evidence": "original arcade record-loader table at arcade_rom/data 0x0455A2",
+    "palette_banks": [],
+    "palette_candidate_banks": [
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63
+    ],
+    "composites": [],
+    "physical_cells": 0,
+    "nontransparent_pixel_count": 0,
+    "semantic_status": "class=unresolved; graphics=unresolved; palette=unknown"
+  },
+  {
+    "id": "record0b_family1_classb9",
+    "name": "Actor record value 11 / family 1 class 0xB9",
+    "class_resolution": "unresolved",
+    "graphics_resolution": "unresolved",
+    "codes": [],
+    "palette_relationship": {
+      "status": "unknown",
+      "proven_banks": [],
+      "legal_candidates": [
+        "0x30-0x3F"
+      ],
+      "evidence": "actor_record_loader_4543e table row is decoded, but live phase identity, frame pieces and palette nibble remain unresolved"
+    },
+    "state_chain": [
+      "record value 11",
+      "actor_record_loader_4543e",
+      "base 0x0268 / family 1 / class 0xB9",
+      "family-1 descriptor/composer unresolved",
+      "palette nibble unresolved"
+    ],
+    "pieces_per_composite": "unresolved",
+    "evidence": "original arcade record-loader table at arcade_rom/data 0x0455AA",
+    "palette_banks": [],
+    "palette_candidate_banks": [
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63
+    ],
+    "composites": [],
+    "physical_cells": 0,
+    "nontransparent_pixel_count": 0,
+    "semantic_status": "class=unresolved; graphics=unresolved; palette=unknown"
+  },
+  {
+    "id": "record0c_family1_classbc",
+    "name": "Actor record value 12 / family 1 class 0xBC",
+    "class_resolution": "unresolved",
+    "graphics_resolution": "unresolved",
+    "codes": [],
+    "palette_relationship": {
+      "status": "unknown",
+      "proven_banks": [],
+      "legal_candidates": [
+        "0x30-0x3F"
+      ],
+      "evidence": "actor_record_loader_4543e table row is decoded, but live phase identity, frame pieces and palette nibble remain unresolved"
+    },
+    "state_chain": [
+      "record value 12",
+      "actor_record_loader_4543e",
+      "base 0x050B / family 1 / class 0xBC",
+      "family-1 descriptor/composer unresolved",
+      "palette nibble unresolved"
+    ],
+    "pieces_per_composite": "unresolved",
+    "evidence": "original arcade record-loader table at arcade_rom/data 0x0455B2",
+    "palette_banks": [],
+    "palette_candidate_banks": [
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63
+    ],
+    "composites": [],
+    "physical_cells": 0,
+    "nontransparent_pixel_count": 0,
+    "semantic_status": "class=unresolved; graphics=unresolved; palette=unknown"
+  },
+  {
+    "id": "hurry_up_bat",
+    "name": "Hurry-up Bat",
+    "class_resolution": "resolved",
+    "graphics_resolution": "resolved",
+    "codes": [
+      616,
+      617,
+      618,
+      630
+    ],
+    "palette_relationship": {
+      "status": "unknown",
+      "proven_banks": [],
+      "legal_candidates": [
+        "0x30-0x3F"
+      ],
+      "evidence": "group-4 art is established, but the original object palette nibble/bank is not proven"
+    },
+    "state_chain": [
+      "hurry-up timer/state activates bat object",
+      "group-4 producer selects animation code",
+      "single-cell PC090OJ piece",
+      "object palette nibble unresolved"
+    ],
+    "pieces_per_composite": 1,
+    "evidence": "group-4 records 48-56; palette deliberately unresolved",
+    "composites": [
+      "single_cell_art_0268",
+      "single_cell_art_0269",
+      "single_cell_art_026A",
+      "single_cell_death_0276"
+    ],
+    "palette_banks": [],
+    "palette_candidate_banks": [
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63
+    ],
+    "physical_cells": 3,
+    "nontransparent_pixel_count": 459,
+    "semantic_status": "class=resolved; graphics=resolved; palette=unknown"
+  },
+  {
+    "id": "normal_small_bat",
+    "name": "Normal/small bat enemy",
+    "class_resolution": "unresolved",
+    "graphics_resolution": "unresolved",
+    "codes": [],
+    "palette_relationship": {
+      "status": "unknown",
+      "proven_banks": [],
+      "legal_candidates": [
+        "0x30-0x3F"
+      ],
+      "evidence": "canonical palette registry identifies legal Stage-1 context but not art/palette provenance"
+    },
+    "state_chain": [
+      "Round-1 spawn/state semantics",
+      "animation class unresolved",
+      "frame/composer unresolved",
+      "piece codes unresolved",
+      "palette nibble unresolved"
+    ],
+    "pieces_per_composite": "unresolved",
+    "evidence": "legal graphics-bearing Stage-1 enemy; retained as a conservative feasibility blocker",
+    "palette_banks": [],
+    "palette_candidate_banks": [
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63
+    ],
+    "composites": [],
+    "physical_cells": 0,
+    "nontransparent_pixel_count": 0,
+    "semantic_status": "class=unresolved; graphics=unresolved; palette=unknown"
+  },
+  {
+    "id": "large_bat",
+    "name": "Large bat enemy",
+    "class_resolution": "unresolved",
+    "graphics_resolution": "unresolved",
+    "codes": [],
+    "palette_relationship": {
+      "status": "unknown",
+      "proven_banks": [],
+      "legal_candidates": [
+        "0x30-0x3F"
+      ],
+      "evidence": "canonical palette registry identifies legal Stage-1 context but not art/palette provenance"
+    },
+    "state_chain": [
+      "Round-1 spawn/state semantics",
+      "animation class unresolved",
+      "frame/composer unresolved",
+      "piece codes unresolved",
+      "palette nibble unresolved"
+    ],
+    "pieces_per_composite": "unresolved",
+    "evidence": "legal graphics-bearing Stage-1 enemy; retained as a conservative feasibility blocker",
+    "palette_banks": [],
+    "palette_candidate_banks": [
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63
+    ],
+    "composites": [],
+    "physical_cells": 0,
+    "nontransparent_pixel_count": 0,
+    "semantic_status": "class=unresolved; graphics=unresolved; palette=unknown"
+  },
+  {
+    "id": "four_armed_enemy",
+    "name": "Four-armed enemy",
+    "class_resolution": "unresolved",
+    "graphics_resolution": "unresolved",
+    "codes": [],
+    "palette_relationship": {
+      "status": "unknown",
+      "proven_banks": [],
+      "legal_candidates": [
+        "0x30-0x3F"
+      ],
+      "evidence": "canonical palette registry identifies legal Stage-1 context but not art/palette provenance"
+    },
+    "state_chain": [
+      "Round-1 spawn/state semantics",
+      "animation class unresolved",
+      "frame/composer unresolved",
+      "piece codes unresolved",
+      "palette nibble unresolved"
+    ],
+    "pieces_per_composite": "unresolved",
+    "evidence": "legal graphics-bearing Stage-1 enemy; retained as a conservative feasibility blocker",
+    "palette_banks": [],
+    "palette_candidate_banks": [
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63
+    ],
+    "composites": [],
+    "physical_cells": 0,
+    "nontransparent_pixel_count": 0,
+    "semantic_status": "class=unresolved; graphics=unresolved; palette=unknown"
+  },
+  {
+    "id": "axe_item",
+    "name": "Axe item/drop",
+    "class_resolution": "unresolved",
+    "graphics_resolution": "unresolved",
+    "codes": [],
+    "palette_relationship": {
+      "status": "unknown",
+      "proven_banks": [],
+      "legal_candidates": [
+        "0x30-0x3F"
+      ],
+      "evidence": "canonical palette registry identifies legal Stage-1 context but not original object palette bank"
+    },
+    "state_chain": [
+      "drop/object state",
+      "item animation/class unresolved",
+      "group-4 frame/composer unresolved",
+      "piece codes unresolved",
+      "palette nibble unresolved"
+    ],
+    "pieces_per_composite": "unresolved",
+    "evidence": "legal graphics-bearing Stage-1 item; retained as a conservative feasibility blocker",
+    "palette_banks": [],
+    "palette_candidate_banks": [
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63
+    ],
+    "composites": [],
+    "physical_cells": 0,
+    "nontransparent_pixel_count": 0,
+    "semantic_status": "class=unresolved; graphics=unresolved; palette=unknown"
+  },
+  {
+    "id": "player_auxiliary",
+    "name": "Sword / player auxiliary",
+    "class_resolution": "resolved",
+    "graphics_resolution": "resolved",
+    "codes": [
+      629,
+      630,
+      631
+    ],
+    "palette_relationship": {
+      "status": "proven",
+      "proven_banks": [
+        "0x33"
+      ],
+      "legal_candidates": [],
+      "evidence": "player auxiliary producer and Palette Decision PD-SPR-R1-RASTAN-SWORD; only proven nibble-3 pieces are included"
+    },
+    "state_chain": [
+      "player attack state",
+      "player auxiliary producer",
+      "group-4 piece code",
+      "proven nibble-3 palette"
+    ],
+    "pieces_per_composite": "1-2",
+    "evidence": "player auxiliary producer; overlap with other group-4 meanings does not authorize their palette",
+    "palette_banks": [
+      51
+    ],
+    "palette_candidate_banks": [],
+    "composites": [
+      "unresolved_pose_art_vocabulary"
+    ],
+    "physical_cells": 3,
+    "nontransparent_pixel_count": 117,
+    "semantic_status": "class=resolved; graphics=resolved; palette=proven"
+  },
+  {
+    "id": "other_item_drop",
+    "name": "Other legal item/drop classes",
+    "class_resolution": "unresolved",
+    "graphics_resolution": "unresolved",
+    "codes": [],
+    "palette_relationship": {
+      "status": "unknown",
+      "proven_banks": [],
+      "legal_candidates": [
+        "0x30-0x3F"
+      ],
+      "evidence": "drop/item producers are legal in Round-1 Phase-1; per-class code and palette provenance remain unresolved"
+    },
+    "state_chain": [
+      "drop/item state",
+      "item class selection",
+      "frame/composer unresolved",
+      "piece codes unresolved",
+      "palette nibble unresolved"
+    ],
+    "pieces_per_composite": "class-dependent",
+    "evidence": "conservative semantic class for legal graphics-bearing drops/items not otherwise resolved",
+    "palette_banks": [],
+    "palette_candidate_banks": [
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63
+    ],
+    "composites": [],
+    "physical_cells": 0,
+    "nontransparent_pixel_count": 0,
+    "semantic_status": "class=unresolved; graphics=unresolved; palette=unknown"
+  },
+  {
+    "id": "projectile_weapon",
+    "name": "Other legal projectile/weapon classes",
+    "class_resolution": "unresolved",
+    "graphics_resolution": "unresolved",
+    "codes": [],
+    "palette_relationship": {
+      "status": "unknown",
+      "proven_banks": [],
+      "legal_candidates": [
+        "0x30-0x3F"
+      ],
+      "evidence": "projectile/weapon producers are legal in Round-1 Phase-1; per-class code and palette provenance remain unresolved"
+    },
+    "state_chain": [
+      "player/enemy weapon state",
+      "projectile class selection",
+      "frame/composer unresolved",
+      "piece codes unresolved",
+      "palette nibble unresolved"
+    ],
+    "pieces_per_composite": "class-dependent",
+    "evidence": "conservative semantic class for legal graphics-bearing projectiles/weapons not otherwise resolved",
+    "palette_banks": [],
+    "palette_candidate_banks": [
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63
+    ],
+    "composites": [],
+    "physical_cells": 0,
+    "nontransparent_pixel_count": 0,
+    "semantic_status": "class=unresolved; graphics=unresolved; palette=unknown"
+  },
+  {
+    "id": "transient_effect",
+    "name": "Other legal transient effect classes",
+    "class_resolution": "unresolved",
+    "graphics_resolution": "unresolved",
+    "codes": [],
+    "palette_relationship": {
+      "status": "unknown",
+      "proven_banks": [],
+      "legal_candidates": [
+        "0x30-0x3F"
+      ],
+      "evidence": "effect producers are legal in Round-1 Phase-1; per-class code and palette provenance remain unresolved"
+    },
+    "state_chain": [
+      "actor/effect state",
+      "effect class selection",
+      "frame/composer unresolved",
+      "piece codes unresolved",
+      "palette nibble unresolved"
+    ],
+    "pieces_per_composite": "class-dependent",
+    "evidence": "conservative semantic class for legal graphics-bearing effects not otherwise resolved",
+    "palette_banks": [],
+    "palette_candidate_banks": [
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63
+    ],
+    "composites": [],
+    "physical_cells": 0,
+    "nontransparent_pixel_count": 0,
+    "semantic_status": "class=unresolved; graphics=unresolved; palette=unknown"
+  },
+  {
+    "id": "gameplay_hud",
+    "name": "Gameplay HUD/status sprites",
+    "class_resolution": "resolved",
+    "graphics_resolution": "resolved",
+    "codes": [
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63,
+      64,
+      65,
+      66,
+      67,
+      68,
+      69,
+      70,
+      71,
+      72,
+      73,
+      970,
+      971,
+      972,
+      973,
+      974,
+      975,
+      976,
+      977,
+      978,
+      979,
+      980,
+      981
+    ],
+    "palette_relationship": {
+      "status": "proven",
+      "proven_banks": [
+        "0x30"
+      ],
+      "legal_candidates": [],
+      "evidence": "original arcade status producer and object attributes"
+    },
+    "state_chain": [
+      "gameplay status state",
+      "status producer arcade_pc 0x05A098 family",
+      "single/multi-cell records 4-45",
+      "palette nibble 0"
+    ],
+    "pieces_per_composite": "1-37",
+    "evidence": "legal original arcade consumer even where the current Genesis gameplay HUD is suppressed",
+    "palette_banks": [
+      48
+    ],
+    "palette_candidate_banks": [],
+    "composites": [
+      "unresolved_pose_art_vocabulary"
+    ],
+    "physical_cells": 43,
+    "nontransparent_pixel_count": 5618,
+    "semantic_status": "class=resolved; graphics=resolved; palette=proven"
+  },
+  {
+    "id": "hostile_base004b_compositor0",
+    "name": "Stage-1 Lizardman",
+    "class_resolution": "resolved",
+    "graphics_resolution": "resolved",
+    "codes": [
+      79,
+      80,
+      81,
+      82,
+      83,
+      84,
+      99,
+      100,
+      101,
+      102
+    ],
+    "palette_relationship": {
+      "status": "proven",
+      "proven_banks": [
+        "0x36"
+      ],
+      "legal_candidates": [],
+      "evidence": "arcade_pc 0x03D054 renderer/compositor dispatch; PC090OJ record ownership from arcade_pc 0x041DAE or boss arcade_pc 0x041F30; original arcade MAME actor/PC090OJ sweep; sample frame 2806 at round1_phase1"
+    },
+    "pieces_per_composite": 10,
+    "evidence": "arcade_pc 0x03D054 renderer/compositor dispatch; PC090OJ record ownership from arcade_pc 0x041DAE or boss arcade_pc 0x041F30; original arcade MAME actor/PC090OJ sweep; sample frame 2806 at round1_phase1",
+    "composites": [
+      "whole_game_lexicon_representative"
+    ],
+    "palette_banks": [
+      54
+    ],
+    "palette_candidate_banks": [],
+    "physical_cells": 10,
+    "nontransparent_pixel_count": 745,
+    "semantic_status": "class=resolved; graphics=resolved; palette=proven"
+  },
+  {
+    "id": "hostile_base0179_compositor0",
+    "name": "HOSTILE_BASE_0179_COMPOSITOR0_UNRESOLVED",
+    "class_resolution": "unresolved",
+    "graphics_resolution": "resolved",
+    "codes": [
+      377,
+      378,
+      379,
+      380
+    ],
+    "palette_relationship": {
+      "status": "unknown",
+      "proven_banks": [],
+      "legal_candidates": [
+        "0x00",
+        "0x01",
+        "0x02",
+        "0x03",
+        "0x04",
+        "0x05",
+        "0x06",
+        "0x07",
+        "0x08",
+        "0x09",
+        "0x0A",
+        "0x0B",
+        "0x0C",
+        "0x0D",
+        "0x0E",
+        "0x0F"
+      ],
+      "evidence": "arcade_pc 0x03D054 renderer/compositor dispatch; PC090OJ record ownership from arcade_pc 0x041DAE or boss arcade_pc 0x041F30; original arcade MAME actor/PC090OJ sweep; sample frame 3430 at round1_phase1"
+    },
+    "pieces_per_composite": 4,
+    "evidence": "arcade_pc 0x03D054 renderer/compositor dispatch; PC090OJ record ownership from arcade_pc 0x041DAE or boss arcade_pc 0x041F30; original arcade MAME actor/PC090OJ sweep; sample frame 3430 at round1_phase1",
+    "composites": [
+      "whole_game_lexicon_representative"
+    ],
+    "palette_banks": [],
+    "palette_candidate_banks": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "physical_cells": 4,
+    "nontransparent_pixel_count": 1024,
+    "semantic_status": "class=unresolved; graphics=resolved; palette=unknown"
+  },
+  {
+    "id": "hostile_base0a5a_compositor2",
+    "name": "HOSTILE_BASE_0A5A_COMPOSITOR2_UNRESOLVED",
+    "class_resolution": "unresolved",
+    "graphics_resolution": "resolved",
+    "codes": [
+      2722
+    ],
+    "palette_relationship": {
+      "status": "unknown",
+      "proven_banks": [],
+      "legal_candidates": [
+        "0x00",
+        "0x01",
+        "0x02",
+        "0x03",
+        "0x04",
+        "0x05",
+        "0x06",
+        "0x07",
+        "0x08",
+        "0x09",
+        "0x0A",
+        "0x0B",
+        "0x0C",
+        "0x0D",
+        "0x0E",
+        "0x0F"
+      ],
+      "evidence": "arcade_pc 0x03D054 renderer/compositor dispatch; PC090OJ record ownership from arcade_pc 0x041DAE or boss arcade_pc 0x041F30; original arcade MAME actor/PC090OJ sweep; sample frame 2876 at round1_castle"
+    },
+    "pieces_per_composite": 1,
+    "evidence": "arcade_pc 0x03D054 renderer/compositor dispatch; PC090OJ record ownership from arcade_pc 0x041DAE or boss arcade_pc 0x041F30; original arcade MAME actor/PC090OJ sweep; sample frame 2876 at round1_castle",
+    "composites": [
+      "whole_game_lexicon_representative"
+    ],
+    "palette_banks": [],
+    "palette_candidate_banks": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "physical_cells": 1,
+    "nontransparent_pixel_count": 208,
+    "semantic_status": "class=unresolved; graphics=resolved; palette=unknown"
+  },
+  {
+    "id": "hostile_base0a73_compositor2",
+    "name": "HOSTILE_BASE_0A73_COMPOSITOR2_UNRESOLVED",
+    "class_resolution": "unresolved",
+    "graphics_resolution": "resolved",
+    "codes": [
+      619,
+      620,
+      830,
+      831,
+      832,
+      833,
+      854,
+      867,
+      868,
+      869
+    ],
+    "palette_relationship": {
+      "status": "unknown",
+      "proven_banks": [],
+      "legal_candidates": [
+        "0x00",
+        "0x01",
+        "0x02",
+        "0x03",
+        "0x04",
+        "0x05",
+        "0x06",
+        "0x07",
+        "0x08",
+        "0x09",
+        "0x0A",
+        "0x0B",
+        "0x0C",
+        "0x0D",
+        "0x0E",
+        "0x0F"
+      ],
+      "evidence": "arcade_pc 0x03D054 renderer/compositor dispatch; PC090OJ record ownership from arcade_pc 0x041DAE or boss arcade_pc 0x041F30; original arcade MAME actor/PC090OJ sweep; sample frame 2846 at round1_castle"
+    },
+    "pieces_per_composite": 10,
+    "evidence": "arcade_pc 0x03D054 renderer/compositor dispatch; PC090OJ record ownership from arcade_pc 0x041DAE or boss arcade_pc 0x041F30; original arcade MAME actor/PC090OJ sweep; sample frame 2846 at round1_castle",
+    "composites": [
+      "whole_game_lexicon_representative"
+    ],
+    "palette_banks": [],
+    "palette_candidate_banks": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "physical_cells": 10,
+    "nontransparent_pixel_count": 823,
+    "semantic_status": "class=unresolved; graphics=resolved; palette=unknown"
+  }
+]

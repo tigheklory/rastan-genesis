@@ -1,0 +1,102 @@
+{
+  "generated_utc": "2026-10-29T21:27:47.916793Z",
+  "variant": "world_rev1",
+  "roms": {
+    "b04-01.40": {
+      "path": "roms/b04-01.40",
+      "sha1": "f8d158d38cd07a24cb5ddefd4ce90beec706924d",
+      "size_bytes": 131072,
+      "region": "pc080sn"
+    },
+    "b04-02.67": {
+      "path": "roms/b04-02.67",
+      "sha1": "a2bea2ce1cebd25b33be41723299ca0512d95f9e",
+      "size_bytes": 131072,
+      "region": "pc080sn"
+    },
+    "b04-03.39": {
+      "path": "roms/b04-03.39",
+      "sha1": "5c49f0ff9221cba9f2bb8da86eb4448c73012410",
+      "size_bytes": 131072,
+      "region": "pc080sn"
+    },
+    "b04-04.66": {
+      "path": "roms/b04-04.66",
+      "sha1": "3df7f085fe6468bda11fab2e86252df6f74f7a99",
+      "size_bytes": 131072,
+      "region": "pc080sn"
+    },
+    "b04-05.15": {
+      "path": "roms/b04-05.15",
+      "sha1": "04f69f9af7ac4242e95dba32988afa3616d75a92",
+      "size_bytes": 131072,
+      "region": "pc090oj"
+    },
+    "b04-06.28": {
+      "path": "roms/b04-06.28",
+      "sha1": "fdc29f39198f9b488e298ee89b0eeb3417527733",
+      "size_bytes": 131072,
+      "region": "pc090oj"
+    },
+    "b04-07.14": {
+      "path": "roms/b04-07.14",
+      "sha1": "da6ebe6afe245443a76b33714213549356c0c5c3",
+      "size_bytes": 131072,
+      "region": "pc090oj"
+    },
+    "b04-08.27": {
+      "path": "roms/b04-08.27",
+      "sha1": "9de9ff1fcf037e5ab25c181b678245041238d6ae",
+      "size_bytes": 131072,
+      "region": "pc090oj"
+    },
+    "b04-19.49": {
+      "path": "roms/b04-19.49",
+      "sha1": "fa59dac2583a7d2979550dffc6f9c6c2bd67bfd5",
+      "size_bytes": 65536,
+      "region": "audiocpu"
+    },
+    "b04-20.76": {
+      "path": "roms/b04-20.76",
+      "sha1": "b1682959521fa295769207b75cf7d839e9ec95fd",
+      "size_bytes": 65536,
+      "region": "adpcm"
+    },
+    "b04-37.7": {
+      "path": "roms/b04-37.7",
+      "sha1": "92e46b1edef40a19be17091c09daba598d77bca8",
+      "size_bytes": 65536,
+      "region": "maincpu"
+    },
+    "b04-38.19": {
+      "path": "roms/b04-38.19",
+      "sha1": "17fc55e8546cc0b847aebd67fb4570a1e9f128f3",
+      "size_bytes": 65536,
+      "region": "maincpu"
+    },
+    "b04-39.8": {
+      "path": "roms/b04-39.8",
+      "sha1": "f47557dcfa9d3137e2a3838e45858fc21471cc91",
+      "size_bytes": 65536,
+      "region": "maincpu"
+    },
+    "b04-40.20": {
+      "path": "roms/b04-40.20",
+      "sha1": "c269b3856040ed9409de99cca48f22a2f355fc4c",
+      "size_bytes": 65536,
+      "region": "maincpu"
+    },
+    "b04-42.21": {
+      "path": "roms/b04-42.21",
+      "sha1": "7d967d04ade648c6ddb19aad9e184b6e272856da",
+      "size_bytes": 65536,
+      "region": "maincpu"
+    },
+    "b04-43-1.9": {
+      "path": "roms/b04-43-1.9",
+      "sha1": "0f8c2d7d332c4e35884c48d87ba9fd26924d1692",
+      "size_bytes": 65536,
+      "region": "maincpu"
+    }
+  }
+}

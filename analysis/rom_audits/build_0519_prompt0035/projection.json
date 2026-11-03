@@ -1,0 +1,26 @@
+{
+  "current_design": [
+    7593400,
+    7673400,
+    7833400
+  ],
+  "conservative_dedup": [
+    5127896,
+    5207896,
+    5367896
+  ],
+  "shared_library": [
+    3749176,
+    3969176,
+    4319176
+  ],
+  "current_missing_scene_sum": 3478688,
+  "pattern_cell_saving_used_in_shared": 267360,
+  "all_18_context_dense_index_bytes": 2562048,
+  "all_18_context_u32_band_index_bytes": 141312,
+  "all_18_context_u32_band_saving": 2420736,
+  "notes": [
+    "ranges include unresolved later-round package/preload/variant demand",
+    "audio and base PC080/PC090 corpora are already complete and are not multiplied"
+  ]
+}

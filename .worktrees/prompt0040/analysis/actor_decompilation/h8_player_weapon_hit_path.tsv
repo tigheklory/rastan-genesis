@@ -1,0 +1,6 @@
+stage	pc	status	notes
+player state machine	0x512xx-0x514xx	PROVEN	Rastan action dispatch on A5+0x10E8
+weapon hitbox build	0x51AB6	PROVEN	builds hitbox list into A5+0x1134 from table @A5+0x1280 (0x10D280), 3 boxes
+world/landing collision test	0x51B04	PROVEN	tests hitbox list vs camera/map; sets landing type A5+0x13BE; NOT enemy hit
+enemy-hurtbox scan	UNRESOLVED	OPEN	weapon-box vs enemy-actor overlap scan not isolated this pass -> H9
+enemy damage apply	UNRESOLVED	OPEN	HP/one-hit decision not located -> H9

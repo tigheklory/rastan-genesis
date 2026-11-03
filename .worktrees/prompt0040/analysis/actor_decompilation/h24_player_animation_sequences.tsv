@@ -1,0 +1,8 @@
+seq_id	proposed_name	name_status	player_state	slot_hint	selector	loop	status
+SEQ-IDLE	idle/stand	PROPOSED	2	a3[A5+0x10EA] low run	0x54346	loop	PARTIAL
+SEQ-WALK	walk	PROPOSED	2	a3 pose run	0x54346	loop	PARTIAL
+SEQ-JUMP	jump/fall	PROPOSED	6	a3 pose	0x54346	non-loop	PENDING
+SEQ-CLIMB	climb	PROPOSED	4	a3 pose	0x54346	loop	PARTIAL
+SEQ-ATTACK	sword attack	PROPOSED	5/9	0x5BAE0/0x5BB10[A5+0x110A]	0x543B4	non-loop	PARTIAL
+SEQ-DEATH	death	PROVEN(state)	8	a3[A5+0x12F4]	0x54376	non-loop	PROVEN
+SEQ-DOOR	door/exit	PROVEN(state)	7	0x542E8	0x540CC	non-loop	PROVEN

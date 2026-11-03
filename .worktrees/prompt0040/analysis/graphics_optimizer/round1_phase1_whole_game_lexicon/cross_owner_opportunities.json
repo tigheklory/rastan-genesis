@@ -1,0 +1,182 @@
+{
+  "rastan_eye_green_vs_lizardman": {
+    "status": "palette-level candidates proven; the exact Rastan eye pixel index is not labeled by original data",
+    "coexistence": true,
+    "closest_pairs": [
+      {
+        "a_bank": 51,
+        "a_index": 10,
+        "a_rgb": [
+          0,
+          148,
+          0
+        ],
+        "a_genesis": "0x0080",
+        "b_bank": 54,
+        "b_index": 3,
+        "b_rgb": [
+          49,
+          148,
+          0
+        ],
+        "b_genesis": "0x0082",
+        "exact_source_equal": false,
+        "genesis_equal": false,
+        "delta_e_2000": 2.247
+      },
+      {
+        "a_bank": 51,
+        "a_index": 11,
+        "a_rgb": [
+          0,
+          99,
+          0
+        ],
+        "a_genesis": "0x0060",
+        "b_bank": 54,
+        "b_index": 4,
+        "b_rgb": [
+          0,
+          115,
+          0
+        ],
+        "b_genesis": "0x0060",
+        "exact_source_equal": false,
+        "genesis_equal": true,
+        "delta_e_2000": 5.299
+      },
+      {
+        "a_bank": 51,
+        "a_index": 14,
+        "a_rgb": [
+          0,
+          66,
+          0
+        ],
+        "a_genesis": "0x0040",
+        "b_bank": 54,
+        "b_index": 2,
+        "b_rgb": [
+          0,
+          49,
+          0
+        ],
+        "b_genesis": "0x0020",
+        "exact_source_equal": false,
+        "genesis_equal": false,
+        "delta_e_2000": 5.8866
+      },
+      {
+        "a_bank": 51,
+        "a_index": 10,
+        "a_rgb": [
+          0,
+          148,
+          0
+        ],
+        "a_genesis": "0x0080",
+        "b_bank": 54,
+        "b_index": 4,
+        "b_rgb": [
+          0,
+          115,
+          0
+        ],
+        "b_genesis": "0x0060",
+        "exact_source_equal": false,
+        "genesis_equal": false,
+        "delta_e_2000": 11.7103
+      },
+      {
+        "a_bank": 51,
+        "a_index": 14,
+        "a_rgb": [
+          0,
+          66,
+          0
+        ],
+        "a_genesis": "0x0040",
+        "b_bank": 54,
+        "b_index": 4,
+        "b_rgb": [
+          0,
+          115,
+          0
+        ],
+        "b_genesis": "0x0060",
+        "exact_source_equal": false,
+        "genesis_equal": false,
+        "delta_e_2000": 15.8292
+      },
+      {
+        "a_bank": 51,
+        "a_index": 11,
+        "a_rgb": [
+          0,
+          99,
+          0
+        ],
+        "a_genesis": "0x0060",
+        "b_bank": 54,
+        "b_index": 2,
+        "b_rgb": [
+          0,
+          49,
+          0
+        ],
+        "b_genesis": "0x0020",
+        "exact_source_equal": false,
+        "genesis_equal": false,
+        "delta_e_2000": 16.3188
+      },
+      {
+        "a_bank": 51,
+        "a_index": 10,
+        "a_rgb": [
+          0,
+          148,
+          0
+        ],
+        "a_genesis": "0x0080",
+        "b_bank": 54,
+        "b_index": 5,
+        "b_rgb": [
+          115,
+          198,
+          0
+        ],
+        "b_genesis": "0x00C6",
+        "exact_source_equal": false,
+        "genesis_equal": false,
+        "delta_e_2000": 17.3713
+      },
+      {
+        "a_bank": 51,
+        "a_index": 11,
+        "a_rgb": [
+          0,
+          99,
+          0
+        ],
+        "a_genesis": "0x0060",
+        "b_bank": 54,
+        "b_index": 3,
+        "b_rgb": [
+          49,
+          148,
+          0
+        ],
+        "b_genesis": "0x0082",
+        "exact_source_equal": false,
+        "genesis_equal": false,
+        "delta_e_2000": 17.5815
+      }
+    ]
+  },
+  "rastan_brown_vs_bats": {
+    "status": "unresolved: Stage-1 bat object attribute nibble remains class-state dependent",
+    "coexistence": true,
+    "entry_saving_authorized": false,
+    "reason": "The analyzer will not assign a bat palette bank from artwork appearance or Genesis output."
+  }
+}

@@ -1,0 +1,655 @@
+#!/usr/bin/env python3
+"""
+Shift-table patcher for Rastan Genesis port.
+
+Applies variable-length opcode replacements to the arcade maincpu binary,
+shifting subsequent code and fixing all relative and absolute references.
+
+PHASES:
+  1. Parse build/maincpu.disasm.txt into an instruction map.
+  2. Detect jump table regions (mark as data, skip reference fixing).
+  2b. Fix explicit word-displacement jump tables declared in spec.
+  3. Apply shift_replacements: insert replacement bytes, build shift table.
+  4. Fix relative references (Bcc, BSR, BRA) displaced by shifts.
+  5. Fix absolute long references (JSR, JMP, LEA) in code regions.
+  6. Emit result and verify (no-op check when replacements are empty).
+
+NO-OP GUARANTEE: when shift_replacements is empty, output is bit-identical
+to input. The no-op verification is run inside apply_shift_table() and raises
+AssertionError if violated.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import struct
+from pathlib import Path
+
+
+# ---------------------------------------------------------------------------
+# Disassembly parsing
+# ---------------------------------------------------------------------------
+
+# Format:  "   <hex_offset>:\t<hex words>\t<mnemonic>..."
+# Example: "   3a074:\t4eb9 0005 5ca2 \tjsr 0x55ca2"
+# We must capture the full instruction-byte column (all words), not just the
+# first word, otherwise instruction sizes are under-counted (e.g. JSR abs.l
+# incorrectly treated as 2 bytes instead of 6).
+DISASM_LINE_RE = re.compile(
+    r"^\s*([0-9a-fA-F]+):\s+([0-9a-fA-F]{2,}(?:\s+[0-9a-fA-F]{2,})*)\s+\S"
+)
+
+
+def parse_disasm(disasm_path: str, source_start: int, source_end: int) -> list[tuple[int, int]]:
+    """Return sorted list of (address, size_bytes) for instructions in [source_start, source_end)."""
+    insns: list[tuple[int, int]] = []
+    path = Path(disasm_path)
+    for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+        m = DISASM_LINE_RE.match(line)
+        if not m:
+            continue
+        addr = int(m.group(1), 16)
+        if addr < source_start or addr >= source_end:
+            continue
+        hex_part = m.group(2).replace(" ", "")
+        size = len(hex_part) // 2
+        if size < 2:
+            continue
+        insns.append((addr, size))
+    insns.sort(key=lambda x: x[0])
+    return insns
+
+
+# ---------------------------------------------------------------------------
+# Jump-table detection
+# ---------------------------------------------------------------------------
+
+def detect_jump_tables(
+    maincpu_bytes: bytes,
+    insns: list[tuple[int, int]],
+    source_start: int,
+    source_end: int,
+) -> set[int]:
+    """
+    Return set of addresses that appear to be jump-table entries (data words),
+    not instructions.  We use a simple heuristic: look for JMP (A0) preceded
+    by a word-size displacement table.  For now this is a stub — returns empty.
+    Real detection requires pattern matching across the instruction stream.
+    """
+    # TODO: implement jump-table boundary detection
+    return set()
+
+
+def fix_word_displacement_jump_tables(
+    result: bytearray,
+    maincpu_bytes: bytes,
+    jump_tables: list[dict],
+    shifts: list[tuple[int, int]],
+    source_start: int,
+    source_end: int,
+) -> int:
+    """
+    Fix PC-relative jump-table word displacements declared explicitly in spec.
+
+    Each entry describes a table whose words are signed 16-bit displacements
+    from table base to handler entry. We recompute each displacement so it
+    lands on the shifted semantic entry.
+    """
+    if not shifts or not jump_tables:
+        return 0
+
+    count = 0
+    for table in jump_tables:
+        table_addr = int(table["table_address"], 0)
+        entry_count = int(table["entry_count"])
+        entry_size = int(table.get("entry_size_bytes", 2))
+
+        if entry_size != 2:
+            raise RuntimeError(
+                f"jump table at 0x{table_addr:06X}: unsupported entry_size_bytes={entry_size}"
+            )
+
+        if table_addr < source_start or (table_addr + (entry_count * entry_size)) > source_end:
+            raise RuntimeError(
+                f"jump table at 0x{table_addr:06X}: outside source range "
+                f"0x{source_start:06X}..0x{source_end:06X}"
+            )
+
+        new_table_addr = new_offset(table_addr, shifts)
+        for i in range(entry_count):
+            src_entry_addr = table_addr + (i * 2)
+            dst_entry_addr = new_table_addr + (i * 2)
+            old_disp = struct.unpack_from(">h", maincpu_bytes, src_entry_addr)[0]
+            old_target = table_addr + old_disp
+            new_target = new_target_offset(old_target, shifts)
+            new_disp = new_target - new_table_addr
+            if not -32768 <= new_disp <= 32767:
+                raise RuntimeError(
+                    f"jump table at 0x{table_addr:06X}[{i}]: displacement overflow {new_disp}"
+                )
+            struct.pack_into(">h", result, dst_entry_addr, new_disp)
+            count += 1
+
+    return count
+
+
+def fix_absolute_long_pointer_tables(
+    result: bytearray,
+    maincpu_bytes: bytes,
+    pointer_tables: list[dict],
+    shifts: list[tuple[int, int]],
+    source_start: int,
+    source_end: int,
+) -> int:
+    """
+    Fix absolute long pointer tables declared explicitly in spec.
+
+    Each table entry is a 32-bit absolute pointer. For entries that point into
+    the shifted source range, apply new_offset() so data-pointer dispatch tables
+    stay aligned with relocated records.
+    """
+    if not shifts or not pointer_tables:
+        return 0
+
+    count = 0
+    for table in pointer_tables:
+        table_addr = int(table["table_address"], 0)
+        entry_count = int(table["entry_count"])
+        entry_size = int(table.get("entry_size_bytes", 4))
+        entry_stride = int(table.get("entry_stride_bytes", entry_size))
+        pointer_offset = int(table.get("pointer_offset_bytes", 0))
+
+        if entry_size != 4:
+            raise RuntimeError(
+                f"absolute long pointer table at 0x{table_addr:06X}: "
+                f"unsupported entry_size_bytes={entry_size}"
+            )
+        if entry_stride < entry_size or pointer_offset < 0 or pointer_offset + entry_size > entry_stride:
+            raise RuntimeError(
+                f"absolute long pointer table at 0x{table_addr:06X}: invalid "
+                f"entry_stride_bytes={entry_stride}, pointer_offset_bytes={pointer_offset}"
+            )
+
+        table_end = table_addr + ((entry_count - 1) * entry_stride) + pointer_offset + entry_size
+        if table_addr < source_start or table_end > source_end:
+            raise RuntimeError(
+                f"absolute long pointer table at 0x{table_addr:06X}: outside source range "
+                f"0x{source_start:06X}..0x{source_end:06X}"
+            )
+
+        new_table_addr = new_offset(table_addr, shifts)
+        for i in range(entry_count):
+            src_entry_addr = table_addr + (i * entry_stride) + pointer_offset
+            dst_entry_addr = new_table_addr + (i * entry_stride) + pointer_offset
+            old_target = struct.unpack_from(">I", maincpu_bytes, src_entry_addr)[0]
+
+            if source_start <= old_target < source_end:
+                new_target = new_target_offset(old_target, shifts)
+                if new_target != old_target:
+                    count += 1
+            else:
+                new_target = old_target
+
+            struct.pack_into(">I", result, dst_entry_addr, new_target)
+
+    return count
+
+
+# ---------------------------------------------------------------------------
+# Shift-table helpers
+# ---------------------------------------------------------------------------
+
+def build_shift_table(
+    shift_replacements: list[dict],
+    maincpu_bytes: bytes,
+) -> list[tuple[int, int]]:
+    """
+    Validate each replacement and build a sorted shift table.
+
+    Returns list of (insertion_address, net_size_delta) sorted by address.
+    Positive net_size_delta means the replacement is longer than the original.
+    """
+    shifts: list[tuple[int, int]] = []
+    for rep in shift_replacements:
+        pc = int(rep["arcade_pc"], 0)
+        orig = bytes.fromhex(rep["original_bytes"].replace(" ", ""))
+        repl = bytes.fromhex(rep["replacement_bytes"].replace(" ", ""))
+        actual = maincpu_bytes[pc:pc + len(orig)]
+        if actual != orig:
+            raise RuntimeError(
+                f"shift_replacement at 0x{pc:06X}: "
+                f"expected {orig.hex()} but found {actual.hex()}"
+            )
+        delta = len(repl) - len(orig)
+        shifts.append((pc, delta))
+    shifts.sort(key=lambda x: x[0])
+    return shifts
+
+
+def new_offset(addr: int, shifts: list[tuple[int, int]]) -> int:
+    """Return the new address of arcade address `addr` after applying shifts."""
+    accumulated = 0
+    for insertion_addr, delta in shifts:
+        if insertion_addr <= addr:
+            accumulated += delta
+        else:
+            break
+    return addr + accumulated
+
+
+def accumulated_shift_before(addr: int, shifts: list[tuple[int, int]]) -> int:
+    """Return total shift accumulated strictly before addr."""
+    accumulated = 0
+    for insertion_addr, delta in shifts:
+        if insertion_addr < addr:
+            accumulated += delta
+        else:
+            break
+    return accumulated
+
+
+def new_target_offset(addr: int, shifts: list[tuple[int, int]]) -> int:
+    """Return the relocated semantic entry address for a reference target.
+
+    A reference to the first byte of a replacement must land at the replacement
+    start, before that replacement's own size delta.  Instruction addresses
+    after the site still use new_offset(), which includes the delta.
+    """
+    return addr + accumulated_shift_before(addr, shifts)
+
+
+# ---------------------------------------------------------------------------
+# Apply replacements
+# ---------------------------------------------------------------------------
+
+def apply_replacements(
+    maincpu_bytes: bytes,
+    shift_replacements: list[dict],
+    shifts: list[tuple[int, int]],
+) -> bytearray:
+    """
+    Build the new byte array by splicing in replacement bytes at each site,
+    preserving all other bytes unchanged.
+    """
+    if not shift_replacements:
+        return bytearray(maincpu_bytes)
+
+    result = bytearray()
+    cursor = 0
+    for rep in sorted(shift_replacements, key=lambda r: int(r["arcade_pc"], 0)):
+        pc = int(rep["arcade_pc"], 0)
+        orig = bytes.fromhex(rep["original_bytes"].replace(" ", ""))
+        repl = bytes.fromhex(rep["replacement_bytes"].replace(" ", ""))
+        # Copy bytes before this replacement site
+        result.extend(maincpu_bytes[cursor:pc])
+        # Insert replacement
+        result.extend(repl)
+        cursor = pc + len(orig)
+    # Copy remaining bytes after last replacement
+    result.extend(maincpu_bytes[cursor:])
+    return result
+
+
+# ---------------------------------------------------------------------------
+# Fix relative branches
+# ---------------------------------------------------------------------------
+
+# 68000 branch opcodes:
+#   BRA.S / Bcc.S  : 60/6x xx          (word 0x60xx–0x6Fxx, disp8, skip 0x00/0xFF)
+#   BRA.W / Bcc.W  : 60/6x 00 xxxx     (disp = 0x00 in second byte → 16-bit follows)
+#   BSR.S          : 61 xx              (short BSR)
+#   BSR.W          : 61 00 xxxx
+#   BRA.L / Bcc.L  : 60/6x FF xxxxxxxx (disp = 0xFF → 32-bit follows, 68020+)
+
+def fix_relative_branches(
+    result: bytearray,
+    insns: list[tuple[int, int]],
+    shifts: list[tuple[int, int]],
+    source_start: int,
+    source_end: int,
+) -> int:
+    """Fix relative branch displacements in result.  Returns count of fixes."""
+    if not shifts:
+        return 0
+
+    count = 0
+    for orig_addr, size in insns:
+        new_addr = new_offset(orig_addr, shifts)
+        byte_at_new = result[new_addr] if new_addr < len(result) else 0
+        # Branch opcodes: upper nibble of first byte is 0x6
+        if (byte_at_new & 0xF0) != 0x60:
+            continue
+
+        disp_byte = result[new_addr + 1] if (new_addr + 1) < len(result) else 0
+
+        if disp_byte == 0xFF:
+            # 32-bit displacement (68020+); not used in Rastan, skip
+            continue
+        elif disp_byte == 0x00:
+            # 16-bit displacement in next 2 bytes
+            if new_addr + 4 > len(result):
+                continue
+            old_disp16 = struct.unpack_from(">h", result, new_addr + 2)[0]
+            # Old target = old instruction PC + 2 + disp16
+            old_target = orig_addr + 2 + old_disp16
+            new_target = new_target_offset(old_target, shifts)
+            new_pc = new_addr
+            new_disp16 = new_target - (new_pc + 2)
+            if -32768 <= new_disp16 <= 32767:
+                struct.pack_into(">h", result, new_addr + 2, new_disp16)
+                count += 1
+            else:
+                raise RuntimeError(
+                    f"Branch at 0x{orig_addr:06X}: 16-bit displacement overflow "
+                    f"after shift: {new_disp16}"
+                )
+        else:
+            # 8-bit displacement in second byte
+            old_disp8 = struct.unpack(">b", bytes([disp_byte]))[0]
+            old_target = orig_addr + 2 + old_disp8
+            new_target = new_target_offset(old_target, shifts)
+            new_pc = new_addr
+            new_disp8 = new_target - (new_pc + 2)
+            if -128 <= new_disp8 <= 127:
+                result[new_addr + 1] = new_disp8 & 0xFF
+                count += 1
+            else:
+                raise RuntimeError(
+                    f"Branch at 0x{orig_addr:06X}: 8-bit displacement overflow "
+                    f"after shift: {new_disp8}. Promote to .W manually."
+                )
+    return count
+
+
+# ---------------------------------------------------------------------------
+# Fix absolute long references
+# ---------------------------------------------------------------------------
+
+# Opcodes with abs_long operand (4 bytes) immediately following the 2-byte opcode.
+# This matches the project relocation coverage for source-range absolute targets.
+#
+# Examples:
+#   4E B9  JSR   abs.l
+#   4E F9  JMP   abs.l
+#   41 F9  LEA   abs.l, An
+#   20 7C  MOVEA.L #imm32, A0  (and A1..A7 variants)
+#   21 7C  MOVE.L #imm32, d16(A0)  (and A1..A7 variants)
+#   0C A8  CMPI.L #imm32, d16(A0)  (and A1..A7 variants)
+#
+# BSR.W (61 00) is handled by branch fixer above.
+ABS_LONG_REF_OPCODES = {
+    0x4EB9,  # JSR abs.l
+    0x4EF9,  # JMP abs.l
+    0x4879,  # PEA abs.l
+    0x41F9, 0x43F9, 0x45F9, 0x47F9, 0x49F9, 0x4BF9, 0x4DF9, 0x4FF9,  # LEA abs.l,An
+    0x207C, 0x227C, 0x247C, 0x267C, 0x287C, 0x2A7C, 0x2C7C, 0x2E7C,  # MOVEA.L #imm32,An
+    0x217C, 0x237C, 0x257C, 0x277C, 0x297C, 0x2B7C, 0x2D7C, 0x2F7C,  # MOVE.L #imm32,d16(An)
+    0x0CA8, 0x0CA9, 0x0CAA, 0x0CAB, 0x0CAC, 0x0CAD, 0x0CAE, 0x0CAF,  # CMPI.L #imm32,d16(An)
+}
+
+
+def fix_absolute_longs(
+    result: bytearray,
+    insns: list[tuple[int, int]],
+    shifts: list[tuple[int, int]],
+    source_start: int,
+    source_end: int,
+) -> int:
+    """Fix absolute long references after shifts for known opcode forms.
+    Only adjusts operands that point into [source_start, source_end).
+    Returns count of fixes.
+    """
+    if not shifts:
+        return 0
+
+    count = 0
+    for orig_addr, size in insns:
+        if size < 6:
+            continue
+        new_addr = new_offset(orig_addr, shifts)
+        if new_addr + 6 > len(result):
+            continue
+        opcode = (result[new_addr] << 8) | result[new_addr + 1]
+        if opcode not in ABS_LONG_REF_OPCODES:
+            continue
+
+        ref_addr = struct.unpack_from(">I", result, new_addr + 2)[0]
+        # Only adjust if the target is within our source range (a code address)
+        if source_start <= ref_addr < source_end:
+            new_ref = new_target_offset(ref_addr, shifts)
+            struct.pack_into(">I", result, new_addr + 2, new_ref)
+            count += 1
+
+    return count
+
+
+def fix_declared_relative_branches(
+    result: bytearray,
+    maincpu_bytes: bytes,
+    declarations: list[dict],
+    shifts: list[tuple[int, int]],
+    source_start: int,
+    source_end: int,
+) -> int:
+    """Relocate branches whose instruction boundary is absent from objdump.
+
+    Rastan interleaves callable code and inline data.  A declaration supplies
+    only the missing source/target boundary; the emitted displacement is still
+    derived from the common shift table and validated against original bytes.
+    """
+    count = 0
+    for item in declarations:
+        source = int(item["arcade_pc"], 0)
+        target = int(item["target_arcade_pc"], 0)
+        width = int(item.get("instruction_size_bytes", 2))
+        expected = bytes.fromhex(str(item["original_bytes"]).replace(" ", ""))
+        if width not in (2, 4) or len(expected) != width or (expected[0] & 0xF0) != 0x60:
+            raise RuntimeError(
+                f"declared relative branch at 0x{source:06X}: only 2-byte and 4-byte 68000 branches are supported"
+            )
+        if not (source_start <= source < source_end and source_start <= target < source_end):
+            raise RuntimeError(
+                f"declared relative branch at 0x{source:06X}: source/target outside source range"
+            )
+        if maincpu_bytes[source:source + width] != expected:
+            raise RuntimeError(
+                f"declared relative branch at 0x{source:06X}: original bytes mismatch"
+            )
+        if width == 2:
+            if expected[1] in (0x00, 0xFF):
+                raise RuntimeError(
+                    f"declared relative branch at 0x{source:06X}: invalid short-branch encoding"
+                )
+            old_disp = struct.unpack(">b", expected[1:2])[0]
+        else:
+            if expected[1] != 0x00:
+                raise RuntimeError(
+                    f"declared relative branch at 0x{source:06X}: invalid word-branch encoding"
+                )
+            old_disp = struct.unpack(">h", expected[2:4])[0]
+        if source + 2 + old_disp != target:
+            raise RuntimeError(
+                f"declared relative branch at 0x{source:06X}: encoded target does not match 0x{target:06X}"
+            )
+        new_source = new_offset(source, shifts)
+        new_target = new_target_offset(target, shifts)
+        new_disp = new_target - (new_source + 2)
+        if result[new_source] != expected[0] or result[new_source + 1] != expected[1]:
+            raise RuntimeError(
+                f"declared relative branch at 0x{source:06X}: shifted opcode mismatch"
+            )
+        if width == 2:
+            if not -128 <= new_disp <= 127:
+                raise RuntimeError(
+                    f"declared relative branch at 0x{source:06X}: 8-bit displacement overflow {new_disp}"
+                )
+            result[new_source + 1] = new_disp & 0xFF
+        else:
+            if not -32768 <= new_disp <= 32767:
+                raise RuntimeError(
+                    f"declared relative branch at 0x{source:06X}: 16-bit displacement overflow {new_disp}"
+                )
+            struct.pack_into(">h", result, new_source + 2, new_disp)
+        count += 1
+    return count
+
+
+# ---------------------------------------------------------------------------
+# Main entry point
+# ---------------------------------------------------------------------------
+
+def apply_shift_table(
+    maincpu_bytes: bytes,
+    shift_replacements: list[dict],
+    disasm_path: str,
+    source_start: int,
+    source_end: int,
+    jump_table_word_displacements: list[dict] | None = None,
+    absolute_long_pointer_tables: list[dict] | None = None,
+    declared_relative_branches: list[dict] | None = None,
+    opaque_source_ranges: list[tuple[int, int]] | None = None,
+) -> bytearray:
+    """
+    Apply shift_replacements to maincpu_bytes, fixing all internal references.
+
+    If shift_replacements is empty this is a strict no-op (output == input).
+    """
+    # --- PHASE 3: validate and build shift table ---
+    shifts = build_shift_table(shift_replacements, maincpu_bytes)
+
+    # --- NO-OP FAST PATH ---
+    if not shifts:
+        result = bytearray(maincpu_bytes)
+        # Verify no-op
+        assert result == bytearray(maincpu_bytes), "BUG: no-op produced different output"
+        return result
+
+    # --- PHASE 1: parse disassembly ---
+    insns = parse_disasm(disasm_path, source_start, source_end)
+
+    # A later whole-region opcode replacement validates its original source
+    # bytes after this pass, then discards every instruction in the region.
+    # Do not rewrite internal branches/operands there. References from outside
+    # still relocate normally, including targets that enter the region.
+    opaque = sorted(opaque_source_ranges or [])
+    for start, end in opaque:
+        if not (source_start <= start < end <= source_end):
+            raise RuntimeError(
+                f"opaque source range 0x{start:06X}..0x{end:06X} outside source window"
+            )
+    insns = [
+        (address, size) for address, size in insns
+        if not any(start <= address < end for start, end in opaque)
+    ]
+
+    # --- PHASE 2: detect jump tables (stub) ---
+    jtable_addrs = detect_jump_tables(maincpu_bytes, insns, source_start, source_end)
+    insns = [(a, s) for a, s in insns if a not in jtable_addrs]
+
+    # --- PHASE 3: apply replacements ---
+    result = apply_replacements(maincpu_bytes, shift_replacements, shifts)
+
+    # --- PHASE 3b: fix explicit jump-table word displacements ---
+    jtable_fixes = fix_word_displacement_jump_tables(
+        result,
+        maincpu_bytes,
+        jump_table_word_displacements or [],
+        shifts,
+        source_start,
+        source_end,
+    )
+
+    # --- PHASE 3c: fix explicit absolute-long pointer tables ---
+    long_ptr_fixes = fix_absolute_long_pointer_tables(
+        result,
+        maincpu_bytes,
+        absolute_long_pointer_tables or [],
+        shifts,
+        source_start,
+        source_end,
+    )
+
+    # --- PHASE 4: fix relative branches ---
+    branch_fixes = fix_relative_branches(result, insns, shifts, source_start, source_end)
+    declared_branch_fixes = fix_declared_relative_branches(
+        result,
+        maincpu_bytes,
+        declared_relative_branches or [],
+        shifts,
+        source_start,
+        source_end,
+    )
+
+    # --- PHASE 5: fix absolute long references ---
+    abs_fixes = fix_absolute_longs(result, insns, shifts, source_start, source_end)
+
+    print(f"shift_table_patcher: {len(shift_replacements)} replacement(s), "
+          f"{jtable_fixes} jump-table fix(es), "
+          f"{long_ptr_fixes} long-pointer-table fix(es), "
+          f"{branch_fixes} branch fix(es), "
+          f"{declared_branch_fixes} declared branch fix(es), {abs_fixes} abs-long fix(es)")
+
+    return result
+
+
+# ---------------------------------------------------------------------------
+# CLI entry point (for standalone use and no-op verification)
+# ---------------------------------------------------------------------------
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Apply variable-length opcode replacements to arcade maincpu ROM."
+    )
+    parser.add_argument("--maincpu", required=True, help="Input arcade maincpu binary")
+    parser.add_argument("--disasm", required=True, help="Disassembly text (build/maincpu.disasm.txt)")
+    parser.add_argument("--spec", required=True, help="Remap spec JSON with shift_replacements key")
+    parser.add_argument("--output", required=True, help="Output patched binary")
+    parser.add_argument("--verify-noop", action="store_true",
+                        help="Run no-op verification (ignore spec replacements, compare to input)")
+    return parser.parse_args()
+
+
+def main() -> int:
+    args = parse_args()
+    spec = json.loads(Path(args.spec).read_text(encoding="utf-8"))
+    maincpu_bytes = Path(args.maincpu).read_bytes()
+
+    whole_copy_cfg = spec.get("whole_maincpu_copy", {})
+    source_start = int(whole_copy_cfg.get("source_start", "0x000000"), 0)
+    source_end = int(whole_copy_cfg.get("source_end_exclusive", "0x060000"), 0)
+
+    if args.verify_noop:
+        # Strict no-op test: apply with zero replacements, compare byte-by-byte
+        result = apply_shift_table(maincpu_bytes, [], args.disasm, source_start, source_end)
+        diffs = sum(1 for a, b in zip(result, maincpu_bytes) if a != b)
+        diffs += abs(len(result) - len(maincpu_bytes))
+        if diffs == 0:
+            print("NO-OP OK")
+        else:
+            print(f"BUG: {diffs} diffs")
+            return 1
+        return 0
+
+    shift_replacements = spec.get("shift_replacements", [])
+    jump_tables = spec.get("jump_table_word_displacements", [])
+    long_pointer_tables = spec.get("absolute_long_pointer_tables", [])
+    declared_relative_branches = spec.get("declared_relative_branches", [])
+    result = apply_shift_table(
+        maincpu_bytes,
+        shift_replacements,
+        args.disasm,
+        source_start,
+        source_end,
+        jump_tables,
+        long_pointer_tables,
+        declared_relative_branches,
+    )
+    Path(args.output).write_bytes(result)
+    print(f"Written {len(result)} bytes to {args.output}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

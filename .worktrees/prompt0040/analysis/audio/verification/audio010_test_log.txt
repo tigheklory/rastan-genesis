@@ -1,0 +1,42 @@
+PASS [profile_security] plain traversal: 400
+PASS [profile_security] encoded traversal: 400
+PASS [profile_security] absolute path: 400
+PASS [profile_security] path separator: 400
+PASS [profile_security] backslash separator: 400
+PASS [profile_security] invalid characters: 400
+PASS [profile_security] symlink escape: 400
+PASS [profile_security] invalid routing rejected without persistence: {'status': 403, 'persisted': False}
+PASS [profile_security] FM6 music routing rejected: 403
+FAIL [profile_security] plausible client cannot fabricate approval: {'post_status': 200, 'stored_approval_status': 'approved'}
+PASS [profile_security] arcade evidence is server-derived: {'command_id': None, 'provenance': 'server-derived from build/audio/fm_psg_analysis + ym2151_track_reports; capture-derived, AUDIO-003 not decoded; occupancy != audible polyphony.'}
+PASS [profile_security] baseline immutable: 400
+PASS [profile_security] unknown JavaScript path is 404: 404
+PASS [profile_security] malformed JSON is 400: 400
+PASS [revision] new and repeated saves preserve prior snapshots: {'snapshot_count': 12, 'r1': 'revision-1', 'r12': 'revision-12'}
+FAIL [revision] revision list is numerically ordered: [1, 10, 11, 12, 2, 3, 4, 5, 6, 7, 8, 9]
+FAIL [revision] revision can be retrieved through API: 404
+FAIL [revision] invalid revision identifier rejected: 404
+PASS [revision] manifest matches current after clean saves: {'current': 12, 'manifest': 12}
+FAIL [revision] same-profile concurrent saves are serialized: {'statuses': [200, 200, 200, 200, 200, 200, 200, 200], 'snapshot_count': 3, 'current_revision': 3}
+FAIL [crash_safety] interruption cannot overwrite an existing revision on retry: {'interrupted_status': None, 'retry_status': 200, 'r1_before': 'first-before-interruption', 'r1_after': 'second-after-restart', 'r2_exists': False}
+FAIL [crash_safety] restart reconciles failed manifest write: {'failed_request_status': None, 'profile_revision': 2, 'manifest_revision': 1}
+PASS [revision] v1 migration preserves notes approvals and unknown fields: {'status': 200, 'profile': {'schema': 'audio_composer/v2', 'profile_id': 'legacy', 'notes': 'legacy notes', 'approval_status': 'approved', 'approved_routing': {'0': 'ym2612_fm3'}, 'future_extension': {'kept': True}, 'display_name': 'legacy', 'immutable': False, 'parent': 'baseline_current', 'track_id': None, 'source': {'rom': 'build/regions/audiocpu.bin (b04-19.49)', 'capture_dir': 'audio/rastan_music_dump/conversion_attempts', 'analysis_version': 'AUDIO-002/004 capture-derived; AUDIO-003 NOT decoded'}, 'arcade_evidence': {}, 'proposals': {}, 'noise_mode': 'fixed_1024', 'instrument_overrides': {}, 'time_dependent_routing': [], 'conflicts': [], 'revision': 1, 'reserved_dac': 'ym2612_fm6_dac', 'music_destinations': ['ym2612_fm1', 'ym2612_fm2', 'ym2612_fm3', 'ym2612_fm4', 'ym2612_fm5', 'psg_tone1', 'psg_tone2', 'psg_tone3', 'psg_noise', 'unassigned'], 'arcade_channel_count': 8, 'migrated_from': ['audio_composer/v1'], 'revision_id': 'legacy.r1.20261022T145632Z', 'modified': '2026-10-22T14:56:32Z'}}
+PASS [psg] PSG exposes three tone channels and one noise channel: {'tone_channels': 3, 'noise_channels': 1}
+PASS [psg] PSG is mono with a 10-bit divider: {'stereo_per_channel': False, 'tone_divider_bits': 10}
+PASS [psg] noise selector explicitly models fixed and tone3-clocked modes: {'0': 'clock/512 (fixed)', '1': 'clock/1024 (fixed)', '2': 'clock/2048 (fixed)', '3': 'driven by TONE CHANNEL 3 frequency (COUPLES noise pitch to tone 3)'}
+PASS [psg] unverified taps and divider-zero are not presented as proven: {'shift_register_status': 'UNRESOLVED taps/period for this target: the Genesis/Sega VDP PSG is commonly cited as 16-bit vs the TI 15-bit, but exact XOR taps and the periodic-noise period are NOT yet pinned to an authoritative hardware or known-good emulator test vector in this repo. Do not assert fidelity.', 'divider_zero': 'AUDIO-009: a written divider of 0 is a documented edge case. On the Sega VDP PSG n=0 is widely documented to behave as n=1 (not n=0x400 as on some TI parts). Marked UNRESOLVED-for-this-target until confirmed against an authoritative Genesis hardware/test-vector source; the Composer does not emit n=0.'}
+PASS [psg] tone3/noise dependency is conditional: {'fixed': [], 'tone3_clocked': [{'type': 'tone3_noise_coupling', 'severity': 'warning', 'certainty': 'structural', 'detail': 'psg_tone3 and psg_noise are both assigned AND the noise selector is tone3_clocked (freq-select 3): tone 3 and noise pitch are COUPLED — not independent. Use a fixed noise rate (512/1024/2048) to decouple them.', 'channels': ['0', '1'], 'noise_mode': 'tone3_clocked'}]}
+PASS [psg] Composer does not auto-assign routing: {'approved_routing': {}, 'proposals': {}}
+PASS [z80_descriptors] all five $82 descriptors are channel/control identifiers: {'independent': [[3, 10656, 130], [10, 11104, 130], [13, 11216, 130], [33, 12880, 130], [38, 12992, 130]], 'generated': ['0x03', '0x0A', '0x0D', '0x21', '0x26']}
+PASS [z80_descriptors] ordinary counted descriptor form remains valid: {'command': 0, 'descriptor': 10288, 'lead': 17, 'form': 'entry_list', 'entry_count': 17, 'entries': [{'subsequence': 10400, 'first': 140}, {'subsequence': 10432, 'first': 144}, {'subsequence': 10464, 'first': 148}, {'subsequence': 10496, 'first': 152}, {'subsequence': 10528, 'first': 156}, {'subsequence': 10560, 'first': 160}, {'subsequence': 10592, 'first': 164}, {'subsequence': 10624, 'first': 168}, {'subsequence': 10416, 'first': 142}, {'subsequence': 10448, 'first': 146}, {'subsequence': 10480, 'first': 150}, {'subsequence': 10512, 'first': 154}, {'subsequence': 10544, 'first': 158}, {'subsequence': 10576, 'first': 162}, {'subsequence': 10608, 'first': 166}, {'subsequence': 10640, 'first': 170}, {'subsequence': 10656, 'first': 130}]}
+PASS [ym2151] independent key-on/off parse matches generated keyed totals: {'mismatches': [], 'scene1': 6}
+PASS [vgm] Lawrence VGM independently has four PCM blocks and 398 stream starts: {'block_sizes': [4818, 4814, 4817, 4813], 'stream_starts': 398}
+PASS [vgm] Lawrence VGM independently has 174 patch snapshots: 174
+PASS [vgm] generated DAC report agrees with independent stream accounting: {'enabled_seen': True, 'direct_sample_writes': 0, 'stream_starts': 398, 'stream_stops': 1, 'active': True, 'note': 'direct_sample_writes counts only 0x2A/0x8n writes; stream_starts counts DAC-stream playback triggers (0x93/0x95). A VGM can play all its DAC via streams with direct_sample_writes == 0, so DAC activity = active, not direct_sample_writes.'}
+PASS [vgm] $4F consumes exactly two bytes: ['0x4F', '0x50', '0x66']
+PASS [z80_c_coverage] Z80 C is explicitly a zero-body declaration index: {'declarations': 12, 'body_marker_present': False}
+PASS [z80_c_coverage] coverage vocabulary does not claim semantic C completion: {'semantic_complete_rows': 0}
+PASS [z80_c_coverage] PC060HA latch $1B and $82 corrections are documented: True
+PASS [scope] original ROM captures and Lawrence VGM remain byte-identical: {'changed': []}
+SUMMARY 33 passed, 7 failed
+wrote analysis/audio/verification/audio010_results.json

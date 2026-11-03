@@ -1,0 +1,51 @@
+{
+  "sprite_families": 23,
+  "sprite_frames": 11,
+  "sprite_classes_resolved": 4,
+  "sprite_classes_unresolved": 19,
+  "sprite_semantic_domain_enumerated": false,
+  "sprite_semantic_resolution_complete": false,
+  "plane_a_logical_uses": 1581,
+  "plane_a_physical_patterns": 1315,
+  "plane_a_banks": [
+    "0x003",
+    "0x004",
+    "0x005",
+    "0x006",
+    "0x007",
+    "0x017",
+    "0x018",
+    "0x01A",
+    "0x01B",
+    "0x01C",
+    "0x01D"
+  ],
+  "plane_b_logical_uses": 854,
+  "plane_b_physical_patterns": 854,
+  "plane_b_banks": [
+    "0x002"
+  ],
+  "plane_b_state_events": 16,
+  "plane_b_states": 1,
+  "sprite_banks": [
+    "0x30",
+    "0x33",
+    "0x36"
+  ],
+  "source_colors": 96,
+  "genesis_distinct_colors": 74,
+  "source_colors_by_owner": {
+    "sprite": 37,
+    "plane_a": 85,
+    "plane_b": 15
+  },
+  "genesis_colors_by_owner": {
+    "sprite": 32,
+    "plane_a": 64,
+    "plane_b": 15
+  },
+  "plane_a_max_simultaneous_patterns": 483,
+  "all_pattern_capacity_checks_pass": false,
+  "fixed_exact": false,
+  "semantic_exact": false
+}

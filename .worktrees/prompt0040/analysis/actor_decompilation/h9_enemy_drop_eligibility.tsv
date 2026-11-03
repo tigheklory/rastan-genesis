@@ -1,0 +1,4 @@
+enemy_or_condition	drop?	mechanism	status
+per-enemy-kill drop creator	UNRESOLVED	no dedicated creator located on the fatal path	OPEN
+scripted/position item spawn	YES	0x450D8 -> 0x45248, camera A5+0x2DE gated, sub-seq A5+0x21C	PROVEN (category C)
+marker-placed item	YES	H6 marker materialization (letter markers)	PROVEN (category B)

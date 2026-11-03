@@ -1,0 +1,288 @@
+{
+  "already_supported": [
+    "usage-level palette line",
+    "usage-level pixel index map",
+    "context policy container"
+  ],
+  "candidate_profiles": [
+    {
+      "candidate_profile_id": "TEST-0fd536aeec9f3537",
+      "mapping": {
+        "index_map": {
+          "10": 2,
+          "11": 3,
+          "12": 10,
+          "13": 11,
+          "14": 6,
+          "3": 1
+        },
+        "line": 0,
+        "solver": "explicit"
+      },
+      "usages": [
+        "usage:small_bat:bank0x3E"
+      ]
+    },
+    {
+      "candidate_profile_id": "TEST-30903d4fc4fd2533",
+      "mapping": {
+        "index_map": {
+          "1": 7,
+          "10": 11,
+          "11": 8,
+          "12": 15,
+          "13": 1,
+          "14": 12,
+          "15": 6,
+          "2": 3,
+          "3": 2,
+          "4": 10,
+          "5": 9,
+          "6": 14,
+          "7": 5,
+          "8": 13,
+          "9": 4
+        },
+        "line": 0,
+        "solver": "explicit"
+      },
+      "usages": [
+        "usage:valkyrie:bank0x32"
+      ]
+    },
+    {
+      "candidate_profile_id": "TEST-655358bf54a28fa5",
+      "mapping": {
+        "index_map": {
+          "10": 2,
+          "11": 3,
+          "12": 4,
+          "13": 5,
+          "14": 6,
+          "3": 1,
+          "7": 7
+        },
+        "line": 0,
+        "solver": "explicit"
+      },
+      "usages": [
+        "usage:large_bat:bank0x3E"
+      ]
+    },
+    {
+      "candidate_profile_id": "TEST-a3460d5395dd3361",
+      "mapping": {
+        "index_map": {},
+        "line": 0,
+        "solver": "delta_e"
+      },
+      "usages": [
+        "usage:rastan_f15828:bank0x33",
+        "usage:rastan_f16199:bank0x33"
+      ]
+    },
+    {
+      "candidate_profile_id": "TEST-acb3882c8b93f9ca",
+      "mapping": {
+        "index_map": {
+          "1": 1,
+          "10": 14,
+          "11": 7,
+          "12": 13,
+          "13": 15,
+          "14": 4,
+          "2": 6,
+          "3": 11,
+          "4": 12,
+          "5": 9,
+          "6": 8,
+          "7": 5,
+          "8": 3,
+          "9": 10
+        },
+        "line": 0,
+        "solver": "explicit"
+      },
+      "usages": [
+        "usage:chimera:bank0x34"
+      ]
+    },
+    {
+      "candidate_profile_id": "TEST-e5a8cada81dccdfa",
+      "mapping": {
+        "index_map": {
+          "1": 1,
+          "10": 10,
+          "11": 11,
+          "12": 12,
+          "2": 2,
+          "3": 3,
+          "4": 4,
+          "5": 5,
+          "6": 7,
+          "7": 6,
+          "8": 8,
+          "9": 9
+        },
+        "line": 1,
+        "solver": "explicit"
+      },
+      "usages": [
+        "usage:lizardman:bank0x36"
+      ]
+    },
+    {
+      "candidate_profile_id": "TEST-e7ec5da716462040",
+      "mapping": {
+        "index_map": {
+          "1": 13,
+          "10": 2,
+          "11": 10,
+          "12": 9,
+          "2": 14,
+          "3": 7,
+          "5": 4,
+          "6": 3,
+          "7": 12,
+          "9": 1
+        },
+        "line": 1,
+        "solver": "delta_e"
+      },
+      "usages": [
+        "usage:four_armed_insect:bank0x3A"
+      ]
+    },
+    {
+      "candidate_profile_id": "TEST-e971fe33862212a3",
+      "mapping": {
+        "index_map": {
+          "1": 11,
+          "10": 3,
+          "11": 4,
+          "12": 7,
+          "13": 6,
+          "14": 10,
+          "15": 13,
+          "2": 8,
+          "3": 15,
+          "4": 1,
+          "6": 5,
+          "7": 2,
+          "8": 12,
+          "9": 14
+        },
+        "line": 1,
+        "solver": "delta_e"
+      },
+      "usages": [
+        "usage:flying_demon:bank0x35"
+      ]
+    },
+    {
+      "candidate_profile_id": "TEST-f7141349ea45560b",
+      "mapping": {
+        "index_map": {
+          "1": 7,
+          "10": 13,
+          "11": 14,
+          "12": 4,
+          "13": 5,
+          "14": 15,
+          "15": 6,
+          "2": 8,
+          "3": 9,
+          "4": 10,
+          "5": 2,
+          "6": 11,
+          "7": 3,
+          "8": 12,
+          "9": 1
+        },
+        "line": 0,
+        "solver": "explicit"
+      },
+      "usages": [
+        "usage:rastan_f7722:bank0x33"
+      ]
+    }
+  ],
+  "canonical_distinct_profile_count": "UNRESOLVED",
+  "current_limitation": "The generated sprite-asset path collapses each arcade code to one global usage mapping and rejects conflicts, so it cannot yet encode context-dependent variants of the same code.",
+  "distinct_candidate_profile_count": 9,
+  "future_context_flexibility_required": true,
+  "palette_tool_assessment": "PARTLY",
+  "required_explicit_model": [
+    "stable reindex profile IDs",
+    "context/epoch-selected semantic-piece records",
+    "semantic piece to profile and palette-line relation",
+    "context-specific transformed asset variants",
+    "Palette Decision IDs"
+  ],
+  "same_source_multiple_profiles": {
+    "candidate_observed": true,
+    "canonical_r1p1_requirement_proven": false,
+    "rastan_candidate_profile_ids": [
+      "TEST-a3460d5395dd3361",
+      "TEST-f7141349ea45560b"
+    ],
+    "reason": "The Test editor profile contains multiple Rastan usage profiles, but the canonical registry does not identify accepted reindex profiles."
+  },
+  "schema_version": 1,
+  "scope": "Round 1 Phase 1",
+  "source_authority": "diagnostic/frozen Test authoring; candidate evidence only",
+  "source_profile": "Test",
+  "usage_mapping_count": 10,
+  "usages": [
+    {
+      "authority": "frozen Test editor policy only; not canonical palette authority",
+      "candidate_profile_id": "TEST-acb3882c8b93f9ca",
+      "usage": "usage:chimera:bank0x34"
+    },
+    {
+      "authority": "frozen Test editor policy only; not canonical palette authority",
+      "candidate_profile_id": "TEST-e971fe33862212a3",
+      "usage": "usage:flying_demon:bank0x35"
+    },
+    {
+      "authority": "frozen Test editor policy only; not canonical palette authority",
+      "candidate_profile_id": "TEST-e7ec5da716462040",
+      "usage": "usage:four_armed_insect:bank0x3A"
+    },
+    {
+      "authority": "frozen Test editor policy only; not canonical palette authority",
+      "candidate_profile_id": "TEST-655358bf54a28fa5",
+      "usage": "usage:large_bat:bank0x3E"
+    },
+    {
+      "authority": "frozen Test editor policy only; not canonical palette authority",
+      "candidate_profile_id": "TEST-e5a8cada81dccdfa",
+      "usage": "usage:lizardman:bank0x36"
+    },
+    {
+      "authority": "frozen Test editor policy only; not canonical palette authority",
+      "candidate_profile_id": "TEST-a3460d5395dd3361",
+      "usage": "usage:rastan_f15828:bank0x33"
+    },
+    {
+      "authority": "frozen Test editor policy only; not canonical palette authority",
+      "candidate_profile_id": "TEST-a3460d5395dd3361",
+      "usage": "usage:rastan_f16199:bank0x33"
+    },
+    {
+      "authority": "frozen Test editor policy only; not canonical palette authority",
+      "candidate_profile_id": "TEST-f7141349ea45560b",
+      "usage": "usage:rastan_f7722:bank0x33"
+    },
+    {
+      "authority": "frozen Test editor policy only; not canonical palette authority",
+      "candidate_profile_id": "TEST-0fd536aeec9f3537",
+      "usage": "usage:small_bat:bank0x3E"
+    },
+    {
+      "authority": "frozen Test editor policy only; not canonical palette authority",
+      "candidate_profile_id": "TEST-30903d4fc4fd2533",
+      "usage": "usage:valkyrie:bank0x32"
+    }
+  ]
+}

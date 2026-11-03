@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "description": "User-configurable runtime policy for Genesis-hosted arcade code.",
+  "software_dips": {
+    "bank1_default_raw": "0xFE",
+    "bank2_default_raw": "0xFF",
+    "notes": [
+      "Factory defaults from the Rastan manual.",
+      "Bank 1 switch 3 controls test mode."
+    ]
+  },
+  "input_mapping": {
+    "default": {
+      "genesis_a": "arcade_attack",
+      "genesis_b": "arcade_jump",
+      "genesis_c": "arcade_coin",
+      "genesis_start": "arcade_start",
+      "genesis_up": "arcade_up",
+      "genesis_down": "arcade_down",
+      "genesis_left": "arcade_left",
+      "genesis_right": "arcade_right"
+    },
+    "notes": [
+      "Keep mapping policy declarative so the runtime and UI can expose it later.",
+      "Do not hardcode user-facing control remaps deep inside translation logic."
+    ]
+  }
+}

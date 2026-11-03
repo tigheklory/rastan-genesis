@@ -1,0 +1,327 @@
+001   0000             ; AUDIO-015 permanent Genesis Z80 audio engine.
+002   0000             ; Command input is a bounded 16-byte ring owned jointly with the 68000 bridge.
+003   0000             ; Music data is a cartridge-resident native YM2612/PSG tick stream, never VGM.
+004   0000             
+005   0000                     org     $0000
+006   0000 F3                  di
+007   0001 C3 68 00            jp      init
+008   0004             
+009   0004                     ; sjasm raw-binary output does not materialize ORG gaps. Explicit
+010   0004                     ; padding keeps file offsets identical to Z80 load addresses.
+011   0004 00                  defs    $0038-$,0
+012   0038 ED 4D               reti                            ; scheduler polls YM2612 Timer B
+013   003A             
+014   003A 00                  defs    $0066-$,0
+015   0066 ED 45               retn                            ; no arcade PC060HA/NMI exists on Genesis
+016   0068             
+017   0068             YM0A    equ     $4000
+018   0068             YM0D    equ     $4001
+019   0068             YM1A    equ     $4002
+020   0068             YM1D    equ     $4003
+021   0068             BANK    equ     $6000
+022   0068             PSG     equ     $7F11
+023   0068             
+024   0068             CUR_LO  equ     $1FA0
+025   0068             CUR_MI  equ     $1FA1
+026   0068             CUR_HI  equ     $1FA2
+027   0068             ACTIVE  equ     $1FA3
+028   0068             WIN_LO  equ     $1FA4
+029   0068             WIN_HI  equ     $1FA5
+030   0068             BANKV   equ     $1FA6
+031   0068             STARTP  equ     $1FC0
+032   0068             LOOPP   equ     $1FC3
+033   0068             SONGC   equ     $1DFF
+034   0068             SONGT   equ     $1E00
+035   0068             QHEAD   equ     $1FD0
+036   0068             QTAIL   equ     $1FD1
+037   0068             QDATA   equ     $1FE0
+038   0068             STACK   equ     $1F80
+039   0068             
+040   0068             init:
+041   0068 31 80 1F            ld      sp,STACK
+042   006B AF                  xor     a
+043   006C 32 D0 1F            ld      (QHEAD),a
+044   006F 32 D1 1F            ld      (QTAIL),a
+045   0072 32 A3 1F            ld      (ACTIVE),a
+046   0075 CD 06 02            call    silence_all
+047   0078 CD 91 00            call    timer_reload
+048   007B             
+049   007B             main:
+050   007B CD A6 00            call    command_pop
+051   007E 3A 00 40            ld      a,(YM0A)                ; documented Genesis status port
+052   0081 CB 4F               bit     1,a
+053   0083 28 F6               jr      z,main
+054   0085 CD 91 00            call    timer_reload
+055   0088 3A A3 1F            ld      a,(ACTIVE)
+056   008B B7                  or      a
+057   008C C4 03 01            call    nz,music_tick
+058   008F 18 EA               jr      main
+059   0091             
+060   0091             ; Timer B must be explicitly reprogrammed as well as status-cleared for every
+061   0091             ; period. Register $C9 is the closest integral Genesis period to the original
+062   0091             ; 61.03515625 Hz YM2151 Timer-A cadence.
+063   0091             timer_reload:
+064   0091 3E 27               ld      a,$27                  ; clear B status, take load B low
+065   0093 1E 28               ld      e,$28
+066   0095 CD D2 01            call    ym0
+067   0098 3E 26               ld      a,$26
+068   009A 1E C9               ld      e,$C9
+069   009C CD D2 01            call    ym0
+070   009F 3E 27               ld      a,$27                  ; load/enable B on a real 0 -> 1 edge
+071   00A1 1E 0A               ld      e,$0A
+072   00A3 C3 D2 01            jp      ym0
+073   00A6             
+074   00A6             command_pop:
+075   00A6 3A D1 1F            ld      a,(QTAIL)
+076   00A9 4F                  ld      c,a
+077   00AA 3A D0 1F            ld      a,(QHEAD)
+078   00AD B9                  cp      c
+079   00AE C8                  ret     z
+080   00AF 06 00               ld      b,0
+081   00B1 21 E0 1F            ld      hl,QDATA
+082   00B4 09                  add     hl,bc
+083   00B5 7E                  ld      a,(hl)
+084   00B6 0C                  inc     c
+085   00B7 47                  ld      b,a
+086   00B8 79                  ld      a,c
+087   00B9 E6 0F               and     $0F
+088   00BB 32 D1 1F            ld      (QTAIL),a
+089   00BE 78                  ld      a,b
+090   00BF B7                  or      a
+091   00C0 CA FC 00            jp      z,music_stop            ; command $00: original all-channel stop
+092   00C3 47                  ld      b,a
+093   00C4 3A FF 1D            ld      a,(SONGC)
+094   00C7 B7                  or      a
+095   00C8 C8                  ret     z
+096   00C9 4F                  ld      c,a
+097   00CA 21 00 1E            ld      hl,SONGT
+098   00CD             .dispatch:
+099   00CD 7E                  ld      a,(hl)
+100   00CE B8                  cp      b
+101   00CF 28 08               jr      z,.mapped
+102   00D1 11 07 00            ld      de,7
+103   00D4 19                  add     hl,de
+104   00D5 0D                  dec     c
+105   00D6 20 F5               jr      nz,.dispatch
+106   00D8 C9                  ret                             ; unsupported authentic command: consumed
+107   00D9             .mapped:
+108   00D9 23                  inc     hl                      ; packed intro pointer follows command
+109   00DA E5                  push    hl
+110   00DB 11 C0 1F            ld      de,STARTP
+111   00DE 01 03 00            ld      bc,3
+112   00E1 ED B0               ldir
+113   00E3 E1                  pop     hl
+114   00E4 11 03 00            ld      de,3
+115   00E7 19                  add     hl,de                   ; packed loop pointer follows intro
+116   00E8 11 C3 1F            ld      de,LOOPP
+117   00EB 01 03 00            ld      bc,3
+118   00EE ED B0               ldir
+119   00F0             music_start:
+120   00F0 21 C0 1F            ld      hl,STARTP
+121   00F3 CD 4A 01            call    load_pointer
+122   00F6 3E 01               ld      a,1
+123   00F8 32 A3 1F            ld      (ACTIVE),a
+124   00FB C9                  ret
+125   00FC             
+126   00FC             music_stop:
+127   00FC AF                  xor     a
+128   00FD 32 A3 1F            ld      (ACTIVE),a
+129   0100 C3 06 02            jp      silence_all
+130   0103             
+131   0103             music_tick:
+132   0103 CD 8C 01            call    stream_byte
+133   0106 FE FF               cp      $FF
+134   0108 20 14               jr      nz,.count
+135   010A 21 C3 1F            ld      hl,LOOPP
+136   010D 7E                  ld      a,(hl)
+137   010E 23                  inc     hl
+138   010F B6                  or      (hl)
+139   0110 23                  inc     hl
+140   0111 B6                  or      (hl)
+141   0112 CA FC 00            jp      z,music_stop            ; authored one-shot reached its end
+142   0115 21 C3 1F            ld      hl,LOOPP
+143   0118 CD 4A 01            call    load_pointer
+144   011B CD 8C 01            call    stream_byte
+145   011E             .count:
+146   011E 47                  ld      b,a
+147   011F B7                  or      a
+148   0120 C8                  ret     z
+149   0121             .event:
+150   0121 C5                  push    bc
+151   0122 CD 8C 01            call    stream_byte
+152   0125 FE 02               cp      2
+153   0127 28 17               jr      z,.psg
+154   0129 4F                  ld      c,a
+155   012A CD 8C 01            call    stream_byte
+156   012D 57                  ld      d,a
+157   012E CD 8C 01            call    stream_byte
+158   0131 5F                  ld      e,a
+159   0132 79                  ld      a,c
+160   0133 B7                  or      a
+161   0134 7A                  ld      a,d
+162   0135 CC D2 01            call    z,ym0
+163   0138 79                  ld      a,c
+164   0139 B7                  or      a
+165   013A 7A                  ld      a,d
+166   013B C4 EC 01            call    nz,ym1
+167   013E 18 06               jr      .next
+168   0140             .psg:
+169   0140 CD 8C 01            call    stream_byte
+170   0143 32 11 7F            ld      (PSG),a
+171   0146             .next:
+172   0146 C1                  pop     bc
+173   0147 10 D8               djnz    .event
+174   0149 C9                  ret
+175   014A             
+176   014A             ; HL points at a little-endian 24-bit 68000 ROM address in shared Z80 RAM.
+177   014A             load_pointer:
+178   014A 7E                  ld      a,(hl)
+179   014B 32 A0 1F            ld      (CUR_LO),a
+180   014E 23                  inc     hl
+181   014F 7E                  ld      a,(hl)
+182   0150 32 A1 1F            ld      (CUR_MI),a
+183   0153 23                  inc     hl
+184   0154 7E                  ld      a,(hl)
+185   0155 32 A2 1F            ld      (CUR_HI),a
+186   0158 CD 5C 01            call    set_bank_from_current
+187   015B C9                  ret
+188   015C             
+189   015C             set_bank_from_current:
+190   015C C5                  push    bc
+191   015D D5                  push    de
+192   015E 3A A2 1F            ld      a,(CUR_HI)
+193   0161 87                  add     a,a
+194   0162 4F                  ld      c,a
+195   0163 3A A1 1F            ld      a,(CUR_MI)
+196   0166 07                  rlca
+197   0167 E6 01               and     1
+198   0169 B1                  or      c                       ; A = 68000 address >> 15
+199   016A 32 A6 1F            ld      (BANKV),a
+200   016D F5                  push    af
+201   016E 01 00 60            ld      bc,BANK
+202   0171 16 09               ld      d,9
+203   0173             .bankbits:
+204   0173 02                  ld      (bc),a
+205   0174 CB 3F               srl     a
+206   0176 15                  dec     d
+207   0177 20 FA               jr      nz,.bankbits
+208   0179 F1                  pop     af
+209   017A 3A A1 1F            ld      a,(CUR_MI)
+210   017D E6 7F               and     $7F
+211   017F F6 80               or      $80
+212   0181 67                  ld      h,a
+213   0182 3A A0 1F            ld      a,(CUR_LO)
+214   0185 6F                  ld      l,a
+215   0186 22 A4 1F            ld      (WIN_LO),hl
+216   0189 D1                  pop     de
+217   018A C1                  pop     bc
+218   018B C9                  ret
+219   018C             
+220   018C             stream_byte:
+221   018C 2A A4 1F            ld      hl,(WIN_LO)
+222   018F 7E                  ld      a,(hl)
+223   0190 F5                  push    af
+224   0191 23                  inc     hl
+225   0192 CB 7C               bit     7,h
+226   0194 20 0E               jr      nz,.window_ok
+227   0196 26 80               ld      h,$80                  ; crossed the 0xFFFF -> 0x8000 window edge
+228   0198 3A A6 1F            ld      a,(BANKV)
+229   019B 3C                  inc     a
+230   019C 32 A6 1F            ld      (BANKV),a
+231   019F E5                  push    hl
+232   01A0 CD C2 01            call    set_bank_value
+233   01A3 E1                  pop     hl
+234   01A4             .window_ok:
+235   01A4 22 A4 1F            ld      (WIN_LO),hl
+236   01A7 3A A0 1F            ld      a,(CUR_LO)
+237   01AA 3C                  inc     a
+238   01AB 32 A0 1F            ld      (CUR_LO),a
+239   01AE 20 10               jr      nz,.done
+240   01B0 3A A1 1F            ld      a,(CUR_MI)
+241   01B3 3C                  inc     a
+242   01B4 32 A1 1F            ld      (CUR_MI),a
+243   01B7 20 07               jr      nz,.done
+244   01B9 3A A2 1F            ld      a,(CUR_HI)
+245   01BC 3C                  inc     a
+246   01BD 32 A2 1F            ld      (CUR_HI),a
+247   01C0             .done:
+248   01C0 F1                  pop     af
+249   01C1 C9                  ret
+250   01C2             
+251   01C2             set_bank_value:
+252   01C2 C5                  push    bc                      ; crossing may occur inside an event
+253   01C3 D5                  push    de                      ; decoder B/C/D/E must survive it
+254   01C4 01 00 60            ld      bc,BANK
+255   01C7 16 09               ld      d,9
+256   01C9             .bankbits:
+257   01C9 02                  ld      (bc),a
+258   01CA CB 3F               srl     a
+259   01CC 15                  dec     d
+260   01CD 20 FA               jr      nz,.bankbits
+261   01CF D1                  pop     de
+262   01D0 C1                  pop     bc
+263   01D1 C9                  ret
+264   01D2             
+265   01D2             ym0:
+266   01D2 F5                  push    af
+267   01D3             .busy0:
+268   01D3 3A 00 40            ld      a,(YM0A)
+269   01D6 E6 80               and     $80
+270   01D8 20 F9               jr      nz,.busy0
+271   01DA F1                  pop     af
+272   01DB 32 00 40            ld      (YM0A),a
+273   01DE F5                  push    af
+274   01DF             .busy1:
+275   01DF 3A 00 40            ld      a,(YM0A)
+276   01E2 E6 80               and     $80
+277   01E4 20 F9               jr      nz,.busy1
+278   01E6 7B                  ld      a,e
+279   01E7 32 01 40            ld      (YM0D),a
+280   01EA F1                  pop     af
+281   01EB C9                  ret
+282   01EC             
+283   01EC             ym1:
+284   01EC F5                  push    af
+285   01ED             .busy0:
+286   01ED 3A 00 40            ld      a,(YM0A)
+287   01F0 E6 80               and     $80
+288   01F2 20 F9               jr      nz,.busy0
+289   01F4 F1                  pop     af
+290   01F5 32 02 40            ld      (YM1A),a
+291   01F8 F5                  push    af
+292   01F9             .busy1:
+293   01F9 3A 00 40            ld      a,(YM0A)
+294   01FC E6 80               and     $80
+295   01FE 20 F9               jr      nz,.busy1
+296   0200 7B                  ld      a,e
+297   0201 32 03 40            ld      (YM1D),a
+298   0204 F1                  pop     af
+299   0205 C9                  ret
+300   0206             
+301   0206             silence_all:
+302   0206 06 06               ld      b,6
+303   0208 0E 00               ld      c,0
+304   020A             .fm:
+305   020A 3E 28               ld      a,$28
+306   020C 59                  ld      e,c
+307   020D CD D2 01            call    ym0
+308   0210 0C                  inc     c
+309   0211 79                  ld      a,c
+310   0212 FE 03               cp      3
+311   0214 20 01               jr      nz,.cont
+312   0216 0C                  inc     c                       ; YM2612 key selector skips value 3
+313   0217             .cont:
+314   0217 10 F1               djnz    .fm
+315   0219 3E 9F               ld      a,$9F
+316   021B 32 11 7F            ld      (PSG),a
+317   021E 3E BF               ld      a,$BF
+318   0220 32 11 7F            ld      (PSG),a
+319   0223 3E DF               ld      a,$DF
+320   0225 32 11 7F            ld      (PSG),a
+321   0228 3E FF               ld      a,$FF
+322   022A 32 11 7F            ld      (PSG),a
+323   022D 3E 2B               ld      a,$2B                  ; FM6 DAC disabled/reserved
+324   022F 1E 00               ld      e,0
+325   0231 C3 D2 01            jp      ym0
+326   0234             
+327   0234             driver_end:

@@ -1,0 +1,70 @@
+AUDIO-008 test execution log
+Date: 2026-10-21
+
+Command:
+PYTHONPYCACHEPREFIX=/tmp/audio008_pycache PYTHONDONTWRITEBYTECODE=1 python3 tools/audio_composer/verify_audio_composer.py
+
+Result:
+PASS inventory: 9 tracks
+PASS inventory: AUDIO-003 marked NOT decoded
+PASS inventory: no track infers a command_id from filename
+PASS inventory: every track exposes 8 YM2151 channels
+PASS inventory: capture availability detected
+PASS psg: 3 tone channels
+PASS psg: 50% duty only (vs NES)
+PASS psg: 16-bit LFSR noted (Genesis vs TI)
+PASS psg: tone-3/noise coupling modeled
+PASS psg: tone divider 10-bit range
+PASS validate: music on FM6 -> error
+PASS validate: >5 FM channels -> fm_budget error
+PASS validate: shared monophonic channel flagged
+PASS validate: shared-channel flagged POTENTIAL (timing incomplete), not proven
+PASS validate: tone3+noise coupling flagged
+PASS validate: a clean routing has no conflicts
+PASS profile: round-trips approved_routing
+PASS profile: proposals and approvals stay separate
+PASS profile: notes preserved
+PASS profile: schema versioned
+PASS profile: three evidence layers present
+PASS profile: time-dependent routing field present (future-proof)
+PASS profile: instrument_overrides field present (future-proof)
+PASS source: arcade capture exists & is read (not written)
+PASS source: Lawrence VGM exists & is read (not written)
+PASS graphics_editor: server.py still compiles (untouched)
+
+26 passed, 0 failed
+
+Independent isolated HTTP command:
+PYTHONDONTWRITEBYTECODE=1 python3 analysis/audio/verification/audio008_independent_audit.py --output analysis/audio/verification/audio008_results.json
+
+HTTP result summary (ephemeral loopback port; temporary profile directory):
+- inventory, PSG model, Lawrence, audition, profile list/load: HTTP 200
+- valid save/reload: HTTP 200/200; proposals and approvals remained separate
+- FM6 music save: HTTP 403; no file written
+- malformed JSON: HTTP 400
+- POST profile-id traversal: HTTP 400
+- invalid destination: HTTP 200 and file written, despite returned invalid_dest conflict
+- GET profile traversal: HTTP 200 and disclosed the test JSON outside the profile directory
+- tone3+noise: warning emitted without a noise-frequency-mode field
+- same-ID save overwrote the prior profile; manifest revision became 2 but no prior revision file existed
+- unknown `.js` path returned HTTP 200 with app.js
+
+All writable HTTP tests used a TemporaryDirectory. No repository profile was written or modified.
+
+Independent Lawrence analyzer replay:
+python3 tools/audio/vgm_genesis_analysis.py \
+  'audio/Inglebard Agressive World Handmade Genesis version/LM-Main Stage Theme (1).vgm' \
+  --outdir /tmp/audio008_vgm_replay
+
+Result:
+- clean completion; reached VGM end marker
+- generated JSON exactly equal to build/audio/vgm_analysis/LM-Main Stage Theme (1).json
+
+Final isolation checks:
+- accepted Build 0472 ROM SHA-256: 5b855e163a572c3a511a76470199c9cb13324f6ea0739bbd0f6834b80092dc7a
+- accepted/build-0472 peeled target: 4d5aadb0e92387617594404f9e757597c87517a3
+- build counter: 472
+- baseline_current.json SHA-256: e368f7027ef582293fceed0bf53e424157ab60ae0d8c47703d4681d9d0c13d77
+- profile_manifest.json SHA-256: d4d615f0c5d432ff61500517b60586fbedb7152e1cebfafafda68b8929f4d3e9
+- Palette Composer server.py SHA-256: 4e39af55614fd4787a08aff06cbceda167725e1822816f6fc61a2c49a8fec40a
+- no audit server left running

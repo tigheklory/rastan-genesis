@@ -1,0 +1,8 @@
+parent_update_pc	condition	creator_helper	child_or_effect	base	state	update_engine	retirement
+0x42E38	rec_type<5 moved onto solid collision cell (bit0)	0x447F0	impact component	parent-supplied	0x0F	0x40CCC	0x4092E when done
+0x43F52	active pool member, state!=0	0x447F0	burst/segment component	parent-supplied	0x0F	0x40CCC	0x4092E (state==0 member)
+0x44804	component anim +0x3C reached +0x3A (length)	0x3B726 (rec_type 8/9/11) else 0x448B2	score / recycle	-	0x0F	0x40CCC	0x40A1E recycle / 0x4092E
+0x469E8	boss defeat (round 5/6), component blocks A5+0x5C8..0x708	0x447F0 x3-4 + 0x3B726	boss-death components	boss template	0x0F	0x40CCC	per-component
+0x40E88/0x40EDE	marker gone (transform states, H6)	0x4103A	re-armed hunter -> next base/char	0x0F4/0xDAB/0x9EA	0x00	0x41180	0x4092E via 0x4103A
+0x421A8/0x42204/0x4220A	projectile reached owner/expired	0x4092E (0x4220A also 0x457D0 effect)	-	-	-	-	0x4092E retire
+0x427B2	actor off-screen	(clears +0x00 directly)	-	-	-	-	off-screen retire

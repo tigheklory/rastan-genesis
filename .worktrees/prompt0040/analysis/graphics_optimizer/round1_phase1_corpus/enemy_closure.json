@@ -1,0 +1,67 @@
+{
+ "target": "ORIGINAL ARCADE ONLY",
+ "enemies": {
+  "Lizardman": {
+   "identity": "PROVEN +0x3E=0/base 0x004B",
+   "composite": "COMPLETE (real emitted records; PC090OJ draw order lower-record-on-top)",
+   "bank": "0x36 PROVEN",
+   "palette_16color": "PROVEN via round-1 index table 0x3BA88[k] -> pool index 13 -> pool 0x4FD02+13*0x20 = 0x4FEA2"
+  },
+  "Four-armed insect": {
+   "identity": "PROVEN +0x3E=3/base 0x02E8",
+   "composite": "COMPLETE (real emitted records; PC090OJ draw order lower-record-on-top)",
+   "bank": "0x3A PROVEN",
+   "palette_16color": "PROVEN via round-1 index table 0x3BA88[k] -> pool index 22 -> pool 0x4FD02+22*0x20 = 0x4FFC2"
+  },
+  "Valkyrie": {
+   "identity": "PROVEN +0x3E=8/base 0x0241 (armored female warrior render; USER VERIFY name)",
+   "composite": "COMPLETE (real emitted records; PC090OJ draw order lower-record-on-top)",
+   "bank": "0x32 PROVEN",
+   "palette_16color": "PROVEN via round-1 index table 0x3BA88[k] -> pool index 15 -> pool 0x4FD02+15*0x20 = 0x4FEE2"
+  },
+  "Chimera": {
+   "identity": "PROVEN +0x3E=1/base 0x00D0",
+   "composite": "COMPLETE (real emitted records; PC090OJ draw order lower-record-on-top)",
+   "bank": "0x34 PROVEN",
+   "palette_16color": "PROVEN via round-1 index table 0x3BA88[k] -> pool index 18 -> pool 0x4FD02+18*0x20 = 0x4FF42"
+  },
+  "Flying Demon": {
+   "identity": "PROVEN actor_508/base 0x0129 (A=body,B=wings; wings behind body by PC090OJ priority)",
+   "composite": "COMPLETE (real emitted records; PC090OJ draw order lower-record-on-top)",
+   "bank": "0x35 PROVEN",
+   "palette_16color": "PROVEN via round-1 index table 0x3BA88[k] -> pool index 16 -> pool 0x4FD02+16*0x20 = 0x4FF02"
+  },
+  "Small Bat": {
+   "identity": "PROVEN actor_748/base 0x0268 (render; USER VERIFY name)",
+   "composite": "COMPLETE (real emitted records; PC090OJ draw order lower-record-on-top)",
+   "bank": "0x3E PROVEN",
+   "palette_16color": "PROVEN via round-1 index table 0x3BA88[k] -> pool index 36 -> pool 0x4FD02+36*0x20 = 0x50182"
+  },
+  "Large Bat": {
+   "identity": "PROVEN actor_5c8/base 0x03F6 (render; USER VERIFY name)",
+   "composite": "COMPLETE (real emitted records; PC090OJ draw order lower-record-on-top)",
+   "bank": "0x3E PROVEN",
+   "palette_16color": "PROVEN via round-1 index table 0x3BA88[k] -> pool index 36 -> pool 0x4FD02+36*0x20 = 0x50182"
+  }
+ },
+ "gates": {
+  "enemy_semantic_identification": "7/7",
+  "real_emitted_composite_reconstruction": "7/7",
+  "round_indexed_palette_loader": "PROVEN (FUN_0003ba20/56/64)",
+  "palette_pool": "PROVEN (0x4FD02)",
+  "static_source_provenance": "7/7",
+  "palette_stability_writer_census": "PROVEN (no gameplay override of banks 0x32-0x3E in R1/P1)",
+  "exact_mame_display_rgb": "7/7 (xBGR_555 pal5bit(nibble*2))",
+  "pc090oj_overlap_priority": "PROVEN (first record highest priority; lower record on top)",
+  "flying_demon_ordering": "WINGS BEHIND BODY",
+  "genesis_evidence_used": 0,
+  "guessed_palette_mappings": 0,
+  "screenshot_derived_colors": 0,
+  "primary_contact_sheet_panels": "7/7",
+  "contact_sheet_complete": true
+ },
+ "rejected_model": "direct-bank source 0x4FDE2+(bank-0x30)*0x20 (Lizardman matched only by coincidence: bank 0x36 -> round-1 pool index 13)",
+ "user_must_verify": [
+  "Valkyrie / Small Bat / Large Bat semantic NAMES; and all seven palette colors visually vs original arcade"
+ ]
+}

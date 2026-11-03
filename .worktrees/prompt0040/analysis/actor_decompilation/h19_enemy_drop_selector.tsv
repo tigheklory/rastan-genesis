@@ -1,0 +1,3 @@
+question	finding	status
+does an enemy-death drop exist via A5+0x12C8?	no: rec_type-12 never created, types 4..13 never produced, no death-driven creator caller	ABSENT (this path)
+RNG / deterministic drop selector?	not applicable to this path (no drop occurs here)	N/A

@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Space Harrier 32X Teardown</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --bg:#0a0b16; --bg2:#0e1022; --panel:#14183100; --panel-solid:#141833;
+    --line:rgba(150,160,210,.14); --line-2:rgba(150,160,210,.28);
+    --ink:#e9ecf8; --muted:#9aa1c4; --faint:#6b7199;
+    --magenta:#ff3d7f; --amber:#ffb24c; --cyan:#38e1ff; --violet:#9b7bff;
+    --present:#35e0a1; --partial:#ffc24b; --absent:#ff5a6e;
+    --native:#2a3156;
+    --maxw:1080px;
+    --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+    --disp:"Chakra Petch",system-ui,sans-serif;
+    --body:"IBM Plex Sans",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:var(--body); font-size:16px; line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    background-image:
+      radial-gradient(1100px 620px at 78% -8%, rgba(255,61,127,.16), transparent 60%),
+      radial-gradient(900px 520px at 8% 2%, rgba(56,225,255,.10), transparent 55%),
+      linear-gradient(180deg,#0b0c1a 0%,#0a0b16 40%);
+    background-attachment:fixed;
+  }
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:0 16px}
+  a{color:var(--cyan); text-decoration:none}
+  a:hover{text-decoration:underline}
+  code,.mono{font-family:var(--mono)}
+  h1,h2,h3{font-family:var(--disp); font-weight:700; line-height:1.1; text-wrap:balance; margin:0}
+
+  /* ---------- hero ---------- */
+  header.hero{padding:62px 16px 30px}
+  .hero-inner{max-width:var(--maxw); margin:0 auto}
+  .eyebrow{font-family:var(--mono); font-size:12.5px; letter-spacing:.32em; text-transform:uppercase;
+    color:var(--cyan); margin:0 0 18px}
+  .hero h1{font-size:clamp(2.2rem,6vw,4rem); letter-spacing:-.5px}
+  .hero h1 .grad{
+    background:linear-gradient(92deg,var(--magenta),var(--amber) 70%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .lede{color:var(--muted); font-size:clamp(1.02rem,2.3vw,1.25rem); max-width:62ch; margin:20px 0 0}
+  .verdict-line{margin:26px 0 0; font-size:1.05rem; border-left:3px solid var(--magenta);
+    padding:4px 0 4px 16px; color:var(--ink)}
+  .verdict-line b{color:var(--amber)}
+
+  .stats{display:flex; flex-wrap:wrap; gap:10px; margin-top:30px}
+  .stat{background:rgba(20,24,51,.6); border:1px solid var(--line); border-radius:12px;
+    padding:12px 16px; backdrop-filter:blur(3px)}
+  .stat .n{font-family:var(--disp); font-size:1.5rem; font-weight:700; color:var(--ink)}
+  .stat .l{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--faint)}
+
+  /* ---------- sections ---------- */
+  section{padding:40px 0 10px}
+  .sec-head{display:flex; align-items:baseline; gap:14px; margin-bottom:22px; flex-wrap:wrap}
+  .sec-head .idx{font-family:var(--mono); font-size:13px; color:var(--magenta); letter-spacing:.1em}
+  .sec-head h2{font-size:clamp(1.5rem,3.6vw,2.1rem)}
+  .sec-sub{color:var(--muted); max-width:70ch; margin:-8px 0 0}
+
+  /* ---------- verdict cards ---------- */
+  .cards{display:grid; grid-template-columns:repeat(3,1fr); gap:16px}
+  .card{background:linear-gradient(180deg,rgba(20,24,51,.85),rgba(14,16,34,.7));
+    border:1px solid var(--line); border-radius:16px; padding:22px; position:relative; overflow:hidden}
+  .card::before{content:""; position:absolute; inset:0 0 auto 0; height:3px}
+  .card.rewrite::before{background:linear-gradient(90deg,var(--absent),#ff8aa0)}
+  .card.lift::before{background:linear-gradient(90deg,var(--present),#8af0cf)}
+  .card.reimpl::before{background:linear-gradient(90deg,var(--cyan),var(--violet))}
+  .card .tag{font-family:var(--mono); font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--faint)}
+  .card h3{font-size:1.18rem; margin:8px 0 10px}
+  .card.rewrite h3{color:#ff8097}
+  .card.lift h3{color:var(--present)}
+  .card.reimpl h3{color:var(--cyan)}
+  .card p{margin:0; color:var(--muted); font-size:.95rem}
+
+  /* ---------- memory map ---------- */
+  .mapwrap{background:linear-gradient(180deg,rgba(13,15,32,.9),rgba(10,11,22,.9));
+    border:1px solid var(--line); border-radius:18px; padding:26px 22px 20px}
+  .legend{display:flex; flex-wrap:wrap; gap:16px 22px; margin:0 0 20px; font-family:var(--mono);
+    font-size:12px; color:var(--muted)}
+  .legend .k{display:inline-flex; align-items:center; gap:8px}
+  .sw{width:15px; height:15px; border-radius:4px; display:inline-block; flex:none}
+  .sw.full{background:var(--present)}
+  .sw.part{background:repeating-linear-gradient(45deg,var(--partial),var(--partial) 4px,rgba(0,0,0,.25) 4px,rgba(0,0,0,.25) 8px)}
+  .sw.snd{background:var(--amber)}
+  .sw.nat{background:var(--native)}
+  .map-scroll{overflow-x:auto; padding-bottom:6px}
+  svg.rommap{display:block; width:100%; min-width:680px; height:auto}
+  .maplabel{font-family:var(--mono); font-size:11px; fill:var(--muted)}
+  .maplabel.b{fill:var(--ink); font-weight:600}
+  .ruler{font-family:var(--mono); font-size:10.5px; fill:var(--faint)}
+  .inset-note{font-family:var(--mono); font-size:11.5px; color:var(--faint); margin:14px 2px 0}
+
+  /* ---------- table ---------- */
+  .tablecard{background:rgba(13,15,32,.7); border:1px solid var(--line); border-radius:16px; overflow:hidden}
+  .tscroll{overflow-x:auto}
+  table{border-collapse:collapse; width:100%; min-width:720px; font-size:14px}
+  thead th{font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--faint); text-align:left; padding:14px 14px; border-bottom:1px solid var(--line-2);
+    background:rgba(20,24,51,.5); position:sticky; top:0}
+  td{padding:11px 14px; border-bottom:1px solid var(--line); vertical-align:top}
+  tbody tr:hover{background:rgba(56,225,255,.045)}
+  td.rom{font-family:var(--mono); color:var(--ink); white-space:nowrap}
+  td.ic{font-family:var(--mono); color:var(--faint)}
+  .role{font-family:var(--mono); font-size:12px; color:var(--cyan)}
+  .dtype{color:var(--muted); font-size:13px}
+  .badge{font-family:var(--mono); font-size:11px; font-weight:600; padding:3px 9px; border-radius:999px;
+    white-space:nowrap; letter-spacing:.03em}
+  .badge.full{background:rgba(53,224,161,.15); color:var(--present); border:1px solid rgba(53,224,161,.35)}
+  .badge.part{background:rgba(255,194,75,.13); color:var(--partial); border:1px solid rgba(255,194,75,.33)}
+  .badge.no{background:rgba(255,90,110,.12); color:var(--absent); border:1px solid rgba(255,90,110,.3)}
+  td.loc{font-family:var(--mono); color:var(--amber); font-size:12.5px; white-space:nowrap}
+  .grp td{background:rgba(155,123,255,.07); font-family:var(--mono); font-size:11.5px;
+    letter-spacing:.14em; text-transform:uppercase; color:var(--violet); padding:9px 14px}
+
+  /* ---------- prose ---------- */
+  .prose p{color:#cfd3ea; margin:0 0 16px; max-width:72ch}
+  .prose p b{color:var(--ink)}
+  .prose .hl{color:var(--amber); font-weight:600}
+  .steps{list-style:none; margin:10px 0 0; padding:0; counter-reset:s}
+  .steps li{counter-increment:s; position:relative; padding:16px 16px 16px 60px; margin-bottom:12px;
+    background:rgba(20,24,51,.55); border:1px solid var(--line); border-radius:12px; color:#cfd3ea; max-width:none}
+  .steps li::before{content:counter(s,decimal-leading-zero); position:absolute; left:18px; top:15px;
+    font-family:var(--disp); font-weight:700; font-size:1.1rem; color:var(--magenta)}
+  .steps li b{color:var(--ink)}
+
+  /* ---------- enduro difficulty ---------- */
+  .diffgrid{display:grid; grid-template-columns:1.1fr .9fr; gap:20px; align-items:start}
+  .meter{background:rgba(13,15,32,.7); border:1px solid var(--line); border-radius:16px; padding:22px}
+  .meter h3{font-size:1.05rem; margin:0 0 4px}
+  .mrow{margin:16px 0 0}
+  .mrow .lab{display:flex; justify-content:space-between; font-family:var(--mono); font-size:12px;
+    color:var(--muted); margin-bottom:6px}
+  .mrow .lab .v{color:var(--ink)}
+  .bar{height:9px; border-radius:999px; background:rgba(255,255,255,.07); overflow:hidden}
+  .bar i{display:block; height:100%; border-radius:999px;
+    background:linear-gradient(90deg,var(--cyan),var(--magenta))}
+  .ratingbig{background:linear-gradient(180deg,rgba(255,61,127,.14),rgba(20,24,51,.5));
+    border:1px solid rgba(255,61,127,.3); border-radius:16px; padding:24px; text-align:center}
+  .ratingbig .score{font-family:var(--disp); font-size:3.2rem; font-weight:700; line-height:1;
+    background:linear-gradient(92deg,var(--magenta),var(--amber)); -webkit-background-clip:text; background-clip:text; color:transparent}
+  .ratingbig .outof{font-family:var(--mono); color:var(--faint); font-size:13px}
+  .ratingbig .verd{font-family:var(--disp); font-weight:700; font-size:1.2rem; margin-top:10px; color:var(--ink)}
+  .ratingbig p{color:var(--muted); font-size:.9rem; margin:10px 0 0}
+
+  .two{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:6px}
+  .mini{background:rgba(20,24,51,.5); border:1px solid var(--line); border-radius:12px; padding:16px}
+  .mini h4{margin:0 0 8px; font-family:var(--disp); font-size:.98rem}
+  .mini.keep h4{color:var(--present)} .mini.redo h4{color:var(--absent)}
+  .mini ul{margin:0; padding-left:18px; color:var(--muted); font-size:.9rem}
+  .mini li{margin:4px 0}
+
+  /* ---------- footer ---------- */
+  footer{padding:40px 0 70px; color:var(--faint); font-size:13px}
+  footer .fcard{background:rgba(13,15,32,.6); border:1px solid var(--line); border-radius:14px; padding:20px}
+  footer h3{font-family:var(--disp); font-size:1rem; color:var(--muted); margin:0 0 10px}
+  footer p{margin:0 0 10px; max-width:76ch; line-height:1.55}
+  footer a{color:var(--cyan)}
+  .divider{height:1px; background:var(--line); margin:30px 0}
+
+  @media (max-width:760px){
+    .cards{grid-template-columns:1fr}
+    .diffgrid{grid-template-columns:1fr}
+    .two{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <p class="eyebrow">ROM teardown · Sega 32X vs. arcade Super Scaler</p>
+    <h1>Is <span class="grad">Space Harrier 32X</span><br>running the arcade ROMs?</h1>
+    <p class="lede">A byte-level comparison of the 1994 Sega 32X cartridge (2&nbsp;MB) against the
+      51 original arcade EPROMs, testing the long-standing rumor that Rutubo Games re-hosted the
+      arcade 68000 program on the Genesis while the SH-2s stood in for the arcade's Super Scaler sprite hardware.</p>
+    <p class="verdict-line">Verdict: the rumor is <b>half true</b>. The arcade <b>engine was rewritten</b>,
+      but entire arcade <b>data banks and the sound program were lifted verbatim</b> into the cart — and
+      the Super Scaler really was replaced in software.</p>
+    <div class="stats">
+      <div class="stat"><div class="n">2,097,152</div><div class="l">32X bytes scanned</div></div>
+      <div class="stat"><div class="n">51</div><div class="l">arcade EPROMs compared</div></div>
+      <div class="stat"><div class="n">64 KB</div><div class="l">lifted byte-for-byte</div></div>
+      <div class="stat"><div class="n">0 %</div><div class="l">arcade engine present</div></div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- VERDICT CARDS -->
+  <section id="verdict">
+    <div class="sec-head"><span class="idx">01</span><h2>Three things at once</h2></div>
+    <p class="sec-sub">A port is rarely all-or-nothing. Space Harrier 32X splits cleanly into three layers — one thrown away, one copied, one reinvented.</p>
+    <div class="cards" style="margin-top:22px">
+      <div class="card rewrite">
+        <div class="tag">Thrown away</div>
+        <h3>The engine</h3>
+        <p>The arcade main-CPU boot bank (vectors, main loop, Super Scaler driver) and the second 68000's
+          program are <b>absent</b> (0–3%). The cart boots through the stock Sega <code>"MARS"</code> 32X stub
+          into brand-new code.</p>
+      </div>
+      <div class="card lift">
+        <div class="tag">Copied verbatim</div>
+        <h3>The data &amp; sound</h3>
+        <p>The upper three banks of the arcade main program — the stage, enemy and pattern <b>data tables</b> —
+          and the arcade <b>Z80 sound</b> program are embedded byte-for-byte. One 64&nbsp;KB bank matches 100%.</p>
+      </div>
+      <div class="card reimpl">
+        <div class="tag">Reinvented</div>
+        <h3>The rendering</h3>
+        <p>Every hardware-format asset — zoomable sprites, tiles, the road, PCM samples — is <b>gone and
+          re-encoded</b>. The SH-2 pair redraws the scaled sprites the Super Scaler used to do in silicon.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- MEMORY MAP -->
+  <section id="map">
+    <div class="sec-head"><span class="idx">02</span><h2>Where the arcade lives in the cart</h2></div>
+    <p class="sec-sub">The 2&nbsp;MB 32X image laid out left-to-right. Nearly everything is Rutubo's native 32X
+      payload; the highlighted bands are the arcade EPROM contents found inside, at their real file offsets.</p>
+
+    <div class="mapwrap" style="margin-top:22px">
+      <div class="legend">
+        <span class="k"><span class="sw nat"></span>Native 32X code / re-encoded assets</span>
+        <span class="k"><span class="sw snd"></span>Arcade Z80 sound (reused)</span>
+        <span class="k"><span class="sw part"></span>Arcade main-CPU data (partial)</span>
+        <span class="k"><span class="sw full"></span>Arcade main-CPU data (verbatim)</span>
+      </div>
+
+      <div class="map-scroll">
+        <!-- viewBox 0..1000 maps to 0..0x200000 -->
+        <svg class="rommap" viewBox="0 0 1000 220" preserveAspectRatio="xMidYMid meet" role="img"
+             aria-label="Memory map of the 2 MB Space Harrier 32X ROM showing embedded arcade data blocks">
+          <!-- base strip -->
+          <rect x="0" y="86" width="1000" height="34" rx="4" fill="#2a3156"/>
+          <!-- arcade blocks: x = pct*10 -->
+          <!-- sound 1.758-2.344 -->
+          <rect x="17.6" y="86" width="5.9" height="34" fill="#ffb24c"/>
+          <!-- bank1 partial 15.234-17.578 (hatched) -->
+          <rect x="152.3" y="86" width="23.4" height="34" fill="url(#hatch)"/>
+          <!-- bank2 verbatim 17.586-20.711 -->
+          <rect x="175.9" y="86" width="31.2" height="34" fill="#35e0a1"/>
+          <!-- bank3 mostly 22.485-23.787 -->
+          <rect x="224.9" y="86" width="13.0" height="34" fill="#35e0a1" opacity="0.72"/>
+
+          <defs>
+            <pattern id="hatch" width="7" height="7" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+              <rect width="7" height="7" fill="#ffc24b"/>
+              <rect width="3.5" height="7" fill="rgba(0,0,0,.28)"/>
+            </pattern>
+          </defs>
+
+          <!-- ruler ticks -->
+          <g class="ruler">
+            <line x1="0" y1="128" x2="1000" y2="128" stroke="rgba(150,160,210,.2)"/>
+            <!-- 0x00000 -->
+            <line x1="1" y1="124" x2="1" y2="132" stroke="rgba(150,160,210,.4)"/><text x="2" y="146">0x000000</text>
+            <line x1="250" y1="124" x2="250" y2="132" stroke="rgba(150,160,210,.4)"/><text x="250" y="146" text-anchor="middle">0x080000</text>
+            <line x1="500" y1="124" x2="500" y2="132" stroke="rgba(150,160,210,.4)"/><text x="500" y="146" text-anchor="middle">0x100000</text>
+            <line x1="750" y1="124" x2="750" y2="132" stroke="rgba(150,160,210,.4)"/><text x="750" y="146" text-anchor="middle">0x180000</text>
+            <line x1="999" y1="124" x2="999" y2="132" stroke="rgba(150,160,210,.4)"/><text x="999" y="146" text-anchor="end">0x200000</text>
+          </g>
+
+          <!-- callouts (leader lines up) -->
+          <g>
+            <!-- sound -->
+            <line x1="20.5" y1="86" x2="20.5" y2="58" stroke="#ffb24c" stroke-width="1"/>
+            <circle cx="20.5" cy="86" r="2.4" fill="#ffb24c"/>
+            <text class="maplabel b" x="24" y="44">Z80 sound</text>
+            <text class="maplabel" x="24" y="56">epr-7233/7234 · ~0x9000</text>
+            <!-- bank2 (primary callout) -->
+            <line x1="191" y1="86" x2="191" y2="34" stroke="#35e0a1" stroke-width="1"/>
+            <circle cx="191" cy="86" r="2.4" fill="#35e0a1"/>
+            <text class="maplabel b" x="196" y="22">Main-CPU bank 2 — 64 KB verbatim</text>
+            <text class="maplabel" x="196" y="34">epr-7190.ic99 / epr-7186.ic86 · 0x5A0AE–0x6A0AE · 100%</text>
+            <!-- bank1 (below) -->
+            <line x1="164" y1="120" x2="164" y2="172" stroke="#ffc24b" stroke-width="1"/>
+            <circle cx="164" cy="120" r="2.4" fill="#ffc24b"/>
+            <text class="maplabel b" x="120" y="188">bank 1 (partial)</text>
+            <text class="maplabel" x="120" y="200">epr-7189/epr-7185 · 28–61%</text>
+            <!-- bank3 (below) -->
+            <line x1="231" y1="120" x2="231" y2="172" stroke="#35e0a1" stroke-width="1"/>
+            <circle cx="231" cy="120" r="2.4" fill="#35e0a1"/>
+            <text class="maplabel b" x="300" y="188">bank 3 (mostly)</text>
+            <text class="maplabel" x="300" y="200">epr-7191/epr-7187 · 0x731F4 · 58–64%</text>
+          </g>
+        </svg>
+      </div>
+      <p class="inset-note">All arcade-derived content sits in just two zones — a sliver of sound near
+        0x009000 and the main-CPU data banks across 0x04E000–0x079CA5. The other ~1.9&nbsp;MB is Rutubo's
+        own Genesis-68000 engine, SH-2 program, and graphics/audio re-encoded for the 32X.</p>
+    </div>
+  </section>
+
+  <!-- ROM TABLE -->
+  <section id="roms">
+    <div class="sec-head"><span class="idx">03</span><h2>Every ROM, accounted for</h2></div>
+    <p class="sec-sub">Arcade roles are taken from MAME's <code>segahang.cpp</code> <code>sharrier</code>
+      definition; "In 32X" is measured by 32-byte content matching against the de-interleaved cart image.</p>
+    <div class="tablecard" style="margin-top:20px">
+      <div class="tscroll">
+      <table>
+        <thead>
+          <tr><th>Arcade ROM</th><th>IC</th><th>Arcade role</th><th>Data type</th><th>In 32X</th><th>32X location</th></tr>
+        </thead>
+        <tbody>
+          <tr class="grp"><td colspan="6">Main CPU — 68000 program · 256 KB · 4 interleaved even/odd pairs</td></tr>
+          <tr><td class="rom">epr-7188a / epr-7184a</td><td class="ic">ic97 / ic84</td><td class="role">maincpu $00000</td><td class="dtype">Boot vectors, main loop, Super&nbsp;Scaler driver — <b>executable code</b></td><td><span class="badge no">absent</span></td><td class="loc">—</td></tr>
+          <tr><td class="rom">epr-7189 / epr-7185</td><td class="ic">ic98 / ic85</td><td class="role">maincpu $10000</td><td class="dtype">Mixed code + data tables</td><td><span class="badge part">partial 28–61%</span></td><td class="loc">~0x04E000</td></tr>
+          <tr><td class="rom">epr-7190 / epr-7186</td><td class="ic">ic99 / ic86</td><td class="role">maincpu $20000</td><td class="dtype">Stage / enemy / pattern <b>data tables</b></td><td><span class="badge full">verbatim 100%</span></td><td class="loc">0x05A0AE–0x06A0AE</td></tr>
+          <tr><td class="rom">epr-7191 / epr-7187</td><td class="ic">ic100 / ic87</td><td class="role">maincpu $30000</td><td class="dtype">Data tables (upper bank)</td><td><span class="badge part">mostly 58–64%</span></td><td class="loc">0x0731F4+</td></tr>
+
+          <tr class="grp"><td colspan="6">Second CPU — road / horizon 68000</td></tr>
+          <tr><td class="rom">epr-7182 / epr-7183</td><td class="ic">ic54 / ic67</td><td class="role">subcpu</td><td class="dtype">Road &amp; object 68000 — <b>executable code</b></td><td><span class="badge no">absent*</span></td><td class="loc">~0x014DC4 (1 KB only)</td></tr>
+
+          <tr class="grp"><td colspan="6">Sound</td></tr>
+          <tr><td class="rom">epr-7233 / epr-7234</td><td class="ic">ic72 / ic73</td><td class="role">soundcpu (Z80)</td><td class="dtype">Z80 sound driver + sequence data</td><td><span class="badge part">reused ~60%</span></td><td class="loc">~0x009000–0x00C000</td></tr>
+          <tr><td class="rom">epr-7231 / epr-7232</td><td class="ic">ic5 / ic6</td><td class="role">SegaPCM</td><td class="dtype">PCM voice / sample data</td><td><span class="badge no">absent</span></td><td class="loc">re-encoded</td></tr>
+
+          <tr class="grp"><td colspan="6">Graphics</td></tr>
+          <tr><td class="rom">epr-7199 … epr-7230</td><td class="ic">ic1–ic36</td><td class="role">sprites (×32)</td><td class="dtype">Zoomable Super&nbsp;Scaler sprite cels</td><td><span class="badge no">absent</span></td><td class="loc">re-encoded for SH-2</td></tr>
+          <tr><td class="rom">epr-7196 / epr-7197 / epr-7198</td><td class="ic">ic31 / ic46 / ic60</td><td class="role">gfx1 (tiles)</td><td class="dtype">Background / text tile planes</td><td><span class="badge no">absent</span></td><td class="loc">re-encoded for VDP</td></tr>
+          <tr><td class="rom">epr-7181</td><td class="ic">ic2</td><td class="role">road graphics</td><td class="dtype">Road/ground pattern data</td><td><span class="badge no">absent</span></td><td class="loc">re-encoded</td></tr>
+          <tr><td class="rom">epr-6844</td><td class="ic">ic123</td><td class="role">sprite zoom table</td><td class="dtype">Super&nbsp;Scaler zoom LUT</td><td><span class="badge no">absent</span></td><td class="loc">not needed</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+    <p class="inset-note">* The sub-CPU "match" is a single ~1&nbsp;KB fragment (a shared constant table) in an
+      otherwise-absent 64&nbsp;KB program — not the program itself. Main-CPU bank&nbsp;0 is likewise effectively 0%.</p>
+  </section>
+
+  <!-- WHAT RUTUBO DID -->
+  <section id="rutubo" class="prose">
+    <div class="sec-head"><span class="idx">04</span><h2>What Rutubo actually did</h2></div>
+    <p>The arcade Space Harrier board is a <span class="hl">Super Scaler</span> machine: two 68000s, a Z80 +
+      SegaPCM for sound, dedicated hardware that scales hundreds of sprite cels in real time, and a separate
+      road/ground generator. None of that silicon exists on a Sega 32X. What the 32X <em>does</em> have is a
+      Genesis-side 68000 plus two SH-2 RISC CPUs and a framebuffer. Rutubo's job was to reproduce an arcade
+      hardware game on hardware with a completely different shape — and the byte evidence shows exactly how
+      they triaged it:</p>
+    <ol class="steps">
+      <li><b>Keep the arcade's "what", throw away its "how".</b> A game like Space Harrier is mostly
+        <b>data</b> — tables that say which enemy appears, where, when, moving on which pattern, in which of
+        the 18 stages. That data lived in the upper banks of the arcade main-CPU ROM, and it is
+        hardware-independent. Rutubo copied those banks straight into the cart (bank&nbsp;2 is a 100%
+        byte-for-byte 64&nbsp;KB match at <code>0x5A0AE</code>), then wrote a fresh engine to read them.</li>
+      <li><b>Rewrite the engine.</b> The arcade's executable core — reset vectors, the <code>trap&nbsp;#$a</code>
+        task dispatcher, the main loop, and the code that programmed the Super Scaler and road chips — is
+        <b>not in the cart at all</b>. It was re-authored for the 32X, which is why the ROM boots through the
+        standard Sega <code>"MARS"</code> 32X security/init stub like any other 32X title, not into arcade code.</li>
+      <li><b>Move the Super Scaler into software on the SH-2s.</b> The arcade's sprite-scaling hardware has no
+        32X equivalent, so its job — taking a sprite cel and drawing it at an arbitrary zoom into the scene —
+        was reimplemented as SH-2 code rendering into the 32X framebuffer. This is the grain of truth the
+        rumor latched onto: the 32X genuinely performs the Super Scaler's <em>function</em>, just not by running
+        the arcade's sprite code.</li>
+      <li><b>Re-encode every format-bound asset.</b> The zoomable sprite cels (32 ROMs), background tiles, road
+        patterns, the zoom lookup table and the PCM samples are all stored in arcade-specific bit layouts.
+        Every one of them is <b>absent</b> from the cart — re-encoded for the SH-2 renderer, the Genesis VDP and
+        the Genesis sound path.</li>
+      <li><b>Reuse the sound program where the hardware lines up.</b> The arcade sound CPU is a Z80 — and the
+        Genesis has a Z80 too. So the arcade Z80 sound driver and its sequence data were carried over
+        substantially (~60% of the two sound ROMs appear in the cart near <code>0x9000</code>), the one place
+        an arcade <em>program</em> could survive largely intact.</li>
+    </ol>
+    <p style="margin-top:20px">So the honest one-liner: <b>Space Harrier 32X is a from-scratch 32X engine
+      wrapped around the arcade game's original data and sound.</b> Not an arcade-68000 "ReROM," but much
+      closer to one than a blind reimplementation — the actual <em>content</em> of the game is the arcade's,
+      lifted intact; only the machinery that renders and runs it is new.</p>
+  </section>
+
+  <!-- ENDURO RACER -->
+  <section id="enduro">
+    <div class="sec-head"><span class="idx">05</span><h2>Could you turn it into Enduro Racer?</h2></div>
+    <p class="sec-sub">Enduro Racer runs on the same Sega Super Scaler board family (dual 68000 + scaled
+      sprites + road + Z80/SegaPCM). So the arcade <em>source</em> material is structurally familiar — but
+      Rutubo's 32X code is not a generic "Super Scaler console." Here's the honest accounting.</p>
+
+    <div class="diffgrid" style="margin-top:22px">
+      <div>
+        <div class="meter">
+          <h3>Effort breakdown</h3>
+          <div class="mrow"><div class="lab"><span>Asset extraction &amp; re-encoding</span><span class="v">Moderate</span></div><div class="bar"><i style="width:45%"></i></div></div>
+          <div class="mrow"><div class="lab"><span>Data-table reuse (same formats)</span><span class="v">Easy–Moderate</span></div><div class="bar"><i style="width:32%"></i></div></div>
+          <div class="mrow"><div class="lab"><span>Road / perspective renderer</span><span class="v">Very hard</span></div><div class="bar"><i style="width:92%"></i></div></div>
+          <div class="mrow"><div class="lab"><span>Game-logic engine rewrite</span><span class="v">Very hard</span></div><div class="bar"><i style="width:88%"></i></div></div>
+          <div class="mrow"><div class="lab"><span>SH-2 sprite scaler (reusable)</span><span class="v">Low</span></div><div class="bar"><i style="width:22%"></i></div></div>
+        </div>
+        <div class="two">
+          <div class="mini keep">
+            <h4>What ports over</h4>
+            <ul>
+              <li>SH-2 framebuffer + scaled-sprite blitter plumbing</li>
+              <li>Genesis↔SH-2 comms, DMA, the 32X boot shell</li>
+              <li>Z80 sound driver approach (same chip)</li>
+              <li>Arcade data-table <em>format</em> knowledge</li>
+            </ul>
+          </div>
+          <div class="mini redo">
+            <h4>What's a rewrite</h4>
+            <ul>
+              <li>The whole road model: hills, crests, curves, jumps</li>
+              <li>Bike physics, lean, off-road vs. tarmac, timer</li>
+              <li>Camera &amp; draw order over an undulating 3D road</li>
+              <li>All of Enduro's stage/object/sound content</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="ratingbig">
+        <div class="score">8.5</div>
+        <div class="outof">difficulty · out of 10</div>
+        <div class="verd">Near-total rewrite</div>
+        <p>Same arcade hardware family saves you asset conversion and gives a reference build to match — but
+          Rutubo's engine is bespoke to Space Harrier's rail-shooter camera and <em>flat</em> checkerboard
+          ground. Enduro Racer's defining feature is a winding, hilly road with jumps: a fundamentally harder
+          and different renderer. You'd keep the low-level 32X plumbing and the sound approach, and rewrite
+          essentially everything that makes it a game.</p>
+      </div>
+    </div>
+
+    <p class="prose" style="margin-top:24px"><span style="color:#cfd3ea">Bottom line:</span>
+      <span style="color:var(--muted)">it is <b style="color:var(--ink)">not</b> a ROM-swap. Dropping Enduro
+      Racer's arcade data banks into the Space Harrier 32X would produce nothing runnable, because the engine
+      that interprets those banks — and especially the road renderer — is specific to Space Harrier. Converting
+      it is roughly the same project Rutubo did the first time: a ground-up 32X port that happens to start from
+      a very good head start on the low-level 32X and sound layers.</span></p>
+  </section>
+
+  <div class="divider"></div>
+
+  <footer>
+    <div class="fcard">
+      <h3>Method &amp; caveats</h3>
+      <p>The 32X image (<code>Space Harrier 32X (JU) [!].32x</code>, 2,097,152 bytes) was de-interleaved into
+        even/odd byte streams and every arcade EPROM was searched against the raw image and each half using
+        32-byte high-entropy content windows; embedded blocks were confirmed by extending exact contiguous
+        runs and by 68000 disassembly of the reconstructed pairs. Coverage percentages ignore trivial
+        all-zero / all-$FF windows. "Verbatim" means a byte-exact contiguous run (bank&nbsp;2 extends to a full
+        65,536-byte match). Whether the Genesis 68000 <em>executes</em> any copied bank or merely reads it as
+        data was not instrumented; the verbatim, un-relocated copy is consistent with data-table reuse rather
+        than re-hosted code, since executable arcade code would carry arcade-hardware addresses needing patches
+        that would break the exact match. Arcade ROM roles are from MAME's <code>segahang.cpp</code>
+        <code>sharrier</code> set. Original ROM files were treated as read-only; all analysis ran on copies.</p>
+      <p>Sources:
+        <a href="https://github.com/mamedev/mame/blob/master/src/mame/sega/segahang.cpp">MAME segahang.cpp</a> ·
+        <a href="https://mail.system16.com/hardware.php?id=696">system16 — Space Harrier hardware</a> ·
+        <a href="https://segaretro.org/Space_Harrier">Sega Retro — Space Harrier</a> ·
+        <a href="https://www.exotica.org.uk/wiki/Lost_In_Translation/Space_Harrier">Lost in Translation — Space Harrier</a>
+      </p>
+      <p style="color:var(--faint)">Teardown prepared for Tighe · rastan-genesis/analysis · 2026-10-16</p>
+    </div>
+  </footer>
+
+</main>
+</body>
+</html>

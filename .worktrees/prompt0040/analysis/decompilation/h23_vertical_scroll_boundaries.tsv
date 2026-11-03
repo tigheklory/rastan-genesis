@@ -1,0 +1,7 @@
+limit	value	kind	source_pc	status
+player screen-Y center	80	hard-coded	0x539E0	PROVEN
+player screen-Y lower clamp	32	hard-coded	0x53A0C	PROVEN
+player screen-Y upper region	304	hard-coded	0x539A0	PROVEN
+dir accumulator upper limit	160 (0xA0)	hard-coded (gated by A5+0x10A8 section kind)	0x557BE/0x55B40	PROVEN
+scene Y-scroll init	0x50850[A5+0x013E*12] word0 (R1P2=0x160)	table	0x504FA	PROVEN
+world vertical extent	governed by map-row availability (streaming)	0x406A4	PARTIAL

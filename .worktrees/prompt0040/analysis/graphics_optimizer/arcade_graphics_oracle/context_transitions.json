@@ -1,0 +1,110 @@
+{
+ "note": "original-arcade R1/P1 segment progression (record advance); proof = plane_b_state_timeline records 0..15",
+ "transitions": [
+  {
+   "id": "transition:r01p01.seg00_to_seg01",
+   "from": "context:gameplay.r01.p01.segment_00",
+   "to": "context:gameplay.r01.p01.segment_01",
+   "trigger": "horizontal scroll record advance",
+   "proof": "analysis/graphics_optimizer/round1_phase1/palette_states.json#plane_b_state_timeline"
+  },
+  {
+   "id": "transition:r01p01.seg01_to_seg02",
+   "from": "context:gameplay.r01.p01.segment_01",
+   "to": "context:gameplay.r01.p01.segment_02",
+   "trigger": "horizontal scroll record advance",
+   "proof": "analysis/graphics_optimizer/round1_phase1/palette_states.json#plane_b_state_timeline"
+  },
+  {
+   "id": "transition:r01p01.seg02_to_seg03",
+   "from": "context:gameplay.r01.p01.segment_02",
+   "to": "context:gameplay.r01.p01.segment_03",
+   "trigger": "horizontal scroll record advance",
+   "proof": "analysis/graphics_optimizer/round1_phase1/palette_states.json#plane_b_state_timeline"
+  },
+  {
+   "id": "transition:r01p01.seg03_to_seg04",
+   "from": "context:gameplay.r01.p01.segment_03",
+   "to": "context:gameplay.r01.p01.segment_04",
+   "trigger": "horizontal scroll record advance",
+   "proof": "analysis/graphics_optimizer/round1_phase1/palette_states.json#plane_b_state_timeline"
+  },
+  {
+   "id": "transition:r01p01.seg04_to_seg05",
+   "from": "context:gameplay.r01.p01.segment_04",
+   "to": "context:gameplay.r01.p01.segment_05",
+   "trigger": "horizontal scroll record advance",
+   "proof": "analysis/graphics_optimizer/round1_phase1/palette_states.json#plane_b_state_timeline"
+  },
+  {
+   "id": "transition:r01p01.seg05_to_seg06",
+   "from": "context:gameplay.r01.p01.segment_05",
+   "to": "context:gameplay.r01.p01.segment_06",
+   "trigger": "horizontal scroll record advance",
+   "proof": "analysis/graphics_optimizer/round1_phase1/palette_states.json#plane_b_state_timeline"
+  },
+  {
+   "id": "transition:r01p01.seg06_to_seg07",
+   "from": "context:gameplay.r01.p01.segment_06",
+   "to": "context:gameplay.r01.p01.segment_07",
+   "trigger": "horizontal scroll record advance",
+   "proof": "analysis/graphics_optimizer/round1_phase1/palette_states.json#plane_b_state_timeline"
+  },
+  {
+   "id": "transition:r01p01.seg07_to_seg08",
+   "from": "context:gameplay.r01.p01.segment_07",
+   "to": "context:gameplay.r01.p01.segment_08",
+   "trigger": "horizontal scroll record advance",
+   "proof": "analysis/graphics_optimizer/round1_phase1/palette_states.json#plane_b_state_timeline"
+  },
+  {
+   "id": "transition:r01p01.seg08_to_seg09",
+   "from": "context:gameplay.r01.p01.segment_08",
+   "to": "context:gameplay.r01.p01.segment_09",
+   "trigger": "horizontal scroll record advance",
+   "proof": "analysis/graphics_optimizer/round1_phase1/palette_states.json#plane_b_state_timeline"
+  },
+  {
+   "id": "transition:r01p01.seg09_to_seg10",
+   "from": "context:gameplay.r01.p01.segment_09",
+   "to": "context:gameplay.r01.p01.segment_10",
+   "trigger": "horizontal scroll record advance",
+   "proof": "analysis/graphics_optimizer/round1_phase1/palette_states.json#plane_b_state_timeline"
+  },
+  {
+   "id": "transition:r01p01.seg10_to_seg11",
+   "from": "context:gameplay.r01.p01.segment_10",
+   "to": "context:gameplay.r01.p01.segment_11",
+   "trigger": "horizontal scroll record advance",
+   "proof": "analysis/graphics_optimizer/round1_phase1/palette_states.json#plane_b_state_timeline"
+  },
+  {
+   "id": "transition:r01p01.seg11_to_seg12",
+   "from": "context:gameplay.r01.p01.segment_11",
+   "to": "context:gameplay.r01.p01.segment_12",
+   "trigger": "horizontal scroll record advance",
+   "proof": "analysis/graphics_optimizer/round1_phase1/palette_states.json#plane_b_state_timeline"
+  },
+  {
+   "id": "transition:r01p01.seg12_to_seg13",
+   "from": "context:gameplay.r01.p01.segment_12",
+   "to": "context:gameplay.r01.p01.segment_13",
+   "trigger": "horizontal scroll record advance",
+   "proof": "analysis/graphics_optimizer/round1_phase1/palette_states.json#plane_b_state_timeline"
+  },
+  {
+   "id": "transition:r01p01.seg13_to_seg14",
+   "from": "context:gameplay.r01.p01.segment_13",
+   "to": "context:gameplay.r01.p01.segment_14",
+   "trigger": "horizontal scroll record advance",
+   "proof": "analysis/graphics_optimizer/round1_phase1/palette_states.json#plane_b_state_timeline"
+  },
+  {
+   "id": "transition:r01p01.seg14_to_seg15",
+   "from": "context:gameplay.r01.p01.segment_14",
+   "to": "context:gameplay.r01.p01.segment_15",
+   "trigger": "horizontal scroll record advance",
+   "proof": "analysis/graphics_optimizer/round1_phase1/palette_states.json#plane_b_state_timeline"
+  }
+ ]
+}

@@ -1,0 +1,13 @@
+base	verdict	rounds_present	evidence
+0x0224	PROVEN PRESENT	R2,R4	R2@0x2c 0x4415A; R4@0x5a 0x44082
+0x0179	PROVEN PRESENT	R6	R6@0x85 0x43840
+0x09f6	PROVEN ABSENT FROM PHASE-2	-	no phase-2 H13 occurrence satisfies any +0x1E=0x09f6 branch (state/prog/char never coincide)
+0x0dab	PROVEN ABSENT FROM PHASE-2	-	no phase-2 H13 occurrence satisfies any +0x1E=0x0dab branch (state/prog/char never coincide)
+0x09ea	PROVEN PRESENT	R5	R5@0x70 0x43840
+0x00f4	PROVEN PRESENT	R4,R5,R6	R4@0x5a 0x44082; R5@0x6e 0x43B32; R6@0x85 0x44082
+0x0266	PROVEN ABSENT FROM PHASE-2	-	no phase-2 H13 occurrence satisfies any +0x1E=0x0266 branch (state/prog/char never coincide)
+0x0235	PROVEN ABSENT FROM PHASE-2	-	no phase-2 H13 occurrence satisfies any +0x1E=0x0235 branch (state/prog/char never coincide)
+0x01fc	PROVEN ABSENT FROM PHASE-2	-	no phase-2 H13 occurrence satisfies any +0x1E=0x01fc branch (state/prog/char never coincide)
+0x0236	PROVEN ABSENT FROM PHASE-2	-	no phase-2 H13 occurrence satisfies any +0x1E=0x0236 branch (state/prog/char never coincide)
+0x0546	PROVEN ABSENT FROM PHASE-2	-	no phase-2 H13 occurrence satisfies any +0x1E=0x0546 branch (state/prog/char never coincide)
+0x05e9	PROVEN ABSENT FROM PHASE-2	-	no phase-2 H13 occurrence satisfies any +0x1E=0x05e9 branch (state/prog/char never coincide)

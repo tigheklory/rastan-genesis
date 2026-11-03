@@ -1,0 +1,18 @@
+<!doctype html><meta charset=utf-8><title>Round 1 Phase 3 Plane A map</title>
+<style>body{background:#15171a;color:#ddd;font:13px monospace;margin:14px}
+.row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+figure{margin:0;background:#000;border:1px solid #345;padding:4px}
+img{width:calc(512px*var(--z,1));height:calc(512px*var(--z,1));image-rendering:pixelated;image-rendering:crisp-edges;display:block}
+figcaption{font:11px monospace;color:#8ad;padding:3px;text-align:center}
+button{background:#3a3f47;color:#eee;border:1px solid #555;border-radius:4px;padding:3px 8px;cursor:pointer}.v{color:#f96}</style>
+<h2>ROUND 1 &middot; PHASE 3 &middot; PLANE A MAP RECONSTRUCTION</h2>
+<div>Corrected semantics: <b>record 21 = final fortress / vertical fortress continuation</b> (still fortress gameplay); <b>record 22 = boss room</b>.
+Complete legal 64&times;64-tile Plane-A map (512&times;512 px, no offscreen pruning). Grayscale; black = transparent tile.
+<span class=v>Record 21 (selector-1 VERTICAL) shown in WORLD orientation = TRANSPOSE of the raw grid</span>
+(proven from selector-1 publication: group/strip &rarr; logical ROW via staged_scroll_y_fg). Raw preserved/toggleable.</div>
+<div style=margin:8px>Zoom: <button onclick=z(0.5)>0.5x</button><button onclick=z(1)>1x</button><button onclick=z(2)>2x</button></div>
+<script>function z(n){document.documentElement.style.setProperty('--z',n)}</script>
+<div class=row>
+<figure><img id=r21 src="record_21_world.png"><figcaption><span class=v>PHASE 3A &middot; SECTION 1 &middot; record 21<br>&darr; VERTICAL &middot; final fortress continuation</span><br>116 exact patterns (55 shared w/ castle)<br><button onclick="var i=document.getElementById('r21');var w=i.src.indexOf('_world')>=0;i.src='record_21'+(w?'_raw':'_world')+'.png';this.textContent=w?'show WORLD':'show RAW';">show RAW</button></figcaption></figure>
+<figure><img src="record_22.png"><figcaption>PHASE 3B &middot; SECTION 2 &middot; record 22<br>&rarr; horizontal &middot; BOSS ROOM<br>219 exact patterns (198 boss-only)</figcaption></figure>
+</div>

@@ -1,0 +1,9 @@
+# RECLASSIFIED BY H15: these are CREATION-TIME 0x45684 resolves (family-2 variant0 nibble), NOT the post-transform DISPLAY palette. After a marker-chain transform 0x4092E clears +0x27 (bit6=0) and 0x45684 is not re-run, so the DISPLAYED palette is the compositor control-byte nibble -> see h15_materialized_render_palettes.tsv (authoritative for display).
+round	base	comp_adj	nibble	pool	pool_src_0x4FD02	raw16_words	provenance
+4	0x00f4	0	0x0	0x0b	0x04fe62	0000 0000 0800 0f50 0f90 0ff0 0ff9 0fff 000b 005f 009f 00df 0aff 0000 0000 0000	0x45684 family-2 variant0; nibble=pal_nib_456ec[(R-1)*3+comp_adj]; 0x3BA88->pool->0x4FD02 (raw ROM words)
+5	0x00f4	0	0x0	0x0b	0x04fe62	0000 0000 0800 0f50 0f90 0ff0 0ff9 0fff 000b 005f 009f 00df 0aff 0000 0000 0000	0x45684 family-2 variant0; nibble=pal_nib_456ec[(R-1)*3+comp_adj]; 0x3BA88->pool->0x4FD02 (raw ROM words)
+6	0x00f4	0	0x0	0x0b	0x04fe62	0000 0000 0800 0f50 0f90 0ff0 0ff9 0fff 000b 005f 009f 00df 0aff 0000 0000 0000	0x45684 family-2 variant0; nibble=pal_nib_456ec[(R-1)*3+comp_adj]; 0x3BA88->pool->0x4FD02 (raw ROM words)
+6	0x0179	2	0x0	0x0b	0x04fe62	0000 0000 0800 0f50 0f90 0ff0 0ff9 0fff 000b 005f 009f 00df 0aff 0000 0000 0000	0x45684 family-2 variant0; nibble=pal_nib_456ec[(R-1)*3+comp_adj]; 0x3BA88->pool->0x4FD02 (raw ROM words)
+2	0x0224	2	0x1	0x0b	0x04fe62	0000 0000 0800 0f50 0f90 0ff0 0ff9 0fff 000b 005f 009f 00df 0aff 0000 0000 0000	0x45684 family-2 variant0; nibble=pal_nib_456ec[(R-1)*3+comp_adj]; 0x3BA88->pool->0x4FD02 (raw ROM words)
+4	0x0224	2	0x0	0x0b	0x04fe62	0000 0000 0800 0f50 0f90 0ff0 0ff9 0fff 000b 005f 009f 00df 0aff 0000 0000 0000	0x45684 family-2 variant0; nibble=pal_nib_456ec[(R-1)*3+comp_adj]; 0x3BA88->pool->0x4FD02 (raw ROM words)
+5	0x09ea	0	0x0	0x0b	0x04fe62	0000 0000 0800 0f50 0f90 0ff0 0ff9 0fff 000b 005f 009f 00df 0aff 0000 0000 0000	0x45684 family-2 variant0; nibble=pal_nib_456ec[(R-1)*3+comp_adj]; 0x3BA88->pool->0x4FD02 (raw ROM words)

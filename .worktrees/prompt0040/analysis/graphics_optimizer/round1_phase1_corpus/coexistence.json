@@ -1,0 +1,6 @@
+{
+ "note": "coexistence: Layer B single 854 vocab all R1/P1; Layer A per-record; sprites per spawn (enumeration pending)",
+ "plane_a_always": "per-record subset",
+ "plane_b_always": "854 fixed",
+ "player_always": true
+}

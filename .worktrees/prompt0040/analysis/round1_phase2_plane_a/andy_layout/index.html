@@ -1,0 +1,23 @@
+<!doctype html><meta charset=utf-8><title>Round 1 Phase 2 Plane A map</title>
+<style>body{background:#15171a;color:#ddd;font:13px monospace;margin:14px}
+.row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+figure{margin:0;background:#000;border:1px solid #345;padding:4px}
+img{width:calc(512px*var(--z,1));height:calc(512px*var(--z,1));image-rendering:pixelated;image-rendering:crisp-edges;display:block}
+figcaption{font:11px monospace;color:#8ad;padding:3px;text-align:center}
+button{background:#3a3f47;color:#eee;border:1px solid #555;border-radius:4px;padding:3px 8px;cursor:pointer}.v{color:#f96}</style>
+<h2>ROUND 1 &middot; PHASE 2 (CASTLE / FORTRESS) &middot; PLANE A MAP RECONSTRUCTION</h2>
+<div>Complete legal 64&times;64-tile Plane-A map per record (512&times;512 px, no offscreen pruning). Grayscale; black = transparent tile.
+Records in traversal order with scroll direction (arcade selector).
+<span class=v>VERTICAL (selector-1) records are shown in WORLD orientation = TRANSPOSE of the raw source grid</span>
+(proven: selector-1 publication maps group/strip to the logical ROW via staged_scroll_y_fg &mdash; the group axis is world-Y for vertical records, world-X for horizontal). Raw source grid is preserved and toggleable for audit.</div>
+<div style=margin:8px>Zoom: <button onclick=z(0.5)>0.5x</button><button onclick=z(1)>1x</button><button onclick=z(2)>2x</button></div>
+<script>function z(n){document.documentElement.style.setProperty('--z',n)}
+function tog(id,rec){var i=document.getElementById(id);var w=i.src.indexOf('_world')>=0;i.src='record_'+rec+(w?'_raw':'_world')+'.png';i.nextn.textContent=w?'RAW SOURCE GRID':'WORLD VIEW (transposed)';}
+</script>
+<div class=row>
+<figure><img src="record_16.png"><figcaption>SECTION 1 &middot; record 16<br>&rarr; horizontal &middot; castle entry<br>219 exact patterns</figcaption></figure>
+<figure><img id=r17 src="record_17_world.png"><figcaption><span class=v>SECTION 2 &middot; record 17<br>&darr; VERTICAL &middot; fortress shaft</span><br>16 first-use patterns<br><button onclick="var i=document.getElementById('r17');var w=i.src.indexOf('_world')>=0;i.src='record_17'+(w?'_raw':'_world')+'.png';this.textContent=w?'show WORLD':'show RAW';">show RAW</button> <span id=r17l>WORLD VIEW (transposed)</span></figcaption></figure>
+<figure><img src="record_18.png"><figcaption>SECTION 3 &middot; record 18<br>&rarr; horizontal &middot; castle<br>16 first-use</figcaption></figure>
+<figure><img src="record_19.png"><figcaption>SECTION 4 &middot; record 19<br>&rarr; horizontal &middot; castle<br>0 first-use (all reused)</figcaption></figure>
+<figure><img src="record_20.png"><figcaption>SECTION 5 &middot; record 20<br>&rarr; horizontal &middot; castle<br>31 first-use</figcaption></figure>
+</div>

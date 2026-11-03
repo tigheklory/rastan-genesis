@@ -1,0 +1,4 @@
+scenario,low_bytes,central_bytes,high_bytes,central_vs_4MiB_bytes
+current_design,7593400,7673400,7833400,3479096
+conservative_dedup,5127896,5207896,5367896,1013592
+shared_library,3749176,3969176,4319176,-225128

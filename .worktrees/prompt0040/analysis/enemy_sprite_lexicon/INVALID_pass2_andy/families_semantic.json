@@ -1,0 +1,300 @@
+{
+ "schema_version": 2,
+ "authority": "original arcade Ghidra: actor+0x3E family selector",
+ "key": "actor+0x3E (12-row table 0x45502); boss=0x3E==2; palette FUN_00045684 table 0x45722; spawn FUN_0004a086",
+ "normal_enemy_families": 11,
+ "boss_families": 6,
+ "total_hostile_families": 17,
+ "unresolved_route_seeds": [
+  "collision_marker40_route",
+  "collision_marker41_route",
+  "collision_marker49_special_route",
+  "collision_marker4f_behavior20_route",
+  "static_seed_selector_08_1c_05",
+  "static_seed_selector_08_1c_08",
+  "static_seed_selector_08_1c_09",
+  "static_seed_selector_08_1c_14",
+  "static_seed_selector_08_1c_15",
+  "static_seed_selector_08_1c_16",
+  "static_seed_selector_08_1c_17",
+  "static_seed_selector_08_1c_18",
+  "static_seed_selector_08_1c_19"
+ ],
+ "non_enemy_rows": 4,
+ "unmatched_pending_dynamic": [
+  "four_armed_enemy",
+  "hostile_base0a5a_compositor2",
+  "large_bat",
+  "normal_small_bat"
+ ],
+ "families": [
+  {
+   "id": "NORMAL_FAMILY_00",
+   "actor_3e": 0,
+   "category": "ENEMY_HOSTILE",
+   "semantic_identity": "resolved (actor+0x3E table 0x45502)",
+   "human_name": "Stage-1 Lizardman",
+   "base_code": "0x004B",
+   "palette_nibble": "0x06",
+   "palette_content_status": "UNKNOWN (nibble->bank->16colors not decoded)",
+   "collapsed_cody_rows": [
+    "hostile_base004b_compositor0"
+   ],
+   "representative_png": "sprites_semantic/NORMAL_FAMILY_00.png",
+   "spawn_proof": "FUN_0004a086 sets A4+0x3E=spawn_desc[1]; loader FUN_0004544e table 0x45502"
+  },
+  {
+   "id": "NORMAL_FAMILY_01",
+   "actor_3e": 1,
+   "category": "ENEMY_HOSTILE_CATEGORY_VIA_SPAWN_PATH",
+   "semantic_identity": "resolved (actor+0x3E table 0x45502)",
+   "human_name": "unnamed",
+   "base_code": "0x00D0",
+   "palette_nibble": "0x04",
+   "palette_content_status": "UNKNOWN (nibble->bank->16colors not decoded)",
+   "collapsed_cody_rows": [
+    "hostile_base00d0_compositor0",
+    "hostile_base0179_compositor0",
+    "static_seed_selector_08_1c_00",
+    "aux_748_base019d_compositor0"
+   ],
+   "representative_png": "sprites_semantic/NORMAL_FAMILY_01.png",
+   "spawn_proof": "FUN_0004a086 sets A4+0x3E=spawn_desc[1]; loader FUN_0004544e table 0x45502"
+  },
+  {
+   "id": "NORMAL_FAMILY_03",
+   "actor_3e": 3,
+   "category": "ENEMY_HOSTILE_CATEGORY_VIA_SPAWN_PATH",
+   "semantic_identity": "resolved (actor+0x3E table 0x45502)",
+   "human_name": "unnamed",
+   "base_code": "0x02E8",
+   "palette_nibble": "0x0A",
+   "palette_content_status": "UNKNOWN (nibble->bank->16colors not decoded)",
+   "collapsed_cody_rows": [
+    "hostile_base02e8_compositor0",
+    "aux_748_base02e8_compositor0"
+   ],
+   "representative_png": "sprites_semantic/NORMAL_FAMILY_03.png",
+   "spawn_proof": "FUN_0004a086 sets A4+0x3E=spawn_desc[1]; loader FUN_0004544e table 0x45502"
+  },
+  {
+   "id": "NORMAL_FAMILY_04",
+   "actor_3e": 4,
+   "category": "ENEMY_HOSTILE_CATEGORY_VIA_SPAWN_PATH",
+   "semantic_identity": "resolved (actor+0x3E table 0x45502)",
+   "human_name": "unnamed",
+   "base_code": "0x0420",
+   "palette_nibble": "0x07",
+   "palette_content_status": "UNKNOWN (nibble->bank->16colors not decoded)",
+   "collapsed_cody_rows": [
+    "hostile_base0420_compositor0"
+   ],
+   "representative_png": "sprites_semantic/NORMAL_FAMILY_04.png",
+   "spawn_proof": "FUN_0004a086 sets A4+0x3E=spawn_desc[1]; loader FUN_0004544e table 0x45502"
+  },
+  {
+   "id": "NORMAL_FAMILY_05",
+   "actor_3e": 5,
+   "category": "ENEMY_HOSTILE_CATEGORY_VIA_SPAWN_PATH",
+   "semantic_identity": "resolved (actor+0x3E table 0x45502)",
+   "human_name": "unnamed",
+   "base_code": "0x01CB",
+   "palette_nibble": "0x06",
+   "palette_content_status": "UNKNOWN (nibble->bank->16colors not decoded)",
+   "collapsed_cody_rows": [
+    "hostile_base01cb_compositor0",
+    "aux_748_base01cb_compositor0"
+   ],
+   "representative_png": "sprites_semantic/NORMAL_FAMILY_05.png",
+   "spawn_proof": "FUN_0004a086 sets A4+0x3E=spawn_desc[1]; loader FUN_0004544e table 0x45502"
+  },
+  {
+   "id": "NORMAL_FAMILY_06",
+   "actor_3e": 6,
+   "category": "ENEMY_HOSTILE_CATEGORY_VIA_SPAWN_PATH",
+   "semantic_identity": "resolved (actor+0x3E table 0x45502)",
+   "human_name": "unnamed",
+   "base_code": "0x03B3",
+   "palette_nibble": "0x08",
+   "palette_content_status": "UNKNOWN (nibble->bank->16colors not decoded)",
+   "collapsed_cody_rows": [
+    "hostile_base03b3_compositor0",
+    "static_seed_selector_08_1c_02",
+    "aux_5c8_base0275_compositor0",
+    "aux_5c8_base03f6_compositor0"
+   ],
+   "representative_png": "sprites_semantic/NORMAL_FAMILY_06.png",
+   "spawn_proof": "FUN_0004a086 sets A4+0x3E=spawn_desc[1]; loader FUN_0004544e table 0x45502"
+  },
+  {
+   "id": "NORMAL_FAMILY_07",
+   "actor_3e": 7,
+   "category": "ENEMY_HOSTILE_CATEGORY_VIA_SPAWN_PATH",
+   "semantic_identity": "resolved (actor+0x3E table 0x45502)",
+   "human_name": "unnamed",
+   "base_code": "0x043A",
+   "palette_nibble": "0x0F",
+   "palette_content_status": "UNKNOWN (nibble->bank->16colors not decoded)",
+   "collapsed_cody_rows": [
+    "static_normal_base043a_unresolved",
+    "static_seed_selector_08_1c_04",
+    "static_seed_selector_08_1c_06",
+    "static_seed_selector_08_1c_07",
+    "static_seed_selector_08_1c_20",
+    "aux_5c8_base050b_compositor0"
+   ],
+   "representative_png": "sprites_semantic/NORMAL_FAMILY_07.png",
+   "spawn_proof": "FUN_0004a086 sets A4+0x3E=spawn_desc[1]; loader FUN_0004544e table 0x45502"
+  },
+  {
+   "id": "NORMAL_FAMILY_08",
+   "actor_3e": 8,
+   "category": "ENEMY_HOSTILE_CATEGORY_VIA_SPAWN_PATH",
+   "semantic_identity": "resolved (actor+0x3E table 0x45502)",
+   "human_name": "unnamed",
+   "base_code": "0x0241",
+   "palette_nibble": "0x02",
+   "palette_content_status": "UNKNOWN (nibble->bank->16colors not decoded)",
+   "collapsed_cody_rows": [
+    "aux_8c8_base0268_compositor0",
+    "aux_8c8_base0275_compositor0",
+    "hostile_base0275_compositor0",
+    "hurry_up_bat",
+    "static_normal_base0241_unresolved",
+    "static_seed_selector_08_1c_01",
+    "static_seed_selector_08_1c_03",
+    "aux_748_base0268_compositor0",
+    "aux_748_base0275_compositor0"
+   ],
+   "representative_png": "sprites_semantic/NORMAL_FAMILY_08.png",
+   "spawn_proof": "FUN_0004a086 sets A4+0x3E=spawn_desc[1]; loader FUN_0004544e table 0x45502"
+  },
+  {
+   "id": "NORMAL_FAMILY_09",
+   "actor_3e": 9,
+   "category": "ENEMY_HOSTILE_CATEGORY_VIA_SPAWN_PATH",
+   "semantic_identity": "resolved (actor+0x3E table 0x45502)",
+   "human_name": "unnamed",
+   "base_code": "0x06E2",
+   "palette_nibble": "0x01",
+   "palette_content_status": "UNKNOWN (nibble->bank->16colors not decoded)",
+   "collapsed_cody_rows": [
+    "static_normal_base06e2_unresolved",
+    "static_seed_selector_08_1c_11",
+    "static_seed_selector_08_1c_12",
+    "static_seed_selector_08_1c_13"
+   ],
+   "representative_png": "sprites_semantic/NORMAL_FAMILY_09.png",
+   "spawn_proof": "FUN_0004a086 sets A4+0x3E=spawn_desc[1]; loader FUN_0004544e table 0x45502"
+  },
+  {
+   "id": "NORMAL_FAMILY_10",
+   "actor_3e": 10,
+   "category": "ENEMY_HOSTILE_CATEGORY_VIA_SPAWN_PATH",
+   "semantic_identity": "resolved (actor+0x3E table 0x45502)",
+   "human_name": "unnamed",
+   "base_code": "0x0889",
+   "palette_nibble": "0x0B",
+   "palette_content_status": "UNKNOWN (nibble->bank->16colors not decoded)",
+   "collapsed_cody_rows": [
+    "static_normal_base0889_unresolved"
+   ],
+   "representative_png": "sprites_semantic/NORMAL_FAMILY_10.png",
+   "spawn_proof": "FUN_0004a086 sets A4+0x3E=spawn_desc[1]; loader FUN_0004544e table 0x45502"
+  },
+  {
+   "id": "NORMAL_FAMILY_11",
+   "actor_3e": 11,
+   "category": "ENEMY_HOSTILE_CATEGORY_VIA_SPAWN_PATH",
+   "semantic_identity": "resolved (actor+0x3E table 0x45502)",
+   "human_name": "unnamed",
+   "base_code": "0x0400",
+   "palette_nibble": "0x0E",
+   "palette_content_status": "UNKNOWN (nibble->bank->16colors not decoded)",
+   "collapsed_cody_rows": [
+    "hostile_base0400_compositor1",
+    "static_seed_selector_08_1c_10"
+   ],
+   "representative_png": "sprites_semantic/NORMAL_FAMILY_11.png",
+   "spawn_proof": "FUN_0004a086 sets A4+0x3E=spawn_desc[1]; loader FUN_0004544e table 0x45502"
+  },
+  {
+   "id": "ROUND1_BOSS",
+   "actor_3e": 2,
+   "category": "BOSS",
+   "semantic_identity": "resolved-mechanism (0x3E==2, base 0x33E, form via +0x38/+0x752)",
+   "human_name": "unnamed",
+   "base_code": "0x033E",
+   "palette_nibble": "0x07 (round-indexed 0x45722)",
+   "palette_content_status": "UNKNOWN",
+   "boss_form_mechanism": "A4+0x38(table 0x454BA/D2/EA) x A4+0x752(entry 0-2)=9 forms; per-round palette; per-round subselector correlation PENDING dynamic",
+   "representative_png": "sprites_semantic/ROUND1_BOSS.png",
+   "composite_status": "COMPOSITE UNRESOLVED (boss-owned-record set not revalidated)"
+  },
+  {
+   "id": "ROUND2_BOSS",
+   "actor_3e": 2,
+   "category": "BOSS",
+   "semantic_identity": "resolved-mechanism (0x3E==2, base 0x33E, form via +0x38/+0x752)",
+   "human_name": "unnamed",
+   "base_code": "0x033E",
+   "palette_nibble": "0x07 (round-indexed 0x45722)",
+   "palette_content_status": "UNKNOWN",
+   "boss_form_mechanism": "A4+0x38(table 0x454BA/D2/EA) x A4+0x752(entry 0-2)=9 forms; per-round palette; per-round subselector correlation PENDING dynamic",
+   "representative_png": "sprites_semantic/ROUND2_BOSS.png",
+   "composite_status": "COMPOSITE UNRESOLVED (boss-owned-record set not revalidated)"
+  },
+  {
+   "id": "ROUND3_BOSS",
+   "actor_3e": 2,
+   "category": "BOSS",
+   "semantic_identity": "resolved-mechanism (0x3E==2, base 0x33E, form via +0x38/+0x752)",
+   "human_name": "unnamed",
+   "base_code": "0x033E",
+   "palette_nibble": "0x07 (round-indexed 0x45722)",
+   "palette_content_status": "UNKNOWN",
+   "boss_form_mechanism": "A4+0x38(table 0x454BA/D2/EA) x A4+0x752(entry 0-2)=9 forms; per-round palette; per-round subselector correlation PENDING dynamic",
+   "representative_png": "sprites_semantic/ROUND3_BOSS.png",
+   "composite_status": "COMPOSITE UNRESOLVED (boss-owned-record set not revalidated)"
+  },
+  {
+   "id": "ROUND4_BOSS",
+   "actor_3e": 2,
+   "category": "BOSS",
+   "semantic_identity": "resolved-mechanism (0x3E==2, base 0x33E, form via +0x38/+0x752)",
+   "human_name": "unnamed",
+   "base_code": "0x033E",
+   "palette_nibble": "0x07 (round-indexed 0x45722)",
+   "palette_content_status": "UNKNOWN",
+   "boss_form_mechanism": "A4+0x38(table 0x454BA/D2/EA) x A4+0x752(entry 0-2)=9 forms; per-round palette; per-round subselector correlation PENDING dynamic",
+   "representative_png": "sprites_semantic/ROUND4_BOSS.png",
+   "composite_status": "COMPOSITE UNRESOLVED (boss-owned-record set not revalidated)"
+  },
+  {
+   "id": "ROUND5_BOSS",
+   "actor_3e": 2,
+   "category": "BOSS",
+   "semantic_identity": "resolved-mechanism (0x3E==2, base 0x33E, form via +0x38/+0x752)",
+   "human_name": "unnamed",
+   "base_code": "0x033E",
+   "palette_nibble": "0x07 (round-indexed 0x45722)",
+   "palette_content_status": "UNKNOWN",
+   "boss_form_mechanism": "A4+0x38(table 0x454BA/D2/EA) x A4+0x752(entry 0-2)=9 forms; per-round palette; per-round subselector correlation PENDING dynamic",
+   "representative_png": "sprites_semantic/ROUND5_BOSS.png",
+   "composite_status": "COMPOSITE UNRESOLVED (boss-owned-record set not revalidated)"
+  },
+  {
+   "id": "ROUND6_BOSS",
+   "actor_3e": 2,
+   "category": "BOSS",
+   "semantic_identity": "resolved-mechanism (0x3E==2, base 0x33E, form via +0x38/+0x752)",
+   "human_name": "unnamed",
+   "base_code": "0x033E",
+   "palette_nibble": "0x07 (round-indexed 0x45722)",
+   "palette_content_status": "UNKNOWN",
+   "boss_form_mechanism": "A4+0x38(table 0x454BA/D2/EA) x A4+0x752(entry 0-2)=9 forms; per-round palette; per-round subselector correlation PENDING dynamic",
+   "representative_png": "sprites_semantic/ROUND6_BOSS.png",
+   "composite_status": "COMPOSITE UNRESOLVED (boss-owned-record set not revalidated)"
+  }
+ ]
+}

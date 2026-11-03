@@ -1,0 +1,6 @@
+pc	gate_on_A5+0x118	consequence
+0x40ede	== 1	state 0x20 torch: round-1 uses +0x34 band -> 0x40F52 light register directly
+0x41720	== 2	state 0x15: skip 0x41752 (anim+2/Y+64) branch
+0x4185a	== 3	'E'/'j'/'k' (0x41854): spawn 4-part linked object (@0x308) before place
+0x4194a	round switch 1..>=3	state 0x1A(0x418F4) 0x4354E sub-actor spawn selection
+0x41b98	== 1 / == 4 / == 6	'H' (0x41B90) XY offset: d2=8,d3=-32 / d2=16,d3=-2 / d3=-30

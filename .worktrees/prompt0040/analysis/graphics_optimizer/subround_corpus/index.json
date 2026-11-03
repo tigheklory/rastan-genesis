@@ -1,0 +1,189 @@
+{
+ "PAL-R1-S1-PLANEA-OUTDOOR": {
+  "records": [
+   0,
+   15
+  ],
+  "source": "round1_phase1 (canonical)",
+  "usages": null
+ },
+ "PAL-R1-S1-PLANEA-CAVE-S4": {
+  "records": [
+   4,
+   6
+  ],
+  "segments": [
+   4,
+   5,
+   6
+  ],
+  "usages": 332,
+  "nonblank_cells": 12288,
+  "palette_banks": [
+   "0x003",
+   "0x004",
+   "0x005"
+  ]
+ },
+ "PAL-R1-S1-PLANEA-CAVE-S5": {
+  "records": [
+   7,
+   9
+  ],
+  "segments": [
+   7,
+   8,
+   9
+  ],
+  "usages": 228,
+  "nonblank_cells": 12288,
+  "palette_banks": [
+   "0x003",
+   "0x004"
+  ]
+ },
+ "PAL-R1-S1-PLANEA-CAVE-S6": {
+  "records": [
+   10,
+   12
+  ],
+  "segments": [
+   10,
+   11,
+   12
+  ],
+  "usages": 900,
+  "nonblank_cells": 12288,
+  "palette_banks": [
+   "0x003",
+   "0x005",
+   "0x01A",
+   "0x01B",
+   "0x01C",
+   "0x01D"
+  ]
+ },
+ "PAL-R1-S2-PLANEA-CASTLE": {
+  "records": [
+   16,
+   21
+  ],
+  "segments": [
+   16,
+   17,
+   18,
+   19,
+   20,
+   21
+  ],
+  "usages": 520,
+  "nonblank_cells": 24576,
+  "palette_banks": [
+   "0x003",
+   "0x008",
+   "0x009",
+   "0x00A",
+   "0x00B",
+   "0x00C",
+   "0x00D",
+   "0x00E",
+   "0x00F",
+   "0x010",
+   "0x011",
+   "0x012",
+   "0x013",
+   "0x014",
+   "0x01F"
+  ]
+ },
+ "PAL-R1-S3-PLANEA-BOSS": {
+  "records": [
+   22,
+   22
+  ],
+  "segments": [
+   22
+  ],
+  "usages": 219,
+  "nonblank_cells": 4096,
+  "palette_banks": [
+   "0x008",
+   "0x019"
+  ]
+ },
+ "PAL-R2-S1-PLANEA-OUTDOOR": {
+  "records": [
+   23,
+   38
+  ],
+  "segments": [
+   23,
+   24,
+   25,
+   26,
+   27,
+   28,
+   29,
+   30,
+   31,
+   32,
+   33,
+   34,
+   35,
+   36,
+   37,
+   38
+  ],
+  "usages": 797,
+  "nonblank_cells": 65536,
+  "palette_banks": [
+   "0x003",
+   "0x004",
+   "0x005",
+   "0x006",
+   "0x007",
+   "0x008",
+   "0x009",
+   "0x00A",
+   "0x00E"
+  ]
+ },
+ "PAL-R2-S2-PLANEA-CASTLE": {
+  "records": [
+   39,
+   44
+  ],
+  "segments": [
+   39,
+   40,
+   41,
+   42,
+   43,
+   44
+  ],
+  "usages": 234,
+  "nonblank_cells": 24576,
+  "palette_banks": [
+   "0x00A",
+   "0x00B",
+   "0x00C",
+   "0x00D",
+   "0x00F"
+  ]
+ },
+ "PAL-R2-S3-PLANEA-BOSS": {
+  "records": [
+   45,
+   45
+  ],
+  "segments": [
+   45
+  ],
+  "usages": 200,
+  "nonblank_cells": 4096,
+  "palette_banks": [
+   "0x002",
+   "0x00A"
+  ]
+ }
+}

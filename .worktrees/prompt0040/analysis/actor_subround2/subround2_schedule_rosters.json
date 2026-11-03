@@ -1,0 +1,85 @@
+{
+ "round1": {
+  "subround2_13e": "0x11-0x16",
+  "boss_boundary_13e": "0x16",
+  "schedule_family2_spawners": [
+   "0x033E f2 v0 c0",
+   "0x033E f2 v0 c3",
+   "0x033E f2 v0 c4"
+  ],
+  "schedule_nonfamily2_bases": []
+ },
+ "round2": {
+  "subround2_13e": "0x28-0x2D",
+  "boss_boundary_13e": "0x2D",
+  "schedule_family2_spawners": [
+   "0x033E f2 v0 c0",
+   "0x033E f2 v0 c3",
+   "0x033E f2 v0 c4",
+   "0x033E f2 v1 c0"
+  ],
+  "schedule_nonfamily2_bases": [
+   "0x01CB (f5 v0 c0)"
+  ]
+ },
+ "round3": {
+  "subround2_13e": "0x3F-0x44",
+  "boss_boundary_13e": "0x44",
+  "schedule_family2_spawners": [
+   "0x033E f2 v0 c3",
+   "0x033E f2 v0 c4",
+   "0x033E f2 v1 c0",
+   "0x033E f2 v1 c4"
+  ],
+  "schedule_nonfamily2_bases": [
+   "0x01CB (f5 v0 c0)"
+  ]
+ },
+ "round4": {
+  "subround2_13e": "0x56-0x5B",
+  "boss_boundary_13e": "0x5B",
+  "schedule_family2_spawners": [
+   "0x033E f2 v0 c3",
+   "0x033E f2 v1 c0",
+   "0x033E f2 v1 c3",
+   "0x033E f2 v1 c4",
+   "0x033E f2 v2 c0"
+  ],
+  "schedule_nonfamily2_bases": [
+   "0x01CB (f5 v1 c0)"
+  ]
+ },
+ "round5": {
+  "subround2_13e": "0x6D-0x72",
+  "boss_boundary_13e": "0x72",
+  "schedule_family2_spawners": [
+   "0x033E f2 v1 c3",
+   "0x033E f2 v1 c4",
+   "0x033E f2 v2 c0",
+   "0x033E f2 v2 c3",
+   "0x033E f2 v2 c4"
+  ],
+  "schedule_nonfamily2_bases": [
+   "0x01CB (f5 v1 c0)",
+   "0x03B3 (f6 v0 c0)"
+  ]
+ },
+ "round6": {
+  "subround2_13e": "0x7E-0x89",
+  "boss_boundary_13e": "0x89",
+  "schedule_family2_spawners": [
+   "0x033E f2 v1 c4",
+   "0x033E f2 v2 c0",
+   "0x033E f2 v2 c3",
+   "0x033E f2 v2 c4"
+  ],
+  "schedule_nonfamily2_bases": [
+   "0x00D0 (f1 v1 c0)",
+   "0x01CB (f5 v1 c0)",
+   "0x02E8 (f3 v1 c0)",
+   "0x03B3 (f6 v0 c0)",
+   "0x0400 (f11 v0 c1)",
+   "0x0889 (f10 v0 c1)"
+  ]
+ }
+}

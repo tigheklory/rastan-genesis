@@ -1,0 +1,256 @@
+{
+  "schema_version": 1,
+  "authority": "original arcade ROM/data and decompiled producer semantics",
+  "phase_local_collision_publisher": {
+    "producer": "arcade_pc 0x0559B2 FUN_000559B2",
+    "visual_word": "descriptor + row_in_4x4*8 + column_in_4x4*2",
+    "collision_word": "descriptor + 0x20 + row_in_4x4*8 + column_in_4x4*2; descriptor+0x22 when descriptor+0x20 is 0x00FF",
+    "consumer": "arcade_pc 0x041180 actor_spawn_ground_and_activate_41180"
+  },
+  "phase_local_markers": [
+    {
+      "marker": "0x40",
+      "cell_count": 1,
+      "collision_words": [
+        "0x4000"
+      ],
+      "class_id": "collision_marker40_route",
+      "spawn_route": "phase-local map collision marker 0x40 reaches actor_spawn_ground_and_activate_41180; downstream class/composer unresolved",
+      "graphics_bearing": "unresolved; conservatively included",
+      "samples": [
+        {
+          "segment": 11,
+          "world_column": 750,
+          "world_row": 38,
+          "descriptor": "0x3288",
+          "collision_source": "arcade_rom/data 0x0032BC",
+          "collision_word": "0x4000"
+        }
+      ]
+    },
+    {
+      "marker": "0x41",
+      "cell_count": 5,
+      "collision_words": [
+        "0x4100"
+      ],
+      "class_id": "collision_marker41_route",
+      "spawn_route": "phase-local map collision marker 0x41 reaches actor_spawn_ground_and_activate_41180; downstream class/composer unresolved",
+      "graphics_bearing": "unresolved; conservatively included",
+      "samples": [
+        {
+          "segment": 2,
+          "world_column": 174,
+          "world_row": 58,
+          "descriptor": "0x2D08",
+          "collision_source": "arcade_rom/data 0x002D3C",
+          "collision_word": "0x4100"
+        },
+        {
+          "segment": 4,
+          "world_column": 286,
+          "world_row": 38,
+          "descriptor": "0x3848",
+          "collision_source": "arcade_rom/data 0x00387C",
+          "collision_word": "0x4100"
+        },
+        {
+          "segment": 6,
+          "world_column": 398,
+          "world_row": 58,
+          "descriptor": "0x3848",
+          "collision_source": "arcade_rom/data 0x00387C",
+          "collision_word": "0x4100"
+        },
+        {
+          "segment": 10,
+          "world_column": 686,
+          "world_row": 38,
+          "descriptor": "0x32C8",
+          "collision_source": "arcade_rom/data 0x0032FC",
+          "collision_word": "0x4100"
+        },
+        {
+          "segment": 14,
+          "world_column": 938,
+          "world_row": 58,
+          "descriptor": "0x2D08",
+          "collision_source": "arcade_rom/data 0x002D3C",
+          "collision_word": "0x4100"
+        }
+      ]
+    },
+    {
+      "marker": "0x48",
+      "cell_count": 2,
+      "collision_words": [
+        "0x4800"
+      ],
+      "class_id": "family0_class70_actor",
+      "spawn_route": "actor_spawn_ground_and_activate_41180 sets behavior 0x1E and class 0x70",
+      "graphics_bearing": "proven",
+      "samples": [
+        {
+          "segment": 1,
+          "world_column": 101,
+          "world_row": 46,
+          "descriptor": "0x2C48",
+          "collision_source": "arcade_rom/data 0x002C7A",
+          "collision_word": "0x4800"
+        },
+        {
+          "segment": 1,
+          "world_column": 102,
+          "world_row": 46,
+          "descriptor": "0x2C48",
+          "collision_source": "arcade_rom/data 0x002C7C",
+          "collision_word": "0x4800"
+        }
+      ]
+    },
+    {
+      "marker": "0x49",
+      "cell_count": 2,
+      "collision_words": [
+        "0x4901",
+        "0x497E"
+      ],
+      "class_id": "collision_marker49_special_route",
+      "spawn_route": "actor_spawn_ground_and_activate_41180 sets active flag/position then calls arcade_pc 0x03A2D0 and 0x04092E",
+      "graphics_bearing": "unresolved; conservatively included",
+      "samples": [
+        {
+          "segment": 15,
+          "world_column": 1017,
+          "world_row": 38,
+          "descriptor": "0x4CF4",
+          "collision_source": "arcade_rom/data 0x004D26",
+          "collision_word": "0x4901"
+        },
+        {
+          "segment": 15,
+          "world_column": 1018,
+          "world_row": 38,
+          "descriptor": "0x4CF4",
+          "collision_source": "arcade_rom/data 0x004D28",
+          "collision_word": "0x497E"
+        }
+      ]
+    },
+    {
+      "marker": "0x4F",
+      "cell_count": 2,
+      "collision_words": [
+        "0x4F00"
+      ],
+      "class_id": "collision_marker4f_behavior20_route",
+      "spawn_route": "actor_spawn_ground_and_activate_41180 calls arcade_pc 0x041C1E/0x041C60/0x041BEE and selects behavior 0x20",
+      "graphics_bearing": "unresolved; conservatively included",
+      "samples": [
+        {
+          "segment": 5,
+          "world_column": 341,
+          "world_row": 10,
+          "descriptor": "0x2A48",
+          "collision_source": "arcade_rom/data 0x002A7A",
+          "collision_word": "0x4F00"
+        },
+        {
+          "segment": 5,
+          "world_column": 342,
+          "world_row": 10,
+          "descriptor": "0x2A48",
+          "collision_source": "arcade_rom/data 0x002A7C",
+          "collision_word": "0x4F00"
+        }
+      ]
+    }
+  ],
+  "manifest_routes_absent_from_map": [],
+  "actor_record_loader": {
+    "producer": "arcade_pc 0x04543E actor_record_loader_4543e",
+    "table": "arcade_rom/data 0x045592",
+    "stride": 8,
+    "indexed_rows_8_through_12": [
+      {
+        "record_value": 8,
+        "class_id": "record08_family2_class30",
+        "source": "arcade_rom/data 0x045592",
+        "base_tile": "0x0129",
+        "family": 2,
+        "class": "0x30",
+        "field_0x28": "0x0302",
+        "field_0x2C": "0x0005"
+      },
+      {
+        "record_value": 9,
+        "class_id": "record09_family1_class57",
+        "source": "arcade_rom/data 0x04559A",
+        "base_tile": "0x02AF",
+        "family": 1,
+        "class": "0x57",
+        "field_0x28": "0x0301",
+        "field_0x2C": "0x0005"
+      },
+      {
+        "record_value": 10,
+        "class_id": "record0a_family1_classb6",
+        "source": "arcade_rom/data 0x0455A2",
+        "base_tile": "0x03F6",
+        "family": 1,
+        "class": "0xB6",
+        "field_0x28": "0x0002",
+        "field_0x2C": "0x0002"
+      },
+      {
+        "record_value": 11,
+        "class_id": "record0b_family1_classb9",
+        "source": "arcade_rom/data 0x0455AA",
+        "base_tile": "0x0268",
+        "family": 1,
+        "class": "0xB9",
+        "field_0x28": "0x0001",
+        "field_0x2C": "0x0001"
+      },
+      {
+        "record_value": 12,
+        "class_id": "record0c_family1_classbc",
+        "source": "arcade_rom/data 0x0455B2",
+        "base_tile": "0x050B",
+        "family": 1,
+        "class": "0xBC",
+        "field_0x28": "0x0000",
+        "field_0x2C": "0x0000"
+      }
+    ]
+  },
+  "runtime_family_class_proof": {
+    "source": "states/traces/direct_native_sprite_provenance_20260805_124225/dispatch.csv",
+    "input_to_generated_assets": false,
+    "role": "original-arcade semantic proof cited by the manifest; the generator does not read the trace",
+    "observed_pairs": {
+      "family_0": [
+        "0x17",
+        "0x18",
+        "0x19",
+        "0x1C",
+        "0x1D",
+        "0x1E",
+        "0x1F",
+        "0x70"
+      ],
+      "family_2": [
+        "0x0B",
+        "0x0C",
+        "0x0D",
+        "0x0E",
+        "0x0F",
+        "0x10",
+        "0x11",
+        "0x12",
+        "0x13"
+      ]
+    }
+  },
+  "scope_limit": "Collision markers enumerate map-driven routes only; player, HUD, timer, drop, projectile and effect producers are enumerated separately in the legal class manifest."
+}

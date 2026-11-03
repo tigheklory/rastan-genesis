@@ -1,0 +1,11 @@
+arcade_pc	ghidra_function	export_file
+0x03A000	startup_common	03A000_startup_common_entry.txt
+0x03A008	level5_vblank_handler	03A008_level5_handler_entry.txt
+0x039F9E	warm_restart_watchdog_gate	039F9E_warm_restart_trampoline.txt
+0x03AE86	FUN_0003ae86	03AE86_startup_common_body.txt
+0x03AF04	<no_function>	03AF04_a5_init_site.txt
+0x03AB84	warm_restart_gate_caller_a	03AB84_reset_gate_cmp_site.txt
+0x03AB8A	warm_restart_gate_caller_a	03AB8A_reset_gate_bsr_site.txt
+0x03B092	warm_restart_gate_caller_b	03B092_reset_gate_bsr_site_b.txt
+0x03AB22	<no_function>	03AB22_seed_defaults_site.txt
+0x03A0EC	FUN_0003a0ec	03A0EC_coin_credit_logic_site.txt

@@ -1,0 +1,233 @@
+{
+  "authored_track_count": 9,
+  "diagnostic_selection": [
+    {
+      "select_command": "0xD0",
+      "status": "diagnostic",
+      "track": "01 - Credit"
+    },
+    {
+      "select_command": "0xD1",
+      "status": "diagnostic",
+      "track": "02 - Broken The Promises (Opening)"
+    },
+    {
+      "select_command": "0xD2",
+      "status": "diagnostic",
+      "track": "03 - Aggressive World (Scene 1)"
+    },
+    {
+      "select_command": "0xD3",
+      "status": "diagnostic",
+      "track": "04 - Bad Bible (Name Regist)"
+    },
+    {
+      "select_command": "0xD4",
+      "status": "diagnostic",
+      "track": "05 - Re-In-Carnation (Scene 2)"
+    },
+    {
+      "select_command": "0xD5",
+      "status": "diagnostic",
+      "track": "06 - The Devil Boss Carnival (Scene 3 Boss)"
+    },
+    {
+      "select_command": "0xD6",
+      "status": "diagnostic",
+      "track": "07 - Scene Clear"
+    },
+    {
+      "select_command": "0xD7",
+      "status": "diagnostic",
+      "track": "08 - Final Destroy (Scene 3 Round 6 Boss)"
+    },
+    {
+      "select_command": "0xD8",
+      "status": "diagnostic",
+      "track": "09 - The Man Of Saga (Ending)"
+    }
+  ],
+  "dispatch": [
+    {
+      "evidence": "Build 0488 ORIGINAL ARCADE timing plus Build 0489 death/respawn command-state proof; hardware-accepted Build 0492",
+      "semantics": "player appearance/reappearance at the stage spawn column after death-form filtering at the shared 68000 semantic bridge",
+      "status": "proven",
+      "track": "03 - Aggressive World (Scene 1)",
+      "wire_command": "0x25"
+    },
+    {
+      "evidence": "ORIGINAL ARCADE command-timing (states/traces/audio015_arcade_gameover): 0x04 emitted at the credit state (state0=1,state2=1) immediately after coin; 0x04 is a 2-channel cue and Credit is the 2-keyed-channel coin song; 0x04 is delivered to the Z80 ring on Genesis (native runtime gate command_values EF,04,...). Pending Tighe Genesis hardware audition.",
+      "semantics": "coin-insert / credit screen music",
+      "status": "proven",
+      "track": "01 - Credit",
+      "wire_command": "0x04"
+    },
+    {
+      "evidence": "ORIGINAL ARCADE R1 music sequencer at 0x055DDC: substate a5+0x13AA==9 (the castle phase, entered via 0x03A848 setting 13AA=9 / 1394=1) sends command 0x27 via jsr 0x3A0EC; the castle plays Re-In-Carnation (Scene 2). The substate-9 send has no sound-enable (a5+0x34) precondition, so unlike 0x19 it is delivered on Genesis. Pending Tighe Genesis hardware audition.",
+      "semantics": "Round 1 Subround 2 (castle interior) music change",
+      "status": "proven",
+      "track": "05 - Re-In-Carnation (Scene 2)",
+      "wire_command": "0x27"
+    }
+  ],
+  "fm6_reserved": true,
+  "profile": "/tmp/rg0010-source/analysis/audio/decision_profiles/music-test.json",
+  "profile_revision": 14,
+  "profile_revision_id": "music-test.r14.20261023T204126Z",
+  "profile_sha256": "989ba223ce13715d1fced0b6223cea4813f6b5e101b81aa3bf59007c69e7b067",
+  "schema": "rastan-genesis-native-audio-library/v1",
+  "song_table_rows": 12,
+  "songs": [
+    {
+      "diagnostic_command": "0xD0",
+      "has_loop": false,
+      "id": 1,
+      "intro": "out/audio_native/track_01_credit_intro.bin",
+      "intro_bytes": 791,
+      "intro_sha256": "b9ac2eafc695cb7d47efbe9ad61044e53eed0320599734c45dd037350c86c019",
+      "intro_ticks": 524,
+      "loop": "out/audio_native/track_01_credit_loop.bin",
+      "loop_bytes": 1,
+      "loop_sha256": "a8100ae6aa1940d0b663bb31cd466142ebbdbd5187131b92d93818987832eb89",
+      "loop_ticks": 0,
+      "slug": "track_01_credit",
+      "track": "01 - Credit",
+      "wire_commands": [
+        "0x04"
+      ]
+    },
+    {
+      "diagnostic_command": "0xD1",
+      "has_loop": false,
+      "id": 2,
+      "intro": "out/audio_native/track_02_broken_the_promises_opening_intro.bin",
+      "intro_bytes": 14816,
+      "intro_sha256": "41039f693bae3508cd180b1476dac72273f02754b46bc0066af45a17f0877327",
+      "intro_ticks": 610,
+      "loop": "out/audio_native/track_02_broken_the_promises_opening_loop.bin",
+      "loop_bytes": 1,
+      "loop_sha256": "a8100ae6aa1940d0b663bb31cd466142ebbdbd5187131b92d93818987832eb89",
+      "loop_ticks": 0,
+      "slug": "track_02_broken_the_promises_opening",
+      "track": "02 - Broken The Promises (Opening)",
+      "wire_commands": []
+    },
+    {
+      "diagnostic_command": "0xD2",
+      "has_loop": true,
+      "id": 3,
+      "intro": "out/audio_native/track_03_aggressive_world_scene_1_intro.bin",
+      "intro_bytes": 8836,
+      "intro_sha256": "070e5d6f317c10030f9f925a839d44e8d859c69bdc1d3b2246f9d0f8e84c80e0",
+      "intro_ticks": 798,
+      "loop": "out/audio_native/track_03_aggressive_world_scene_1_loop.bin",
+      "loop_bytes": 47368,
+      "loop_sha256": "66323cf3ea6289297741bfb74f867844571930bf37cb0a1107f5e5e2b46ec86b",
+      "loop_ticks": 2402,
+      "slug": "track_03_aggressive_world_scene_1",
+      "track": "03 - Aggressive World (Scene 1)",
+      "wire_commands": [
+        "0x25"
+      ]
+    },
+    {
+      "diagnostic_command": "0xD3",
+      "has_loop": true,
+      "id": 4,
+      "intro": "out/audio_native/track_04_bad_bible_name_regist_intro.bin",
+      "intro_bytes": 575,
+      "intro_sha256": "18889183ca015cd94983a0193ac34a0e5a5deb77391ab02936586fd63e9e2090",
+      "intro_ticks": 16,
+      "loop": "out/audio_native/track_04_bad_bible_name_regist_loop.bin",
+      "loop_bytes": 2600,
+      "loop_sha256": "89cf288c1d4d90c09430973178879a27ce0978220b95b7ccb3ebb587755b3995",
+      "loop_ticks": 120,
+      "slug": "track_04_bad_bible_name_regist",
+      "track": "04 - Bad Bible (Name Regist)",
+      "wire_commands": []
+    },
+    {
+      "diagnostic_command": "0xD4",
+      "has_loop": true,
+      "id": 5,
+      "intro": "out/audio_native/track_05_re_in_carnation_scene_2_intro.bin",
+      "intro_bytes": 2920,
+      "intro_sha256": "4b26249d8739857c1755d11b1e038c6a41899ca4e34aca66fe3b7c5eb000c4bf",
+      "intro_ticks": 188,
+      "loop": "out/audio_native/track_05_re_in_carnation_scene_2_loop.bin",
+      "loop_bytes": 181539,
+      "loop_sha256": "f373d7af749fb54d84d6ce466c4b28af7f7f025f2a292cd47c9b6f1aa80fa44a",
+      "loop_ticks": 5841,
+      "slug": "track_05_re_in_carnation_scene_2",
+      "track": "05 - Re-In-Carnation (Scene 2)",
+      "wire_commands": [
+        "0x27"
+      ]
+    },
+    {
+      "diagnostic_command": "0xD5",
+      "has_loop": true,
+      "id": 6,
+      "intro": "out/audio_native/track_06_the_devil_boss_carnival_scene_3_boss_intro.bin",
+      "intro_bytes": 7556,
+      "intro_sha256": "81af4d2161d91e9a1b9acde279d9bc51aad8e77f4940a970d1c1dc453eae54b1",
+      "intro_ticks": 582,
+      "loop": "out/audio_native/track_06_the_devil_boss_carnival_scene_3_boss_loop.bin",
+      "loop_bytes": 38018,
+      "loop_sha256": "affa9a93b2c4dee8d073617f37eb3bf0e612563aafb322b6368c6d1dbfd2018c",
+      "loop_ticks": 1152,
+      "slug": "track_06_the_devil_boss_carnival_scene_3_boss",
+      "track": "06 - The Devil Boss Carnival (Scene 3 Boss)",
+      "wire_commands": []
+    },
+    {
+      "diagnostic_command": "0xD6",
+      "has_loop": false,
+      "id": 7,
+      "intro": "out/audio_native/track_07_scene_clear_intro.bin",
+      "intro_bytes": 11985,
+      "intro_sha256": "e8c1f1400ee3ed47c7ef4f69520c02c577f856efac6c83609cc94152d19febc5",
+      "intro_ticks": 574,
+      "loop": "out/audio_native/track_07_scene_clear_loop.bin",
+      "loop_bytes": 1,
+      "loop_sha256": "a8100ae6aa1940d0b663bb31cd466142ebbdbd5187131b92d93818987832eb89",
+      "loop_ticks": 0,
+      "slug": "track_07_scene_clear",
+      "track": "07 - Scene Clear",
+      "wire_commands": []
+    },
+    {
+      "diagnostic_command": "0xD7",
+      "has_loop": true,
+      "id": 8,
+      "intro": "out/audio_native/track_08_final_destroy_scene_3_round_6_boss_intro.bin",
+      "intro_bytes": 55122,
+      "intro_sha256": "b069b234c9cb250957fdeb065d5b6b93b35adea41709fdb23d65f25eebd11735",
+      "intro_ticks": 2121,
+      "loop": "out/audio_native/track_08_final_destroy_scene_3_round_6_boss_loop.bin",
+      "loop_bytes": 90649,
+      "loop_sha256": "6d95df7a5349d23cde2bb0705ca7c16c09bff4b644e0af2a134a08490eca7dae",
+      "loop_ticks": 2328,
+      "slug": "track_08_final_destroy_scene_3_round_6_boss",
+      "track": "08 - Final Destroy (Scene 3 Round 6 Boss)",
+      "wire_commands": []
+    },
+    {
+      "diagnostic_command": "0xD8",
+      "has_loop": false,
+      "id": 9,
+      "intro": "out/audio_native/track_09_the_man_of_saga_ending_intro.bin",
+      "intro_bytes": 146959,
+      "intro_sha256": "63a2ef9cd6845844578d0b85e189797b4eb3347fb744382ff74225eb3383f0a4",
+      "intro_ticks": 5177,
+      "loop": "out/audio_native/track_09_the_man_of_saga_ending_loop.bin",
+      "loop_bytes": 1,
+      "loop_sha256": "a8100ae6aa1940d0b663bb31cd466142ebbdbd5187131b92d93818987832eb89",
+      "loop_ticks": 0,
+      "slug": "track_09_the_man_of_saga_ending",
+      "track": "09 - The Man Of Saga (Ending)",
+      "wire_commands": []
+    }
+  ],
+  "unmapped_command_policy": "consume_without_interrupting_current_music"
+}

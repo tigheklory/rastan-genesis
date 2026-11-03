@@ -1,0 +1,54 @@
+{
+  "title": "Flying Demon (R1/P1) proven capture — original-arcade user-play trace analysis",
+  "source_trace": "analysis/graphics_optimizer/round1_phase1_corpus/flying_demon_trace/observations.csv",
+  "platform": "ORIGINAL ARCADE MAME (rastan), USER-DRIVEN (Tighe)",
+  "analysis_scope": "trace analysis only; NO palette 16-color decode, NO Round-2 boss work, NO production/ROM change, Build counter unchanged",
+  "method": "34485-row dedup actor-state trace; per-block/base/+0x3E presence profiling; encounter windows record==8 (frames 6318-11120) and record==13 (frames 14262-16726); actor_508 slot/piece/state correlation",
+
+  "identity": {
+    "conclusion": "PROVEN-BY-STRUCTURE: the Flying Demon is the SPECIAL two-slot actor_508 composite (base 0x0129), NOT a +0x3E family-table enemy.",
+    "actor_block": "actor_508 (A5+0x0508, dedicated 2-slot block)",
+    "slots": [
+      {"role": "component_A", "actor_address": "0x0010C508", "index": 0, "sat_owned_records": "57-69 (13 records)", "piece_code_range": "0x0129-0x0155 (+ shared death 0x0288-0x02A8)"},
+      {"role": "component_B", "actor_address": "0x0010C548", "index": 1, "sat_owned_records": "70-82 (13 records)", "piece_code_range": "0x014A-0x0177 (+ shared death 0x0288-0x02A8)"}
+    ],
+    "base_code": "0x0129 (direct sprite base; NOT an entry in the +0x3E family table 0x45502)",
+    "total_sat_records": 26,
+    "why_not_plus3e_family": "actor_508 fields are +0x3E=0x00, +0x38=0x00, +0x752=0x00, +0x27(attr)=0x80 for ALL 1876 rows. It carries none of the FUN_0004544e 12-row family-table selection (base 0x0129 is not a table base; attr lacks the 0x40 family-palette flag, uses 0x80). The Flying Demon is handled by the dedicated actor_508 special path, outside the ordinary enemy +0x3E family system.",
+    "prior_guess_withdrawn": "sprites.json actor_3e 'one of {4,5,6,7,8,9,10,11}' is WITHDRAWN — the demon does not use the +0x3E family selector at all."
+  },
+
+  "task_answers": {
+    "1_actor_plus3e_family": "NONE — +0x3E=0x00 (special actor_508 path, not a family-table enemy). Identity = actor_508 block + base 0x0129.",
+    "2_plus38_plus752_state": "+0x38=0x00, +0x752=0x00 (both zero for all rows; the demon does not use the +0x38/+0x752 sub-form selection).",
+    "3_component_A_ownership": "component_A @0x0010C508 (actor_508 idx0), PC090OJ/OBJ SAT records 57-69, codes 0x0129-0x0155.",
+    "4_component_B_ownership": "component_B @0x0010C548 (actor_508 idx1), PC090OJ/OBJ SAT records 70-82, codes 0x014A-0x0177. BODY-vs-WINGS now PROVEN BY RENDER (enemy contact-sheet task): component_A draws the BODY (torso/legs/sword), component_B draws the two WINGS. Neutral component_A/B identifiers retained. Evidence: contact_sheets/r1p1_enemies_diagnostic.png.",
+    "5_component_relationship": "TWO separate actor structures (two distinct addresses, two disjoint SAT owned ranges), co-located and state-locked, forming ONE Flying Demon enemy. Not a single actor with a piece sub-group. NOT the previously-hypothesized a5+0x748/a5+0x8c8 aux blocks (those carry small unrelated effects here).",
+    "6_pc090oj_record_ownership": "component_A = OBJ records 57-69 (0x39-0x45). component_B = OBJ records 70-82 (0x46-0x52). Death animation (codes 0x0288-0x02A8) is written into these same records by both components together.",
+    "7_damage_lifecycle": "STRONGLY COUPLED / STATE-LOCKED across the captured lifecycle. The two components share the IDENTICAL observed state every frame (states 0x03 spawn -> 0x04,0x05,0x06,0x07,0x08,0x09 living -> 0x0F death) and despawn on the SAME frame (16784). Co-occurrence: (09,09)x241 (05,05)x199 (06,06)x145 (08,08)x113 (04,04)x87 (07,07)x75 (0F,0F)x23 (03,03)x2.",
+    "8_wing_only_death_arcade": "NOT OBSERVED. In 885 shared frames there are ZERO frames where one component is in death-state 0x0F while the other is in a living state; the trace shows a state-locked lifecycle throughout. This is strong evidence but NOT a universal-impossibility proof: the saved trace contains no positively-identified attack against a single component, and no static arcade damage-ownership code was analyzed. Exact damage/death ownership remains DEFERRED."
+  },
+
+  "encounters": {
+    "encounter_1": {"user_desc": "Section 9 / right side of Record 8", "observed": "spawns at the record 8->9 boundary; actor_508 first live at frame 6746, record 9; active through ~frame 12125", "record_field": "9 (ticks over as player crosses the right edge of record 8)"},
+    "encounter_2": {"user_desc": "Section 14 / ~1/3 into Record 13", "observed": "actor_508 live at frames 14459-16784, record 13 (into 14)", "record_field": "13"},
+    "same_enemy_proof": "identical actor_508 base 0x0129, identical 26-record two-slot structure, identical state machine and code ranges at BOTH encounters."
+  },
+
+  "build_0313_differential": {
+    "component_A_exists": "YES",
+    "component_B_exists": "YES",
+    "arcade_ownership": "two co-located state-locked actor_508 slots, OBJ records 57-69 and 70-82",
+    "component_split_on_0313": "YES (user observation): one visible component can be removed/destroyed while the rest survives",
+    "wing_only_death_arcade": "NOT OBSERVED in the saved trace (state-locked across 885 shared frames); universal impossibility NOT proven",
+    "verdict": "Build 0313's separable components (one killable while the other survives) DIVERGE from the state-locked original-arcade trace. ROOT CAUSE UNRESOLVED — do NOT attribute to the native renderer without proof; candidate owners include translated gameplay lifecycle ownership, component state synchronization, native sprite publication/retirement, or damage-target ownership. Tracked as OPEN / DEFERRED. Palette separately INCORRECT per user (not addressed this task).",
+    "open_issue": "OPEN-027 (R1/P1 Flying Demon components can separate on Genesis despite state-locked arcade composite)",
+    "no_fix_this_task": true
+  },
+
+  "deferred_not_fabricated": [
+    "which physical half (component_A vs B) is visually the body vs the wings (needs pixel/compositor decode; NO base+n)",
+    "16-color palette contents of the demon's sprite bank (palette task, out of scope)",
+    "Round-2 boss wing-pattern sharing hypothesis (compare physical pattern hashes once wing patterns decoded; semantic identity stays separate regardless)"
+  ]
+}

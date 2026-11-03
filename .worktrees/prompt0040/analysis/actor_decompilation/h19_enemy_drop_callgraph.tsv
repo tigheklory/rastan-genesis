@@ -1,0 +1,4 @@
+creator	callers	caller_class	reaches_enemy_death	status
+rec_type-12 pickup creator	N/A (creator does not exist)	-	-	ABSENT
+0x449B4 (A5+0x12C8 producer)	per-frame collision/update manager	SYSTEM_EVENT	no (scans live actors each frame; not death-driven)	PROVEN
+0x5506C (type-0 aux)	0x54B1E only	SYSTEM_EVENT	no	PROVEN

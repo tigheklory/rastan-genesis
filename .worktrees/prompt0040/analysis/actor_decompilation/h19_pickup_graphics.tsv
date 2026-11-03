@@ -1,0 +1,2 @@
+pickup_actor	base	anim	selector	program	cells	status
+(none proven)	-	-	-	-	-	PENDING (no rec_type-12 / event-table pickup actor exists; visible-pickup mechanism is outside A5+0x12C8)

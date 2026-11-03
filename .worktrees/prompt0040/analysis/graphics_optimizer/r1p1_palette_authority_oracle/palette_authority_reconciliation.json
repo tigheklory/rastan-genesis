@@ -1,0 +1,210 @@
+{
+  "authority_rule": "Accepted registry decisions control only where evidence and acceptance support them; live frozen-Test routes are observations, not automatic authority.",
+  "counts": {
+    "ACCEPTED / CANONICAL": 0,
+    "CONTRADICTED": 2,
+    "NOT REACHABLE IN R1/P1": 0,
+    "PROVISIONAL": 0,
+    "TEST-ONLY": 6,
+    "UNRESOLVED": 1
+  },
+  "rows": [
+    {
+      "arcade_sprite_family": "Rastan player",
+      "confidence": "HIGH",
+      "control_state": "0x0060",
+      "decision_id": "PAL-PC090OJ-GAMEPLAY-RASTAN-SWORD-001",
+      "decision_status": "CONTRADICTED",
+      "effective_bank": "0x33",
+      "live_route_line": 0,
+      "provenance": [
+        "docs/design/Andy_build0280_sword_club_piece_rendering_fix.md",
+        "docs/design/Cody_user_controlled_sword_lizardman_capture_for_build0280.md",
+        "states/traces/build0279_user_controlled_sword_lizardman_corrected_20260812_092432/"
+      ],
+      "reason": "Accepted registry and current frozen-Test live route disagree.",
+      "registry_line": 3,
+      "registry_status": "proven",
+      "runtime_observation_basis": "static natural-gameplay path through .Lnative_palsel and .Lnative_pal_fixup; not a new runtime capture",
+      "runtime_observed_line": 0,
+      "semantic_class": "PC090OJ semantic melee-sword and nibble-3 Rastan BODY components",
+      "source_nibble": "0x3"
+    },
+    {
+      "arcade_sprite_family": "0x00",
+      "confidence": "HIGH",
+      "control_state": "0x0060",
+      "decision_id": "PAL-PC090OJ-STAGE1-LIZARDMAN-001",
+      "decision_status": "CONTRADICTED",
+      "effective_bank": "0x36",
+      "live_route_line": 1,
+      "provenance": [
+        "KNOWN_FINDINGS.md#kf-066",
+        "docs/design/Andy_opus_gameplay_hud_suppression_lizard_palette_build0208.md",
+        "docs/design/Cody_user_controlled_sword_lizardman_capture_for_build0280.md",
+        "states/traces/build0279_user_controlled_sword_lizardman_corrected_20260812_092432/"
+      ],
+      "reason": "Accepted registry and current frozen-Test live route disagree.",
+      "registry_line": 0,
+      "registry_status": "decided",
+      "runtime_observation_basis": "static natural-gameplay path through .Lnative_palsel and .Lnative_pal_fixup; not a new runtime capture",
+      "runtime_observed_line": 1,
+      "semantic_class": "PC090OJ native enemy pieces",
+      "source_nibble": "0x6"
+    },
+    {
+      "arcade_sprite_family": "actor_5c8 / base 0x03F6 (multi-cell aux); winged-bat render",
+      "confidence": "PROVISIONAL",
+      "control_state": "0x0060",
+      "decision_id": "PAL-PC090OJ-GAMEPLAY-LARGE-BAT-001",
+      "decision_status": "TEST-ONLY",
+      "effective_bank": "0x3E",
+      "live_route_line": 0,
+      "provenance": [
+        "analysis/graphics_optimizer/round1_phase1_corpus/enemy_palettes.json",
+        "analysis/graphics_optimizer/round1_phase1_corpus/contact_sheets/r1p1_enemies.png",
+        "KNOWN_FINDINGS.md#kf-1214",
+        "docs/design/Andy_round1_phase1_enemy_contact_sheet.md"
+      ],
+      "reason": "Live frozen-Test route is not an accepted registry realization.",
+      "registry_line": null,
+      "registry_status": "provisional",
+      "runtime_observation_basis": "static natural-gameplay path through .Lnative_palsel and .Lnative_pal_fixup; not a new runtime capture",
+      "runtime_observed_line": 0,
+      "semantic_class": "PC090OJ native enemy pieces",
+      "source_nibble": "0xE"
+    },
+    {
+      "arcade_sprite_family": "actor_748 / base 0x0268 (single-cell aux); small-bat render",
+      "confidence": "PROVISIONAL",
+      "control_state": "0x0060",
+      "decision_id": "PAL-PC090OJ-GAMEPLAY-SMALL-BAT-001",
+      "decision_status": "TEST-ONLY",
+      "effective_bank": "0x3E",
+      "live_route_line": 0,
+      "provenance": [
+        "analysis/graphics_optimizer/round1_phase1_corpus/enemy_palettes.json",
+        "analysis/graphics_optimizer/round1_phase1_corpus/contact_sheets/r1p1_enemies.png",
+        "KNOWN_FINDINGS.md#kf-1214",
+        "docs/design/Andy_round1_phase1_enemy_contact_sheet.md"
+      ],
+      "reason": "Live frozen-Test route is not an accepted registry realization.",
+      "registry_line": null,
+      "registry_status": "provisional",
+      "runtime_observation_basis": "static natural-gameplay path through .Lnative_palsel and .Lnative_pal_fixup; not a new runtime capture",
+      "runtime_observed_line": 0,
+      "semantic_class": "PC090OJ native enemy pieces",
+      "source_nibble": "0xE"
+    },
+    {
+      "arcade_sprite_family": "Axe item; exact family/class not established in this registry",
+      "confidence": "UNKNOWN",
+      "control_state": null,
+      "decision_id": "PAL-PC090OJ-GAMEPLAY-AXE-ITEM-001",
+      "decision_status": "UNRESOLVED",
+      "effective_bank": null,
+      "live_route_line": null,
+      "provenance": [
+        "docs/design/Andy_complete_native_graphics_retirement_STOP.md",
+        "docs/design/Cody_build0254_attract_mode_legacy_reachability_audit.md"
+      ],
+      "reason": "No accepted Genesis line and no live route.",
+      "registry_line": null,
+      "registry_status": "unknown",
+      "runtime_observation_basis": "static natural-gameplay path through .Lnative_palsel and .Lnative_pal_fixup; not a new runtime capture",
+      "runtime_observed_line": null,
+      "semantic_class": "PC090OJ native item pieces",
+      "source_nibble": null
+    },
+    {
+      "arcade_sprite_family": "+0x3E=3 / base 0x02E8 (ordinary family)",
+      "confidence": "PROVISIONAL",
+      "control_state": "0x0060",
+      "decision_id": "PAL-PC090OJ-GAMEPLAY-FOUR-ARMED-ENEMY-001",
+      "decision_status": "TEST-ONLY",
+      "effective_bank": "0x3A",
+      "live_route_line": 1,
+      "provenance": [
+        "analysis/graphics_optimizer/round1_phase1_corpus/enemy_palettes.json",
+        "analysis/graphics_optimizer/round1_phase1_corpus/contact_sheets/r1p1_enemies.png",
+        "KNOWN_FINDINGS.md#kf-1214",
+        "docs/design/Andy_round1_phase1_enemy_contact_sheet.md"
+      ],
+      "reason": "Live frozen-Test route is not an accepted registry realization.",
+      "registry_line": null,
+      "registry_status": "provisional",
+      "runtime_observation_basis": "static natural-gameplay path through .Lnative_palsel and .Lnative_pal_fixup; not a new runtime capture",
+      "runtime_observed_line": 1,
+      "semantic_class": "PC090OJ native enemy pieces",
+      "source_nibble": "0xA"
+    },
+    {
+      "arcade_sprite_family": "+0x3E=1 / base 0x00D0 (Chimera, Tighe anchor)",
+      "confidence": "PROVISIONAL",
+      "control_state": "0x0060",
+      "decision_id": "PAL-PC090OJ-STAGE1-CHIMERA-001",
+      "decision_status": "TEST-ONLY",
+      "effective_bank": "0x34",
+      "live_route_line": 0,
+      "provenance": [
+        "analysis/graphics_optimizer/round1_phase1_corpus/enemy_palettes.json",
+        "analysis/graphics_optimizer/round1_phase1_corpus/contact_sheets/r1p1_enemies.png",
+        "KNOWN_FINDINGS.md#kf-1214",
+        "docs/design/Andy_round1_phase1_enemy_contact_sheet.md"
+      ],
+      "reason": "Live frozen-Test route is not an accepted registry realization.",
+      "registry_line": null,
+      "registry_status": "provisional",
+      "runtime_observation_basis": "static natural-gameplay path through .Lnative_palsel and .Lnative_pal_fixup; not a new runtime capture",
+      "runtime_observed_line": 0,
+      "semantic_class": "PC090OJ native enemy pieces",
+      "source_nibble": "0x4"
+    },
+    {
+      "arcade_sprite_family": "+0x3E=8 / base 0x0241 (Valkyrie; armored-female-warrior render, USER VERIFY)",
+      "confidence": "PROVISIONAL",
+      "control_state": "0x0060",
+      "decision_id": "PAL-PC090OJ-STAGE1-VALKYRIE-001",
+      "decision_status": "TEST-ONLY",
+      "effective_bank": "0x32",
+      "live_route_line": 0,
+      "provenance": [
+        "analysis/graphics_optimizer/round1_phase1_corpus/enemy_palettes.json",
+        "analysis/graphics_optimizer/round1_phase1_corpus/contact_sheets/r1p1_enemies.png",
+        "KNOWN_FINDINGS.md#kf-1214",
+        "docs/design/Andy_round1_phase1_enemy_contact_sheet.md"
+      ],
+      "reason": "Live frozen-Test route is not an accepted registry realization.",
+      "registry_line": null,
+      "registry_status": "provisional",
+      "runtime_observation_basis": "static natural-gameplay path through .Lnative_palsel and .Lnative_pal_fixup; not a new runtime capture",
+      "runtime_observed_line": 0,
+      "semantic_class": "PC090OJ native enemy pieces",
+      "source_nibble": "0x2"
+    },
+    {
+      "arcade_sprite_family": "special two-slot actor_508 / base 0x0129 (Flying Demon; NOT a +0x3E family; attr 0x80 but emitted word0 nibble 5)",
+      "confidence": "PROVISIONAL",
+      "control_state": "0x0060",
+      "decision_id": "PAL-PC090OJ-STAGE1-FLYING-DEMON-001",
+      "decision_status": "TEST-ONLY",
+      "effective_bank": "0x35",
+      "live_route_line": 1,
+      "provenance": [
+        "analysis/graphics_optimizer/round1_phase1_corpus/enemy_palettes.json",
+        "analysis/graphics_optimizer/round1_phase1_corpus/contact_sheets/r1p1_enemies.png",
+        "KNOWN_FINDINGS.md#kf-1214",
+        "docs/design/Andy_round1_phase1_enemy_contact_sheet.md"
+      ],
+      "reason": "Live frozen-Test route is not an accepted registry realization.",
+      "registry_line": null,
+      "registry_status": "provisional",
+      "runtime_observation_basis": "static natural-gameplay path through .Lnative_palsel and .Lnative_pal_fixup; not a new runtime capture",
+      "runtime_observed_line": 1,
+      "semantic_class": "PC090OJ native enemy pieces",
+      "source_nibble": "0x5"
+    }
+  ],
+  "schema_version": 1,
+  "scope": "Round 1 Phase 1"
+}

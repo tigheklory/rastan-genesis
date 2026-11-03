@@ -1,0 +1,37 @@
+{
+ "schema": "audio_composer/v2",
+ "profile_id": "baseline_current",
+ "display_name": "Baseline (immutable)",
+ "immutable": true,
+ "parent": null,
+ "track_id": null,
+ "source": {
+  "rom": "build/regions/audiocpu.bin (b04-19.49)",
+  "capture_dir": "audio/rastan_music_dump/conversion_attempts",
+  "analysis_version": "AUDIO-002/004 capture-derived; AUDIO-003 NOT decoded"
+ },
+ "arcade_evidence": {},
+ "proposals": {},
+ "approved_routing": {},
+ "noise_mode": "fixed_1024",
+ "instrument_overrides": {},
+ "time_dependent_routing": [],
+ "conflicts": [],
+ "notes": "",
+ "approval_status": "draft",
+ "revision": 0,
+ "reserved_dac": "ym2612_fm6_dac",
+ "music_destinations": [
+  "ym2612_fm1",
+  "ym2612_fm2",
+  "ym2612_fm3",
+  "ym2612_fm4",
+  "ym2612_fm5",
+  "psg_tone1",
+  "psg_tone2",
+  "psg_tone3",
+  "psg_noise",
+  "unassigned"
+ ],
+ "arcade_channel_count": 8
+}

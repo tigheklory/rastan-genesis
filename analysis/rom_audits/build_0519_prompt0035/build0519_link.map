@@ -1,0 +1,566 @@
+
+There are no discarded input sections
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+*default*        0x00000000         0xffffffff
+
+Linker script and memory map
+
+                0x00000000                        . = 0x0
+
+.text.boot      0x00000000      0x372
+ *(.text.boot)
+ .text.boot     0x00000000      0x372 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/boot.o
+                0x00000202                _start
+                0x0000117e                        genesistan_crash_handler_end = 0x117e
+                0x00070000                        . = 0x70000
+
+.text.wrapper   0x00070000   0x2d4650
+ *(.text .text.*)
+ .text          0x00070000        0x0 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/boot.o
+ .text          0x00070000      0x290 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/vdp_comm.o
+                0x00070000                vdp_boot_setup
+                0x0007007e                vdp_set_reg
+                0x00070090                vdp_set_vram_write_addr
+                0x000700b6                sprite_dma_addr_high_bits_fix
+                0x000700c2                _vblank_service
+                0x000700dc                vdp_commit_tiles_if_dirty
+                0x00070106                vdp_commit_bg_strips_if_dirty
+                0x0007014e                vdp_commit_fg_strips_if_dirty
+                0x00070192                vdp_commit_scroll
+                0x00070204                vdp_install_test_lines
+ .text          0x00070290      0x1be /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/dma.o
+                0x00070290                dma_publish_frame
+                0x00070318                dma_words_to_vram_noai
+                0x00070322                dma_words_to_vram
+                0x00070322                vdp_dma_words_to_vram
+                0x000703f4                vdp_commit_palette
+ *fill*         0x0007044e        0x2 
+ .text          0x00070450     0x2810 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/tilemap_hooks.o
+                0x000704c0                genesistan_hook_tilemap_plane_a_selector0_native
+                0x000706f0                genesistan_hook_tilemap_plane_a_selector12_native
+                0x0007090c                genesistan_plane_a_checkpoint_restore_arm
+                0x00070916                genesistan_plane_a_scene_scroll_reseed_native
+                0x00070a94                genesistan_plane_a_pan_publish_entering_rows_up
+                0x00070aec                genesistan_plane_a_pan_publish_entering_rows_down
+                0x000712fe                genesistan_collision_surface_mark_visual_native
+                0x00071326                genesistan_pc080sn_directional_dispatch_native
+                0x00071552                genesistan_hook_tilemap_plane_a
+                0x000717c8                genesistan_hook_tilemap_fg
+                0x000719ec                genesistan_hook_tilemap_bg_fill
+                0x00071ac0                genesistan_hook_tilemap_fg_fill
+                0x00071bba                genesistan_phase3_fg_anim_native
+                0x00071c0a                genesistan_hook_inline_fg_write_3a550
+                0x00071c22                genesistan_hook_inline_fg_write_3a8fe
+                0x00071c3e                genesistan_hook_inline_fg_write_3a908
+                0x00071c5a                genesistan_hook_inline_fg_write_3a92a
+                0x00071c72                genesistan_hook_inline_fg_write_3acea
+                0x00071c8e                genesistan_hook_inline_fg_write_3d04c
+                0x00071cae                genesistan_hook_highscore_fg_producer
+                0x00071d14                genesistan_hook_tilemap_bg_blockcopy
+                0x00071de8                genesistan_hook_text_writer_3c4d2
+                0x00072078                genesistan_hook_text_writer_3c950
+                0x00072338                genesistan_hook_number_renderer_3c2e2
+                0x000724c6                genesistan_hook_glyph_renderer_3bd48
+                0x0007251e                genesistan_hook_text_writer_3c550
+                0x0007256e                genesistan_hook_text_writer_3c586
+                0x0007265c                genesistan_hook_text_writer_3c636
+                0x00072734                genesistan_hook_text_writer_3c6dc
+                0x000727b8                genesistan_hook_text_writer_3c75c
+                0x00072870                genesistan_hook_text_writer_3c7a4
+                0x000728de                genesistan_hook_text_writer_3c830
+                0x00072ae6                genesistan_hook_cwindow_clear
+                0x00072b62                rastan_direct_update_inputs
+                0x00072c4c                genesistan_hook_pc080sn_bg_scroll_fill
+                0x00072c56                genesistan_hook_pc080sn_fg_scroll_fill
+ .text.zzz_textwriter_dispatch
+                0x00072c60       0xba /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/tilemap_hooks.o
+                0x00072c60                genesistan_hook_textwriter_dispatch
+ .text.zzz_pc080sn_descriptor_rebuild
+                0x00072d1a       0x72 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/tilemap_hooks.o
+                0x00072d1a                genesistan_hook_pc080sn_descriptor_rebuild
+ .text.zzz_itempage_strip_populate
+                0x00072d8c       0x58 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/tilemap_hooks.o
+                0x00072d8c                genesistan_hook_itempage_strip_populate
+ .text.zzz_itempage_strip_blit
+                0x00072de4      0x24e /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/tilemap_hooks.o
+                0x00072de4                genesistan_hook_itempage_strip_blit
+                0x00072e94                vdp_commit_bg_columns_if_dirty
+                0x00072fb8                vdp_commit_fg_narrow_strips
+ *fill*         0x00073032        0x2 
+ .text          0x00073034      0x710 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/fg_tile_cache.o
+                0x00073034                fg_cache_reset
+                0x000730ac                fg_boundary_advance_segment
+                0x000730f4                fg_boundary_install_post_reseed
+                0x0007316e                fg_boundary_transition_step
+                0x000731ba                fg_cache_resolve
+                0x000731ba                fg_boundary_resolve_a
+                0x000731fe                fg_boundary_resolve_b
+                0x0007324c                fg_boundary_install
+ .text          0x00073744      0x2fc /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/palette_hooks.o
+                0x00073744                palette_route_lookup
+                0x000737ae                genesistan_palette_hook_59ad4
+                0x000738f0                genesistan_palette_hook_03ab00
+                0x00073914                genesistan_palette_hook_45dae
+                0x00073960                genesistan_palette_hook_3ba64
+ .text          0x00073a40       0xc4 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/title_native.o
+                0x00073a40                genesistan_title_present_once
+ .text          0x00073b04      0x338 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/hud_native.o
+                0x00073b04                genesistan_hud_activate_frontend
+                0x00073bb4                genesistan_hud_prepare_frontend
+                0x00073c56                genesistan_hud_deactivate
+                0x00073c9e                genesistan_hud_link_transient
+ .text          0x00073e3c      0x186 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/item_native.o
+                0x00073e3c                genesistan_item_description_enter
+                0x00073ef0                genesistan_item_ring_advance
+                0x00073f42                genesistan_item_emit_native
+ *fill*         0x00073fc2        0x2 
+ .text          0x00073fc4     0x1bd6 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/pc090oj_hooks.o
+                0x00073fc4                genesistan_pc090oj_hook_target_3b902
+                0x00073fc6                genesistan_pc090oj_hook_target_3b926
+                0x00073fc8                genesistan_pc090oj_hook_target_41dae
+                0x00073ff6                genesistan_pc090oj_hook_target_41f5e
+                0x00074008                genesistan_pc090oj_hook_target_45dfa
+                0x00074040                native_player_frame_begin
+                0x0007404e                native_player_front_begin
+                0x00074058                native_player_front_fixed
+                0x000740e0                native_player_aux_fixed
+                0x00074130                native_player_body_begin
+                0x0007413a                native_player_frame_try
+                0x0007429a                native_player_secondary_frame
+                0x00074364                native_player_body_anchor_blank
+                0x00074374                native_player_body_anchor_clear
+                0x0007437e                native_sprite_emit
+                0x00074458                profile_native_queue_return
+                0x00074544                native_stage_dispatch_41dae_retained_cut
+                0x000746f4                native_stage_dispatch_45dfa_retained_cut
+                0x00074778                profile_native_actor_entry
+                0x000747b8                profile_native_actor_return
+                0x000747ba                profile_native_levelb_entry
+                0x0007488c                profile_native_levelb_index_lookup
+                0x000748c4                profile_native_levelb_frame_ready
+                0x000748da                profile_native_levelb_piece
+                0x0007490c                profile_native_levelb_success
+                0x00074910                profile_native_levelb_miss
+                0x00074912                profile_native_death_entry
+                0x000749ae                profile_native_death_index_lookup
+                0x000749f6                profile_native_death_frame_ready
+                0x000749f6                profile_native_death_piece
+                0x00074a28                profile_native_death_success
+                0x00074a2c                profile_native_death_miss
+                0x00074a2e                profile_native_universal_entry
+                0x00074a9e                profile_native_universal_index_lookup
+                0x00074aaa                profile_native_universal_frame_ready
+                0x00074ac4                profile_native_universal_piece
+                0x00074b68                profile_native_universal_success
+                0x00074b6c                profile_native_universal_miss
+                0x00074ba6                profile_native_contact_entry
+                0x00074ba6                genesistan_native_contact_coords_51ab6
+                0x00074db2                profile_native_contact_record_done
+                0x00074dbc                profile_native_contact_return
+                0x00074dbe                genesistan_pc090oj_hook_target_59f5e
+                0x00074dc0                genesistan_pc090oj_ctrl_set_1
+                0x00074dd4                genesistan_pc090oj_ctrl_set_0
+                0x00074de4                genesistan_pc090oj_sprite_ctrl_write_d0
+                0x00074df4                genesistan_pc090oj_sprite_ctrl_clear
+                0x00074e04                genesistan_hook_3ad44_dispatch
+                0x00074e8e                genesistan_pc090oj_hook_init_priority_3ad84
+                0x00074e90                genesistan_pc090oj_hook_score_digit_3b802
+                0x00074e92                genesistan_gameplay_hud_score_dirty
+                0x00074ea0                genesistan_pc090oj_hook_slot_init_54052
+                0x00074ea2                genesistan_pc090oj_hook_player_aux_native_54810
+                0x00074eea                genesistan_pc090oj_hook_sprite_decay_5607c
+                0x00074f34                genesistan_pc090oj_hook_copy_56114
+                0x00074f3e                genesistan_pc090oj_hook_zero_fill_56440
+                0x00074f76                genesistan_pc090oj_hook_status_sprite_5a098
+                0x00075182                genesistan_pc090oj_hook_audit_guard
+                0x000751c6                pc090oj_select_palette_map
+                0x000751e4                pc090oj_reverse_index_init
+                0x0007522a                profile_native_finalizer_entry
+                0x0007522a                pc090oj_native_emit_pass
+                0x0007524e                pc090oj_native_emit_pass_retained_cut
+                0x000754aa                profile_native_lane_entry
+                0x000754ce                profile_native_final_piece_entry
+                0x000754e8                profile_native_pre_variant
+                0x00075502                profile_native_pre_direct
+                0x0007550c                profile_native_pre_dynamic
+                0x0007554c                profile_native_pre_validated
+                0x00075562                profile_native_pre_pointer_ready
+                0x00075570                profile_native_geometry_entry
+                0x000755a4                profile_native_bbox_entry
+                0x000755f4                profile_native_variant_entry
+                0x00075666                profile_native_residency_entry
+                0x00075698                profile_native_residency_miss
+                0x000756dc                profile_native_allocation_take
+                0x00075812                profile_native_sat_entry
+                0x00075828                profile_native_sat_y
+                0x00075834                profile_native_sat_link
+                0x0007583e                profile_native_sat_attr
+                0x0007588e                profile_native_sat_x
+                0x0007589a                profile_native_sat_count
+                0x0007589c                profile_native_piece_return
+                0x000758a6                profile_native_finalizer_done
+                0x0007593e                vdp_prepare_sprites
+                0x00075970                vdp_commit_sprites_vram
+                0x00075970                vdp_commit_sprites
+                0x00075a94                genesistan_pc090oj_dma_self_test
+ *fill*         0x00075b9a        0x2 
+ .text          0x00075b9c        0x0 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/pc090oj_assets.o
+ .text          0x00075b9c        0x0 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/diag_bookmark.o
+ .text.wrapper  0x00075b9c        0x2 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/diag_bookmark.o
+                0x00075b9c                genesistan_diag_bookmark
+ *fill*         0x00075b9e        0x2 
+ .text          0x00075ba0      0x1f6 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/scene_load.o
+                0x00075ba0                load_scene_tiles
+                0x00075d04                genesistan_frontend_presentation_reset
+                0x00075d16                genesistan_frontend_owner_reset
+                0x00075d28                genesistan_presentation_mark_unsafe
+                0x00075d4c                genesistan_presentation_mark_ready_after_publish
+                0x00075d5a                genesistan_presentation_publish_complete
+ *fill*         0x00075d96        0x2 
+ .text          0x00075d98      0x126 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/sound_comm.o
+                0x00075db6                z80_init_and_start
+                0x00075e56                z80_write_command
+ *fill*         0x00075ebe        0x2 
+ .text          0x00075ec0        0x0 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/z80_driver.o
+ .text          0x00075ec0        0x0 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/audio_assets.o
+ *(.rodata .rodata.*)
+ .rodata        0x00075ec0    0xa2a68 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/tilemap_hooks.o
+                0x00075ec0                genesistan_number_descriptor_table
+                0x00075f28                genesistan_highscore_name_descriptor_table
+                0x000c58a8                genesistan_plane_a_authored_descriptor_visuals
+ .rodata        0x00118928    0x15128 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/fg_tile_cache.o
+ .rodata        0x0012da50      0x23e /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/palette_hooks.o
+                0x0012dadc                editor_layera_palette
+                0x0012dafc                test_sprite_line0
+                0x0012db1c                test_sprite_line1
+                0x0012db3c                diagnostic_palette_r1s1
+                0x0012db9c                diagnostic_palette_r1s2
+                0x0012dbfc                diagnostic_palette_scene_select
+                0x0012dc86                diagnostic_palette_asset_ptrs
+ .rodata        0x0012dc8e     0x4cd2 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/title_native.o
+                0x0012dc8e                native_title_bg_map
+                0x0012ec8e                native_title_fg_map
+                0x0012fc8e                native_title_fg_map_invincible
+                0x00130c8e                native_title_palette
+                0x00130cae                native_title_patterns
+ .rodata        0x00132960     0x13aa /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/hud_native.o
+ .rodata        0x00133d0a     0x3eda /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/item_native.o
+ .rodata        0x00137be4     0x2376 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/pc090oj_hooks.o
+                0x00137be4                pc090oj_palsel_lut_scene0
+                0x00137be4                pc090oj_palsel_lut
+                0x00137c64                pc090oj_palsel_lut_scene1
+                0x00137ce4                pc090oj_palsel_lut_scene2
+                0x00137d64                pc090oj_palsel_lut_scene3
+                0x00137de4                pc090oj_variant_group_base
+                0x00139de4                pc090oj_variant_bank_slot
+                0x00139e64                pc090oj_variant_source_code
+ .rodata        0x00139f5a    0xcee22 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/pc090oj_assets.o
+                0x00139f5a                rastan_pc090oj
+                0x001bdcda                pc090oj_player_frame_table
+                0x001bdcda                pc090oj_frame_table
+                0x001e1f36                pc090oj_player_piece_table
+                0x001e6b1a                pc090oj_player_frame_index
+                0x001ea35a                pc090oj_secondary_frame_index
+                0x001eb6da                pc090oj_generic_frame_index
+                0x001eb80a                pc090oj_generic_piece_table
+                0x001ebd98                pc090oj_universal_frame_index
+                0x001ef998                pc090oj_special_frame_index
+                0x001f0994                pc090oj_death_frame_index
+                0x001f0b74                pc090oj_death_piece_table
+                0x001f0fa6                pc090oj_generic_base_lut
+                0x001f1fa6                pc090oj_generic_usage_table
+                0x001f1fd8                pc090oj_player_frame_residency
+                0x001f7afc                rastan_pc090oj_semantic_profile
+                0x001f8a7c                pc090oj_slot_lut
+                0x001f8b7c                pc090oj_blank_code_bitset
+                0x001f8d7c                pc090oj_opaque_bbox
+ *fill*         0x00208d7c        0x4 
+ .rodata        0x00208d80   0x13b59a /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/scene_load.o
+                0x00208d80                genesistan_pc080sn_tile_vram_lut
+                0x00210e00                genesistan_pc080sn_attr_lut
+                0x00210e40                genesistan_pc080sn_native_metatile_index
+                0x00270c3e                genesistan_pc080sn_native_metatile_records
+                0x002bab7e                genesistan_pc080sn_native_metatile_records_end
+                0x002bab7e                genesistan_pc080sn_plane_b_visual_records
+                0x002bb670                genesistan_pc080sn_plane_b_visual_records_end
+                0x002bb680                genesistan_pc080sn_tile_rom
+                0x0033b680                genesistan_scene_preload_title
+                0x0033c3b6                genesistan_scene_preload_title_end
+                0x0033c3b6                genesistan_scene_preload_gameplay
+                0x0033d360                genesistan_scene_preload_gameplay_end
+                0x0033d360                genesistan_scene_preload_gameplay_cave
+                0x0033dce2                genesistan_scene_preload_stage1_cave_s4
+                0x0033dce2                genesistan_scene_preload_gameplay_cave_end
+                0x0033ee70                genesistan_scene_preload_stage1_cave_s5
+                0x0033ee70                genesistan_scene_preload_stage1_cave_s4_end
+                0x0033fe1a                genesistan_scene_preload_stage1_cave_s6
+                0x0033fe1a                genesistan_scene_preload_stage1_cave_s5_end
+                0x00341020                genesistan_scene_preload_stage1_cave_s6_end
+                0x00341020                genesistan_scene_preload_stage1_seg1
+                0x0034205a                genesistan_scene_preload_stage1_seg1_end
+                0x0034205a                genesistan_scene_preload_stage1_seg2
+                0x00343254                genesistan_scene_preload_endround
+                0x00343254                genesistan_scene_preload_stage1_seg2_end
+                0x00344302                genesistan_scene_preload_endround_end
+                0x00344302                genesistan_scene_a0_ranges
+ .rodata        0x0034431a      0x234 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/z80_driver.o
+                0x0034431a                z80_driver_start
+                0x0034454e                z80_driver_end
+ .rodata        0x0034454e      0x100 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/audio_assets.o
+                0x0034454e                genesistan_audio_song_catalog_count
+                0x00344550                genesistan_audio_song_catalog
+                0x003445bc                genesistan_audio_song_dispatch_count
+                0x003445be                genesistan_audio_song_dispatch
+ *(.data .data.*)
+ *fill*         0x0034464e        0x2 
+ .data          0x00344650        0x0 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/boot.o
+ .data          0x00344650        0x0 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/vdp_comm.o
+ .data          0x00344650        0x0 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/dma.o
+ .data          0x00344650        0x0 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/tilemap_hooks.o
+ .data          0x00344650        0x0 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/fg_tile_cache.o
+ .data          0x00344650        0x0 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/palette_hooks.o
+ .data          0x00344650        0x0 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/title_native.o
+ .data          0x00344650        0x0 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/hud_native.o
+ .data          0x00344650        0x0 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/item_native.o
+ .data          0x00344650        0x0 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/pc090oj_hooks.o
+ .data          0x00344650        0x0 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/pc090oj_assets.o
+ .data          0x00344650        0x0 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/diag_bookmark.o
+ .data          0x00344650        0x0 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/scene_load.o
+ .data          0x00344650        0x0 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/sound_comm.o
+ .data          0x00344650        0x0 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/z80_driver.o
+ .data          0x00344650        0x0 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/audio_assets.o
+                0x00348000                        . = ALIGN (0x8000)
+
+.audio          0x00348000    0x94dca
+ *(.audio)
+ .audio         0x00348000    0x94dca /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/audio_assets.o
+                0x00348000                genesistan_audio_track_01_credit_start
+                0x00348317                genesistan_audio_track_01_credit_loop
+                0x00348318                genesistan_audio_track_01_credit_end
+                0x00348318                genesistan_audio_track_02_broken_the_promises_opening_start
+                0x0034bcf8                genesistan_audio_track_02_broken_the_promises_opening_loop
+                0x0034bcf9                genesistan_audio_track_02_broken_the_promises_opening_end
+                0x0034bcf9                genesistan_audio_track_03_aggressive_world_scene_1_start
+                0x0034df7d                genesistan_audio_track_03_aggressive_world_scene_1_loop
+                0x00359885                genesistan_audio_track_03_aggressive_world_scene_1_end
+                0x00359885                genesistan_audio_track_04_bad_bible_name_regist_start
+                0x00359ac4                genesistan_audio_track_04_bad_bible_name_regist_loop
+                0x0035a4ec                genesistan_audio_track_04_bad_bible_name_regist_end
+                0x0035a4ec                genesistan_audio_track_05_re_in_carnation_scene_2_start
+                0x0035b054                genesistan_audio_track_05_re_in_carnation_scene_2_loop
+                0x00387577                genesistan_audio_track_06_the_devil_boss_carnival_scene_3_boss_start
+                0x00387577                genesistan_audio_track_05_re_in_carnation_scene_2_end
+                0x003892fb                genesistan_audio_track_06_the_devil_boss_carnival_scene_3_boss_loop
+                0x0039277d                genesistan_audio_track_07_scene_clear_start
+                0x0039277d                genesistan_audio_track_06_the_devil_boss_carnival_scene_3_boss_end
+                0x0039564e                genesistan_audio_track_07_scene_clear_loop
+                0x0039564f                genesistan_audio_track_07_scene_clear_end
+                0x0039564f                genesistan_audio_track_08_final_destroy_scene_3_round_6_boss_start
+                0x003a2da1                genesistan_audio_track_08_final_destroy_scene_3_round_6_boss_loop
+                0x003b8fba                genesistan_audio_track_08_final_destroy_scene_3_round_6_boss_end
+                0x003b8fba                genesistan_audio_track_09_the_man_of_saga_ending_start
+                0x003dcdc9                genesistan_audio_track_09_the_man_of_saga_ending_loop
+                0x003dcdca                genesistan_audio_track_09_the_man_of_saga_ending_end
+                0x003dd000                        . = ALIGN (0x1000)
+
+.crash          0x003dd000      0xeb8
+ *(.crash)
+ .crash         0x003dd000      0xeb8 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/vdp_comm.o
+                0x003dd000                _crash_stub_bus_error
+                0x003dd00c                _crash_stub_address_error
+                0x003dd018                _crash_stub_illegal
+                0x003dd024                _crash_stub_zero_divide
+                0x003dd030                _crash_stub_chk
+                0x003dd03c                _crash_stub_trapv
+                0x003dd048                _crash_stub_privilege
+                0x003dd054                _crash_stub_trace
+                0x003dd060                _crash_stub_line_a
+                0x003dd06c                _crash_stub_line_f
+                0x003dd078                _crash_stub_trap_00
+                0x003dd084                _crash_stub_trap_01
+                0x003dd090                _crash_stub_trap_02
+                0x003dd09c                _crash_stub_trap_03
+                0x003dd0a8                _crash_stub_trap_04
+                0x003dd0b4                _crash_stub_trap_05
+                0x003dd0c0                _crash_stub_trap_06
+                0x003dd0cc                _crash_stub_trap_07
+                0x003dd0d8                _crash_stub_trap_08
+                0x003dd0e4                _crash_stub_trap_09
+                0x003dd0f0                _crash_stub_trap_10
+                0x003dd0fc                _crash_stub_trap_11
+                0x003dd108                _crash_stub_trap_12
+                0x003dd114                _crash_stub_trap_13
+                0x003dd120                _crash_stub_trap_14
+                0x003dd12c                _crash_stub_trap_15
+                0x003dd138                _crash_stub_other
+                0x003dd144                _crash_common
+
+.bss            0x00ff4000     0x8658
+ *(.bss .bss.*)
+ .bss           0x00ff4000        0x0 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/boot.o
+ .bss           0x00ff4000     0x2186 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/vdp_comm.o
+                0x00ff4000                tiles_dirty
+                0x00ff4001                palette_pending
+                0x00ff4002                bg_row_dirty
+                0x00ff4006                fg_row_dirty
+                0x00ff400a                fg_native_gameplay_owner
+                0x00ff400c                diagnostic_palette_active_asset
+                0x00ff400e                diagnostic_palette_active_visual_index
+                0x00ff4012                fg_narrow_desc_table
+                0x00ff4092                fg_narrow_desc_count
+                0x00ff4094                fg_narrow_pending_rows
+                0x00ff4096                staged_dest_ptr_bg
+                0x00ff409a                staged_dest_ptr_fg
+                0x00ff409e                staged_scroll_x_bg
+                0x00ff40a0                staged_scroll_x_fg
+                0x00ff40a2                staged_scroll_y_bg
+                0x00ff40a4                staged_scroll_y_fg
+                0x00ff40a6                staged_bg_buffer
+                0x00ff50a6                staged_fg_buffer
+                0x00ff60a6                staged_palette_words
+                0x00ff6126                staged_tile_words
+ .bss.crash_record
+                0x00ff6186       0x64 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/vdp_comm.o
+                0x00ff6186                CRASH_RECORD_BASE
+                0x00ff6186                CRASH_ACTIVE_FLAG
+                0x00ff6188                CRASH_EXCEPTION_TYPE
+                0x00ff618a                CRASH_STACKED_SR
+                0x00ff618c                CRASH_STACKED_PC
+                0x00ff6192                CRASH_FRAME_SP
+                0x00ff6196                CRASH_USP
+                0x00ff619a                CRASH_D0
+                0x00ff619e                CRASH_D1
+                0x00ff61a2                CRASH_D2
+                0x00ff61a6                CRASH_D3
+                0x00ff61aa                CRASH_D4
+                0x00ff61ae                CRASH_D5
+                0x00ff61b2                CRASH_D6
+                0x00ff61b6                CRASH_D7
+                0x00ff61ba                CRASH_A0
+                0x00ff61be                CRASH_A1
+                0x00ff61c2                CRASH_A2
+                0x00ff61c6                CRASH_A3
+                0x00ff61ca                CRASH_A4
+                0x00ff61ce                CRASH_A5
+                0x00ff61d2                CRASH_A6
+                0x00ff61d6                CRASH_FAULT_ADDR
+                0x00ff61da                CRASH_ACCESS_WORD
+                0x00ff61dc                CRASH_INSTR_REG
+                0x00ff61de                CRASH_GS_00
+                0x00ff61e0                CRASH_GS_02
+                0x00ff61e2                CRASH_GS_04
+                0x00ff61e4                CRASH_GS_34
+                0x00ff61e6                CRASH_GS_200
+                0x00ff61e8                CRASH_A5_VALID
+                0x00ff61ea                CRASH_RECORD_END
+ *fill*         0x00ff61ea        0x2 
+ .bss           0x00ff61ec        0x8 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/dma.o
+                0x00ff61ec                vblank_vc
+ .bss           0x00ff61f4       0x9b /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/tilemap_hooks.o
+                0x00ff61f4                fg_col_dirty
+                0x00ff61fc                bg_col_dirty
+                0x00ff6288                genesistan_shadow_input_390001
+                0x00ff6289                genesistan_shadow_input_390003
+                0x00ff628a                genesistan_shadow_input_390005
+                0x00ff628b                genesistan_shadow_input_390007
+                0x00ff628d                genesistan_shadow_dip1
+                0x00ff628e                genesistan_shadow_dip2
+ *fill*         0x00ff628f        0x1 
+ .bss           0x00ff6290     0x5042 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/fg_tile_cache.o
+                0x00ff6290                fg_boundary_active_lut
+                0x00ffb290                fg_boundary_epoch_transitions
+                0x00ffb294                fg_boundary_variant_selections
+                0x00ffb298                fg_boundary_miss_a
+                0x00ffb29c                fg_boundary_miss_b
+                0x00ffb2a0                fg_boundary_pattern_dma_transitions
+                0x00ffb2a4                fg_boundary_name_remap_a
+                0x00ffb2a8                fg_boundary_name_remap_b
+                0x00ffb2ac                fg_boundary_name_unmapped_a
+                0x00ffb2b0                fg_boundary_name_unmapped_b
+                0x00ffb2b4                fg_boundary_slots_retained
+                0x00ffb2b8                fg_boundary_slots_reassigned
+                0x00ffb2bc                fg_boundary_active_record
+                0x00ffb2be                fg_boundary_active_variant
+                0x00ffb2c0                fg_boundary_active_package
+                0x00ffb2cf                fg_scene_scroll_reseed_pending
+                0x00ffb2d0                fg_checkpoint_scroll_reseed_pending
+ *fill*         0x00ffb2d2        0x2 
+ .bss           0x00ffb2d4        0x0 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/palette_hooks.o
+ .bss           0x00ffb2d4        0x0 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/title_native.o
+ .bss           0x00ffb2d4        0xe /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/hud_native.o
+ *fill*         0x00ffb2e2        0x2 
+ .bss           0x00ffb2e4        0x0 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/item_native.o
+ .bss           0x00ffb2e4     0x12dc /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/pc090oj_hooks.o
+                0x00ffb2e4                staged_sprite_sat
+                0x00ffb564                staged_sprite_sat_b
+                0x00ffb7e4                pc090oj_sat_bank
+                0x00ffb7e6                pc090oj_sat_front
+                0x00ffb7e8                pc090oj_sat_frame_ready
+                0x00ffb7ea                current_sprite_palette_map
+                0x00ffb7fe                sprite_tile_resident_code
+                0x00ffb860                pc090oj_tile_dma_worklist
+                0x00ffb890                pc090oj_tile_dma_count
+                0x00ffb892                transient_items_active
+                0x00ffb894                native_sprite_lane
+                0x00ffb934                gameplay_hud_score_dirty
+                0x00ffbfbe                pc090oj_ctrl_shadow
+                0x00ffbfc0                pc090oj_sprite_ctrl_shadow
+                0x00ffbfc2                pc090oj_emitted_count
+                0x00ffbfc4                pc090oj_dropped_count
+                0x00ffbfc6                native_player_fallback_count
+                0x00ffbfc8                native_generic_fallback_count
+                0x00ffbfca                native_specialized_hit_count
+                0x00ffbfcc                native_player_piece_adapter_count
+                0x00ffbfce                pc090oj_sat_dirty
+                0x00ffbfd0                audit_guard_caller_pc
+                0x00ffbfd4                audit_guard_register_snapshot
+                0x00ffc014                audit_guard_vcount
+                0x00ffc016                audit_guard_fired_flag
+                0x00ffc018                audit_guard_heartbeat
+                0x00ffc01a                worklist_entry_for_slot
+                0x00ffc04c                sprite_tile_reverse_directory
+                0x00ffc24c                sprite_tile_reverse_pages
+                0x00ffc55c                sprite_tile_reverse_page_refcount
+                0x00ffc58d                sprite_tile_reverse_free_pages
+                0x00ffc5be                sprite_tile_reverse_free_count
+ .bss.patcher   0x00ffc5c0       0x89 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/pc090oj_hooks.o
+                0x00ffc5c0                pc090oj_dma_test_fired_flag
+                0x00ffc5c2                pc090oj_dma_test_mismatch_offset
+                0x00ffc5c4                pc090oj_dma_test_expected_word
+                0x00ffc5c6                pc090oj_dma_test_actual_word
+                0x00ffc5c8                pc090oj_dma_test_actual_buffer
+                0x00ffc648                pc090oj_dma_test_heartbeat
+ *fill*         0x00ffc649        0x3 
+ .bss           0x00ffc64c        0x0 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/pc090oj_assets.o
+ .bss           0x00ffc64c        0x0 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/diag_bookmark.o
+ .bss           0x00ffc64c        0xc /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/scene_load.o
+                0x00ffc64c                genesistan_current_scene_id
+                0x00ffc64d                genesistan_current_pc080sn_tileset_id
+                0x00ffc64e                genesistan_scene_a0_lo
+                0x00ffc652                genesistan_scene_a0_hi
+                0x00ffc656                genesistan_scene_present_pending
+                0x00ffc657                genesistan_presentation_readiness
+ .bss           0x00ffc658        0x0 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/sound_comm.o
+ .bss           0x00ffc658        0x0 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/z80_driver.o
+ .bss           0x00ffc658        0x0 /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/audio_assets.o
+ *(COMMON)
+LOAD /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/boot.o
+LOAD /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/vdp_comm.o
+LOAD /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/dma.o
+LOAD /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/tilemap_hooks.o
+LOAD /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/fg_tile_cache.o
+LOAD /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/palette_hooks.o
+LOAD /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/title_native.o
+LOAD /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/hud_native.o
+LOAD /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/item_native.o
+LOAD /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/pc090oj_hooks.o
+LOAD /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/pc090oj_assets.o
+LOAD /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/diag_bookmark.o
+LOAD /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/scene_load.o
+LOAD /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/sound_comm.o
+LOAD /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/z80_driver.o
+LOAD /tmp/rastan-prompt0033-isolated/apps/rastan-direct/out/audio_assets.o
+OUTPUT(/tmp/rastan_build0519_rom_audit_prompt0034/build0519_relinked.elf elf32-m68k)

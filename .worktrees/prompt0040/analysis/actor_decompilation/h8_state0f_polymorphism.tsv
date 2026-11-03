@@ -1,0 +1,4 @@
+distinguishing_field	value	branch_pc	semantic_class
++0x03 mode	!=0	0x40E0E	mode-driven materialized variant
++0x39 component flag	!=0 (set by 0x447F0/0x43F52)	0x40DD8	impact/burst component
++0x03==0 & +0x39==0	default	0x40CDC	armored-man / standing enemy anim (base 0x0A73, frame table 0x40DCE)

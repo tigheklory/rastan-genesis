@@ -1,0 +1,67 @@
+family_id,name,round1_phase1,round1_castle,round1_boss,round2_phase1,round2_castle,round2_boss,round3_phase1,round3_castle,round3_boss,round4_phase1,round4_castle,round4_boss,round5_phase1,round5_castle,round5_boss,round6_phase1,round6_castle,round6_boss,static_only_or_unobserved
+round1_boss_composite,Round 1 boss composite (semantic name unresolved),,,YES,,,,,,,,,,,,,,,,
+round2_boss_composite,Round 2 boss composite (semantic name unresolved),,,,,,YES,,,,,,,,,,,,,
+round3_boss_composite,Round 3 boss composite (semantic name unresolved),,,,,,,,,YES,,,,,,,,,,
+round4_boss_composite,Round 4 boss composite (semantic name unresolved),,,,,,,,,,,,YES,,,,,,,
+round5_boss_composite,Round 5 boss composite (semantic name unresolved),,,,,,,,,,,,,,,YES,,,,
+round6_boss_composite,Round 6 boss composite (semantic name unresolved),,,,,,,,,,,,,,,,,,YES,
+aux_8c8_base0268_compositor0,ACTOR_8C8_BASE_0268_COMPOSITOR_0,YES,,,,,,,,,,,,,,,,,,
+aux_8c8_base0275_compositor0,ACTOR_8C8_BASE_0275_COMPOSITOR_0,YES,,,,,,,,,,,,,,,,,,
+transient_effect,Transient effect classes,,,,,,,,,,,,,,,,,,,YES
+collision_marker40_route,Marker 0x40 hostile-route candidate,,,,,,,,,,,,,,,,,,,YES
+collision_marker41_route,Marker 0x41 hostile-route candidate,,,,,,,,,,,,,,,,,,,YES
+collision_marker49_special_route,Marker 0x49 special-route candidate,,,,,,,,,,,,,,,,,,,YES
+collision_marker4f_behavior20_route,Marker 0x4F behavior-0x20 candidate,,,,,,,,,,,,,,,,,,,YES
+four_armed_enemy,Four-armed enemy,,,,,,,,,,,,,,,,,,,YES
+hostile_base004b_compositor0,Stage-1 Lizardman,YES,,,YES,,,,,,YES,,,YES,,,YES,,,
+hostile_base00d0_compositor0,HOSTILE_BASE_00D0_COMPOSITOR0_UNRESOLVED,,,,,,,,,,,,,YES,,,YES,YES,,
+hostile_base0179_compositor0,HOSTILE_BASE_0179_COMPOSITOR0_UNRESOLVED,YES,,,,,,,,,,,,,,,,,,
+hostile_base01cb_compositor0,HOSTILE_BASE_01CB_COMPOSITOR0_UNRESOLVED,,,,,,,,,,,,,,YES,,,YES,,
+hostile_base0275_compositor0,HOSTILE_BASE_0275_COMPOSITOR0_UNRESOLVED,,,,,,,,YES,,,,,,,,,,,
+hostile_base02e8_compositor0,HOSTILE_BASE_02E8_COMPOSITOR0_UNRESOLVED,,,,,,,YES,,,YES,,,,,,YES,,,
+hostile_base033e_multi_compositor,HOSTILE_BASE_033E_MULTI_COMPOSITOR_UNRESOLVED,,YES,,,,,,YES,,,YES,,,YES,,,YES,,
+hostile_base03b3_compositor0,HOSTILE_BASE_03B3_COMPOSITOR0_UNRESOLVED,,,,,,,,,,YES,,,YES,,,YES,,,
+hostile_base0400_compositor1,HOSTILE_BASE_0400_COMPOSITOR1_UNRESOLVED,,,,YES,,,,,,,,,YES,,,,,,
+hostile_base0420_compositor0,HOSTILE_BASE_0420_COMPOSITOR0_UNRESOLVED,,,,,,,YES,,,,,,YES,,,YES,,,
+hostile_base0a5a_compositor2,HOSTILE_BASE_0A5A_COMPOSITOR2_UNRESOLVED,YES,YES,,YES,,,,YES,,,,,,,,YES,,,
+hostile_base0a73_compositor2,HOSTILE_BASE_0A73_COMPOSITOR2_UNRESOLVED,YES,YES,,YES,,,YES,YES,,YES,YES,,YES,,,YES,YES,,
+hurry_up_bat,Hurry-up Bat,,,,,,,,,,,,,,,,,,,YES
+large_bat,Large bat enemy,,,,,,,,,,,,,,,,,,,YES
+normal_small_bat,Normal/small bat enemy,,,,,,,,,,,,,,,,,,,YES
+static_mode2_base033e_unresolved,STATIC_MODE2_BASE_033E_UNRESOLVED,,,,,,,,,,,,,,,,,,,YES
+static_normal_base0241_unresolved,STATIC_NORMAL_BASE_0241_UNRESOLVED,,,,,,,,,,,,,,,,,,,YES
+static_normal_base043a_unresolved,STATIC_NORMAL_BASE_043A_UNRESOLVED,,,,,,,,,,,,,,,,,,,YES
+static_normal_base06e2_unresolved,STATIC_NORMAL_BASE_06E2_UNRESOLVED,,,,,,,,,,,,,,,,,,,YES
+static_normal_base0889_unresolved,STATIC_NORMAL_BASE_0889_UNRESOLVED,,,,,,,,,,,,,,,,,,,YES
+static_seed_selector_08_1c_00,STATIC_SELECTOR_08_1C_00_UNRESOLVED,,,,,,,,,,,,,,,,,,,YES
+static_seed_selector_08_1c_01,STATIC_SELECTOR_08_1C_01_UNRESOLVED,,,,,,,,,,,,,,,,,,,YES
+static_seed_selector_08_1c_02,STATIC_SELECTOR_08_1C_02_UNRESOLVED,,,,,,,,,,,,,,,,,,,YES
+static_seed_selector_08_1c_03,STATIC_SELECTOR_08_1C_03_UNRESOLVED,,,,,,,,,,,,,,,,,,,YES
+static_seed_selector_08_1c_04,STATIC_SELECTOR_08_1C_04_UNRESOLVED,,,,,,,,,,,,,,,,,,,YES
+static_seed_selector_08_1c_05,STATIC_SELECTOR_08_1C_05_UNRESOLVED,,,,,,,,,,,,,,,,,,,YES
+static_seed_selector_08_1c_06,STATIC_SELECTOR_08_1C_06_UNRESOLVED,,,,,,,,,,,,,,,,,,,YES
+static_seed_selector_08_1c_07,STATIC_SELECTOR_08_1C_07_UNRESOLVED,,,,,,,,,,,,,,,,,,,YES
+static_seed_selector_08_1c_08,STATIC_SELECTOR_08_1C_08_UNRESOLVED,,,,,,,,,,,,,,,,,,,YES
+static_seed_selector_08_1c_09,STATIC_SELECTOR_08_1C_09_UNRESOLVED,,,,,,,,,,,,,,,,,,,YES
+static_seed_selector_08_1c_10,STATIC_SELECTOR_08_1C_10_UNRESOLVED,,,,,,,,,,,,,,,,,,,YES
+static_seed_selector_08_1c_11,STATIC_SELECTOR_08_1C_11_UNRESOLVED,,,,,,,,,,,,,,,,,,,YES
+static_seed_selector_08_1c_12,STATIC_SELECTOR_08_1C_12_UNRESOLVED,,,,,,,,,,,,,,,,,,,YES
+static_seed_selector_08_1c_13,STATIC_SELECTOR_08_1C_13_UNRESOLVED,,,,,,,,,,,,,,,,,,,YES
+static_seed_selector_08_1c_14,STATIC_SELECTOR_08_1C_14_UNRESOLVED,,,,,,,,,,,,,,,,,,,YES
+static_seed_selector_08_1c_15,STATIC_SELECTOR_08_1C_15_UNRESOLVED,,,,,,,,,,,,,,,,,,,YES
+static_seed_selector_08_1c_16,STATIC_SELECTOR_08_1C_16_UNRESOLVED,,,,,,,,,,,,,,,,,,,YES
+static_seed_selector_08_1c_17,STATIC_SELECTOR_08_1C_17_UNRESOLVED,,,,,,,,,,,,,,,,,,,YES
+static_seed_selector_08_1c_18,STATIC_SELECTOR_08_1C_18_UNRESOLVED,,,,,,,,,,,,,,,,,,,YES
+static_seed_selector_08_1c_19,STATIC_SELECTOR_08_1C_19_UNRESOLVED,,,,,,,,,,,,,,,,,,,YES
+static_seed_selector_08_1c_20,STATIC_SELECTOR_08_1C_20_UNRESOLVED,,,,,,,,,,,,,,,,,,,YES
+axe_item,Axe item/drop,,,,,,,,,,,,,,,,,,,YES
+other_item_drop,Other item/drop classes,,,,,,,,,,,,,,,,,,,YES
+aux_5c8_base0275_compositor0,ACTOR_5C8_BASE_0275_COMPOSITOR_0,YES,,,,,,,,,,,,,,,,,,
+aux_5c8_base03f6_compositor0,ACTOR_5C8_BASE_03F6_COMPOSITOR_0,YES,,,,,,,,,,,,,,,,,,
+aux_5c8_base050b_compositor0,ACTOR_5C8_BASE_050B_COMPOSITOR_0,YES,,,,,,,,,,,,,,,,,,
+aux_748_base019d_compositor0,ACTOR_748_BASE_019D_COMPOSITOR_0,,,,,,,YES,,,YES,,,YES,,,YES,,,
+aux_748_base01cb_compositor0,ACTOR_748_BASE_01CB_COMPOSITOR_0,,,,,,,,,,,,,,,,,YES,,
+aux_748_base0268_compositor0,ACTOR_748_BASE_0268_COMPOSITOR_0,YES,,,,,,,,,,,,,,,,,,
+aux_748_base0275_compositor0,ACTOR_748_BASE_0275_COMPOSITOR_0,YES,,,,,,,,,,,,,,,,,,
+aux_748_base02e8_compositor0,ACTOR_748_BASE_02E8_COMPOSITOR_0,,,,,,,YES,,,YES,,,,,,YES,,,
+projectile_weapon,Projectile/weapon classes,,,,,,,,,,,,,,,,,,,YES

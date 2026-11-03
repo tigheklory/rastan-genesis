@@ -1,0 +1,18 @@
+{
+ "round1_phase1_graphics_corpus_closed": false,
+ "sprite_corpus_complete": false,
+ "layer_a_corpus_complete": "patterns YES, per-tile palette bank NO",
+ "layer_b_corpus_complete": "patterns YES, palette YES",
+ "palette_contents_complete": false,
+ "physical_pattern_identity_complete": true,
+ "user_anchors_found": "3/12 mapped to families (Lizardman/Chimera/Four-armed); cave-block owner unresolved; 8 anchors need actor+compositor proof",
+ "guessed_colors": 0,
+ "screenshot_sampled_colors": 0,
+ "OVERALL": "PARTIAL",
+ "blocking": [
+  "sprite 16-color bank source",
+  "real compositor decode (0x3C9A6)",
+  "per-tile FG palette bank",
+  "category-per-family + 8 anchors via spawn/dynamic"
+ ]
+}

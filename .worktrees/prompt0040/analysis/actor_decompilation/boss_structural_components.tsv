@@ -1,0 +1,11 @@
+round	slot	index	rec_type	base	anim	selector	role	relative_pos
+5	0x5C8	0	0x11	0x0988	0x89	1	structural segment	(-3,-8) facing!=0; (+3,-8) facing=0
+5	0x608	1	0x11	0x0988	0x89	1	structural segment	(+7,-8) facing!=0; (-7,-8) facing=0
+5	0x648	2	0x11	0x0988	0x89	1	structural segment	(+16,-8) facing!=0; (-16,-8) facing=0
+5	0x688	3	0x11	0x0988	0x89	1	structural segment	(-7,-16) facing!=0; (+7,-16) facing=0
+5	0x6C8	4	0x11	0x0988	0x89	1	structural segment	(+2,-16) facing!=0; (-2,-16) facing=0
+5	0x708	5	0x10	0x0988	0x82	1	primary body	anchor (0,0); rendered after five components
+6	0x648	0	0x17	0x0B35	0x66	2	primary body	anchor (0,0)
+6	0x688	1	0x18	0x0AED	0x82	2	anchor-sharing part	(0,0) via 0x4E7C6 when active state nonzero
+6	0x6C8	2	0x19	0x0CCB	0x7C	2	anchor-sharing part	(0,0) via 0x4E7C6 when active state nonzero
+6	0x708	3	0x1A	0x0BEB	0x30	2	dynamic tail part	phase offsets (+/-64,-48),(+/-56,-64),(+/-48,-80),(+/-56,-32),(+/-40,-8)

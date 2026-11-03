@@ -1,0 +1,15 @@
+# VGM Validation Report
+
+Validation targets: files in `audio/rastan_music_dump/converted_vgm` generated from source `.vgz`.
+
+| File | Valid VGM | YM2151 in Header | Header Other Chips (non-zero clocks) | Observed Chips in Command Stream | Total Samples | Duration | Loop Present | Loop Samples | Parse Notes |
+| --- | --- | --- | --- | --- | ---: | --- | --- | ---: | --- |
+| 01 - Credit.vgm | YES | YES | NESAPU, MultiPCM, uPD7759, OKIM6258, OKIM6295, K051649, K054539, HuC6280, C140, K053260, POKEY, QSound, SCSP, WSwan, VSU, SAA1099, ES5503, ES5506, X1-010, C352, GA20 | YM2151 | 378669 | 00:08.587 | NO | 0 | OK |
+| 02 - Broken The Promises (Opening).vgm | YES | YES | NESAPU, MultiPCM, uPD7759, OKIM6258, OKIM6295, K051649, K054539, HuC6280, C140, K053260, POKEY, QSound, SCSP, WSwan, VSU, SAA1099, ES5503, ES5506, X1-010, C352, GA20 | YM2151 | 441000 | 00:10.000 | NO | 0 | OK |
+| 03 - Aggressive World (Scene 1).vgm | YES | YES | NESAPU, MultiPCM, uPD7759, OKIM6258, OKIM6295, K051649, K054539, HuC6280, C140, K053260, POKEY, QSound, SCSP, WSwan, VSU, SAA1099, ES5503, ES5506, X1-010, C352, GA20 | YM2151 | 2311999 | 00:52.426 | YES | 1735526 | OK |
+| 04 - Bad Bible (Name Regist).vgm | YES | YES | NESAPU, MultiPCM, uPD7759, OKIM6258, OKIM6295, K051649, K054539, HuC6280, C140, K053260, POKEY, QSound, SCSP, WSwan, VSU, SAA1099, ES5503, ES5506, X1-010, C352, GA20 | YM2151 | 98173 | 00:02.226 | YES | 86706 | OK |
+| 05 - Re-In-Carnation (Scene 2).vgm | YES | YES | NESAPU, MultiPCM, uPD7759, OKIM6258, OKIM6295, K051649, K054539, HuC6280, C140, K053260, POKEY, QSound, SCSP, WSwan, VSU, SAA1099, ES5503, ES5506, X1-010, C352, GA20 | YM2151 | 4355932 | 01:38.774 | YES | 4220322 | OK |
+| 06 - The Devil Boss Carnival (Scene 3 Boss).vgm | YES | YES | NESAPU, MultiPCM, uPD7759, OKIM6258, OKIM6295, K051649, K054539, HuC6280, C140, K053260, POKEY, QSound, SCSP, WSwan, VSU, SAA1099, ES5503, ES5506, X1-010, C352, GA20 | YM2151 | 1252921 | 00:28.411 | YES | 832359 | OK |
+| 07 - Scene Clear.vgm | YES | YES | NESAPU, MultiPCM, uPD7759, OKIM6258, OKIM6295, K051649, K054539, HuC6280, C140, K053260, POKEY, QSound, SCSP, WSwan, VSU, SAA1099, ES5503, ES5506, X1-010, C352, GA20 | YM2151 | 414564 | 00:09.401 | NO | 0 | OK |
+| 08 - Final Destroy (Scene 3 Round 6 Boss).vgm | YES | YES | NESAPU, MultiPCM, uPD7759, OKIM6258, OKIM6295, K051649, K054539, HuC6280, C140, K053260, POKEY, QSound, SCSP, WSwan, VSU, SAA1099, ES5503, ES5506, X1-010, C352, GA20 | YM2151 | 3214296 | 01:12.887 | YES | 1682060 | OK |
+| 09 - The Man Of Saga (Ending).vgm | YES | YES | NESAPU, MultiPCM, uPD7759, OKIM6258, OKIM6295, K051649, K054539, HuC6280, C140, K053260, POKEY, QSound, SCSP, WSwan, VSU, SAA1099, ES5503, ES5506, X1-010, C352, GA20 | YM2151 | 3740439 | 01:24.817 | NO | 0 | OK |

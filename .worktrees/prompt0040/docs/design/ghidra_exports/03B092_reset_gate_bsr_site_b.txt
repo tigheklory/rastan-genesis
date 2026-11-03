@@ -1,0 +1,59 @@
+arcade_pc: 0x03B092
+label: reset_gate_bsr_site_b
+purpose_note: alternate caller chain BSR site
+confidence: MEDIUM
+ghidra_function: warm_restart_gate_caller_b
+function_entry: 0003b084
+function_body: [[0003b07e, 0003b089] [0003b08c, 0003b097]]
+
+== Raw Disassembly Snippet (+/- 0x20) ==
+0003b072: bsr.w 0x0003add8
+0003b076: bsr.w 0x0003ae28
+0003b07a: andi #-0xf01,SR
+0003b07e: move.w D0w,(0x003c0000).l
+0003b084: tst.w (0x1c10,A5)
+0003b088: bra.b 0x0003b08c
+0003b08c: cmpi.w #0x100,(0x12,A5)
+0003b092: bsr.w 0x00039fa8
+0003b096: bra.b 0x0003b07e
+0003b098: clr.l (0x00c20000).l
+0003b09e: clr.l (0x00c40000).l
+0003b0a4: moveq 0x2,D0
+0003b0a6: bsr.w 0x0003bb48
+0003b0aa: moveq 0x3,D0
+0003b0ac: bsr.w 0x0003c2e2
+0003b0b0: bsr.w 0x0003a552
+0003b0b4: tst.w (0x40,A5)
+0003b0b8: beq.b 0x0003b0c0
+0003b0ba: moveq 0x1d,D0
+0003b0bc: bsr.w 0x0003bb48
+0003b0c0: rts
+0003b0c2: lea (0x10,PC),A0
+0003b0c6: lea (0x140,A5),A1
+0003b0ca: moveq 0x26,D0
+0003b0cc: move.b (A0)+,(A1)+
+0003b0ce: subq.w #0x1,D0w
+0003b0d0: bne.b 0x0003b0cc
+0003b0d2: rts
+
+== Function Disassembly ==
+0003b07e: move.w D0w,(0x003c0000).l
+0003b084: tst.w (0x1c10,A5)
+0003b088: bra.b 0x0003b08c
+0003b08c: cmpi.w #0x100,(0x12,A5)
+0003b092: bsr.w 0x00039fa8
+0003b096: bra.b 0x0003b07e
+
+== Decompiler Output ==
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void warm_restart_gate_caller_b(void)
+
+{
+  do {
+    _DAT_003c0000 = func_0x00039fa8();
+  } while( true );
+}
+
+

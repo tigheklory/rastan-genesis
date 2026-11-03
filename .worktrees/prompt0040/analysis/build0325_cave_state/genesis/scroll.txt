@@ -1,0 +1,2 @@
+scroll_x_fg=393
+scroll_y_fg=261

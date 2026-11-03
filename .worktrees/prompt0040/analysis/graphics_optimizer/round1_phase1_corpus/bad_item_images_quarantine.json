@@ -1,0 +1,25 @@
+{
+ "record": "USER-SUPPLIED ITEM IMAGES - GRAPHICS REFERENCE REJECTED",
+ "reason": [
+  "some use the WRONG PALETTE",
+  "some use the WRONG TILES",
+  "rendered icon artwork is NOT trustworthy original-arcade graphics"
+ ],
+ "prohibited_uses": [
+  "PC090OJ cell codes",
+  "PC080SN tile codes",
+  "physical patterns",
+  "icon composition",
+  "palette selectors",
+  "effective palette banks",
+  "palette colors",
+  "sprite ordering",
+  "item-page rendering ownership",
+  "pickup graphics",
+  "equipped graphics",
+  "representation equivalence"
+ ],
+ "permitted_use": "canonical NAME terminology only (separate evidence domain)",
+ "graphics_authority": "ORIGINAL ARCADE ROM/CODE/MAME only",
+ "status": "QUARANTINED as graphics evidence; retained only as user-context/naming artifact"
+}

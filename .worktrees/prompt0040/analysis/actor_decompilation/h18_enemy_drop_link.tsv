@@ -1,0 +1,4 @@
+question	finding	status
+does the ordinary fatal chain (state 0x0F -> 0x44804 -> score 0x3B726 -> retire 0x4092E) create a pickup?	no direct creator call on the fatal path (H9)	CONFIRMED (no direct call)
+does a rec_type-12 pickup actor get created on enemy death?	not yet traced; requires enumerating creator of rec_type-12 actors and its callers	NOT FOUND
+does 0x4092E / retirement leave a deferred field a later manager consumes to spawn a drop?	not yet audited to a proven drop creator	PENDING

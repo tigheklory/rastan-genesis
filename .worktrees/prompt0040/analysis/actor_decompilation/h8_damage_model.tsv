@@ -1,0 +1,7 @@
+aspect	status	evidence
+actor-vs-world contact	PROVEN	0x42E38: rec_type<5, solid collision cell bit0 -> 0x447F0 impact
+impact/death component	PROVEN	0x447F0/0x448B2 -> state 0x0F + sfx 0x10
+death-anim-complete score	PROVEN	0x44804 -> 0x3B726 (value +0x2C) for rec_type 8/9/11
+boss defeat	PROVEN	0x469E8 (round 5/6) -> 0x447F0 x3-4 + 0x3B726
+enemy HP field / one-hit vs multi-hit	OPEN	not located; requires enemy-hurtbox scan root (H9)
+invulnerability/re-hit suppression	OPEN	not located

@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "description": "Regression and authenticity checks tied to known arcade behavior.",
+  "checks": [
+    {
+      "id": "startup_common_slice_reaches_test_gate",
+      "kind": "control_flow",
+      "target_object": "startup_common_slice",
+      "expectation": "Execution reaches 0x03B04E and branches to 0x000100 only when DIP bank 1 switch 3 is set."
+    },
+    {
+      "id": "startup_common_slice_reads_factory_dips",
+      "kind": "io",
+      "target_object": "startup_common_slice",
+      "expectation": "Reads 0x390009 and 0x39000B using software DIP defaults 0xFE and 0xFF."
+    }
+  ]
+}

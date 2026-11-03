@@ -1,0 +1,14 @@
+round	boss	component_index	record_type	base	position_table	table_index	relative_x	relative_y	facing_rule	state_dependency
+5	R5 segmented boss	0	0x11	0x0988	0x43484	13	-3	-8	dx as listed when facing!=0; negate dx when facing==0	active record; no animation/state selector in 0x43458
+5	R5 segmented boss	1	0x11	0x0988	0x43484	14	7	-8	dx as listed when facing!=0; negate dx when facing==0	active record; no animation/state selector in 0x43458
+5	R5 segmented boss	2	0x11	0x0988	0x43484	15	16	-8	dx as listed when facing!=0; negate dx when facing==0	active record; no animation/state selector in 0x43458
+5	R5 segmented boss	3	0x11	0x0988	0x43484	16	-7	-16	dx as listed when facing!=0; negate dx when facing==0	active record; no animation/state selector in 0x43458
+5	R5 segmented boss	4	0x11	0x0988	0x43484	17	2	-16	dx as listed when facing!=0; negate dx when facing==0	active record; no animation/state selector in 0x43458
+6	R6 dragon	0	0x17	0x0B35	primary anchor	0	0	0	primary owns facing/x/y	primary body; created at x=304 y=232
+6	R6 dragon	1	0x18	0x0AED	0x4E7C6 anchor copy	0	0	0	copies primary facing	when A5+0x272!=0 copies primary x/y each update; initial overlapping clone
+6	R6 dragon	2	0x19	0x0CCB	0x4E7C6 anchor copy	0	0	0	copies primary facing	when A5+0x272!=0 copies primary x/y each update; initial overlapping clone
+6	R6 dragon	3	0x1A	0x0BEB	0x4EAC6/0x4EADA	0	64	-48	right/nonzero table; left/zero negates dx	A5+0x272!=0 and A5+0xF42==0
+6	R6 dragon	3	0x1A	0x0BEB	0x4EAC6/0x4EADA	1	56	-64	right/nonzero table; left/zero negates dx	A5+0x272!=0 and A5+0xF42==3
+6	R6 dragon	3	0x1A	0x0BEB	0x4EAC6/0x4EADA	2	48	-80	right/nonzero table; left/zero negates dx	A5+0x272!=0 and A5+0xF42==6
+6	R6 dragon	3	0x1A	0x0BEB	0x4EAC6/0x4EADA	3	56	-32	right/nonzero table; left/zero negates dx	A5+0x272!=0 and A5+0xF42==9
+6	R6 dragon	3	0x1A	0x0BEB	0x4EAC6/0x4EADA	4	40	-8	right/nonzero table; left/zero negates dx	A5+0x272!=0 and A5+0xF42 is other nonzero

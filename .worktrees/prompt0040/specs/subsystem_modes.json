@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "description": "Staged implementation policy for subsystem bring-up.",
+  "subsystems": [
+    {
+      "id": "startup_boot",
+      "mode": "shadow",
+      "goal": "Execute original startup and hardware-test code with remapped MMIO and shadow memory.",
+      "allowed_shortcuts": [
+        "shadow text/video memory instead of final VDP implementation"
+      ],
+      "forbidden_shortcuts": [
+        "rebuild startup control flow in handwritten gameplay logic"
+      ]
+    },
+    {
+      "id": "audio",
+      "mode": "null",
+      "goal": "Accept sound-facing calls and expose expected ready/busy semantics before real sound exists.",
+      "allowed_shortcuts": [
+        "record command writes",
+        "acknowledge expected status transitions",
+        "emit debug events"
+      ],
+      "forbidden_shortcuts": [
+        "invent fake music progression",
+        "hide command failures without reporting them"
+      ]
+    },
+    {
+      "id": "video_text",
+      "mode": "shadow",
+      "goal": "Preserve writes, readback, and text-layer state before final VDP tile mapping is complete.",
+      "allowed_shortcuts": [
+        "shadow RAM backed rendering",
+        "debug visualization"
+      ],
+      "forbidden_shortcuts": [
+        "undocumented placeholder layouts"
+      ]
+    },
+    {
+      "id": "video_sprite",
+      "mode": "shadow",
+      "goal": "Preserve sprite/object writes and decoded parts before final VDP sprite output is complete."
+    },
+    {
+      "id": "input",
+      "mode": "shim",
+      "goal": "Provide a stable Genesis-to-arcade input mapping and software DIP interface."
+    }
+  ]
+}

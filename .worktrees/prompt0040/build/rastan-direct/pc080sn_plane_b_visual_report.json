@@ -1,0 +1,15 @@
+{
+  "schema": "pc080sn_plane_b_visual_record_v1",
+  "authority": "../../build/regions/maincpu.bin",
+  "authority_sha256": "4f30b9e7aa946aa33d20e125a1726ff094f9615980107d0842efe1721cf32063",
+  "attr_lut_sha256": "2614c7b4c5ba7716fa6cc985f65ad2832c029956243d5570da52975d230fba3b",
+  "descriptor_base": 234780,
+  "descriptor_end_exclusive": 237580,
+  "descriptor_stride": 6,
+  "record_layout": "genesis_attr_be16, copied_maincpu_tile_block_ptr_be32",
+  "record_bytes": 6,
+  "table_bytes": 2802,
+  "valid_records": 392,
+  "contains_collision": false,
+  "records_sha256": "471a31035e70959d63adfd2bf7bd99b515c59b6a91b003f8fce43c71dee4048c"
+}

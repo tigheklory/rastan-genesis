@@ -1,0 +1,39 @@
+PASS 1. GET profile directory traversal rejected
+PASS 2. GET encoded traversal rejected
+PASS 3. invalid profile id rejected
+PASS 4. invalid destination rejected (403) + not persisted
+PASS 5. FM6 music rejected (403) + not persisted
+PASS 6. arcade_evidence is server-derived (client forgery discarded)
+PASS 7a. approved + FM6 error rejected
+PASS 7b. approved with empty routing downgraded to draft
+PASS 8. proposals and approvals stay separate
+PASS 9a. revision 1 snapshot retained after revision 2 save
+PASS 9b. old revision 1 preserves its own content
+PASS 11. manifest revision matches current profile revision
+PASS 9c. /api/revisions lists both immutable revisions
+PASS 10. atomic writes leave no .tmp_ files (os.replace)
+PASS 12. legacy v1 migrates to v2, approval + routing + notes preserved
+PASS 12b. migration records provenance
+PASS 13. unknown future field round-trips on save
+PASS 14. tone3 + FIXED noise: NO coupling conflict
+PASS 15. tone3 + tone3_clocked noise: coupling conflict present
+PASS 16. PSG modeled mono/center (no per-channel stereo)
+PASS 16b. PSG noise shift-register labeled UNRESOLVED (no false fidelity)
+PASS 16c. divider-zero documented
+PASS 17a. Scene 1 keyed-channel count == 6 (not 8)
+PASS 17b. NOT all nine tracks key 8 FM channels (only Opening+Ending)
+PASS 18a. $82 commands classified as channel/control identifiers (not count 130)
+PASS 18b. no descriptor reports count==130
+PASS 19. VGM $4F parsed as 2 bytes (clean decode, no flagged cmds)
+PASS 20. VGM DAC reports stream triggers (not misleading zero)
+PASS 21. Lawrence distinct-patch population totals 174
+PASS U1. safe_profile_path rejects traversal
+PASS U2. safe_profile_path accepts a clean id
+PASS U3. validator: >5 FM voices = error
+PASS U4. validator: clean routing no conflicts
+PASS U5. validator never discards: monophonic collision reported (potential)
+PASS U6. audition remains unavailable (no fabricated playback)
+PASS U7. unknown .js path no longer returns app.js (404)
+PASS U8. Palette Composer server.py still compiles (untouched)
+
+37 passed, 0 failed

@@ -1,0 +1,77 @@
+asset,rom_start,rom_end,bytes,category,physical_owner,logical_references,measurement,source
+Genesis header/bootstrap,0x000000,0x000372,882,code,shared frontend/runtime,,measured,Build 0519 link map / ELF
+preserved-low zero fill,0x000372,0x00117E,3596,padding,linker/postpatch,,measured,Build 0519 link map / ELF
+retained relocated arcade maincpu,0x00117E,0x060058,388826,retained_arcade,all rounds,R1-S1..R6-S3,measured,Build 0519 link map / ELF
+low-ROM gap,0x060058,0x070000,65448,padding,linker,,measured,Build 0519 link map / ELF
+native wrapper executable,0x070000,0x075EC0,24256,code,shared native hardware services,all scenes/front-end,measured,Build 0519 link map / ELF
+best-5 number descriptors,0x075EC0,0x075F28,104,maps,front-end,high-score,measured,Build 0519 link map / ELF
+best-5 name descriptors,0x075F28,0x075F58,48,maps,front-end,high-score,measured,Build 0519 link map / ELF
+Plane-A scene-fill maps,0x075F58,0x082010,49336,maps,R1/R2 scenes,R1-S1..R2-S3,measured,Build 0519 link map / ELF
+Plane-A deduplicated row maps,0x082010,0x0B7738,218920,maps,R1/R2 records,R1-S1..R2-S3,measured,Build 0519 link map / ELF
+Plane-B scene-fill maps,0x0B7738,0x0BD7F0,24760,maps,R1/R2 scenes,R1-S1..R2-S3,measured,Build 0519 link map / ELF
+Plane-A pan-row maps,0x0BD7F0,0x0C58A8,32952,maps,R1/R2 vertical records,"R1-S2,R2-S2",measured,Build 0519 link map / ELF
+authored descriptor visuals,0x0C58A8,0x118928,340096,maps,authored R1 contexts,"R1-S1,R1-S2",measured,Build 0519 link map / ELF
+Plane-A boundary packages,0x118928,0x12DA50,86312,maps,R1/R2 residency,R1-S1..R2-S3,measured,Build 0519 link map / ELF
+palette route + authored CRAM assets,0x12DA50,0x12DC8E,574,palettes,authored R1/front-end,"R1-S1,R1-S2",measured,Build 0519 link map / ELF
+title Plane-B map,0x12DC8E,0x12EC8E,4096,frontend,title,title,measured,Build 0519 link map / ELF
+title Plane-A map,0x12EC8E,0x12FC8E,4096,frontend,title,title,measured,Build 0519 link map / ELF
+title invincible Plane-A map,0x12FC8E,0x130C8E,4096,frontend,title variant,title,measured,Build 0519 link map / ELF
+title palette,0x130C8E,0x130CAE,32,palettes,title,title,measured,Build 0519 link map / ELF
+title patterns,0x130CAE,0x132960,7346,graphics,title,title,measured,Build 0519 link map / ELF
+HUD patterns,0x132960,0x133402,2722,graphics,shared HUD,all gameplay/front-end,measured,Build 0519 link map / ELF
+HUD static SAT,0x133402,0x133682,640,frontend,shared HUD,all gameplay/front-end,measured,Build 0519 link map / ELF
+HUD dynamic records,0x133682,0x133D0A,1672,frontend,shared HUD,all gameplay/front-end,measured,Build 0519 link map / ELF
+item logical map,0x133D0A,0x135D0A,8192,frontend,item attract,item attract,measured,Build 0519 link map / ELF
+item initial rows,0x135D0A,0x136D0A,4096,frontend,item attract,item attract,measured,Build 0519 link map / ELF
+item Plane patterns,0x136D0A,0x1370A2,920,graphics,item attract,item attract,measured,Build 0519 link map / ELF
+item icon patterns,0x1370A2,0x137B44,2722,graphics,item attract,item attract,measured,Build 0519 link map / ELF
+item icon records,0x137B44,0x137BE4,160,frontend,item attract,item attract,measured,Build 0519 link map / ELF
+PC090OJ palette-line LUT,0x137BE4,0x137DE4,512,palettes,shared sprites,all sprite scenes,measured,Build 0519 link map / ELF
+PC090OJ variant group table,0x137DE4,0x139DE4,8192,sprite_metadata,shared sprites,all sprite scenes,measured,Build 0519 link map / ELF
+PC090OJ variant bank table,0x139DE4,0x139E64,128,sprite_metadata,shared sprites,all sprite scenes,measured,Build 0519 link map / ELF
+PC090OJ variant source table,0x139E64,0x139F5A,246,sprite_metadata,shared sprites,all sprite scenes,measured,Build 0519 link map / ELF
+PC090OJ base pattern corpus,0x139F5A,0x1B9F5A,524288,graphics,shared sprites,R1-S1..R6-S3,measured,Build 0519 link map / ELF
+PC090OJ appended palette variants,0x1B9F5A,0x1BDCDA,15744,graphics,authored sprite variants,R1 actors/effects,measured,Build 0519 link map / ELF
+PC090OJ frame table,0x1BDCDA,0x1E1F36,148060,sprite_metadata,shared sprites,R1-S1..R6-S3,measured,Build 0519 link map / ELF
+player piece table,0x1E1F36,0x1E6B1A,19428,sprite_metadata,player,R1-S1..R6-S3,measured,Build 0519 link map / ELF
+player frame index,0x1E6B1A,0x1EA35A,14400,sprite_metadata,player,R1-S1..R6-S3,measured,Build 0519 link map / ELF
+secondary frame index,0x1EA35A,0x1EB6DA,4992,sprite_metadata,player/weapon,R1-S1..R6-S3,measured,Build 0519 link map / ELF
+generic frame index,0x1EB6DA,0x1EB80A,304,sprite_metadata,actors,R1-S1..R6-S3,measured,Build 0519 link map / ELF
+generic piece table,0x1EB80A,0x1EBD98,1422,sprite_metadata,actors,R1-S1..R6-S3,measured,Build 0519 link map / ELF
+universal frame index,0x1EBD98,0x1EF998,15360,sprite_metadata,actors,R1-S1..R6-S3,measured,Build 0519 link map / ELF
+special frame index,0x1EF998,0x1F0994,4092,sprite_metadata,actors,R1-S1..R6-S3,measured,Build 0519 link map / ELF
+death frame index,0x1F0994,0x1F0B74,480,sprite_metadata,actors/effects,R1-S1..R6-S3,measured,Build 0519 link map / ELF
+death piece table,0x1F0B74,0x1F0FA6,1074,sprite_metadata,actors/effects,R1-S1..R6-S3,measured,Build 0519 link map / ELF
+generic base LUT,0x1F0FA6,0x1F1FA6,4096,sprite_metadata,actors,R1-S1..R6-S3,measured,Build 0519 link map / ELF
+generic usage table,0x1F1FA6,0x1F1FD8,50,sprite_metadata,actors,R1-S1..R6-S3,measured,Build 0519 link map / ELF
+frame residency metadata,0x1F1FD8,0x1F7AFC,23332,sprite_metadata,shared sprites,R1-S1..R6-S3,measured,Build 0519 link map / ELF
+semantic glyph profile patterns,0x1F7AFC,0x1F8A7C,3968,graphics,HUD/GAME OVER,front-end/gameplay,measured,Build 0519 link map / ELF
+sprite slot LUT,0x1F8A7C,0x1F8B7C,256,sprite_metadata,shared sprites,all sprite scenes,measured,Build 0519 link map / ELF
+blank-code bitset,0x1F8B7C,0x1F8D7C,512,sprite_metadata,shared sprites,all sprite scenes,measured,Build 0519 link map / ELF
+opaque bounding boxes,0x1F8D7C,0x208D7C,65536,sprite_metadata,shared sprites,all sprite scenes,measured,Build 0519 link map / ELF
+alignment before scene-load rodata,0x208D7C,0x208D80,4,padding,linker,,measured,Build 0519 link map / ELF
+PC080SN tile-to-VRAM LUT,0x208D80,0x210D80,32768,maps,shared planes,R1/R2 native,measured,Build 0519 link map / ELF
+front-end base palette,0x210D80,0x210E00,128,palettes,front-end,front-end,measured,Build 0519 link map / ELF
+PC080SN attr LUT,0x210E00,0x210E40,64,maps,shared planes,all planes,measured,Build 0519 link map / ELF
+native metatile dense index,0x210E40,0x270C3E,392702,maps,all-round arcade descriptors,all rounds,measured,Build 0519 link map / ELF
+native metatile records,0x270C3E,0x2BAB7E,302912,maps,all-round arcade descriptors,all rounds,measured,Build 0519 link map / ELF
+Plane-B visual records,0x2BAB7E,0x2BB670,2802,maps,all-round arcade descriptors,all rounds,measured,Build 0519 link map / ELF
+pattern alignment,0x2BB670,0x2BB680,16,padding,linker,all rounds,measured,Build 0519 link map / ELF
+PC080SN native pattern corpus,0x2BB680,0x33B680,524288,graphics,shared planes,R1-S1..R6-S3,measured,Build 0519 link map / ELF
+title preload list,0x33B680,0x33C3B6,3382,maps,title,title,measured,Build 0519 link map / ELF
+gameplay preload list,0x33C3B6,0x33D360,4010,maps,R1 gameplay,R1,measured,Build 0519 link map / ELF
+gameplay cave preload list,0x33D360,0x33DCE2,2434,maps,R1-S1,R1-S1,measured,Build 0519 link map / ELF
+stage1 cave-S4 preload,0x33DCE2,0x33EE70,4494,maps,R1-S1,R1-S1,measured,Build 0519 link map / ELF
+stage1 cave-S5 preload,0x33EE70,0x33FE1A,4010,maps,R1-S1,R1-S1,measured,Build 0519 link map / ELF
+stage1 cave-S6 preload,0x33FE1A,0x341020,4614,maps,R1-S1,R1-S1,measured,Build 0519 link map / ELF
+stage1 segment-1 preload,0x341020,0x34205A,4154,maps,R1-S1,R1-S1,measured,Build 0519 link map / ELF
+stage1 segment-2 preload,0x34205A,0x343254,4602,maps,R1-S1,R1-S1,measured,Build 0519 link map / ELF
+end-round preload,0x343254,0x344302,4270,maps,boss/end-round,R1-S3,measured,Build 0519 link map / ELF
+scene A0 ranges,0x344302,0x34431A,24,maps,shared scene loader,all rounds,measured,Build 0519 link map / ELF
+Z80 sound driver,0x34431A,0x34454E,564,audio,shared audio,all game,measured,Build 0519 link map / ELF
+audio catalog/dispatch,0x34454E,0x34464E,256,audio,shared audio,all game,measured,Build 0519 link map / ELF
+wrapper terminal alignment,0x34464E,0x344650,2,padding,linker,,measured,Build 0519 link map / ELF
+pre-audio 0x8000 alignment,0x344650,0x348000,14768,padding,linker,,measured,Build 0519 link map / ELF
+nine native audio streams,0x348000,0x3DCDCA,609738,audio,shared complete soundtrack,all rounds/front-end,measured,Build 0519 link map / ELF
+pre-crash 0x1000 alignment,0x3DCDCA,0x3DD000,566,padding,linker,,measured,Build 0519 link map / ELF
+crash/diagnostic executable,0x3DD000,0x3DDEB8,3768,code,shared diagnostics,all builds,measured,Build 0519 link map / ELF

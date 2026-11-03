@@ -71,7 +71,7 @@
     }
   ],
   "fm6_reserved": true,
-  "profile": "../../analysis/audio/decision_profiles/music-test.json",
+  "profile": "/tmp/rg0010-source/analysis/audio/decision_profiles/music-test.json",
   "profile_revision": 14,
   "profile_revision_id": "music-test.r14.20261023T204126Z",
   "profile_sha256": "989ba223ce13715d1fced0b6223cea4813f6b5e101b81aa3bf59007c69e7b067",

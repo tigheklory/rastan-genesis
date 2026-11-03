@@ -1,0 +1,367 @@
+weapon_id	name	selector_a12fa	source_table	frame_index	cell_code	control	palette_nibble	x_off	y_off	flip	used_indices	valid_code
+object:weapon.sword	SWORD	1	0x5cd8a	0	0x09e	0x0003	3	0	-40		2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	0	0x09f	0x0003	3	0	-24		1;2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	1	0x0a1	0x0003	3	16	-32		2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	1	0x0a0	0x0003	3	8	-16		2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	2	0x0a3	0x0003	3	24	-16		2;12	Y
+object:weapon.sword	SWORD	1	0x5cd8a	2	0x0a2	0x0003	3	8	-16		2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	3	0x0a4	0x0003	3	0	-8		2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	4	0x0a5	0x0003	3	-24	-8		2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	5	0x0a6	0x0003	3	-56	-16		2;12	Y
+object:weapon.sword	SWORD	1	0x5cd8a	5	0x0a7	0x0003	3	-40	-16		2;6;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	6	0x09e	0x0003	3	0	-26		2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	6	0x09f	0x0003	3	0	-10		1;2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	7	0x0a1	0x0003	3	16	-18		2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	7	0x0a0	0x0003	3	8	-2		2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	8	0x0a3	0x0003	3	24	-2		2;12	Y
+object:weapon.sword	SWORD	1	0x5cd8a	8	0x0a2	0x0003	3	8	-2		2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	9	0x0a4	0x0003	3	0	6		2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	10	0x0a5	0x0003	3	-24	6		2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	11	0x0a6	0x0003	3	-56	-1		2;12	Y
+object:weapon.sword	SWORD	1	0x5cd8a	11	0x0a7	0x0003	3	-40	-1		2;6;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	12	0x09e	0x0003	3	6	-34		2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	12	0x09f	0x0003	3	6	-18		1;2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	13	0x09e	0x0003	3	0	-50		2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	13	0x09f	0x0003	3	0	-34		1;2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	14	0x09e	0x0003	3	-4	-65		2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	14	0x09f	0x0003	3	-4	-49		1;2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	19	0x09e	0x0003	3	10	-40		2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	19	0x09f	0x0003	3	10	-24		1;2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	20	0x0a1	0x0003	3	26	-32		2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	20	0x0a0	0x0003	3	18	-16		2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	21	0x0a3	0x0003	3	34	-16		2;12	Y
+object:weapon.sword	SWORD	1	0x5cd8a	21	0x0a2	0x0003	3	18	-16		2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	22	0x0a4	0x0003	3	10	-8		2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	23	0x0a5	0x0003	3	-14	-8		2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	24	0x0a6	0x0003	3	-46	-16		2;12	Y
+object:weapon.sword	SWORD	1	0x5cd8a	24	0x0a7	0x0003	3	-30	-16		2;6;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	25	0x0a3	0x0003	3	13	-17		2;12	Y
+object:weapon.sword	SWORD	1	0x5cd8a	25	0x0a2	0x0003	3	-3	-17		2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	26	0x09f	0x8003	3	-8	-10		1;2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	26	0x09e	0x8003	3	-8	6		2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	27	0x09f	0x8003	3	-8	0		1;2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	27	0x09e	0x8003	3	-8	16		2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	28	0x09f	0x0003	3	0	-23		1;2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	28	0x09e	0x0003	3	0	-39		2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	29	0x09f	0x0003	3	0	-22		1;2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	29	0x09e	0x0003	3	0	-38		2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	30	0x09f	0x0003	3	0	-22		1;2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	30	0x09e	0x0003	3	0	-38		2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	31	0x09f	0x0003	3	0	-12		1;2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	31	0x09e	0x0003	3	0	-28		2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	32	0x09f	0x0003	3	0	-15		1;2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	32	0x09e	0x0003	3	0	-31		2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	33	0x09f	0x0003	3	0	-17		1;2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	33	0x09e	0x0003	3	0	-33		2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	43	0x09e	0x0003	3	0	-28		2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	43	0x09f	0x0003	3	0	-12		1;2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	44	0x09e	0x0003	3	0	-36		2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	44	0x09f	0x0003	3	0	-20		1;2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	45	0x0a1	0x0003	3	16	-20		2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	45	0x0a0	0x0003	3	8	-4		2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	46	0x0a1	0x0003	3	16	-28		2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	46	0x0a0	0x0003	3	8	-12		2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	47	0x0a3	0x0003	3	24	-4		2;12	Y
+object:weapon.sword	SWORD	1	0x5cd8a	47	0x0a2	0x0003	3	8	-4		2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	48	0x0a3	0x0003	3	24	-12		2;12	Y
+object:weapon.sword	SWORD	1	0x5cd8a	48	0x0a2	0x0003	3	8	-12		2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	49	0x0a4	0x0003	3	0	4		2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	50	0x0a4	0x0003	3	0	-4		2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	51	0x0a5	0x0003	3	-24	4		2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	52	0x0a5	0x0003	3	-24	-4		2;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	53	0x0a6	0x0003	3	-56	-4		2;12	Y
+object:weapon.sword	SWORD	1	0x5cd8a	53	0x0a7	0x0003	3	-40	-4		2;6;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	54	0x0a6	0x0003	3	-56	-12		2;12	Y
+object:weapon.sword	SWORD	1	0x5cd8a	54	0x0a7	0x0003	3	-40	-12		2;6;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	69	0x0b2	0x00c8	8	0	-64		1;2;3;4;5;6;7;8;9;12;13;15	Y
+object:weapon.sword	SWORD	1	0x5cd8a	69	0x0d0	0x00ec	12	0	-34		5;9;10;11;12;13	Y
+object:weapon.sword	SWORD	1	0x5cd8a	69	0x0fa	0x0110	0	1	8		1;2;3	Y
+object:weapon.axe	AXE	2	0x5d346	0	0x485	0x0003	3	0	-40		1;2;6;10;11;12;13;15	Y
+object:weapon.axe	AXE	2	0x5d346	0	0x486	0x0003	3	0	-24		6;10;15	Y
+object:weapon.axe	AXE	2	0x5d346	1	0x489	0x0003	3	24	-40		1;2;12;13	Y
+object:weapon.axe	AXE	2	0x5d346	1	0x488	0x0003	3	16	-32		6;10;15	Y
+object:weapon.axe	AXE	2	0x5d346	1	0x487	0x0003	3	8	-16		10;15	Y
+object:weapon.axe	AXE	2	0x5d346	2	0x48c	0x0003	3	32	-16		1;2;12;13	Y
+object:weapon.axe	AXE	2	0x5d346	2	0x48b	0x0003	3	24	-16		6;10;15	Y
+object:weapon.axe	AXE	2	0x5d346	2	0x48a	0x0003	3	8	-16		6;10;15	Y
+object:weapon.axe	AXE	2	0x5d346	3	0x48d	0x0003	3	0	-8		1;2;6;10;11;12;13;15	Y
+object:weapon.axe	AXE	2	0x5d346	4	0x48e	0x0003	3	-24	-8		1;2;6;10;11;12;13;15	Y
+object:weapon.axe	AXE	2	0x5d346	5	0x48f	0x0003	3	-56	-16		1;2;6;10;12;13;15	Y
+object:weapon.axe	AXE	2	0x5d346	5	0x490	0x0003	3	-40	-16		6;7;10;11;15	Y
+object:weapon.axe	AXE	2	0x5d346	6	0x485	0x0003	3	0	-26		1;2;6;10;11;12;13;15	Y
+object:weapon.axe	AXE	2	0x5d346	6	0x486	0x0003	3	0	-10		6;10;15	Y
+object:weapon.axe	AXE	2	0x5d346	7	0x489	0x0003	3	24	-26		1;2;12;13	Y
+object:weapon.axe	AXE	2	0x5d346	7	0x488	0x0003	3	16	-18		6;10;15	Y
+object:weapon.axe	AXE	2	0x5d346	7	0x487	0x0003	3	8	-2		10;15	Y
+object:weapon.axe	AXE	2	0x5d346	8	0x48c	0x0003	3	32	-2		1;2;12;13	Y
+object:weapon.axe	AXE	2	0x5d346	8	0x48b	0x0003	3	24	-2		6;10;15	Y
+object:weapon.axe	AXE	2	0x5d346	8	0x48a	0x0003	3	8	-2		6;10;15	Y
+object:weapon.axe	AXE	2	0x5d346	9	0x48d	0x0003	3	0	6		1;2;6;10;11;12;13;15	Y
+object:weapon.axe	AXE	2	0x5d346	10	0x48e	0x0003	3	-24	6		1;2;6;10;11;12;13;15	Y
+object:weapon.axe	AXE	2	0x5d346	11	0x48f	0x0003	3	-56	-1		1;2;6;10;12;13;15	Y
+object:weapon.axe	AXE	2	0x5d346	11	0x490	0x0003	3	-40	-1		6;7;10;11;15	Y
+object:weapon.axe	AXE	2	0x5d346	12	0x485	0x0003	3	6	-34		1;2;6;10;11;12;13;15	Y
+object:weapon.axe	AXE	2	0x5d346	12	0x486	0x0003	3	6	-18		6;10;15	Y
+object:weapon.axe	AXE	2	0x5d346	13	0x485	0x0003	3	0	-50		1;2;6;10;11;12;13;15	Y
+object:weapon.axe	AXE	2	0x5d346	13	0x486	0x0003	3	0	-34		6;10;15	Y
+object:weapon.axe	AXE	2	0x5d346	14	0x485	0x0003	3	-4	-65		1;2;6;10;11;12;13;15	Y
+object:weapon.axe	AXE	2	0x5d346	14	0x486	0x0003	3	-4	-49		6;10;15	Y
+object:weapon.axe	AXE	2	0x5d346	19	0x485	0x0003	3	10	-40		1;2;6;10;11;12;13;15	Y
+object:weapon.axe	AXE	2	0x5d346	19	0x486	0x0003	3	10	-24		6;10;15	Y
+object:weapon.axe	AXE	2	0x5d346	20	0x489	0x0003	3	34	-40		1;2;12;13	Y
+object:weapon.axe	AXE	2	0x5d346	20	0x488	0x0003	3	26	-32		6;10;15	Y
+object:weapon.axe	AXE	2	0x5d346	20	0x487	0x0003	3	18	-16		10;15	Y
+object:weapon.axe	AXE	2	0x5d346	21	0x48c	0x0003	3	42	-16		1;2;12;13	Y
+object:weapon.axe	AXE	2	0x5d346	21	0x48b	0x0003	3	34	-16		6;10;15	Y
+object:weapon.axe	AXE	2	0x5d346	21	0x48a	0x0003	3	18	-16		6;10;15	Y
+object:weapon.axe	AXE	2	0x5d346	22	0x48d	0x0003	3	10	-8		1;2;6;10;11;12;13;15	Y
+object:weapon.axe	AXE	2	0x5d346	23	0x48e	0x0003	3	-14	-8		1;2;6;10;11;12;13;15	Y
+object:weapon.axe	AXE	2	0x5d346	24	0x48f	0x0003	3	-46	-16		1;2;6;10;12;13;15	Y
+object:weapon.axe	AXE	2	0x5d346	24	0x490	0x0003	3	-30	-16		6;7;10;11;15	Y
+object:weapon.axe	AXE	2	0x5d346	25	0x48c	0x0003	3	21	-17		1;2;12;13	Y
+object:weapon.axe	AXE	2	0x5d346	25	0x48b	0x0003	3	13	-17		6;10;15	Y
+object:weapon.axe	AXE	2	0x5d346	25	0x48a	0x0003	3	-3	-17		6;10;15	Y
+object:weapon.axe	AXE	2	0x5d346	26	0x486	0x8003	3	-8	-10		6;10;15	Y
+object:weapon.axe	AXE	2	0x5d346	26	0x485	0x8003	3	-8	6		1;2;6;10;11;12;13;15	Y
+object:weapon.axe	AXE	2	0x5d346	27	0x486	0x8003	3	-8	0		6;10;15	Y
+object:weapon.axe	AXE	2	0x5d346	27	0x485	0x8003	3	-8	16		1;2;6;10;11;12;13;15	Y
+object:weapon.axe	AXE	2	0x5d346	28	0x486	0x0003	3	0	-23		6;10;15	Y
+object:weapon.axe	AXE	2	0x5d346	28	0x485	0x0003	3	0	-39		1;2;6;10;11;12;13;15	Y
+object:weapon.axe	AXE	2	0x5d346	29	0x486	0x0003	3	0	-22		6;10;15	Y
+object:weapon.axe	AXE	2	0x5d346	29	0x485	0x0003	3	0	-38		1;2;6;10;11;12;13;15	Y
+object:weapon.axe	AXE	2	0x5d346	30	0x486	0x0003	3	0	-22		6;10;15	Y
+object:weapon.axe	AXE	2	0x5d346	30	0x485	0x0003	3	0	-38		1;2;6;10;11;12;13;15	Y
+object:weapon.axe	AXE	2	0x5d346	31	0x486	0x0003	3	0	-12		6;10;15	Y
+object:weapon.axe	AXE	2	0x5d346	31	0x485	0x0003	3	0	-28		1;2;6;10;11;12;13;15	Y
+object:weapon.axe	AXE	2	0x5d346	32	0x486	0x0003	3	0	-15		6;10;15	Y
+object:weapon.axe	AXE	2	0x5d346	32	0x485	0x0003	3	0	-31		1;2;6;10;11;12;13;15	Y
+object:weapon.axe	AXE	2	0x5d346	33	0x486	0x0003	3	0	-17		6;10;15	Y
+object:weapon.axe	AXE	2	0x5d346	33	0x485	0x0003	3	0	-33		1;2;6;10;11;12;13;15	Y
+object:weapon.axe	AXE	2	0x5d346	43	0x485	0x0003	3	0	-28		1;2;6;10;11;12;13;15	Y
+object:weapon.axe	AXE	2	0x5d346	43	0x486	0x0003	3	0	-12		6;10;15	Y
+object:weapon.axe	AXE	2	0x5d346	44	0x485	0x0003	3	0	-36		1;2;6;10;11;12;13;15	Y
+object:weapon.axe	AXE	2	0x5d346	44	0x486	0x0003	3	0	-20		6;10;15	Y
+object:weapon.axe	AXE	2	0x5d346	45	0x489	0x0003	3	24	-28		1;2;12;13	Y
+object:weapon.axe	AXE	2	0x5d346	45	0x488	0x0003	3	16	-20		6;10;15	Y
+object:weapon.axe	AXE	2	0x5d346	45	0x487	0x0003	3	8	-4		10;15	Y
+object:weapon.axe	AXE	2	0x5d346	46	0x489	0x0003	3	24	-36		1;2;12;13	Y
+object:weapon.axe	AXE	2	0x5d346	46	0x488	0x0003	3	16	-28		6;10;15	Y
+object:weapon.axe	AXE	2	0x5d346	46	0x487	0x0003	3	8	-12		10;15	Y
+object:weapon.axe	AXE	2	0x5d346	47	0x48c	0x0003	3	32	-4		1;2;12;13	Y
+object:weapon.axe	AXE	2	0x5d346	47	0x48b	0x0003	3	24	-4		6;10;15	Y
+object:weapon.axe	AXE	2	0x5d346	47	0x48a	0x0003	3	8	-4		6;10;15	Y
+object:weapon.axe	AXE	2	0x5d346	48	0x48c	0x0003	3	32	-12		1;2;12;13	Y
+object:weapon.axe	AXE	2	0x5d346	48	0x48b	0x0003	3	24	-12		6;10;15	Y
+object:weapon.axe	AXE	2	0x5d346	48	0x48a	0x0003	3	8	-12		6;10;15	Y
+object:weapon.axe	AXE	2	0x5d346	49	0x48d	0x0003	3	0	4		1;2;6;10;11;12;13;15	Y
+object:weapon.axe	AXE	2	0x5d346	50	0x48d	0x0003	3	0	-4		1;2;6;10;11;12;13;15	Y
+object:weapon.axe	AXE	2	0x5d346	51	0x48e	0x0003	3	-24	4		1;2;6;10;11;12;13;15	Y
+object:weapon.axe	AXE	2	0x5d346	52	0x48e	0x0003	3	-24	-4		1;2;6;10;11;12;13;15	Y
+object:weapon.axe	AXE	2	0x5d346	53	0x48f	0x0003	3	-56	-4		1;2;6;10;12;13;15	Y
+object:weapon.axe	AXE	2	0x5d346	53	0x490	0x0003	3	-40	-4		6;7;10;11;15	Y
+object:weapon.axe	AXE	2	0x5d346	54	0x48f	0x0003	3	-56	-12		1;2;6;10;12;13;15	Y
+object:weapon.axe	AXE	2	0x5d346	54	0x490	0x0003	3	-40	-12		6;7;10;11;15	Y
+object:weapon.axe	AXE	2	0x5d346	69	0x0be	0x00e0	0	0	-46		1;2;3;4;5;6;7;8;9;10;11;12;13;14;15	Y
+object:weapon.axe	AXE	2	0x5d346	69	0x0ee	0x011c	12	1	8		1;2;3;6;7;8;11;14	Y
+object:weapon.axe	AXE	2	0x5d346	69	0x130	0x0152	2	1	68		2;7;8;9;10;11;12	Y
+object:weapon.hammer	HAMMER	3	0x5d666	0	0x491	0x0003	3	0	-56		1;2;12;13	Y
+object:weapon.hammer	HAMMER	3	0x5d666	0	0x492	0x0003	3	0	-40		1;2;6;12;13;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	0	0x493	0x0003	3	0	-24		6;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	1	0x495	0x0003	3	24	-32		1;6;12;13;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	1	0x496	0x0003	3	8	-32		1;2;6;12;13;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	1	0x494	0x0003	3	8	-16		6;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	2	0x499	0x0003	3	32	-32		1;2;12;13	Y
+object:weapon.hammer	HAMMER	3	0x5d666	2	0x498	0x0003	3	24	-16		1;6;12;13;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	2	0x497	0x0003	3	8	-16		6;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	3	0x49b	0x0003	3	16	-8		1;2;12;13	Y
+object:weapon.hammer	HAMMER	3	0x5d666	3	0x49a	0x0003	3	0	-8		1;6;12;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	4	0x49d	0x0003	3	-32	0		1;2;12;13	Y
+object:weapon.hammer	HAMMER	3	0x5d666	4	0x49c	0x0003	3	-24	-8		6;12;13;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	5	0x49e	0x0003	3	-88	-16		1;2;12;13	Y
+object:weapon.hammer	HAMMER	3	0x5d666	5	0x49f	0x0003	3	-72	-16		1;12;13	Y
+object:weapon.hammer	HAMMER	3	0x5d666	5	0x4a0	0x0003	3	-56	-16		1;12;13;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	5	0x4a1	0x0003	3	-40	-16		6;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	6	0x491	0x0003	3	0	-42		1;2;12;13	Y
+object:weapon.hammer	HAMMER	3	0x5d666	6	0x492	0x0003	3	0	-26		1;2;6;12;13;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	6	0x493	0x0003	3	0	-10		6;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	7	0x495	0x0003	3	24	-18		1;6;12;13;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	7	0x496	0x0003	3	8	-18		1;2;6;12;13;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	7	0x494	0x0003	3	8	-2		6;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	8	0x499	0x0003	3	32	-18		1;2;12;13	Y
+object:weapon.hammer	HAMMER	3	0x5d666	8	0x498	0x0003	3	24	-2		1;6;12;13;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	8	0x497	0x0003	3	8	-2		6;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	9	0x49b	0x0003	3	16	6		1;2;12;13	Y
+object:weapon.hammer	HAMMER	3	0x5d666	9	0x49a	0x0003	3	0	6		1;6;12;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	10	0x49d	0x0003	3	-32	14		1;2;12;13	Y
+object:weapon.hammer	HAMMER	3	0x5d666	10	0x49c	0x0003	3	-24	6		6;12;13;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	11	0x49e	0x0003	3	-88	-2		1;2;12;13	Y
+object:weapon.hammer	HAMMER	3	0x5d666	11	0x49f	0x0003	3	-72	-2		1;12;13	Y
+object:weapon.hammer	HAMMER	3	0x5d666	11	0x4a0	0x0003	3	-56	-2		1;12;13;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	11	0x4a1	0x0003	3	-40	-2		6;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	12	0x491	0x0003	3	6	-50		1;2;12;13	Y
+object:weapon.hammer	HAMMER	3	0x5d666	12	0x492	0x0003	3	6	-34		1;2;6;12;13;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	12	0x493	0x0003	3	6	-18		6;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	13	0x491	0x0003	3	0	-66		1;2;12;13	Y
+object:weapon.hammer	HAMMER	3	0x5d666	13	0x492	0x0003	3	0	-50		1;2;6;12;13;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	13	0x493	0x0003	3	0	-34		6;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	14	0x491	0x0003	3	-4	-81		1;2;12;13	Y
+object:weapon.hammer	HAMMER	3	0x5d666	14	0x492	0x0003	3	-4	-65		1;2;6;12;13;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	14	0x493	0x0003	3	-4	-49		6;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	19	0x491	0x0003	3	10	-56		1;2;12;13	Y
+object:weapon.hammer	HAMMER	3	0x5d666	19	0x492	0x0003	3	10	-40		1;2;6;12;13;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	19	0x493	0x0003	3	10	-24		6;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	20	0x495	0x0003	3	34	-32		1;6;12;13;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	20	0x496	0x0003	3	18	-32		1;2;6;12;13;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	20	0x494	0x0003	3	18	-16		6;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	21	0x499	0x0003	3	42	-32		1;2;12;13	Y
+object:weapon.hammer	HAMMER	3	0x5d666	21	0x498	0x0003	3	34	-16		1;6;12;13;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	21	0x497	0x0003	3	18	-16		6;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	22	0x49b	0x0003	3	26	-8		1;2;12;13	Y
+object:weapon.hammer	HAMMER	3	0x5d666	22	0x49a	0x0003	3	10	-8		1;6;12;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	23	0x49d	0x0003	3	-22	0		1;2;12;13	Y
+object:weapon.hammer	HAMMER	3	0x5d666	23	0x49c	0x0003	3	-14	-8		6;12;13;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	24	0x49e	0x0003	3	-78	-16		1;2;12;13	Y
+object:weapon.hammer	HAMMER	3	0x5d666	24	0x49f	0x0003	3	-62	-16		1;12;13	Y
+object:weapon.hammer	HAMMER	3	0x5d666	24	0x4a0	0x0003	3	-46	-16		1;12;13;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	24	0x4a1	0x0003	3	-30	-16		6;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	25	0x499	0x0003	3	21	-33		1;2;12;13	Y
+object:weapon.hammer	HAMMER	3	0x5d666	25	0x498	0x0003	3	13	-17		1;6;12;13;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	25	0x497	0x0003	3	-3	-17		6;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	26	0x492	0x8003	3	-8	6		1;2;6;12;13;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	26	0x491	0x8003	3	-8	22		1;2;12;13	Y
+object:weapon.hammer	HAMMER	3	0x5d666	26	0x493	0x8003	3	-8	-10		6;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	27	0x492	0x8003	3	-8	16		1;2;6;12;13;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	27	0x491	0x8003	3	-8	32		1;2;12;13	Y
+object:weapon.hammer	HAMMER	3	0x5d666	27	0x493	0x8003	3	-8	0		6;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	28	0x492	0x0003	3	0	-39		1;2;6;12;13;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	28	0x491	0x0003	3	0	-55		1;2;12;13	Y
+object:weapon.hammer	HAMMER	3	0x5d666	28	0x493	0x0003	3	0	-23		6;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	29	0x492	0x0003	3	0	-38		1;2;6;12;13;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	29	0x491	0x0003	3	0	-54		1;2;12;13	Y
+object:weapon.hammer	HAMMER	3	0x5d666	29	0x493	0x0003	3	0	-22		6;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	30	0x492	0x0003	3	0	-38		1;2;6;12;13;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	30	0x491	0x0003	3	0	-54		1;2;12;13	Y
+object:weapon.hammer	HAMMER	3	0x5d666	30	0x493	0x0003	3	0	-22		6;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	31	0x492	0x0003	3	0	-28		1;2;6;12;13;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	31	0x491	0x0003	3	0	-44		1;2;12;13	Y
+object:weapon.hammer	HAMMER	3	0x5d666	31	0x493	0x0003	3	0	-12		6;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	32	0x492	0x0003	3	0	-31		1;2;6;12;13;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	32	0x491	0x0003	3	0	-47		1;2;12;13	Y
+object:weapon.hammer	HAMMER	3	0x5d666	32	0x493	0x0003	3	0	-15		6;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	33	0x492	0x0003	3	0	-33		1;2;6;12;13;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	33	0x491	0x0003	3	0	-49		1;2;12;13	Y
+object:weapon.hammer	HAMMER	3	0x5d666	33	0x493	0x0003	3	0	-17		6;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	43	0x491	0x0003	3	0	-44		1;2;12;13	Y
+object:weapon.hammer	HAMMER	3	0x5d666	43	0x492	0x0003	3	0	-28		1;2;6;12;13;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	43	0x493	0x0003	3	0	-12		6;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	44	0x491	0x0003	3	0	-52		1;2;12;13	Y
+object:weapon.hammer	HAMMER	3	0x5d666	44	0x492	0x0003	3	0	-36		1;2;6;12;13;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	44	0x493	0x0003	3	0	-20		6;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	45	0x495	0x0003	3	24	-20		1;6;12;13;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	45	0x496	0x0003	3	8	-20		1;2;6;12;13;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	45	0x494	0x0003	3	8	-4		6;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	46	0x495	0x0003	3	24	-28		1;6;12;13;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	46	0x496	0x0003	3	8	-28		1;2;6;12;13;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	46	0x494	0x0003	3	8	-12		6;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	47	0x499	0x0003	3	32	-20		1;2;12;13	Y
+object:weapon.hammer	HAMMER	3	0x5d666	47	0x498	0x0003	3	24	-4		1;6;12;13;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	47	0x497	0x0003	3	8	-4		6;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	48	0x499	0x0003	3	32	-28		1;2;12;13	Y
+object:weapon.hammer	HAMMER	3	0x5d666	48	0x498	0x0003	3	24	-12		1;6;12;13;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	48	0x497	0x0003	3	8	-12		6;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	49	0x49b	0x0003	3	16	4		1;2;12;13	Y
+object:weapon.hammer	HAMMER	3	0x5d666	49	0x49a	0x0003	3	0	4		1;6;12;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	50	0x49b	0x0003	3	16	-4		1;2;12;13	Y
+object:weapon.hammer	HAMMER	3	0x5d666	50	0x49a	0x0003	3	0	-4		1;6;12;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	51	0x49d	0x0003	3	-32	12		1;2;12;13	Y
+object:weapon.hammer	HAMMER	3	0x5d666	51	0x49c	0x0003	3	-24	4		6;12;13;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	52	0x49d	0x0003	3	-32	4		1;2;12;13	Y
+object:weapon.hammer	HAMMER	3	0x5d666	52	0x49c	0x0003	3	-24	-4		6;12;13;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	53	0x49e	0x0003	3	-88	-4		1;2;12;13	Y
+object:weapon.hammer	HAMMER	3	0x5d666	53	0x49f	0x0003	3	-72	-4		1;12;13	Y
+object:weapon.hammer	HAMMER	3	0x5d666	53	0x4a0	0x0003	3	-56	-4		1;12;13;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	53	0x4a1	0x0003	3	-40	-4		6;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	54	0x49e	0x0003	3	-88	-12		1;2;12;13	Y
+object:weapon.hammer	HAMMER	3	0x5d666	54	0x49f	0x0003	3	-72	-12		1;12;13	Y
+object:weapon.hammer	HAMMER	3	0x5d666	54	0x4a0	0x0003	3	-56	-12		1;12;13;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	54	0x4a1	0x0003	3	-40	-12		6;15	Y
+object:weapon.hammer	HAMMER	3	0x5d666	69	0x003	0x0000	0	0	0		4;6	Y
+object:weapon.hammer	HAMMER	3	0x5d666	69	0x003	0x0000	0	0	0		4;6	Y
+object:weapon.hammer	HAMMER	3	0x5d666	69	0x003	0x0000	0	0	0		4;6	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	0	0x46e	0x0003	3	0	-40		2;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	0	0x46f	0x0003	3	0	-24		2;8;9;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	1	0x477	0x0003	3	16	-32		2;8;9;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	1	0x476	0x0003	3	8	-16		2;8;9;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	2	0x479	0x0003	3	24	-16		2;8;9;12	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	2	0x478	0x0003	3	8	-16		2;8;9;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	3	0x47a	0x0003	3	0	-8		2;8;9;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	4	0x6e0	0x0003	3	-24	-8		2;8;9	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	5	0x47b	0x0003	3	-56	-16		2;8;9;12	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	5	0x47c	0x0003	3	-40	-16		2;6;8;9;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	6	0x46e	0x0003	3	0	-26		2;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	6	0x46f	0x0003	3	0	-10		2;8;9;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	7	0x477	0x0003	3	16	-18		2;8;9;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	7	0x476	0x0003	3	8	-2		2;8;9;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	8	0x479	0x0003	3	24	-2		2;8;9;12	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	8	0x478	0x0003	3	8	-2		2;8;9;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	9	0x47a	0x0003	3	0	6		2;8;9;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	10	0x6e0	0x0003	3	-24	6		2;8;9	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	11	0x47b	0x0003	3	-56	-1		2;8;9;12	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	11	0x47c	0x0003	3	-40	-1		2;6;8;9;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	12	0x46e	0x0003	3	6	-34		2;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	12	0x46f	0x0003	3	6	-18		2;8;9;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	13	0x46e	0x0003	3	0	-50		2;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	13	0x46f	0x0003	3	0	-34		2;8;9;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	14	0x46e	0x0003	3	-4	-65		2;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	14	0x46f	0x0003	3	-4	-49		2;8;9;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	19	0x46e	0x0003	3	10	-40		2;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	19	0x46f	0x0003	3	10	-24		2;8;9;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	20	0x477	0x0003	3	26	-32		2;8;9;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	20	0x476	0x0003	3	18	-16		2;8;9;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	21	0x479	0x0003	3	34	-16		2;8;9;12	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	21	0x478	0x0003	3	18	-16		2;8;9;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	22	0x47a	0x0003	3	10	-8		2;8;9;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	23	0x6e0	0x0003	3	-14	-8		2;8;9	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	24	0x47b	0x0003	3	-46	-16		2;8;9;12	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	24	0x47c	0x0003	3	-30	-16		2;6;8;9;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	25	0x479	0x0003	3	13	-17		2;8;9;12	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	25	0x478	0x0003	3	-3	-17		2;8;9;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	26	0x46f	0x8003	3	-8	-10		2;8;9;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	26	0x46e	0x8003	3	-8	6		2;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	27	0x46f	0x8003	3	-8	0		2;8;9;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	27	0x46e	0x8003	3	-8	16		2;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	28	0x46f	0x0003	3	0	-23		2;8;9;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	28	0x46e	0x0003	3	0	-39		2;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	29	0x46f	0x0003	3	0	-22		2;8;9;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	29	0x46e	0x0003	3	0	-38		2;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	30	0x46f	0x0003	3	0	-22		2;8;9;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	30	0x46e	0x0003	3	0	-38		2;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	31	0x46f	0x0003	3	0	-12		2;8;9;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	31	0x46e	0x0003	3	0	-28		2;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	32	0x46f	0x0003	3	0	-15		2;8;9;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	32	0x46e	0x0003	3	0	-31		2;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	33	0x46f	0x0003	3	0	-17		2;8;9;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	33	0x46e	0x0003	3	0	-33		2;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	43	0x46e	0x0003	3	0	-28		2;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	43	0x46f	0x0003	3	0	-12		2;8;9;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	44	0x46e	0x0003	3	0	-36		2;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	44	0x46f	0x0003	3	0	-20		2;8;9;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	45	0x477	0x0003	3	16	-20		2;8;9;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	45	0x476	0x0003	3	8	-4		2;8;9;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	46	0x477	0x0003	3	16	-28		2;8;9;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	46	0x476	0x0003	3	8	-12		2;8;9;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	47	0x479	0x0003	3	24	-4		2;8;9;12	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	47	0x478	0x0003	3	8	-4		2;8;9;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	48	0x479	0x0003	3	24	-12		2;8;9;12	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	48	0x478	0x0003	3	8	-12		2;8;9;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	49	0x47a	0x0003	3	0	4		2;8;9;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	50	0x47a	0x0003	3	0	-4		2;8;9;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	51	0x6e0	0x0003	3	-24	4		2;8;9	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	52	0x6e0	0x0003	3	-24	-4		2;8;9	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	53	0x47b	0x0003	3	-56	-4		2;8;9;12	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	53	0x47c	0x0003	3	-40	-4		2;6;8;9;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	54	0x47b	0x0003	3	-56	-12		2;8;9;12	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	54	0x47c	0x0003	3	-40	-12		2;6;8;9;12;13	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	69	0x0b8	0x00d4	4	0	-52		1;2;3;4;5;7;10;11	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	69	0x0dc	0x00f8	8	0	-22		1;2;3;4;5;6;7;9;10;11;12;13;14	Y
+object:weapon.fire_sword	FIRE SWORD	4	0x5d068	69	0x10c	0x0128	8	1	32		1;2;3;4;5;6;7;13	Y

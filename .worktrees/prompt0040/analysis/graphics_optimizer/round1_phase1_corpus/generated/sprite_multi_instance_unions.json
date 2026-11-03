@@ -1,0 +1,41 @@
+{
+ "source": "full_capture/full_observations.csv round 01; census owners",
+ "owner_union_cells": {
+  "UNATTRIBUTED": 37,
+  "LIZARDMAN": 18,
+  "AMBIG:CHIMERA|INSECT|LIZARDMAN|VALKYRIE": 18,
+  "AMBIG:CHIMERA|COMMON_EFFECT|INSECT|LIZARDMAN|VALKYRIE": 1,
+  "COMMON_EFFECT": 2,
+  "HAZARD_BLOCK": 4,
+  "SMALL_BAT": 1,
+  "LARGE_BAT": 4,
+  "PROJ_SPEAR": 3,
+  "AMBIG:LARGE_BAT|SMALL_BAT": 1,
+  "INSECT": 22,
+  "AMBIG:PROJ_FIRE|PROJ_INSECT": 2,
+  "PROJ_INSECT": 2,
+  "PROJ_FIRE": 2,
+  "HAZARD_ROPE": 6,
+  "HAZARD_BOULDER": 4,
+  "AMBIG:LARGE_BAT|PROJ_SPEAR": 2,
+  "CHIMERA": 19,
+  "VALKYRIE": 8,
+  "FLYING_DEMON": 25
+ },
+ "owner_vocab_cells": {
+  "LIZARDMAN": 91,
+  "COMMON_EFFECT": 9,
+  "HAZARD_BLOCK": 4,
+  "LARGE_BAT": 14,
+  "PROJ_SPEAR": 14,
+  "SMALL_BAT": 4,
+  "INSECT": 106,
+  "PROJ_INSECT": 8,
+  "HAZARD_ROPE": 12,
+  "HAZARD_BOULDER": 32,
+  "CHIMERA": 148,
+  "PROJ_FIRE": 11,
+  "VALKYRIE": 66,
+  "FLYING_DEMON": 112
+ }
+}

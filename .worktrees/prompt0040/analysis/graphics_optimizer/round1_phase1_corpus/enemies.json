@@ -1,0 +1,156 @@
+{
+ "task": "R1/P1 seven-enemy graphics + palette corpus (analysis only)",
+ "source_of_truth": "pc090oj.bin + real emitted records + arcade palette loader (round index 0x3BA88 -> pool 0x4FD02, FUN_0003ba64, MAME xBGR_555); PC090OJ draw order lower-record-on-top",
+ "enemies": [
+  {
+   "semantic_id": "LIZARDMAN",
+   "display_name": "LIZARDMAN",
+   "category": "ENEMY_HOSTILE",
+   "identity": "+0x3E=0 / base 0x004B (ordinary family)",
+   "actor_block": "actor_2c8",
+   "base_code": "0x004B",
+   "compositor": "REAL emitted PC090OJ records; frame=907 record=1",
+   "piece_count": 10,
+   "cell_codes": [
+    "0x04F",
+    "0x050",
+    "0x051",
+    "0x052",
+    "0x053",
+    "0x054",
+    "0x063",
+    "0x064",
+    "0x065",
+    "0x066"
+   ],
+   "effective_sprite_bank": "0x36",
+   "emitted_word0_nibble": "0x6"
+  },
+  {
+   "semantic_id": "FOUR_ARMED_INSECT",
+   "display_name": "FOUR-ARMED INSECT",
+   "category": "ENEMY_HOSTILE",
+   "identity": "+0x3E=3 / base 0x02E8 (ordinary family)",
+   "actor_block": "actor_2c8",
+   "base_code": "0x02E8",
+   "compositor": "REAL emitted PC090OJ records; frame=2453 record=4",
+   "piece_count": 10,
+   "cell_codes": [
+    "0x2E8",
+    "0x2EB",
+    "0x2F4",
+    "0x2F5",
+    "0x2F6",
+    "0x2F9",
+    "0x2FA",
+    "0x2FB",
+    "0x2FC",
+    "0x2FD"
+   ],
+   "effective_sprite_bank": "0x3A",
+   "emitted_word0_nibble": "0xA"
+  },
+  {
+   "semantic_id": "VALKYRIE",
+   "display_name": "VALKYRIE",
+   "category": "ENEMY_HOSTILE",
+   "identity": "+0x3E=8 / base 0x0241 (ordinary family)",
+   "actor_block": "actor_2c8",
+   "base_code": "0x0241",
+   "compositor": "REAL emitted PC090OJ records; frame=6617 record=8",
+   "piece_count": 8,
+   "cell_codes": [
+    "0x241",
+    "0x242",
+    "0x243",
+    "0x244",
+    "0x24F",
+    "0x250",
+    "0x251",
+    "0x252"
+   ],
+   "effective_sprite_bank": "0x32",
+   "emitted_word0_nibble": "0x2"
+  },
+  {
+   "semantic_id": "CHIMERA",
+   "display_name": "CHIMERA",
+   "category": "ENEMY_HOSTILE",
+   "identity": "+0x3E=1 / base 0x00D0 (ordinary family)",
+   "actor_block": "actor_2c8",
+   "base_code": "0x00D0",
+   "compositor": "REAL emitted PC090OJ records; frame=3342 record=6",
+   "piece_count": 10,
+   "cell_codes": [
+    "0x1A6",
+    "0x1A7",
+    "0x1A8",
+    "0x1A9",
+    "0x1AA",
+    "0x1AB",
+    "0x1AC",
+    "0x1AD",
+    "0x1AE",
+    "0x1AF"
+   ],
+   "effective_sprite_bank": "0x34",
+   "emitted_word0_nibble": "0x4"
+  },
+  {
+   "semantic_id": "FLYING_DEMON",
+   "display_name": "FLYING DEMON",
+   "category": "ENEMY_HOSTILE",
+   "identity": "special two-slot actor_508 / base 0x0129 (A=body, B=wings)",
+   "actor_block": "actor_508 (special two-slot)",
+   "base_code": "0x0129",
+   "actor_3e": "0x00 (special path; +0x38=0,+0x752=0,+0x27=0x80)",
+   "componentA": {
+    "addr": "0x0010C508",
+    "obj_records": "57-69",
+    "role": "BODY (proven by render)"
+   },
+   "componentB": {
+    "addr": "0x0010C548",
+    "obj_records": "70-82",
+    "role": "WINGS (proven by render)"
+   },
+   "compositor": "REAL emitted PC090OJ records; frame=8876",
+   "effective_sprite_bank": "0x35",
+   "emitted_word0_nibble": "0x5"
+  },
+  {
+   "semantic_id": "SMALL_BAT",
+   "display_name": "SMALL BAT",
+   "category": "ENEMY_HOSTILE",
+   "identity": "actor_748 / base 0x0268 (single-cell aux)",
+   "actor_block": "actor_748",
+   "base_code": "0x0268",
+   "compositor": "REAL emitted PC090OJ records; frame=1503 record=2",
+   "piece_count": 1,
+   "cell_codes": [
+    "0x268"
+   ],
+   "effective_sprite_bank": "0x3E",
+   "emitted_word0_nibble": "0xE"
+  },
+  {
+   "semantic_id": "LARGE_BAT",
+   "display_name": "LARGE BAT",
+   "category": "ENEMY_HOSTILE",
+   "identity": "actor_5c8 / base 0x03F6 (multi-cell aux)",
+   "actor_block": "actor_5c8",
+   "base_code": "0x03F6",
+   "compositor": "REAL emitted PC090OJ records; frame=1503 record=2",
+   "piece_count": 4,
+   "cell_codes": [
+    "0x3F6",
+    "0x3F7",
+    "0x3F8",
+    "0x3F9"
+   ],
+   "effective_sprite_bank": "0x3E",
+   "emitted_word0_nibble": "0xE"
+  }
+ ],
+ "note": "7/7 identities proven; effective banks + exact 16-color palettes proven from arcade ROM. No base+n, no screenshot colors, no Genesis-CRAM colors."
+}

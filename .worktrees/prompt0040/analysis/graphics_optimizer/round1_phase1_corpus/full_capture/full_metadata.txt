@@ -1,0 +1,9 @@
+started=2026-08-26T01:03:52Z
+machine=rastan (ORIGINAL ARCADE)
+driver=USER (Tighe)
+A5=0x0010C000 OBJ=0x00D00000
+capture=full OBJ RAM 0..255 + actor/player blocks
+finished=2026-08-26T01:08:32Z
+frames=16778
+distinct_emitted=131005
+distinct_owner_states=2081

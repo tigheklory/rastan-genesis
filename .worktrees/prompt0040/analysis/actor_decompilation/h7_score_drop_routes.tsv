@@ -1,0 +1,5 @@
+trigger_pc	condition	score_routine	score_value_source	score_buffer	notes
+0x44804 component-anim-complete	rec_type 8/9/11	0x3B726	value +0x2C (cfg_2c) BCD	A5+0x11C..0x11E	extra life at 999999 (0x59EE0)
+0x448E4	component finished	0x3B726	value +0x2C	A5+0x11C..0x11E	-
+0x469E8 boss defeat	round 5/6 boss	0x3B726	value +0x2C	A5+0x11C..0x11E	-
+(drop/item)	NOT REACHED from death path	-	-	-	pickups are marker/schedule placed (H6 + checkpoints A/B/C), not death-dropped

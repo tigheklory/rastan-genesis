@@ -1,0 +1,30 @@
+{
+  "input_vgm": "audio/rastan_music_dump/converted_vgm/06 - The Devil Boss Carnival (Scene 3 Boss).vgm",
+  "data_start_offset": 128,
+  "commands_parsed": 27150,
+  "last_sample_clock": 1252921,
+  "last_time_seconds": 28.41090702947846,
+  "cmd_counts_hex": {
+    "0x54": 12143,
+    "0x61": 2003,
+    "0x66": 1,
+    "0x70": 3349,
+    "0x71": 1843,
+    "0x72": 685,
+    "0x73": 786,
+    "0x74": 139,
+    "0x75": 95,
+    "0x76": 1313,
+    "0x77": 660,
+    "0x78": 3,
+    "0x7A": 661,
+    "0x7B": 34,
+    "0x7C": 7,
+    "0x7D": 296,
+    "0x7E": 6,
+    "0x7F": 3126
+  },
+  "parse_errors": [],
+  "events_csv": "audio/rastan_music_dump/conversion_attempts/06 - The Devil Boss Carnival (Scene 3 Boss)_events.csv",
+  "ym2151_csv": "audio/rastan_music_dump/conversion_attempts/06 - The Devil Boss Carnival (Scene 3 Boss)_ym2151_writes.csv"
+}

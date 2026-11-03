@@ -1,0 +1,125 @@
+{
+ "profile_id": "t_indep",
+ "display_name": "t_indep",
+ "parent": "baseline_current",
+ "target_palette_lines": [
+  [
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null
+  ],
+  [
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null
+  ],
+  [
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null
+  ],
+  [
+   null,
+   "0x0111",
+   "0x0111",
+   "0x0111",
+   "0x0111",
+   "0x0111",
+   "0x0111",
+   "0x0111",
+   "0x0111",
+   "0x0111",
+   "0x0111",
+   "0x0111",
+   "0x0111",
+   "0x0111",
+   "0x0111",
+   "0x0111"
+  ]
+ ],
+ "usage_palette_mappings": {},
+ "plane_usage_palette_mappings": {},
+ "context_policies": {
+  "PAL-R1-S2-PLANEA-CASTLE": {
+   "tpl": {
+    "3": {
+     "1": "0x0ABC",
+     "2": "0x0DEF"
+    }
+   }
+  }
+ },
+ "reserved_lines": [
+  2
+ ],
+ "line_owners": {
+  "0": {
+   "owner": "editable",
+   "control": "editor",
+   "editable": true,
+   "optimizer_available": true
+  },
+  "1": {
+   "owner": "editable",
+   "control": "editor",
+   "editable": true,
+   "optimizer_available": true
+  },
+  "2": {
+   "owner": "layer_b",
+   "control": "arcade",
+   "editable": false,
+   "optimizer_available": false,
+   "label": "LINE 2 \u2014 LAYER B \u2014 ARCADE CONTROLLED \u2014 PROTECTED",
+   "animated_indices": [
+    1
+   ],
+   "note": "Owned by the accepted Layer-B time-of-day palette path in Build 0313; excluded from editor optimization. Colors are read-only but REUSABLE; index 1 is the animated sky \u2014 avoid."
+  },
+  "3": {
+   "owner": "editable",
+   "control": "editor",
+   "editable": true,
+   "optimizer_available": true
+  }
+ }
+}

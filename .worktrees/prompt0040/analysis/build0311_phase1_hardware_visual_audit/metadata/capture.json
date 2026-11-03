@@ -1,0 +1,57 @@
+{
+  "source": "states/screenshots/Build_0311_Playthough_Round_1_Phase_1_crashes_Phase_2.mp4",
+  "duration_seconds": 236.1254,
+  "source_frames": 7085,
+  "source_fps_derived": 30.005242976825024,
+  "baseline_sample_rate_fps": 4.0,
+  "baseline_selected_frames": 945,
+  "dense_sample_rate_fps": 12,
+  "dense_selected_frames": 1219,
+  "dense_windows": [
+    {
+      "name": "gameplay_entry",
+      "start_seconds": 17.5,
+      "duration_seconds": 3.0
+    },
+    {
+      "name": "section02_record01_descent",
+      "start_seconds": 27.25,
+      "duration_seconds": 17.25
+    },
+    {
+      "name": "section02_record01_exit",
+      "start_seconds": 46.5,
+      "duration_seconds": 4.0
+    },
+    {
+      "name": "vertical_transition_01",
+      "start_seconds": 56.5,
+      "duration_seconds": 17.0
+    },
+    {
+      "name": "mid_phase_transition_01",
+      "start_seconds": 89.0,
+      "duration_seconds": 12.0
+    },
+    {
+      "name": "mid_phase_transition_02",
+      "start_seconds": 117.0,
+      "duration_seconds": 12.0
+    },
+    {
+      "name": "late_phase_transition_01",
+      "start_seconds": 145.0,
+      "duration_seconds": 12.0
+    },
+    {
+      "name": "late_phase_transition_02",
+      "start_seconds": 175.0,
+      "duration_seconds": 12.0
+    },
+    {
+      "name": "fortress_approach",
+      "start_seconds": 202.0,
+      "duration_seconds": 12.0
+    }
+  ]
+}

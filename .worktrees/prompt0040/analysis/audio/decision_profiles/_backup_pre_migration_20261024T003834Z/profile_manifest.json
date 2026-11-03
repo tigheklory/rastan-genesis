@@ -1,0 +1,21 @@
+{
+ "active": "baseline_current",
+ "profiles": [
+  {
+   "profile_id": "baseline_current",
+   "display_name": "Baseline (immutable)",
+   "parent": null,
+   "immutable": true,
+   "revision": 0
+  },
+  {
+   "profile_id": "music-test",
+   "display_name": "music-test",
+   "track_id": "08 - Final Destroy (Scene 3 Round 6 Boss)",
+   "approval_status": "draft",
+   "parent": "baseline_current",
+   "modified": "2026-10-23T20:01:57Z",
+   "revision": 13
+  }
+ ]
+}

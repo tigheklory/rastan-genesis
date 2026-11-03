@@ -1,0 +1,32 @@
+{
+  "input_vgm": "audio/rastan_music_dump/converted_vgm/07 - Scene Clear.vgm",
+  "data_start_offset": 128,
+  "commands_parsed": 7207,
+  "last_sample_clock": 414564,
+  "last_time_seconds": 9.400544217687075,
+  "cmd_counts_hex": {
+    "0x54": 3196,
+    "0x61": 618,
+    "0x63": 1,
+    "0x66": 1,
+    "0x70": 822,
+    "0x71": 490,
+    "0x72": 240,
+    "0x73": 251,
+    "0x74": 19,
+    "0x75": 34,
+    "0x76": 254,
+    "0x77": 125,
+    "0x78": 11,
+    "0x79": 3,
+    "0x7A": 120,
+    "0x7B": 52,
+    "0x7C": 10,
+    "0x7D": 50,
+    "0x7E": 64,
+    "0x7F": 846
+  },
+  "parse_errors": [],
+  "events_csv": "audio/rastan_music_dump/conversion_attempts/07 - Scene Clear_events.csv",
+  "ym2151_csv": "audio/rastan_music_dump/conversion_attempts/07 - Scene Clear_ym2151_writes.csv"
+}

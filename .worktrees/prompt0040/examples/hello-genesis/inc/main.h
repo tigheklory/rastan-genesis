@@ -1,0 +1,4 @@
+#ifndef HELLO_GENESIS_MAIN_H
+#define HELLO_GENESIS_MAIN_H
+
+#endif

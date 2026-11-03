@@ -1,0 +1,68 @@
+{
+  "source_zip": "roms/rastan.zip",
+  "source_zip_sha256": "09a19edc7221694d3885c11f75e549fca3589161c6113275e857a44ee40051af",
+  "loads": [
+    {
+      "name": "b04-38.19",
+      "zip_member_size": 65536,
+      "load16_byte_offset": "0x0",
+      "sha1": "17fc55e8546cc0b847aebd67fb4570a1e9f128f3",
+      "sha256": "31068a3fcb4cea0109b5a86f1b88a100d7163cb37d0b7b3550a98d1c3a637b00"
+    },
+    {
+      "name": "b04-37.7",
+      "zip_member_size": 65536,
+      "load16_byte_offset": "0x1",
+      "sha1": "92e46b1edef40a19be17091c09daba598d77bca8",
+      "sha256": "fd6a1ce96db63851890bbbf05049284d17c038d811155f8f75d5a0ab8117b241"
+    },
+    {
+      "name": "b04-40.20",
+      "zip_member_size": 65536,
+      "load16_byte_offset": "0x20000",
+      "sha1": "c269b3856040ed9409de99cca48f22a2f355fc4c",
+      "sha256": "c09d7b693f6a33a0d7767af646e39e3aae4138022a19aa455bed9244503c525a"
+    },
+    {
+      "name": "b04-39.8",
+      "zip_member_size": 65536,
+      "load16_byte_offset": "0x20001",
+      "sha1": "f47557dcfa9d3137e2a3838e45858fc21471cc91",
+      "sha256": "4964d7dcf596fc1e3c367ece65fb54a82eb68cbb2d786cd23007763c0a1654b6"
+    },
+    {
+      "name": "b04-42.21",
+      "zip_member_size": 65536,
+      "load16_byte_offset": "0x40000",
+      "sha1": "7d967d04ade648c6ddb19aad9e184b6e272856da",
+      "sha256": "81ccd5d3bf871774d6e72e83d4e0d8c55013c2259e339b4d2c867e032bf19edc"
+    },
+    {
+      "name": "b04-43-1.9",
+      "zip_member_size": 65536,
+      "load16_byte_offset": "0x40001",
+      "sha1": "0f8c2d7d332c4e35884c48d87ba9fd26924d1692",
+      "sha256": "74bb18531644bd4291f8a5d75f4673a7d44f62c6183bf88d21206e8c6fbd2915"
+    }
+  ],
+  "assembled_maincpu": {
+    "path": "analysis/ghidra/rastan_arcade/input/rastan_world_rev1_maincpu_68000.bin",
+    "size": 393216,
+    "sha1": "63577d3f75a96b35398cf40126c40598ebd8089d",
+    "sha256": "4f30b9e7aa946aa33d20e125a1726ff094f9615980107d0842efe1721cf32063",
+    "load_base": "0x000000",
+    "endian": "big",
+    "processor": "Motorola 68000"
+  },
+  "vectors": {
+    "initial_sp": "0x10de00",
+    "reset_pc": "0x3a000"
+  },
+  "ghidra": {
+    "version": "12.0.4 PUBLIC",
+    "install_path": "/home/tighe/tools/ghidra_12.0.4_PUBLIC",
+    "headless": "/home/tighe/tools/ghidra_12.0.4_PUBLIC/support/analyzeHeadless",
+    "language": "68000:BE:32:default:default",
+    "project": "analysis/ghidra/rastan_arcade/ghidra_project/rastan_arcade_world_rev1.gpr"
+  }
+}

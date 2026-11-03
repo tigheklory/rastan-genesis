@@ -1,0 +1,10 @@
+order	pc	role	gate	frontier_target	status
+1	0x3A008	oriw #0xF00,sr (mask) + ack int (0x350008) + PC080SN write 0x3C0000	-	-	PROVEN
+2	0x3A028	bsr 0x3A126 when game-state a5@(2) in [2,4)	a5@(2)	0x3A126 (world/scroll?)	FRONTIER
+3	0x3A03A	bsr 0x41F30 actor system when a5@(0)!=0 && a5@(5012)!=1	a5@(0),a5@(5012)	0x41F30 (actor update)	FRONTIER
+4	0x3A03E	bsr 0x3AB7C	-	0x3AB7C	FRONTIER
+5	0x3A042	bsr 0x3ABE2	-	0x3ABE2	FRONTIER
+6	0x3A046	bsr 0x3A0A8	-	0x3A0A8	FRONTIER
+7	0x3A04A	bsr 0x3EEFA	-	0x3EEFA (sprite/SAT commit?)	FRONTIER
+8	0x3A04E	bsr 0x3EF5C	-	0x3EF5C	FRONTIER
+9	0x3A052	game-state dispatch (table 0x3A06C): s0 0x3A9FE, s1 0x3A8AC, s2 0x3A15A, s3 0x3AB6E, s4 0x3EF25, s5 0x3A071, s6 0x3FD0E, s7 0x3A2E8	a5@(0)	8 state handlers	PROVEN (targets); handlers FRONTIER

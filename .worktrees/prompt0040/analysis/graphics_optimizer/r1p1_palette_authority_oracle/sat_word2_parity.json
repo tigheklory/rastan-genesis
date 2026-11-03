@@ -1,0 +1,187 @@
+{
+  "details": [
+    {
+      "dynamic_pattern_samples": [
+        0,
+        1,
+        1023,
+        2047
+      ],
+      "generated_static_attribute": "0xE000",
+      "palette_line": 3,
+      "priority": 1,
+      "semantic_class": "rastan_player_body",
+      "status": "RESOLVED",
+      "tested_combinations": 416
+    },
+    {
+      "dynamic_pattern_samples": [
+        0,
+        1,
+        1023,
+        2047
+      ],
+      "generated_static_attribute": "0x8000",
+      "palette_line": 0,
+      "priority": 1,
+      "semantic_class": "stage1_lizardman",
+      "status": "RESOLVED",
+      "tested_combinations": 560
+    },
+    {
+      "reason": "No accepted complete palette decision and code domain.",
+      "semantic_class": "collision_marker40_route",
+      "status": "UNRESOLVED"
+    },
+    {
+      "reason": "No accepted complete palette decision and code domain.",
+      "semantic_class": "collision_marker41_route",
+      "status": "UNRESOLVED"
+    },
+    {
+      "reason": "No accepted complete palette decision and code domain.",
+      "semantic_class": "family0_class70_actor",
+      "status": "UNRESOLVED"
+    },
+    {
+      "reason": "No accepted complete palette decision and code domain.",
+      "semantic_class": "family2_round1_actor_cluster",
+      "status": "UNRESOLVED"
+    },
+    {
+      "reason": "No accepted complete palette decision and code domain.",
+      "semantic_class": "collision_marker49_special_route",
+      "status": "UNRESOLVED"
+    },
+    {
+      "reason": "No accepted complete palette decision and code domain.",
+      "semantic_class": "collision_marker4f_behavior20_route",
+      "status": "UNRESOLVED"
+    },
+    {
+      "reason": "No accepted complete palette decision and code domain.",
+      "semantic_class": "record08_family2_class30",
+      "status": "UNRESOLVED"
+    },
+    {
+      "reason": "No accepted complete palette decision and code domain.",
+      "semantic_class": "record09_family1_class57",
+      "status": "UNRESOLVED"
+    },
+    {
+      "reason": "No accepted complete palette decision and code domain.",
+      "semantic_class": "record0a_family1_classb6",
+      "status": "UNRESOLVED"
+    },
+    {
+      "reason": "No accepted complete palette decision and code domain.",
+      "semantic_class": "record0b_family1_classb9",
+      "status": "UNRESOLVED"
+    },
+    {
+      "reason": "No accepted complete palette decision and code domain.",
+      "semantic_class": "record0c_family1_classbc",
+      "status": "UNRESOLVED"
+    },
+    {
+      "reason": "No accepted complete palette decision and code domain.",
+      "semantic_class": "hurry_up_bat",
+      "status": "UNRESOLVED"
+    },
+    {
+      "reason": "No accepted complete palette decision and code domain.",
+      "semantic_class": "normal_small_bat",
+      "status": "UNRESOLVED"
+    },
+    {
+      "reason": "No accepted complete palette decision and code domain.",
+      "semantic_class": "large_bat",
+      "status": "UNRESOLVED"
+    },
+    {
+      "reason": "No accepted complete palette decision and code domain.",
+      "semantic_class": "four_armed_enemy",
+      "status": "UNRESOLVED"
+    },
+    {
+      "reason": "No accepted complete palette decision and code domain.",
+      "semantic_class": "axe_item",
+      "status": "UNRESOLVED"
+    },
+    {
+      "dynamic_pattern_samples": [
+        0,
+        1,
+        1023,
+        2047
+      ],
+      "generated_static_attribute": "0xE000",
+      "palette_line": 3,
+      "priority": 1,
+      "semantic_class": "player_auxiliary",
+      "status": "RESOLVED",
+      "tested_combinations": 48
+    },
+    {
+      "reason": "No accepted complete palette decision and code domain.",
+      "semantic_class": "other_item_drop",
+      "status": "UNRESOLVED"
+    },
+    {
+      "reason": "No accepted complete palette decision and code domain.",
+      "semantic_class": "projectile_weapon",
+      "status": "UNRESOLVED"
+    },
+    {
+      "reason": "No accepted complete palette decision and code domain.",
+      "semantic_class": "transient_effect",
+      "status": "UNRESOLVED"
+    },
+    {
+      "reason": "No accepted complete palette decision and code domain.",
+      "semantic_class": "gameplay_hud",
+      "status": "UNRESOLVED"
+    },
+    {
+      "dynamic_pattern_samples": [
+        0,
+        1,
+        1023,
+        2047
+      ],
+      "generated_static_attribute": "0x8000",
+      "palette_line": 0,
+      "priority": 1,
+      "semantic_class": "hostile_base004b_compositor0",
+      "status": "RESOLVED",
+      "tested_combinations": 160
+    },
+    {
+      "reason": "No accepted complete palette decision and code domain.",
+      "semantic_class": "hostile_base0179_compositor0",
+      "status": "UNRESOLVED"
+    },
+    {
+      "reason": "No accepted complete palette decision and code domain.",
+      "semantic_class": "hostile_base0a5a_compositor2",
+      "status": "UNRESOLVED"
+    },
+    {
+      "reason": "No accepted complete palette decision and code domain.",
+      "semantic_class": "hostile_base0a73_compositor2",
+      "status": "UNRESOLVED"
+    }
+  ],
+  "first_mismatch": null,
+  "mismatch_details": [],
+  "mismatches": 0,
+  "proposed": "independent context-selected generated static attribute OR genuinely dynamic pattern/H/V bits",
+  "reference": "independent model of native emitted word 2 followed by accepted semantic palette-bit clear/patch; priority fixed to 1",
+  "resolved_combinations": 1184,
+  "resolved_subset_result": "PASS",
+  "result": "INCOMPLETE",
+  "schema_version": 1,
+  "scope": "Round 1 Phase 1",
+  "tested_combinations": 1184,
+  "unresolved_semantic_cases": 23
+}

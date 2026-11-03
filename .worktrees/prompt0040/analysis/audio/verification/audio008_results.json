@@ -1,0 +1,1931 @@
+{
+  "audio_composer_http": {
+    "GET /api/audition": 200,
+    "GET /api/inventory": 200,
+    "GET /api/lawrence": 200,
+    "GET /api/profile?p=baseline_current": 200,
+    "GET /api/profiles": 200,
+    "GET /api/psg_model": 200,
+    "fm6_file_written": false,
+    "fm6_rejection_status": 403,
+    "get_profile_traversal_disclosed_json": true,
+    "get_profile_traversal_status": 200,
+    "invalid_destination_conflict_returned": true,
+    "invalid_destination_file_written": true,
+    "invalid_destination_save_status": 200,
+    "malformed_json_status": 400,
+    "manifest_revision_after_two_saves": 2,
+    "post_profile_id_traversal_rejected": 400,
+    "prior_revision_file_exists": false,
+    "proposal_approval_separate": true,
+    "same_id_overwrites_prior_file": true,
+    "static_suffix_route_unknown_js_status": 200,
+    "tone3_noise_warns_without_noise_mode": true,
+    "unknown_field_preserved": true,
+    "valid_reload_status": 200,
+    "valid_save_status": 200
+  },
+  "inputs": {
+    "adpcm": {
+      "bytes": 65536,
+      "path": "build/regions/adpcm.bin",
+      "sha256": "65a82d3669a2d52b00e019dedef858e3778ecd1e8526326beaf0c100df29311f"
+    },
+    "audiocpu": {
+      "bytes": 65536,
+      "path": "build/regions/audiocpu.bin",
+      "sha256": "db0e2d4954bcb0d558f6b6dd194badccdeb29c62282051ff47b687548701e478"
+    },
+    "lawrence_vgm": {
+      "bytes": 71848,
+      "path": "audio/Inglebard Agressive World Handmade Genesis version/LM-Main Stage Theme (1).vgm",
+      "sha256": "b786794eedb319c71716bb481e0836647ecf002de7bb5bd8761d173fa948580d"
+    }
+  },
+  "lawrence_vgm": {
+    "algorithm_distribution": {
+      "0": 35,
+      "3": 108,
+      "4": 6,
+      "5": 20,
+      "6": 5
+    },
+    "command_histogram": {
+      "0x50": 4884,
+      "0x52": 8769,
+      "0x53": 740,
+      "0x61": 3168,
+      "0x66": 1,
+      "0x67": 4,
+      "0x90": 1,
+      "0x91": 1,
+      "0x92": 398,
+      "0x94": 1,
+      "0x95": 398
+    },
+    "dac_enable_seen": true,
+    "data_blocks": [
+      {
+        "size": 4818,
+        "type": 0
+      },
+      {
+        "size": 4814,
+        "type": 0
+      },
+      {
+        "size": 4817,
+        "type": 0
+      },
+      {
+        "size": 4813,
+        "type": 0
+      }
+    ],
+    "direct_or_0x8n_dac_writes": 0,
+    "end_marker_reached": true,
+    "feedback_distribution": {
+      "0": 47,
+      "2": 2,
+      "5": 92,
+      "6": 30,
+      "7": 3
+    },
+    "fm_keyons": {
+      "1": 88,
+      "2": 102,
+      "3": 93,
+      "4": 39,
+      "5": 131,
+      "6": 0
+    },
+    "fm_snapshot_counts": {
+      "1": 43,
+      "2": 55,
+      "3": 62,
+      "4": 2,
+      "5": 12,
+      "6": 0
+    },
+    "initial_fm123_pan": {
+      "1": 212,
+      "2": 148,
+      "3": 84
+    },
+    "initial_fm123_patch_equal": true,
+    "loop_samples_header": 1792800,
+    "psg_first_seconds": {
+      "0": 29.676735,
+      "1": 16.718571,
+      "2": 12.195918,
+      "3": 12.195918
+    },
+    "psg_keyons": {
+      "0": 21,
+      "1": 25,
+      "2": 21,
+      "3": 1
+    },
+    "samples_parsed": 2366496,
+    "sn76489_clock": 3579545,
+    "snapshot_total": 174,
+    "stream_frequencies": [
+      8000
+    ],
+    "stream_start_count": 398,
+    "total_samples_header": 2366496,
+    "unsupported": [],
+    "version": "1.96",
+    "ym2612_clock": 7670454
+  },
+  "song_table": {
+    "command_count": 44,
+    "commands": [
+      {
+        "command": 0,
+        "descriptor": 10288,
+        "entries": [
+          {
+            "first": 140,
+            "subsequence": 10400
+          },
+          {
+            "first": 144,
+            "subsequence": 10432
+          },
+          {
+            "first": 148,
+            "subsequence": 10464
+          },
+          {
+            "first": 152,
+            "subsequence": 10496
+          },
+          {
+            "first": 156,
+            "subsequence": 10528
+          },
+          {
+            "first": 160,
+            "subsequence": 10560
+          },
+          {
+            "first": 164,
+            "subsequence": 10592
+          },
+          {
+            "first": 168,
+            "subsequence": 10624
+          },
+          {
+            "first": 142,
+            "subsequence": 10416
+          },
+          {
+            "first": 146,
+            "subsequence": 10448
+          },
+          {
+            "first": 150,
+            "subsequence": 10480
+          },
+          {
+            "first": 154,
+            "subsequence": 10512
+          },
+          {
+            "first": 158,
+            "subsequence": 10544
+          },
+          {
+            "first": 162,
+            "subsequence": 10576
+          },
+          {
+            "first": 166,
+            "subsequence": 10608
+          },
+          {
+            "first": 170,
+            "subsequence": 10640
+          },
+          {
+            "first": 130,
+            "subsequence": 10656
+          }
+        ],
+        "entry_count": 17,
+        "form": "entry_list",
+        "lead": 17
+      },
+      {
+        "command": 1,
+        "descriptor": 10336,
+        "entries": [
+          {
+            "first": 140,
+            "subsequence": 10400
+          },
+          {
+            "first": 144,
+            "subsequence": 10432
+          },
+          {
+            "first": 148,
+            "subsequence": 10464
+          },
+          {
+            "first": 152,
+            "subsequence": 10496
+          },
+          {
+            "first": 156,
+            "subsequence": 10528
+          },
+          {
+            "first": 160,
+            "subsequence": 10560
+          },
+          {
+            "first": 164,
+            "subsequence": 10592
+          },
+          {
+            "first": 168,
+            "subsequence": 10624
+          }
+        ],
+        "entry_count": 8,
+        "form": "entry_list",
+        "lead": 8
+      },
+      {
+        "command": 2,
+        "descriptor": 10368,
+        "entries": [
+          {
+            "first": 142,
+            "subsequence": 10416
+          },
+          {
+            "first": 146,
+            "subsequence": 10448
+          },
+          {
+            "first": 150,
+            "subsequence": 10480
+          },
+          {
+            "first": 154,
+            "subsequence": 10512
+          },
+          {
+            "first": 158,
+            "subsequence": 10544
+          },
+          {
+            "first": 162,
+            "subsequence": 10576
+          },
+          {
+            "first": 166,
+            "subsequence": 10608
+          },
+          {
+            "first": 170,
+            "subsequence": 10640
+          }
+        ],
+        "entry_count": 8,
+        "form": "entry_list",
+        "lead": 8
+      },
+      {
+        "channel_or_control_id": 130,
+        "command": 3,
+        "descriptor": 10656,
+        "form": "single_descriptor",
+        "lead": 130
+      },
+      {
+        "command": 4,
+        "descriptor": 10800,
+        "entries": [
+          {
+            "first": 164,
+            "subsequence": 10816
+          },
+          {
+            "first": 168,
+            "subsequence": 10832
+          }
+        ],
+        "entry_count": 2,
+        "form": "entry_list",
+        "lead": 2
+      },
+      {
+        "command": 5,
+        "descriptor": 10848,
+        "entries": [
+          {
+            "first": 164,
+            "subsequence": 10864
+          },
+          {
+            "first": 168,
+            "subsequence": 10880
+          }
+        ],
+        "entry_count": 2,
+        "form": "entry_list",
+        "lead": 2
+      },
+      {
+        "command": 6,
+        "descriptor": 10896,
+        "entries": [
+          {
+            "first": 164,
+            "subsequence": 10912
+          },
+          {
+            "first": 168,
+            "subsequence": 10928
+          },
+          {
+            "first": 130,
+            "subsequence": 10944
+          }
+        ],
+        "entry_count": 3,
+        "form": "entry_list",
+        "lead": 3
+      },
+      {
+        "command": 7,
+        "descriptor": 10960,
+        "entries": [
+          {
+            "first": 164,
+            "subsequence": 10976
+          },
+          {
+            "first": 168,
+            "subsequence": 10992
+          }
+        ],
+        "entry_count": 2,
+        "form": "entry_list",
+        "lead": 2
+      },
+      {
+        "command": 8,
+        "descriptor": 11008,
+        "entries": [
+          {
+            "first": 164,
+            "subsequence": 11024
+          },
+          {
+            "first": 168,
+            "subsequence": 11040
+          }
+        ],
+        "entry_count": 2,
+        "form": "entry_list",
+        "lead": 2
+      },
+      {
+        "command": 9,
+        "descriptor": 11056,
+        "entries": [
+          {
+            "first": 164,
+            "subsequence": 11072
+          },
+          {
+            "first": 168,
+            "subsequence": 11088
+          }
+        ],
+        "entry_count": 2,
+        "form": "entry_list",
+        "lead": 2
+      },
+      {
+        "channel_or_control_id": 130,
+        "command": 10,
+        "descriptor": 11104,
+        "form": "single_descriptor",
+        "lead": 130
+      },
+      {
+        "command": 11,
+        "descriptor": 11120,
+        "entries": [
+          {
+            "first": 164,
+            "subsequence": 11136
+          },
+          {
+            "first": 168,
+            "subsequence": 11152
+          }
+        ],
+        "entry_count": 2,
+        "form": "entry_list",
+        "lead": 2
+      },
+      {
+        "command": 12,
+        "descriptor": 11168,
+        "entries": [
+          {
+            "first": 164,
+            "subsequence": 11184
+          },
+          {
+            "first": 168,
+            "subsequence": 11200
+          }
+        ],
+        "entry_count": 2,
+        "form": "entry_list",
+        "lead": 2
+      },
+      {
+        "channel_or_control_id": 130,
+        "command": 13,
+        "descriptor": 11216,
+        "form": "single_descriptor",
+        "lead": 130
+      },
+      {
+        "command": 14,
+        "descriptor": 11232,
+        "entries": [
+          {
+            "first": 164,
+            "subsequence": 11248
+          },
+          {
+            "first": 168,
+            "subsequence": 11264
+          }
+        ],
+        "entry_count": 2,
+        "form": "entry_list",
+        "lead": 2
+      },
+      {
+        "command": 15,
+        "descriptor": 11280,
+        "entries": [
+          {
+            "first": 164,
+            "subsequence": 11296
+          },
+          {
+            "first": 168,
+            "subsequence": 11312
+          }
+        ],
+        "entry_count": 2,
+        "form": "entry_list",
+        "lead": 2
+      },
+      {
+        "command": 16,
+        "descriptor": 11328,
+        "entries": [
+          {
+            "first": 164,
+            "subsequence": 11344
+          },
+          {
+            "first": 168,
+            "subsequence": 11360
+          }
+        ],
+        "entry_count": 2,
+        "form": "entry_list",
+        "lead": 2
+      },
+      {
+        "command": 17,
+        "descriptor": 11376,
+        "entries": [
+          {
+            "first": 164,
+            "subsequence": 11392
+          },
+          {
+            "first": 168,
+            "subsequence": 11408
+          }
+        ],
+        "entry_count": 2,
+        "form": "entry_list",
+        "lead": 2
+      },
+      {
+        "command": 18,
+        "descriptor": 11424,
+        "entries": [
+          {
+            "first": 164,
+            "subsequence": 11440
+          },
+          {
+            "first": 168,
+            "subsequence": 11456
+          }
+        ],
+        "entry_count": 2,
+        "form": "entry_list",
+        "lead": 2
+      },
+      {
+        "command": 19,
+        "descriptor": 11472,
+        "entries": [
+          {
+            "first": 166,
+            "subsequence": 11488
+          },
+          {
+            "first": 170,
+            "subsequence": 11504
+          }
+        ],
+        "entry_count": 2,
+        "form": "entry_list",
+        "lead": 2
+      },
+      {
+        "command": 20,
+        "descriptor": 11520,
+        "entries": [
+          {
+            "first": 166,
+            "subsequence": 11536
+          },
+          {
+            "first": 170,
+            "subsequence": 11552
+          }
+        ],
+        "entry_count": 2,
+        "form": "entry_list",
+        "lead": 2
+      },
+      {
+        "command": 21,
+        "descriptor": 11568,
+        "entries": [
+          {
+            "first": 166,
+            "subsequence": 11584
+          },
+          {
+            "first": 170,
+            "subsequence": 11600
+          }
+        ],
+        "entry_count": 2,
+        "form": "entry_list",
+        "lead": 2
+      },
+      {
+        "command": 22,
+        "descriptor": 11616,
+        "entries": [
+          {
+            "first": 164,
+            "subsequence": 11632
+          },
+          {
+            "first": 168,
+            "subsequence": 11648
+          }
+        ],
+        "entry_count": 2,
+        "form": "entry_list",
+        "lead": 2
+      },
+      {
+        "command": 23,
+        "descriptor": 11664,
+        "entries": [
+          {
+            "first": 164,
+            "subsequence": 11680
+          },
+          {
+            "first": 168,
+            "subsequence": 11696
+          }
+        ],
+        "entry_count": 2,
+        "form": "entry_list",
+        "lead": 2
+      },
+      {
+        "command": 24,
+        "descriptor": 11712,
+        "entries": [
+          {
+            "first": 164,
+            "subsequence": 11728
+          },
+          {
+            "first": 168,
+            "subsequence": 11744
+          }
+        ],
+        "entry_count": 2,
+        "form": "entry_list",
+        "lead": 2
+      },
+      {
+        "command": 25,
+        "descriptor": 11760,
+        "entries": [
+          {
+            "first": 142,
+            "subsequence": 11792
+          },
+          {
+            "first": 146,
+            "subsequence": 11808
+          },
+          {
+            "first": 150,
+            "subsequence": 11824
+          },
+          {
+            "first": 154,
+            "subsequence": 11840
+          },
+          {
+            "first": 158,
+            "subsequence": 11856
+          },
+          {
+            "first": 162,
+            "subsequence": 11872
+          },
+          {
+            "first": 166,
+            "subsequence": 11888
+          },
+          {
+            "first": 170,
+            "subsequence": 11904
+          }
+        ],
+        "entry_count": 8,
+        "form": "entry_list",
+        "lead": 8
+      },
+      {
+        "command": 26,
+        "descriptor": 11920,
+        "entries": [
+          {
+            "first": 142,
+            "subsequence": 11936
+          },
+          {
+            "first": 146,
+            "subsequence": 11952
+          },
+          {
+            "first": 150,
+            "subsequence": 11968
+          },
+          {
+            "first": 154,
+            "subsequence": 11984
+          },
+          {
+            "first": 158,
+            "subsequence": 12000
+          },
+          {
+            "first": 162,
+            "subsequence": 12016
+          }
+        ],
+        "entry_count": 6,
+        "form": "entry_list",
+        "lead": 6
+      },
+      {
+        "command": 27,
+        "descriptor": 12144,
+        "entries": [
+          {
+            "first": 142,
+            "subsequence": 12160
+          },
+          {
+            "first": 146,
+            "subsequence": 12176
+          },
+          {
+            "first": 150,
+            "subsequence": 12192
+          },
+          {
+            "first": 154,
+            "subsequence": 12208
+          },
+          {
+            "first": 158,
+            "subsequence": 12224
+          },
+          {
+            "first": 162,
+            "subsequence": 12240
+          }
+        ],
+        "entry_count": 6,
+        "form": "entry_list",
+        "lead": 6
+      },
+      {
+        "command": 28,
+        "descriptor": 12256,
+        "entries": [
+          {
+            "first": 142,
+            "subsequence": 12272
+          },
+          {
+            "first": 146,
+            "subsequence": 12288
+          },
+          {
+            "first": 150,
+            "subsequence": 12304
+          },
+          {
+            "first": 154,
+            "subsequence": 12320
+          },
+          {
+            "first": 158,
+            "subsequence": 12336
+          },
+          {
+            "first": 162,
+            "subsequence": 12352
+          }
+        ],
+        "entry_count": 6,
+        "form": "entry_list",
+        "lead": 6
+      },
+      {
+        "command": 29,
+        "descriptor": 12368,
+        "entries": [
+          {
+            "first": 142,
+            "subsequence": 12384
+          },
+          {
+            "first": 146,
+            "subsequence": 12400
+          },
+          {
+            "first": 150,
+            "subsequence": 12416
+          },
+          {
+            "first": 154,
+            "subsequence": 12432
+          },
+          {
+            "first": 158,
+            "subsequence": 12448
+          },
+          {
+            "first": 162,
+            "subsequence": 12464
+          }
+        ],
+        "entry_count": 6,
+        "form": "entry_list",
+        "lead": 6
+      },
+      {
+        "command": 30,
+        "descriptor": 12480,
+        "entries": [
+          {
+            "first": 142,
+            "subsequence": 12496
+          },
+          {
+            "first": 146,
+            "subsequence": 12512
+          },
+          {
+            "first": 150,
+            "subsequence": 12528
+          },
+          {
+            "first": 154,
+            "subsequence": 12544
+          },
+          {
+            "first": 158,
+            "subsequence": 12560
+          },
+          {
+            "first": 162,
+            "subsequence": 12576
+          },
+          {
+            "first": 130,
+            "subsequence": 12592
+          }
+        ],
+        "entry_count": 7,
+        "form": "entry_list",
+        "lead": 7
+      },
+      {
+        "command": 31,
+        "descriptor": 12608,
+        "entries": [
+          {
+            "first": 142,
+            "subsequence": 12624
+          },
+          {
+            "first": 146,
+            "subsequence": 12640
+          },
+          {
+            "first": 150,
+            "subsequence": 12656
+          },
+          {
+            "first": 154,
+            "subsequence": 12672
+          },
+          {
+            "first": 158,
+            "subsequence": 12688
+          },
+          {
+            "first": 162,
+            "subsequence": 12704
+          }
+        ],
+        "entry_count": 6,
+        "form": "entry_list",
+        "lead": 6
+      },
+      {
+        "command": 32,
+        "descriptor": 12720,
+        "entries": [
+          {
+            "first": 142,
+            "subsequence": 12752
+          },
+          {
+            "first": 146,
+            "subsequence": 12768
+          },
+          {
+            "first": 150,
+            "subsequence": 12784
+          },
+          {
+            "first": 154,
+            "subsequence": 12800
+          },
+          {
+            "first": 158,
+            "subsequence": 12816
+          },
+          {
+            "first": 162,
+            "subsequence": 12832
+          },
+          {
+            "first": 166,
+            "subsequence": 12848
+          },
+          {
+            "first": 170,
+            "subsequence": 12864
+          }
+        ],
+        "entry_count": 8,
+        "form": "entry_list",
+        "lead": 8
+      },
+      {
+        "channel_or_control_id": 130,
+        "command": 33,
+        "descriptor": 12880,
+        "form": "single_descriptor",
+        "lead": 130
+      },
+      {
+        "command": 34,
+        "descriptor": 12896,
+        "entries": [
+          {
+            "first": 164,
+            "subsequence": 12912
+          },
+          {
+            "first": 168,
+            "subsequence": 12928
+          }
+        ],
+        "entry_count": 2,
+        "form": "entry_list",
+        "lead": 2
+      },
+      {
+        "command": 35,
+        "descriptor": 12944,
+        "entries": [
+          {
+            "first": 166,
+            "subsequence": 12960
+          },
+          {
+            "first": 170,
+            "subsequence": 12976
+          }
+        ],
+        "entry_count": 2,
+        "form": "entry_list",
+        "lead": 2
+      },
+      {
+        "command": 36,
+        "descriptor": 10672,
+        "entries": [
+          {
+            "first": 142,
+            "subsequence": 10416
+          },
+          {
+            "first": 146,
+            "subsequence": 10448
+          },
+          {
+            "first": 150,
+            "subsequence": 10480
+          },
+          {
+            "first": 154,
+            "subsequence": 10512
+          },
+          {
+            "first": 158,
+            "subsequence": 10544
+          },
+          {
+            "first": 162,
+            "subsequence": 10576
+          }
+        ],
+        "entry_count": 6,
+        "form": "entry_list",
+        "lead": 6
+      },
+      {
+        "command": 37,
+        "descriptor": 10688,
+        "entries": [
+          {
+            "first": 166,
+            "subsequence": 10704
+          },
+          {
+            "first": 170,
+            "subsequence": 10720
+          }
+        ],
+        "entry_count": 2,
+        "form": "entry_list",
+        "lead": 2
+      },
+      {
+        "channel_or_control_id": 130,
+        "command": 38,
+        "descriptor": 12992,
+        "form": "single_descriptor",
+        "lead": 130
+      },
+      {
+        "command": 39,
+        "descriptor": 13008,
+        "entries": [
+          {
+            "first": 142,
+            "subsequence": 13024
+          },
+          {
+            "first": 146,
+            "subsequence": 13040
+          },
+          {
+            "first": 150,
+            "subsequence": 13056
+          },
+          {
+            "first": 154,
+            "subsequence": 13072
+          },
+          {
+            "first": 158,
+            "subsequence": 13088
+          },
+          {
+            "first": 162,
+            "subsequence": 13104
+          }
+        ],
+        "entry_count": 6,
+        "form": "entry_list",
+        "lead": 6
+      },
+      {
+        "command": 40,
+        "descriptor": 12032,
+        "entries": [
+          {
+            "first": 142,
+            "subsequence": 12048
+          },
+          {
+            "first": 146,
+            "subsequence": 12064
+          },
+          {
+            "first": 150,
+            "subsequence": 12080
+          },
+          {
+            "first": 154,
+            "subsequence": 12096
+          },
+          {
+            "first": 158,
+            "subsequence": 12112
+          },
+          {
+            "first": 162,
+            "subsequence": 12128
+          }
+        ],
+        "entry_count": 6,
+        "form": "entry_list",
+        "lead": 6
+      },
+      {
+        "command": 41,
+        "descriptor": 10736,
+        "entries": [
+          {
+            "first": 164,
+            "subsequence": 10752
+          },
+          {
+            "first": 168,
+            "subsequence": 10768
+          },
+          {
+            "first": 130,
+            "subsequence": 10784
+          }
+        ],
+        "entry_count": 3,
+        "form": "entry_list",
+        "lead": 3
+      },
+      {
+        "command": 42,
+        "descriptor": 13120,
+        "entries": [
+          {
+            "first": 164,
+            "subsequence": 13136
+          },
+          {
+            "first": 168,
+            "subsequence": 13152
+          }
+        ],
+        "entry_count": 2,
+        "form": "entry_list",
+        "lead": 2
+      },
+      {
+        "command": 43,
+        "descriptor": 13168,
+        "entries": [
+          {
+            "first": 164,
+            "subsequence": 13184
+          },
+          {
+            "first": 168,
+            "subsequence": 13200
+          }
+        ],
+        "entry_count": 2,
+        "form": "entry_list",
+        "lead": 2
+      }
+    ],
+    "descriptor_max": 13168,
+    "descriptor_min": 10288,
+    "direct_commands": [],
+    "invalid_subsequence_references": [],
+    "invalid_table_pointers": [],
+    "special_descriptors": [
+      [
+        3,
+        10656,
+        130
+      ],
+      [
+        10,
+        11104,
+        130
+      ],
+      [
+        13,
+        11216,
+        130
+      ],
+      [
+        33,
+        12880,
+        130
+      ],
+      [
+        38,
+        12992,
+        130
+      ]
+    ],
+    "subsequence_max": 13200,
+    "subsequence_min": 10400
+  },
+  "task": "AUDIO-008",
+  "ym2151_captures": {
+    "all_algorithm_register_writes": {
+      "0": 2,
+      "1": 108,
+      "2": 66,
+      "3": 36,
+      "4": 22,
+      "5": 7
+    },
+    "final_algorithm_distribution_over_keyed_channel_tracks": {
+      "1": 32,
+      "2": 10,
+      "3": 7,
+      "4": 2,
+      "5": 3
+    },
+    "track_count": 9,
+    "tracks": {
+      "01 - Credit": {
+        "keyed_channel_count": 2,
+        "keyed_channels": [
+          6,
+          7
+        ],
+        "noise_enable_writes": 0,
+        "peak_simultaneously_keyed_channels": 2,
+        "per_channel": {
+          "0": {
+            "active_span_s": 0,
+            "distinct_kc_values": 0,
+            "final_algorithm": null,
+            "final_feedback": null,
+            "keyoffs": 1,
+            "keyons": 0
+          },
+          "1": {
+            "active_span_s": 0,
+            "distinct_kc_values": 0,
+            "final_algorithm": null,
+            "final_feedback": null,
+            "keyoffs": 1,
+            "keyons": 0
+          },
+          "2": {
+            "active_span_s": 0,
+            "distinct_kc_values": 0,
+            "final_algorithm": null,
+            "final_feedback": null,
+            "keyoffs": 1,
+            "keyons": 0
+          },
+          "3": {
+            "active_span_s": 0,
+            "distinct_kc_values": 0,
+            "final_algorithm": null,
+            "final_feedback": null,
+            "keyoffs": 1,
+            "keyons": 0
+          },
+          "4": {
+            "active_span_s": 0,
+            "distinct_kc_values": 0,
+            "final_algorithm": null,
+            "final_feedback": null,
+            "keyoffs": 1,
+            "keyons": 0
+          },
+          "5": {
+            "active_span_s": 0,
+            "distinct_kc_values": 0,
+            "final_algorithm": null,
+            "final_feedback": null,
+            "keyoffs": 1,
+            "keyons": 0
+          },
+          "6": {
+            "active_span_s": 0.0,
+            "distinct_kc_values": 1,
+            "final_algorithm": 3,
+            "final_feedback": 1,
+            "keyoffs": 2,
+            "keyons": 1
+          },
+          "7": {
+            "active_span_s": 0.0,
+            "distinct_kc_values": 1,
+            "final_algorithm": 3,
+            "final_feedback": 1,
+            "keyoffs": 2,
+            "keyons": 1
+          }
+        },
+        "rows": 155
+      },
+      "02 - Broken The Promises (Opening)": {
+        "keyed_channel_count": 8,
+        "keyed_channels": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "noise_enable_writes": 0,
+        "peak_simultaneously_keyed_channels": 8,
+        "per_channel": {
+          "0": {
+            "active_span_s": 7.078299,
+            "distinct_kc_values": 2,
+            "final_algorithm": 1,
+            "final_feedback": 7,
+            "keyoffs": 5,
+            "keyons": 4
+          },
+          "1": {
+            "active_span_s": 9.239342,
+            "distinct_kc_values": 3,
+            "final_algorithm": 1,
+            "final_feedback": 7,
+            "keyoffs": 49,
+            "keyons": 48
+          },
+          "2": {
+            "active_span_s": 9.289705,
+            "distinct_kc_values": 3,
+            "final_algorithm": 1,
+            "final_feedback": 7,
+            "keyoffs": 49,
+            "keyons": 48
+          },
+          "3": {
+            "active_span_s": 4.717914,
+            "distinct_kc_values": 2,
+            "final_algorithm": 1,
+            "final_feedback": 7,
+            "keyoffs": 3,
+            "keyons": 2
+          },
+          "4": {
+            "active_span_s": 4.717914,
+            "distinct_kc_values": 2,
+            "final_algorithm": 1,
+            "final_feedback": 7,
+            "keyoffs": 3,
+            "keyons": 2
+          },
+          "5": {
+            "active_span_s": 4.717914,
+            "distinct_kc_values": 2,
+            "final_algorithm": 1,
+            "final_feedback": 7,
+            "keyoffs": 3,
+            "keyons": 2
+          },
+          "6": {
+            "active_span_s": 4.717914,
+            "distinct_kc_values": 1,
+            "final_algorithm": 5,
+            "final_feedback": 7,
+            "keyoffs": 3,
+            "keyons": 2
+          },
+          "7": {
+            "active_span_s": 4.717868,
+            "distinct_kc_values": 2,
+            "final_algorithm": 1,
+            "final_feedback": 7,
+            "keyoffs": 3,
+            "keyons": 2
+          }
+        },
+        "rows": 4326
+      },
+      "03 - Aggressive World (Scene 1)": {
+        "keyed_channel_count": 6,
+        "keyed_channels": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "noise_enable_writes": 0,
+        "peak_simultaneously_keyed_channels": 6,
+        "per_channel": {
+          "0": {
+            "active_span_s": 51.937302,
+            "distinct_kc_values": 19,
+            "final_algorithm": 1,
+            "final_feedback": 7,
+            "keyoffs": 114,
+            "keyons": 114
+          },
+          "1": {
+            "active_span_s": 52.264308,
+            "distinct_kc_values": 23,
+            "final_algorithm": 1,
+            "final_feedback": 7,
+            "keyoffs": 107,
+            "keyons": 106
+          },
+          "2": {
+            "active_span_s": 52.329796,
+            "distinct_kc_values": 33,
+            "final_algorithm": 1,
+            "final_feedback": 7,
+            "keyoffs": 82,
+            "keyons": 82
+          },
+          "3": {
+            "active_span_s": 48.758231,
+            "distinct_kc_values": 28,
+            "final_algorithm": 4,
+            "final_feedback": 7,
+            "keyoffs": 109,
+            "keyons": 108
+          },
+          "4": {
+            "active_span_s": 52.227914,
+            "distinct_kc_values": 2,
+            "final_algorithm": 2,
+            "final_feedback": 4,
+            "keyoffs": 403,
+            "keyons": 402
+          },
+          "5": {
+            "active_span_s": 51.93542,
+            "distinct_kc_values": 3,
+            "final_algorithm": 5,
+            "final_feedback": 7,
+            "keyoffs": 40,
+            "keyons": 40
+          },
+          "6": {
+            "active_span_s": 0,
+            "distinct_kc_values": 0,
+            "final_algorithm": null,
+            "final_feedback": null,
+            "keyoffs": 1,
+            "keyons": 0
+          },
+          "7": {
+            "active_span_s": 0,
+            "distinct_kc_values": 0,
+            "final_algorithm": null,
+            "final_feedback": null,
+            "keyoffs": 1,
+            "keyons": 0
+          }
+        },
+        "rows": 16189
+      },
+      "04 - Bad Bible (Name Regist)": {
+        "keyed_channel_count": 6,
+        "keyed_channels": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "noise_enable_writes": 0,
+        "peak_simultaneously_keyed_channels": 6,
+        "per_channel": {
+          "0": {
+            "active_span_s": 1.966122,
+            "distinct_kc_values": 2,
+            "final_algorithm": 1,
+            "final_feedback": 7,
+            "keyoffs": 2,
+            "keyons": 2
+          },
+          "1": {
+            "active_span_s": 1.966122,
+            "distinct_kc_values": 1,
+            "final_algorithm": 1,
+            "final_feedback": 7,
+            "keyoffs": 9,
+            "keyons": 9
+          },
+          "2": {
+            "active_span_s": 2.127574,
+            "distinct_kc_values": 5,
+            "final_algorithm": 3,
+            "final_feedback": 7,
+            "keyoffs": 14,
+            "keyons": 14
+          },
+          "3": {
+            "active_span_s": 1.966122,
+            "distinct_kc_values": 4,
+            "final_algorithm": 3,
+            "final_feedback": 7,
+            "keyoffs": 9,
+            "keyons": 9
+          },
+          "4": {
+            "active_span_s": 1.638367,
+            "distinct_kc_values": 4,
+            "final_algorithm": 3,
+            "final_feedback": 7,
+            "keyoffs": 9,
+            "keyons": 8
+          },
+          "5": {
+            "active_span_s": 1.964921,
+            "distinct_kc_values": 1,
+            "final_algorithm": 1,
+            "final_feedback": 7,
+            "keyoffs": 10,
+            "keyons": 9
+          },
+          "6": {
+            "active_span_s": 0,
+            "distinct_kc_values": 0,
+            "final_algorithm": null,
+            "final_feedback": null,
+            "keyoffs": 1,
+            "keyons": 0
+          },
+          "7": {
+            "active_span_s": 0,
+            "distinct_kc_values": 0,
+            "final_algorithm": null,
+            "final_feedback": null,
+            "keyoffs": 1,
+            "keyons": 0
+          }
+        },
+        "rows": 1141
+      },
+      "05 - Re-In-Carnation (Scene 2)": {
+        "keyed_channel_count": 6,
+        "keyed_channels": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "noise_enable_writes": 0,
+        "peak_simultaneously_keyed_channels": 6,
+        "per_channel": {
+          "0": {
+            "active_span_s": 95.69898,
+            "distinct_kc_values": 38,
+            "final_algorithm": 1,
+            "final_feedback": 7,
+            "keyoffs": 157,
+            "keyons": 157
+          },
+          "1": {
+            "active_span_s": 95.69898,
+            "distinct_kc_values": 38,
+            "final_algorithm": 1,
+            "final_feedback": 7,
+            "keyoffs": 203,
+            "keyons": 203
+          },
+          "2": {
+            "active_span_s": 91.915397,
+            "distinct_kc_values": 35,
+            "final_algorithm": 1,
+            "final_feedback": 7,
+            "keyoffs": 217,
+            "keyons": 216
+          },
+          "3": {
+            "active_span_s": 96.501723,
+            "distinct_kc_values": 34,
+            "final_algorithm": 2,
+            "final_feedback": 4,
+            "keyoffs": 190,
+            "keyons": 189
+          },
+          "4": {
+            "active_span_s": 96.501678,
+            "distinct_kc_values": 19,
+            "final_algorithm": 1,
+            "final_feedback": 7,
+            "keyoffs": 137,
+            "keyons": 136
+          },
+          "5": {
+            "active_span_s": 96.501633,
+            "distinct_kc_values": 28,
+            "final_algorithm": 2,
+            "final_feedback": 4,
+            "keyoffs": 192,
+            "keyons": 191
+          },
+          "6": {
+            "active_span_s": 0,
+            "distinct_kc_values": 0,
+            "final_algorithm": null,
+            "final_feedback": null,
+            "keyoffs": 1,
+            "keyons": 0
+          },
+          "7": {
+            "active_span_s": 0,
+            "distinct_kc_values": 0,
+            "final_algorithm": null,
+            "final_feedback": null,
+            "keyoffs": 1,
+            "keyons": 0
+          }
+        },
+        "rows": 44340
+      },
+      "06 - The Devil Boss Carnival (Scene 3 Boss)": {
+        "keyed_channel_count": 6,
+        "keyed_channels": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "noise_enable_writes": 0,
+        "peak_simultaneously_keyed_channels": 6,
+        "per_channel": {
+          "0": {
+            "active_span_s": 28.311565,
+            "distinct_kc_values": 15,
+            "final_algorithm": 1,
+            "final_feedback": 7,
+            "keyoffs": 33,
+            "keyons": 33
+          },
+          "1": {
+            "active_span_s": 28.311565,
+            "distinct_kc_values": 11,
+            "final_algorithm": 4,
+            "final_feedback": 7,
+            "keyoffs": 33,
+            "keyons": 33
+          },
+          "2": {
+            "active_span_s": 28.311565,
+            "distinct_kc_values": 22,
+            "final_algorithm": 1,
+            "final_feedback": 7,
+            "keyoffs": 69,
+            "keyons": 69
+          },
+          "3": {
+            "active_span_s": 28.069365,
+            "distinct_kc_values": 20,
+            "final_algorithm": 1,
+            "final_feedback": 7,
+            "keyoffs": 69,
+            "keyons": 69
+          },
+          "4": {
+            "active_span_s": 28.312154,
+            "distinct_kc_values": 7,
+            "final_algorithm": 1,
+            "final_feedback": 7,
+            "keyoffs": 243,
+            "keyons": 243
+          },
+          "5": {
+            "active_span_s": 27.967596,
+            "distinct_kc_values": 7,
+            "final_algorithm": 2,
+            "final_feedback": 4,
+            "keyoffs": 258,
+            "keyons": 257
+          },
+          "6": {
+            "active_span_s": 0,
+            "distinct_kc_values": 0,
+            "final_algorithm": null,
+            "final_feedback": null,
+            "keyoffs": 1,
+            "keyons": 0
+          },
+          "7": {
+            "active_span_s": 0,
+            "distinct_kc_values": 0,
+            "final_algorithm": null,
+            "final_feedback": null,
+            "keyoffs": 1,
+            "keyons": 0
+          }
+        },
+        "rows": 12143
+      },
+      "07 - Scene Clear": {
+        "keyed_channel_count": 6,
+        "keyed_channels": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "noise_enable_writes": 0,
+        "peak_simultaneously_keyed_channels": 6,
+        "per_channel": {
+          "0": {
+            "active_span_s": 2.75254,
+            "distinct_kc_values": 16,
+            "final_algorithm": 1,
+            "final_feedback": 7,
+            "keyoffs": 14,
+            "keyons": 13
+          },
+          "1": {
+            "active_span_s": 2.752494,
+            "distinct_kc_values": 16,
+            "final_algorithm": 2,
+            "final_feedback": 7,
+            "keyoffs": 14,
+            "keyons": 13
+          },
+          "2": {
+            "active_span_s": 7.863129,
+            "distinct_kc_values": 6,
+            "final_algorithm": 2,
+            "final_feedback": 7,
+            "keyoffs": 30,
+            "keyons": 29
+          },
+          "3": {
+            "active_span_s": 7.863084,
+            "distinct_kc_values": 3,
+            "final_algorithm": 2,
+            "final_feedback": 7,
+            "keyoffs": 30,
+            "keyons": 29
+          },
+          "4": {
+            "active_span_s": 7.863039,
+            "distinct_kc_values": 6,
+            "final_algorithm": 2,
+            "final_feedback": 7,
+            "keyoffs": 30,
+            "keyons": 29
+          },
+          "5": {
+            "active_span_s": 7.466395,
+            "distinct_kc_values": 5,
+            "final_algorithm": 1,
+            "final_feedback": 7,
+            "keyoffs": 16,
+            "keyons": 15
+          },
+          "6": {
+            "active_span_s": 0,
+            "distinct_kc_values": 0,
+            "final_algorithm": null,
+            "final_feedback": null,
+            "keyoffs": 1,
+            "keyons": 0
+          },
+          "7": {
+            "active_span_s": 0,
+            "distinct_kc_values": 0,
+            "final_algorithm": null,
+            "final_feedback": null,
+            "keyoffs": 1,
+            "keyons": 0
+          }
+        },
+        "rows": 3196
+      },
+      "08 - Final Destroy (Scene 3 Round 6 Boss)": {
+        "keyed_channel_count": 6,
+        "keyed_channels": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "noise_enable_writes": 0,
+        "peak_simultaneously_keyed_channels": 6,
+        "per_channel": {
+          "0": {
+            "active_span_s": 72.761361,
+            "distinct_kc_values": 31,
+            "final_algorithm": 2,
+            "final_feedback": 7,
+            "keyoffs": 348,
+            "keyons": 348
+          },
+          "1": {
+            "active_span_s": 70.451202,
+            "distinct_kc_values": 27,
+            "final_algorithm": 2,
+            "final_feedback": 7,
+            "keyoffs": 348,
+            "keyons": 347
+          },
+          "2": {
+            "active_span_s": 72.760181,
+            "distinct_kc_values": 29,
+            "final_algorithm": 1,
+            "final_feedback": 7,
+            "keyoffs": 169,
+            "keyons": 169
+          },
+          "3": {
+            "active_span_s": 72.517982,
+            "distinct_kc_values": 38,
+            "final_algorithm": 1,
+            "final_feedback": 7,
+            "keyoffs": 127,
+            "keyons": 127
+          },
+          "4": {
+            "active_span_s": 72.760771,
+            "distinct_kc_values": 22,
+            "final_algorithm": 1,
+            "final_feedback": 7,
+            "keyoffs": 365,
+            "keyons": 365
+          },
+          "5": {
+            "active_span_s": 72.519206,
+            "distinct_kc_values": 24,
+            "final_algorithm": 5,
+            "final_feedback": 7,
+            "keyoffs": 364,
+            "keyons": 364
+          },
+          "6": {
+            "active_span_s": 0,
+            "distinct_kc_values": 0,
+            "final_algorithm": null,
+            "final_feedback": null,
+            "keyoffs": 1,
+            "keyons": 0
+          },
+          "7": {
+            "active_span_s": 0,
+            "distinct_kc_values": 0,
+            "final_algorithm": null,
+            "final_feedback": null,
+            "keyoffs": 1,
+            "keyons": 0
+          }
+        },
+        "rows": 37679
+      },
+      "09 - The Man Of Saga (Ending)": {
+        "keyed_channel_count": 8,
+        "keyed_channels": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "noise_enable_writes": 0,
+        "peak_simultaneously_keyed_channels": 8,
+        "per_channel": {
+          "0": {
+            "active_span_s": 58.71737,
+            "distinct_kc_values": 17,
+            "final_algorithm": 1,
+            "final_feedback": 7,
+            "keyoffs": 19,
+            "keyons": 18
+          },
+          "1": {
+            "active_span_s": 82.575351,
+            "distinct_kc_values": 20,
+            "final_algorithm": 3,
+            "final_feedback": 6,
+            "keyoffs": 35,
+            "keyons": 34
+          },
+          "2": {
+            "active_span_s": 62.909909,
+            "distinct_kc_values": 35,
+            "final_algorithm": 1,
+            "final_feedback": 7,
+            "keyoffs": 39,
+            "keyons": 38
+          },
+          "3": {
+            "active_span_s": 82.569478,
+            "distinct_kc_values": 11,
+            "final_algorithm": 3,
+            "final_feedback": 5,
+            "keyoffs": 65,
+            "keyons": 64
+          },
+          "4": {
+            "active_span_s": 62.947392,
+            "distinct_kc_values": 37,
+            "final_algorithm": 1,
+            "final_feedback": 7,
+            "keyoffs": 39,
+            "keyons": 38
+          },
+          "5": {
+            "active_span_s": 82.568844,
+            "distinct_kc_values": 14,
+            "final_algorithm": 1,
+            "final_feedback": 7,
+            "keyoffs": 78,
+            "keyons": 77
+          },
+          "6": {
+            "active_span_s": 64.585601,
+            "distinct_kc_values": 34,
+            "final_algorithm": 1,
+            "final_feedback": 7,
+            "keyoffs": 67,
+            "keyons": 66
+          },
+          "7": {
+            "active_span_s": 67.296122,
+            "distinct_kc_values": 34,
+            "final_algorithm": 1,
+            "final_feedback": 7,
+            "keyoffs": 68,
+            "keyons": 67
+          }
+        },
+        "rows": 42606
+      }
+    }
+  }
+}

@@ -1,0 +1,117 @@
+{
+  "schema_version": "rastan-palette-subround-map/v1",
+  "registry_id": "palette_subround_map",
+  "authority": "Andy (RG-022). Companion index to specs/palette_decisions.json (the sole palette-decision registry). This file does NOT store color decisions; it enumerates the authentic subround/environment palette KEYS and native-graphics availability. All color/line decisions live in palette_decisions.json keyed by `scene_key`.",
+  "doc": [
+    "Stable palette key scheme (RG-022 section 2). genesistan_current_scene_id alone is insufficient:",
+    "R1-S1/R1-S2/R2-S1 all report scene_id=1. The authentic key combines round + subround + the",
+    "segment/record band (a5@0x13E) + residency/epoch + graphics family. Subround is derived from the",
+    "arcade stage index a5@0x1242 = (round-1)*23 + 16*castle + 22*boss (RG-019). Line 2 is the arcade-",
+    "controlled Plane-B line (reserved); Plane-B is NOT user-authored."
+  ],
+  "key_format": "PAL-R{round}-S{subround}-{family}-{env}  e.g. PAL-R1-S2-PLANEA-CASTLE-01, PAL-R1-S1-PC090OJ-RASTAN",
+  "families": {
+    "PLANEA": {"subsystem": "PC080SN Plane A background", "authorable": true, "genesis_lines": [0, 1, 3],
+               "note": "offline-authored; consumed at scene entry (display-off). Line 2 excluded."},
+    "PLANEB": {"subsystem": "PC080SN Plane B background", "authorable": false, "genesis_lines": [2],
+               "note": "Line 2 is reserved/arcade-controlled (RESERVED_LINES). Shown read-only; never authored."},
+    "PC090OJ": {"subsystem": "PC090OJ sprites (player/enemies/items)", "authorable": true, "genesis_lines": [0, 1, 3],
+                "note": "sprite families are broadly converted across rounds; palette per scene still per-round."}
+  },
+  "native_status_vocabulary": {
+    "source_available": "arcade source graphics/palette data exist (always true in-ROM).",
+    "native_converted": "Cody native Plane A/B package exists for this subround (RG-021/0499).",
+    "native_not_converted": "no native Plane A/B package yet.",
+    "mode_a": "scene recognized (scene_id=1) but PC080SN content absent -> blank layers.",
+    "mode_b": "scene NOT recognized (scene_id=0, source outside genesistan_scene_a0_ranges) -> blank screen.",
+    "palette_missing": "no palette decision authored for this scene_key.",
+    "palette_provisional": "a provisional palette decision exists (e.g. raw arcade conversion); awaiting Tighe approval.",
+    "palette_approved": "Tighe-approved decision exists in palette_decisions.json."
+  },
+  "subround_offsets_in_round": {"1_outside": 0, "2_castle": 16, "3_boss": 22},
+  "records_per_round": 23,
+  "subrounds": [
+    { "key": "R1-S1", "round": 1, "subround": 1, "name": "Round 1 Outside", "stage_index": 0,
+      "record_band": [0, 15], "native": "native_converted", "mode": null,
+      "palette": "partial: R1 sprite families approved/decided; Plane-A provisional",
+      "environments": [
+        { "env": "OUTDOOR", "family": "PLANEA", "records": [0, 15], "scene_key": "PAL-R1-S1-PLANEA-OUTDOOR" },
+        { "env": "CAVE-S4", "family": "PLANEA", "records": [4, 6], "residency_hint": "stage1_cave_s4", "scene_key": "PAL-R1-S1-PLANEA-CAVE-S4" },
+        { "env": "CAVE-S5", "family": "PLANEA", "records": [7, 9], "residency_hint": "stage1_cave_s5", "scene_key": "PAL-R1-S1-PLANEA-CAVE-S5" },
+        { "env": "CAVE-S6", "family": "PLANEA", "records": [10, 12], "residency_hint": "stage1_cave_s6", "scene_key": "PAL-R1-S1-PLANEA-CAVE-S6" },
+        { "env": "SPRITES", "family": "PC090OJ", "records": [0, 15], "scene_key": "PAL-R1-S1-PC090OJ",
+          "legacy_decisions": "existing 23 palette_decisions.json entries (gameplay scene 1) map here" }
+      ] },
+    { "key": "R1-S2", "round": 1, "subround": 2, "name": "Round 1 Castle", "stage_index": 16,
+      "record_band": [16, 21], "native": "native_converted", "mode": null,
+      "palette": "provisional/missing (RG-022 priority; Cody RG-021 castle Plane A/B exist)",
+      "environments": [
+        { "env": "CASTLE", "family": "PLANEA", "records": [16, 21], "scene_key": "PAL-R1-S2-PLANEA-CASTLE" },
+        { "env": "SPRITES", "family": "PC090OJ", "records": [16, 21], "scene_key": "PAL-R1-S2-PC090OJ" }
+      ] },
+    { "key": "R1-S3", "round": 1, "subround": 3, "name": "Round 1 Boss", "stage_index": 22,
+      "record_band": [22, 22], "native": "native_converted", "mode": null,
+      "palette": "provisional/missing (RG-022 priority; Cody RG-021 boss Plane A/B exist)",
+      "environments": [
+        { "env": "BOSS-ROOM", "family": "PLANEA", "records": [22, 22], "scene_key": "PAL-R1-S3-PLANEA-BOSS" },
+        { "env": "SPRITES", "family": "PC090OJ", "records": [22, 22], "scene_key": "PAL-R1-S3-PC090OJ" }
+      ] },
+    { "key": "R2-S1", "round": 2, "subround": 1, "name": "Round 2 Outside", "stage_index": 23,
+      "record_band": [23, 38], "native": "native_converted", "mode": null,
+      "palette": "provisional (R2 currently raw arcade conversion pending RG-022 authoring)",
+      "environments": [
+        { "env": "OUTDOOR", "family": "PLANEA", "records": [23, 38], "scene_key": "PAL-R2-S1-PLANEA-OUTDOOR" },
+        { "env": "SPRITES", "family": "PC090OJ", "records": [23, 38], "scene_key": "PAL-R2-S1-PC090OJ" }
+      ] },
+    { "key": "R2-S2", "round": 2, "subround": 2, "name": "Round 2 Castle", "stage_index": 39,
+      "record_band": [39, 44], "native": "native_converted", "mode": null,
+      "palette": "provisional (R2 raw arcade conversion pending RG-022 authoring)",
+      "environments": [
+        { "env": "CASTLE", "family": "PLANEA", "records": [39, 44], "scene_key": "PAL-R2-S2-PLANEA-CASTLE" },
+        { "env": "SPRITES", "family": "PC090OJ", "records": [39, 44], "scene_key": "PAL-R2-S2-PC090OJ" }
+      ] },
+    { "key": "R2-S3", "round": 2, "subround": 3, "name": "Round 2 Boss", "stage_index": 45,
+      "record_band": [45, 45], "native": "native_converted", "mode": null,
+      "palette": "provisional (R2 raw arcade conversion pending RG-022 authoring)",
+      "environments": [
+        { "env": "BOSS-ROOM", "family": "PLANEA", "records": [45, 45], "scene_key": "PAL-R2-S3-PLANEA-BOSS" },
+        { "env": "SPRITES", "family": "PC090OJ", "records": [45, 45], "scene_key": "PAL-R2-S3-PC090OJ" }
+      ] },
+    { "key": "R3-S1", "round": 3, "subround": 1, "name": "Round 3 Outside", "stage_index": 46,
+      "record_band": [46, 61], "native": "native_not_converted", "mode": "mode_b", "palette": "missing",
+      "environments": [ { "env": "OUTDOOR", "family": "PLANEA", "records": [46, 61], "scene_key": "PAL-R3-S1-PLANEA-OUTDOOR", "blocked_on": "Cody native conversion + scene_a0_ranges (Mode B)" } ] },
+    { "key": "R3-S2", "round": 3, "subround": 2, "name": "Round 3 Castle", "stage_index": 62,
+      "record_band": [62, 67], "native": "native_not_converted", "mode": "mode_b", "palette": "missing",
+      "environments": [ { "env": "CASTLE", "family": "PLANEA", "records": [62, 67], "scene_key": "PAL-R3-S2-PLANEA-CASTLE", "blocked_on": "Cody native conversion + scene_a0_ranges (Mode B)" } ] },
+    { "key": "R3-S3", "round": 3, "subround": 3, "name": "Round 3 Boss", "stage_index": 68,
+      "record_band": [68, 68], "native": "native_not_converted", "mode": "mode_b", "palette": "missing",
+      "environments": [ { "env": "BOSS-ROOM", "family": "PLANEA", "records": [68, 68], "scene_key": "PAL-R3-S3-PLANEA-BOSS", "blocked_on": "Cody native conversion + scene_a0_ranges (Mode B)" } ] },
+    { "key": "R4-S1", "round": 4, "subround": 1, "name": "Round 4 Outside", "stage_index": 69,
+      "record_band": [69, 84], "native": "native_not_converted", "mode": "mode_a", "palette": "missing",
+      "environments": [ { "env": "OUTDOOR", "family": "PLANEA", "records": [69, 84], "scene_key": "PAL-R4-S1-PLANEA-OUTDOOR", "blocked_on": "Cody native conversion (Mode A: scene recognized, content absent)" } ] },
+    { "key": "R4-S2", "round": 4, "subround": 2, "name": "Round 4 Castle", "stage_index": 85,
+      "record_band": [85, 90], "native": "native_not_converted", "mode": "mode_a", "palette": "missing",
+      "environments": [ { "env": "CASTLE", "family": "PLANEA", "records": [85, 90], "scene_key": "PAL-R4-S2-PLANEA-CASTLE", "blocked_on": "Cody native conversion (Mode A)" } ] },
+    { "key": "R4-S3", "round": 4, "subround": 3, "name": "Round 4 Boss", "stage_index": 91,
+      "record_band": [91, 91], "native": "native_not_converted", "mode": "mode_a", "palette": "missing",
+      "environments": [ { "env": "BOSS-ROOM", "family": "PLANEA", "records": [91, 91], "scene_key": "PAL-R4-S3-PLANEA-BOSS", "blocked_on": "Cody native conversion (Mode A)" } ] },
+    { "key": "R5-S1", "round": 5, "subround": 1, "name": "Round 5 Outside", "stage_index": 92,
+      "record_band": [92, 107], "native": "native_not_converted", "mode": "mode_b", "palette": "missing",
+      "environments": [ { "env": "OUTDOOR", "family": "PLANEA", "records": [92, 107], "scene_key": "PAL-R5-S1-PLANEA-OUTDOOR", "blocked_on": "Cody native conversion + scene_a0_ranges (Mode B)" } ] },
+    { "key": "R5-S2", "round": 5, "subround": 2, "name": "Round 5 Castle", "stage_index": 108,
+      "record_band": [108, 113], "native": "native_not_converted", "mode": "mode_b", "palette": "missing",
+      "environments": [ { "env": "CASTLE", "family": "PLANEA", "records": [108, 113], "scene_key": "PAL-R5-S2-PLANEA-CASTLE", "blocked_on": "Cody native conversion + scene_a0_ranges (Mode B)" } ] },
+    { "key": "R5-S3", "round": 5, "subround": 3, "name": "Round 5 Boss", "stage_index": 114,
+      "record_band": [114, 114], "native": "native_not_converted", "mode": "mode_b", "palette": "missing",
+      "environments": [ { "env": "BOSS-ROOM", "family": "PLANEA", "records": [114, 114], "scene_key": "PAL-R5-S3-PLANEA-BOSS", "blocked_on": "Cody native conversion + scene_a0_ranges (Mode B)" } ] },
+    { "key": "R6-S1", "round": 6, "subround": 1, "name": "Round 6 Outside", "stage_index": 115,
+      "record_band": [115, 130], "native": "native_not_converted", "mode": "mode_b", "palette": "missing",
+      "environments": [ { "env": "OUTDOOR", "family": "PLANEA", "records": [115, 130], "scene_key": "PAL-R6-S1-PLANEA-OUTDOOR", "blocked_on": "Cody native conversion + scene_a0_ranges (Mode B)" } ] },
+    { "key": "R6-S2", "round": 6, "subround": 2, "name": "Round 6 Castle", "stage_index": 131,
+      "record_band": [131, 136], "native": "native_not_converted", "mode": "mode_b", "palette": "missing",
+      "environments": [ { "env": "CASTLE", "family": "PLANEA", "records": [131, 136], "scene_key": "PAL-R6-S2-PLANEA-CASTLE", "blocked_on": "Cody native conversion + scene_a0_ranges (Mode B)" } ] },
+    { "key": "R6-S3", "round": 6, "subround": 3, "name": "Round 6 Boss", "stage_index": 137,
+      "record_band": [137, 137], "native": "native_not_converted", "mode": "mode_b", "palette": "missing",
+      "environments": [ { "env": "BOSS-ROOM", "family": "PLANEA", "records": [137, 137], "scene_key": "PAL-R6-S3-PLANEA-BOSS", "blocked_on": "Cody native conversion + scene_a0_ranges (Mode B)" } ] }
+  ]
+}

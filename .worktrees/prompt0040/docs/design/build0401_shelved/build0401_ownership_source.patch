@@ -1,0 +1,502 @@
+diff --git a/apps/rastan-direct/src/dma.s b/apps/rastan-direct/src/dma.s
+index d816c51..08f44b7 100644
+--- a/apps/rastan-direct/src/dma.s
++++ b/apps/rastan-direct/src/dma.s
+@@ -45,6 +45,8 @@
+ 
+     .extern staged_palette_words
+     .extern palette_pending
++    .extern ready_palette_words
++    .extern ready_palette_pending
+ 
+     .global dma_publish_frame
+     .global dma_words_to_vram
+@@ -174,13 +176,13 @@ vdp_dma_words_to_vram:
+  * destination = CRAM word 0, autoinc 2.  Called unconditionally, early, each VBlank -- no
+  * palette_dirty.  Clobbers d1-d3/a1. */
+ vdp_commit_palette:
+-    tst.b   palette_pending
++    tst.b   ready_palette_pending
+     beq.s   .Lpal_none
+     movea.l #VDP_CTRL, %a1
+     move.w  #0x8F02, (%a1)              /* reg 0x0F: autoincrement 2 */
+     move.w  #0x9340, (%a1)              /* reg 0x13: DMA length low  = 64 words */
+     move.w  #0x9400, (%a1)              /* reg 0x14: DMA length high = 0 */
+-    move.l  #staged_palette_words, %d3
++    move.l  #ready_palette_words, %d3
+     lsr.l   #1, %d3                     /* DMA source = word address */
+     move.w  %d3, %d1
+     andi.w  #0x00FF, %d1
+@@ -198,6 +200,6 @@ vdp_commit_palette:
+     ori.w   #0x9700, %d1
+     move.w  %d1, (%a1)                  /* reg 0x17: source high + mode 00 (68k->VDP) */
+     move.l  #0xC0000080, (%a1)          /* CRAM write addr 0 + DMA trigger */
+-    clr.b   palette_pending
++    clr.b   ready_palette_pending
+ .Lpal_none:
+     rts
+diff --git a/apps/rastan-direct/src/pc090oj_hooks.s b/apps/rastan-direct/src/pc090oj_hooks.s
+index 50a38da..c3f2223 100644
+--- a/apps/rastan-direct/src/pc090oj_hooks.s
++++ b/apps/rastan-direct/src/pc090oj_hooks.s
+@@ -2409,13 +2409,13 @@ vdp_commit_sprites_vram:
+  * DMA, and resets the reservation map + count at the end of the interval.
+  */
+ .Lvcs_tile_dma:
+-    move.w  pc090oj_tile_dma_count, %d7
++    move.w  ready_tile_dma_count, %d7         /* Build 0401: READY worklist count */
+     beq     .Lvcs_tile_reset
+     moveq   #0, %d5
+ .Lvcs_tile_loop:
+     move.w  %d5, %d0
+     lsl.w   #2, %d0
+-    lea     pc090oj_tile_dma_worklist, %a0
++    lea     ready_tile_dma_worklist, %a0   /* Build 0401: READY worklist */
+     adda.w  %d0, %a0
+     move.w  (%a0), %d4                  /* slot */
+     move.w  2(%a0), %d6                /* code (0xFFFF = canceled) */
+@@ -2461,32 +2461,37 @@ vdp_commit_sprites_vram:
+     bsr     dma_words_to_vram_noai
+     move.w  %d4, %d0
+     add.w   %d0, %d0
+-    lea     sprite_tile_resident_code, %a1
++    lea     displayed_sprite_tile_resident_code, %a1  /* Build 0401: publisher writes DISPLAYED truth only */
+     move.w  %d6, 0(%a1,%d0.w)
+ .Lvcs_tile_next:
+     addq.w  #1, %d5
+     cmp.w   %d7, %d5
+     blo     .Lvcs_tile_loop
+ .Lvcs_tile_reset:
+-    /* Reset only the slots actually reserved this interval (d7 = count, still
+-     * live), so a stable no-work frame (count 0) does zero reset work. */
+-    tst.w   %d7
+-    beq.s   .Lvcs_tile_reset_done
+-    moveq   #0, %d5
+-.Lvcs_tile_reset_loop:
+-    move.w  %d5, %d0
+-    lsl.w   #2, %d0
+-    lea     pc090oj_tile_dma_worklist, %a0
+-    adda.w  %d0, %a0
+-    moveq   #0, %d0
+-    move.w  (%a0), %d0                  /* reserved slot for this entry */
+-    lea     worklist_entry_for_slot, %a1
+-    move.b  #0xFF, 0(%a1,%d0.w)
+-    addq.w  #1, %d5
+-    cmp.w   %d7, %d5
+-    blo.s   .Lvcs_tile_reset_loop
+-.Lvcs_tile_reset_done:
+-    clr.w   pc090oj_tile_dma_count
++    /* Build 0401: publication resets only the READY worklist count it consumed; it does NOT touch the
++     * WORK reservation map (worklist_entry_for_slot).  The producer-private reservation map is reset in
++     * frame_adopt_residency at the ownership boundary before the next producer runs. */
++    clr.w   ready_tile_dma_count
++    rts
++
++/* Build 0401: adopt the DISPLAYED residency truth into the WORK allocator, and reset the WORK
++ * reservation map, at the ownership boundary before the next producer runs.  Called from
++ * _vblank_service after publication.  No active WORK generation is running at this point. */
++    .global frame_adopt_residency
++frame_adopt_residency:
++    movem.l %d1/%a0-%a1, -(%sp)
++    lea     displayed_sprite_tile_resident_code, %a0
++    lea     sprite_tile_resident_code, %a1
++    moveq   #(NATIVE_CELLS - 1), %d1          /* NATIVE_CELLS words (code tags) */
++.Lfar_rc:
++    move.w  (%a0)+, (%a1)+
++    dbra    %d1, .Lfar_rc
++    lea     worklist_entry_for_slot, %a0
++    moveq   #(NATIVE_CELLS - 1), %d1          /* NATIVE_CELLS reservation bytes -> all free (0xFF) */
++.Lfar_rsv:
++    move.b  #0xFF, (%a0)+
++    dbra    %d1, .Lfar_rsv
++    movem.l (%sp)+, %d1/%a0-%a1
+     rts
+ 
+ /* SAT DMA: whole 80-slot table every frame (640 B = 320 words) to VRAM 0xF800.
+@@ -2631,9 +2636,17 @@ current_sprite_palette_map:
+ /* Per-frame referenced-cell bitmap (49 live bits; rounded storage). */
+ pc090oj_cell_used:
+     .space 16
+-/* Code-keyed residency tags: 49 fully-associative cells (tiles 1339..1534). */
++/* Code-keyed residency tags: 49 fully-associative cells (tiles 1339..1534).
++ * Build 0401: this is the WORK (producer-private) residency prediction. */
+ sprite_tile_resident_code:
+     .space (NATIVE_CELLS * 2)
++/* Build 0401: DISPLAYED residency (hardware truth after pattern DMA).  Publication writes ONLY this
++ * bank (never the live WORK structure above); the adopt step copies it back into WORK before the next
++ * producer runs.  Starts zero-initialised identically to WORK, persists, and is updated incrementally
++ * by the publisher per DMA'd slot. */
++    .global displayed_sprite_tile_resident_code
++displayed_sprite_tile_resident_code:
++    .space (NATIVE_CELLS * 2)
+ /* Bounded VBlank pattern-upload queue: 12 x {word cell, word code}. */
+ pc090oj_tile_dma_worklist:
+     .space (12 * 4)
+diff --git a/apps/rastan-direct/src/tilemap_hooks.s b/apps/rastan-direct/src/tilemap_hooks.s
+index ca1316e..04a3d29 100644
+--- a/apps/rastan-direct/src/tilemap_hooks.s
++++ b/apps/rastan-direct/src/tilemap_hooks.s
+@@ -4206,8 +4206,8 @@ genesistan_hook_itempage_strip_blit:
+  * Clobbers are saved/restored; returns via RTS. */
+ vdp_commit_fg_columns_if_dirty:
+     movem.l %d0-%d7/%a0-%a6, -(%sp)
+-    move.l  fg_col_dirty, %d6               /* dirty mask, columns 0..31  */
+-    move.l  fg_col_dirty + 4, %d7           /* dirty mask, columns 32..63 */
++    move.l  ready_fg_col_dirty, %d6         /* Build 0401: READY dirty mask, columns 0..31  */
++    move.l  ready_fg_col_dirty + 4, %d7     /* Build 0401: READY dirty mask, columns 32..63 */
+     move.l  %d6, %d0
+     or.l    %d7, %d0
+     beq     .Lfgcol_done
+@@ -4234,8 +4234,8 @@ vdp_commit_fg_columns_if_dirty:
+     move.l  #VRAM_PLANE_A_BASE, %d0
+     add.w   %d4, %d0                        /* VRAM byte address = 0xE000 + col*2 */
+     bsr     vdp_set_vram_write_addr         /* clobbers d1/d2, preserves d3-d7/a* */
+-    lea     staged_fg_buffer, %a0
+-    adda.w  %d4, %a0                        /* &staged_fg_buffer[row 0][col] */
++    lea     ready_fg_buffer, %a0            /* Build 0401: publish from READY snapshot */
++    adda.w  %d4, %a0                        /* &ready_fg_buffer[row 0][col] */
+     move.w  #(32 - 1), %d2
+ .Lfgcol_word:
+     move.w  (%a0), VDP_DATA                 /* write one cell; autoinc steps VRAM down a row */
+@@ -4249,8 +4249,8 @@ vdp_commit_fg_columns_if_dirty:
+     moveq   #VDP_REG_AUTOINC, %d0
+     moveq   #0x02, %d1                      /* restore default autoincrement = 2 */
+     bsr     vdp_set_reg
+-    clr.l   fg_col_dirty
+-    clr.l   fg_col_dirty + 4
++    clr.l   ready_fg_col_dirty
++    clr.l   ready_fg_col_dirty + 4
+ .Lfgcol_done:
+     movem.l (%sp)+, %d0-%d7/%a0-%a6
+     rts
+@@ -4260,7 +4260,7 @@ vdp_commit_fg_narrow_strips:
+ 
+     bsr     vdp_commit_fg_columns_if_dirty  /* Build 0350: publish horizontal entering columns */
+ 
+-    move.w  fg_narrow_desc_count, %d7
++    move.w  ready_fg_narrow_desc_count, %d7
+     beq.s   .Lfg_narrow_done
+     subq.w  #1, %d7
+ 
+@@ -4268,7 +4268,7 @@ vdp_commit_fg_narrow_strips:
+     moveq   #0x08, %d1
+     bsr     vdp_set_reg
+ 
+-    lea     fg_narrow_desc_table, %a5
++    lea     ready_fg_narrow_desc_table, %a5
+ .Lfg_narrow_desc_loop:
+     moveq   #0, %d6
+     move.b  (%a5)+, %d6
+@@ -4286,7 +4286,7 @@ vdp_commit_fg_narrow_strips:
+     add.l   %d4, %d0
+     bsr     vdp_set_vram_write_addr
+ 
+-    lea     staged_fg_buffer, %a0
++    lea     ready_fg_buffer, %a0           /* Build 0401: publish from READY snapshot */
+     adda.l  %d4, %a0
+     move.w  #(16 - 1), %d2
+ .Lfg_narrow_word_loop:
+@@ -4302,7 +4302,7 @@ vdp_commit_fg_narrow_strips:
+     moveq   #VDP_REG_AUTOINC, %d0
+     moveq   #0x02, %d1
+     bsr     vdp_set_reg
+-    clr.w   fg_narrow_desc_count
++    clr.w   ready_fg_narrow_desc_count
+ 
+ .Lfg_narrow_done:
+     movem.l (%sp)+, %d0-%d7/%a0-%a6
+diff --git a/apps/rastan-direct/src/vdp_comm.s b/apps/rastan-direct/src/vdp_comm.s
+index 5f42645..1afceaa 100644
+--- a/apps/rastan-direct/src/vdp_comm.s
++++ b/apps/rastan-direct/src/vdp_comm.s
+@@ -23,6 +23,15 @@
+     .global vdp_commit_scroll
+     .extern dma_publish_frame
+     .global _vblank_service
++    /* Build 0401 ownership: WORK structures owned by other files. */
++    .extern fg_col_dirty
++    .extern pc090oj_tile_dma_worklist
++    .extern pc090oj_tile_dma_count
++    .extern frame_adopt_residency
++    /* Build 0401: READY symbols consumed by publishers in other files. */
++    .global ready_fg_col_dirty
++    .global ready_fg_narrow_desc_count
++    .global ready_fg_narrow_desc_table
+ 
+     .global tiles_dirty
+     .global palette_pending
+@@ -181,6 +190,11 @@ _vblank_service:
+      * production that runs inside the VBlank service; it does not touch the VDP. */
+     bsr     vdp_prepare_sprites
+ 
++    /* Build 0401: promote the just-completed worker's WORK frame to READY (independent immutable
++     * publication storage), then publish READY only.  In Build-0400 scheduling the previous worker
++     * has fully finished before this runs, so this captures that frame. */
++    bsr     frame_promote_work_to_ready
++
+ .if RASTAN_DIAG_CPU_BAR
+     /* Build 0337 diagnostic CPU-load bar ON: set the VDP backdrop (CRAM entry 0) bright, bracketing the
+      * single publication phase below.  The coloured band = the VBlank publication cost; if it reaches
+@@ -189,11 +203,18 @@ _vblank_service:
+     move.w  #0x00E0, VDP_DATA           /* bright green = publishing */
+ .endif
+ 
+-    /* Build 0343: THE single Genesis VBlank publication phase (dma.s).  All normal-runtime DMA/VDP
+-     * publication for the completed frame happens here, in one contiguous phase at the top of the
+-     * VBlank service.  After this returns, NO further runtime DMA occurs before the arcade tick
+-     * resumes to stage the next frame. */
++    /* Build 0401: publish ONLY a new complete READY generation; otherwise HOLD the displayed frame.
++     * (In Build-0400 scheduling a new frame is produced every IRQ6, so this always publishes.) */
++    move.w  ready_generation, %d0
++    cmp.w   displayed_generation, %d0
++    beq.s   .Lvs_hold_displayed
++    /* Build 0343: THE single Genesis VBlank publication phase (dma.s).  Consumes READY only. */
+     bsr     dma_publish_frame
++    move.w  ready_generation, displayed_generation
++.Lvs_hold_displayed:
++    /* Build 0401: adopt the published DISPLAYED residency truth into the WORK allocator before the
++     * next producer runs (publication never mutated the live WORK allocator). */
++    bsr     frame_adopt_residency
+ 
+ .if RASTAN_DIAG_CPU_BAR
+     /* Build 0337 diagnostic CPU-load bar OFF: restore backdrop to black. */
+@@ -249,20 +270,106 @@ _vblank_service:
+     movem.l (%sp)+, %d0-%d7/%a0-%a6
+     jmp     (0x00003A208).l
+ 
++/* ======================================================================
++ * Build 0401: WORK -> READY promotion.  Snapshots the complete
++ * publication-relevant WORK state into the independent READY storage and
++ * transfers/clears the WORK dirty flags, then advances the generation.
++ * Called at the top of _vblank_service (before publication).  In Build 0400
++ * scheduling the previous worker has fully completed, so this captures that
++ * frame.  Planes are full-copied (worst-case capacity, DECISION 1); the
++ * producer mirrors (staged_*) are never read by the publisher afterwards.
++ * ====================================================================== */
++    .global frame_promote_work_to_ready
++frame_promote_work_to_ready:
++    movem.l %d0-%d2/%a0-%a1, -(%sp)
++    /* palette */
++    move.b  palette_pending, %d0
++    move.b  %d0, ready_palette_pending
++    beq.s   .Lfp_pal_done
++    lea     staged_palette_words, %a0
++    lea     ready_palette_words, %a1
++    moveq   #(32 - 1), %d1             /* 64 words = 32 longs */
++.Lfp_pal:
++    move.l  (%a0)+, (%a1)+
++    dbra    %d1, .Lfp_pal
++    clr.b   palette_pending
++.Lfp_pal_done:
++    /* generic tiles */
++    move.b  tiles_dirty, %d0
++    move.b  %d0, ready_tiles_dirty
++    beq.s   .Lfp_tile_done
++    lea     staged_tile_words, %a0
++    lea     ready_tile_words, %a1
++    moveq   #(24 - 1), %d1            /* 48 words = 24 longs */
++.Lfp_tile:
++    move.l  (%a0)+, (%a1)+
++    dbra    %d1, .Lfp_tile
++    clr.b   tiles_dirty
++.Lfp_tile_done:
++    /* Plane B: masks + full-capacity snapshot */
++    move.l  bg_row_dirty, ready_bg_row_dirty
++    clr.l   bg_row_dirty
++    lea     staged_bg_buffer, %a0
++    lea     ready_bg_buffer, %a1
++    move.w  #(1024 - 1), %d1          /* 2048 words = 1024 longs */
++.Lfp_bg:
++    move.l  (%a0)+, (%a1)+
++    dbra    %d1, .Lfp_bg
++    /* Plane A: masks/descriptors + full-capacity snapshot */
++    move.l  fg_row_dirty, ready_fg_row_dirty
++    clr.l   fg_row_dirty
++    move.l  fg_col_dirty, ready_fg_col_dirty
++    move.l  fg_col_dirty + 4, ready_fg_col_dirty + 4
++    clr.l   fg_col_dirty
++    clr.l   fg_col_dirty + 4
++    move.w  fg_narrow_desc_count, ready_fg_narrow_desc_count
++    clr.w   fg_narrow_desc_count
++    lea     fg_narrow_desc_table, %a0
++    lea     ready_fg_narrow_desc_table, %a1
++    moveq   #((FG_NARROW_DESC_CAP * 2) / 4 - 1), %d1
++.Lfp_desc:
++    move.l  (%a0)+, (%a1)+
++    dbra    %d1, .Lfp_desc
++    lea     staged_fg_buffer, %a0
++    lea     ready_fg_buffer, %a1
++    move.w  #(1024 - 1), %d1
++.Lfp_fg:
++    move.l  (%a0)+, (%a1)+
++    dbra    %d1, .Lfp_fg
++    /* scroll */
++    move.w  staged_scroll_x_bg, ready_scroll_x_bg
++    move.w  staged_scroll_x_fg, ready_scroll_x_fg
++    move.w  staged_scroll_y_bg, ready_scroll_y_bg
++    move.w  staged_scroll_y_fg, ready_scroll_y_fg
++    /* sprite tile-DMA worklist + count (SAT already double-buffered via bank/front) */
++    move.w  pc090oj_tile_dma_count, ready_tile_dma_count
++    clr.w   pc090oj_tile_dma_count
++    lea     pc090oj_tile_dma_worklist, %a0
++    lea     ready_tile_dma_worklist, %a1
++    moveq   #(12 - 1), %d1            /* 12 entries x 4 bytes = 12 longs */
++.Lfp_wl:
++    move.l  (%a0)+, (%a1)+
++    dbra    %d1, .Lfp_wl
++    /* advance generation (this completed frame is now READY) */
++    addq.w  #1, work_generation
++    move.w  work_generation, ready_generation
++    movem.l (%sp)+, %d0-%d2/%a0-%a1
++    rts
++
+ vdp_commit_tiles_if_dirty:
+-    tst.b   tiles_dirty
++    tst.b   ready_tiles_dirty
+     beq.s   .Ltiles_done
+ 
+     move.l  #VRAM_TILE_BASE, %d0
+     bsr     vdp_set_vram_write_addr
+ 
+-    lea     staged_tile_words, %a0
++    lea     ready_tile_words, %a0
+     move.w  #(48 - 1), %d7
+ .Ltile_copy:
+     move.w  (%a0)+, VDP_DATA
+     dbra    %d7, .Ltile_copy
+ 
+-    clr.b   tiles_dirty
++    clr.b   ready_tiles_dirty
+ .Ltiles_done:
+     rts
+ 
+@@ -277,7 +384,7 @@ vdp_commit_tiles_if_dirty:
+  * clobbers d1-d3, a1). */
+ 
+ vdp_commit_bg_strips_if_dirty:
+-    move.l  bg_row_dirty, %d6
++    move.l  ready_bg_row_dirty, %d6
+     beq.s   .Lbg_done
+ 
+     moveq   #0, %d5
+@@ -292,7 +399,7 @@ vdp_commit_bg_strips_if_dirty:
+     move.l  #VRAM_PLANE_B_BASE, %d0
+     add.l   %d4, %d0
+ 
+-    lea     staged_bg_buffer, %a0
++    lea     ready_bg_buffer, %a0
+     adda.l  %d4, %a0
+     move.w  #64, %d1
+     bsr     vdp_dma_words_to_vram
+@@ -300,7 +407,7 @@ vdp_commit_bg_strips_if_dirty:
+     move.l  %d6, %d0
+     bclr    %d5, %d0
+     move.l  %d0, %d6
+-    move.l  %d6, bg_row_dirty
++    move.l  %d6, ready_bg_row_dirty
+     beq.s   .Lbg_done
+ 
+ .Lbg_next_row:
+@@ -311,7 +418,7 @@ vdp_commit_bg_strips_if_dirty:
+     rts
+ 
+ vdp_commit_fg_strips_if_dirty:
+-    move.l  fg_row_dirty, %d6
++    move.l  ready_fg_row_dirty, %d6
+     beq.s   .Lfg_done
+ 
+     moveq   #0, %d5
+@@ -326,7 +433,7 @@ vdp_commit_fg_strips_if_dirty:
+     move.l  #VRAM_PLANE_A_BASE, %d0
+     add.l   %d4, %d0
+ 
+-    lea     staged_fg_buffer, %a0
++    lea     ready_fg_buffer, %a0
+     adda.l  %d4, %a0
+     move.w  #64, %d1
+     bsr     vdp_dma_words_to_vram
+@@ -334,7 +441,7 @@ vdp_commit_fg_strips_if_dirty:
+     move.l  %d6, %d0
+     bclr    %d5, %d0
+     move.l  %d0, %d6
+-    move.l  %d6, fg_row_dirty
++    move.l  %d6, ready_fg_row_dirty
+     beq.s   .Lfg_done
+ 
+ .Lfg_next_row:
+@@ -351,15 +458,15 @@ vdp_commit_scroll:
+     move.l  #VRAM_HSCROLL_BASE, %d0
+     bsr     vdp_set_vram_write_addr
+ 
+-    move.w  staged_scroll_x_fg, %d0
++    move.w  ready_scroll_x_fg, %d0
+     subi.w  #VDP_DISPLAY_ORIGIN_X_BIAS, %d0
+     move.w  %d0, VDP_DATA
+-    move.w  staged_scroll_x_bg, %d0
++    move.w  ready_scroll_x_bg, %d0
+     subi.w  #VDP_DISPLAY_ORIGIN_X_BIAS, %d0
+     move.w  %d0, VDP_DATA
+ 
+     move.l  #0x40000010, VDP_CTRL
+-    move.w  staged_scroll_y_fg, %d0
++    move.w  ready_scroll_y_fg, %d0
+     neg.w   %d0
+     addq.w  #VDP_DISPLAY_ORIGIN_Y_BIAS, %d0
+     cmpi.b  #1, genesistan_current_scene_id
+@@ -370,7 +477,7 @@ vdp_commit_scroll:
+     andi.w  #0x01FF, %d0
+ .Lscroll_fg_y_ready:
+     move.w  %d0, VDP_DATA
+-    move.w  staged_scroll_y_bg, %d0
++    move.w  ready_scroll_y_bg, %d0
+     neg.w   %d0
+     addq.w  #VDP_DISPLAY_ORIGIN_Y_BIAS, %d0
+     cmpi.b  #1, genesistan_current_scene_id
+@@ -477,3 +584,47 @@ staged_palette_words:
+     .space (64 * 2)
+ staged_tile_words:
+     .space (48 * 2)
++
++/* ======================================================================
++ * Build 0401: immutable WORK / READY / DISPLAYED frame ownership.
++ * The staged_* buffers above are the producer's WORK storage (unchanged).
++ * At whole-frame promotion the complete publication-relevant state is
++ * snapshotted into the independent READY storage below; dma_publish_frame
++ * consumes READY only and never reaches back into the WORK mirrors.
++ * Full worst-case capacity (DECISION 1): Plane A/B READY are full 4096 B.
++ * ====================================================================== */
++    .global work_generation, ready_generation, displayed_generation
++work_generation:        .word 0
++ready_generation:       .word 0
++displayed_generation:   .word 0
++
++    .align 2
++    .global ready_palette_words, ready_palette_pending
++ready_palette_pending:  .byte 0
++    .align 2
++ready_palette_words:    .space (64 * 2)
++    .global ready_tile_words, ready_tiles_dirty
++ready_tiles_dirty:      .byte 0
++    .align 2
++ready_tile_words:       .space (48 * 2)
++    .global ready_bg_row_dirty, ready_bg_buffer
++ready_bg_row_dirty:     .long 0
++ready_fg_row_dirty:     .long 0
++    .align 2
++ready_fg_col_dirty:     .space 8
++ready_fg_narrow_desc_count: .word 0
++    .align 2
++ready_fg_narrow_desc_table: .space (FG_NARROW_DESC_CAP * 2)
++ready_scroll_x_bg:      .word 0
++ready_scroll_x_fg:      .word 0
++ready_scroll_y_bg:      .word 0
++ready_scroll_y_fg:      .word 0
++    .align 2
++ready_bg_buffer:        .space (2048 * 2)
++    .global ready_fg_buffer
++ready_fg_buffer:        .space (2048 * 2)
++/* READY sprite tile-DMA worklist (12 entries x 4 bytes) + count. */
++    .global ready_tile_dma_worklist, ready_tile_dma_count
++ready_tile_dma_count:   .word 0
++    .align 2
++ready_tile_dma_worklist: .space (12 * 4)

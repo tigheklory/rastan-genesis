@@ -1,0 +1,219 @@
+{
+  "analysis_only": true,
+  "baseline_build": 356,
+  "candidates": [
+    {
+      "additional_patterns_below_current_base": 0,
+      "cells": 49,
+      "conflicting_owner": null,
+      "conflicting_patterns": 0,
+      "pattern_base": 1340,
+      "patterns": 196,
+      "verdict": "PASS",
+      "vram_start": "0xA780"
+    },
+    {
+      "additional_patterns_below_current_base": 11,
+      "cells": 52,
+      "conflicting_owner": null,
+      "conflicting_patterns": 0,
+      "pattern_base": 1328,
+      "patterns": 208,
+      "verdict": "PASS",
+      "vram_start": "0xA600"
+    },
+    {
+      "additional_patterns_below_current_base": 23,
+      "cells": 55,
+      "conflicting_owner": null,
+      "conflicting_patterns": 0,
+      "pattern_base": 1316,
+      "patterns": 220,
+      "verdict": "PASS",
+      "vram_start": "0xA480"
+    },
+    {
+      "additional_patterns_below_current_base": 47,
+      "cells": 61,
+      "conflicting_owner": "Plane A package residency",
+      "conflicting_patterns": 10,
+      "pattern_base": 1292,
+      "patterns": 244,
+      "verdict": "FAIL",
+      "vram_start": "0xA180"
+    },
+    {
+      "additional_patterns_below_current_base": 55,
+      "cells": 63,
+      "conflicting_owner": "Plane A package residency",
+      "conflicting_patterns": 18,
+      "pattern_base": 1284,
+      "patterns": 252,
+      "verdict": "FAIL",
+      "vram_start": "0xA080"
+    },
+    {
+      "additional_patterns_below_current_base": 59,
+      "cells": 64,
+      "conflicting_owner": "Plane A package residency",
+      "conflicting_patterns": 22,
+      "pattern_base": 1280,
+      "patterns": 256,
+      "verdict": "FAIL",
+      "vram_start": "0xA000"
+    }
+  ],
+  "inputs": {
+    "analysis/graphics_optimizer/round1_phase1/coexistence_graph.json": "e72f17eacd698940fc5abc4c5e4b12bb42c17787761274f0d4a14ae43e01b2fa",
+    "analysis/graphics_optimizer/round1_phase1/summary.json": "6ef5e5ae399f6826c561413d7d11d3a41d8483ce7a94671ff4a1af98c299e393",
+    "analysis/graphics_optimizer/round1_phase1_corpus/full_capture/full_observations.csv": "8c8a3c91e5bc18ccffaf8d81965125906c0691b89c1b66a65b2a39887eb7cd54",
+    "build/pc080sn_boundary/boundary_constants.inc": "f971826baa0bd6b12946e787fd6f9cba1fc2ed5ecacb8bd3b83bc3a273d038ab",
+    "build/pc080sn_boundary/boundary_report.json": "a997e772bf9255784241c6945709f82d107f0e973d0555e96ae714e8b9259a6b"
+  },
+  "non_sprite_proof": {
+    "first_safely_reusable_pattern": 1302,
+    "free_tail_bytes": 7488,
+    "free_tail_patterns_through_1535": 234,
+    "highest_required_non_sprite_pattern": 1301,
+    "maximum_complete_sprite_cells": 58,
+    "plane_a_max_simultaneous_patterns": 639,
+    "plane_a_package_patterns": [
+      282,
+      333,
+      639,
+      583,
+      639,
+      394,
+      478
+    ],
+    "plane_b_patterns": 854,
+    "spare_patterns_after_complete_cells": 2,
+    "zero_drop": true
+  },
+  "ownership": [
+    {
+      "bytes": 32,
+      "lifetime": "always",
+      "owner": "transparent pattern",
+      "pattern_end": 0,
+      "pattern_start": 0,
+      "vram_end": "0x001F",
+      "vram_start": "0x0000"
+    },
+    {
+      "bytes": 21184,
+      "lifetime": "R1/P1 gameplay",
+      "owner": "fixed Plane B vocabulary, part 1",
+      "pattern_end": 662,
+      "pattern_start": 1,
+      "vram_end": "0x52DF",
+      "vram_start": "0x0020"
+    },
+    {
+      "bytes": 20448,
+      "lifetime": "selected stable/transition package",
+      "owner": "Plane A package arena (compacted exact maximum)",
+      "pattern_end": 1301,
+      "pattern_start": 663,
+      "vram_end": "0xA2BF",
+      "vram_start": "0x52E0"
+    },
+    {
+      "bytes": 7488,
+      "lifetime": "R1/P1 gameplay",
+      "owner": "sprite physical envelope",
+      "pattern_end": 1535,
+      "pattern_start": 1302,
+      "vram_end": "0xBFFF",
+      "vram_start": "0xA2C0"
+    },
+    {
+      "bytes": 4096,
+      "lifetime": "always",
+      "owner": "Plane B nametable",
+      "pattern_end": 1663,
+      "pattern_start": 1536,
+      "vram_end": "0xCFFF",
+      "vram_start": "0xC000"
+    },
+    {
+      "bytes": 4096,
+      "lifetime": "R1/P1 gameplay",
+      "owner": "fixed Plane B vocabulary, part 2",
+      "pattern_end": 1791,
+      "pattern_start": 1664,
+      "vram_end": "0xDFFF",
+      "vram_start": "0xD000"
+    },
+    {
+      "bytes": 4096,
+      "lifetime": "always",
+      "owner": "Plane A nametable",
+      "pattern_end": 1919,
+      "pattern_start": 1792,
+      "vram_end": "0xEFFF",
+      "vram_start": "0xE000"
+    },
+    {
+      "bytes": 2048,
+      "lifetime": "R1/P1 gameplay",
+      "owner": "fixed Plane B vocabulary, part 3",
+      "pattern_end": 1983,
+      "pattern_start": 1920,
+      "vram_end": "0xF7FF",
+      "vram_start": "0xF000"
+    },
+    {
+      "bytes": 1024,
+      "lifetime": "always",
+      "owner": "SAT",
+      "pattern_end": 2015,
+      "pattern_start": 1984,
+      "vram_end": "0xFBFF",
+      "vram_start": "0xF800"
+    },
+    {
+      "bytes": 1024,
+      "lifetime": "always",
+      "owner": "HScroll",
+      "pattern_end": 2047,
+      "pattern_start": 2016,
+      "vram_end": "0xFFFF",
+      "vram_start": "0xFC00"
+    }
+  ],
+  "packing_gate": {
+    "complete_sprite_clique": true,
+    "concrete_actor_assignment_ready": false,
+    "resolved_classes": 4,
+    "safe_aliases_proven": 0,
+    "semantic_domain_enumerated": false,
+    "semantic_resolution_complete": false,
+    "sprite_classes": 23,
+    "unresolved_classes": 19
+  },
+  "physical_envelope": {
+    "actor_owner_assignment": "BLOCKED",
+    "logical_cell_end": 57,
+    "logical_cell_start": 0,
+    "pattern_end": 1533,
+    "pattern_start": 1302,
+    "reason": "sprite semantic domain/lifetimes/frame sets are incomplete and the current graph permits no aliases",
+    "unassigned_spare_pattern_end": 1535,
+    "unassigned_spare_pattern_start": 1534,
+    "vram_end": "0xBFBF",
+    "vram_start": "0xA2C0"
+  },
+  "schema": "r1p1-vram-capacity-v1",
+  "validation": {
+    "candidate_assertions_passed": true,
+    "pattern_1339_vram_start": "0xA760",
+    "prompt_0xA6E0_correction": "0xA6E0 is pattern 1335, not pattern 1339"
+  },
+  "working_set": {
+    "frames": 10781,
+    "frames_over_49": 47,
+    "frames_over_58": 8,
+    "peak_cells": 63
+  }
+}

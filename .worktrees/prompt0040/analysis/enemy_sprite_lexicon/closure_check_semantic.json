@@ -1,0 +1,50 @@
+{
+ "schema_version": 3,
+ "status": "SEMANTIC CLOSURE IN PROGRESS - NOT PRODUCTION INPUT",
+ "invalid_pass2_quarantined": "analysis/enemy_sprite_lexicon/INVALID_pass2_andy/",
+ "invalid_reason": "representatives fabricated from base_code+3 consecutive PC090OJ codes (not the proven compositor); canonicalized before category/dynamic/palette proof",
+ "proven_this_pass": {
+  "palette_selector_to_effective_bank": "PROVEN: effective PC090OJ record palette byte = (A4+0x27 & 0x0F) | 0x30 (decompiler 2414/2419/579/16). Reconciles fam0 raw 0x06 -> effective 0x36.",
+  "effective_banks_per_family": {
+   "0": "0x36",
+   "1": "0x34",
+   "3": "0x3A",
+   "4": "0x37",
+   "5": "0x36",
+   "6": "0x38",
+   "7": "0x3F",
+   "8": "0x32",
+   "9": "0x31",
+   "10": "0x3B",
+   "11": "0x3E"
+  },
+  "real_compositor_located": "arcade 0x3C9A6 + family descriptor tables fam0=0x3D09E fam1=0x4771C fam2=0x3F0CE fam3=0x40004 fam4=0x4002C (5 render families); base_code+n is NOT a composite",
+  "spawn_producer": "FUN_0004a086: A4+0x3E=spawn_desc[1], A4+0x38=desc[2]&0xF, A4+0x752=desc[2]>>4",
+  "boss_mechanism": "0x3E==2 base 0x33E; tables 0x454BA/D2/EA by A4+0x38 x 3 entries by A4+0x752 = 9 forms"
+ },
+ "closure_flags": {
+  "actor_selector_domain_closed": true,
+  "spawn_descriptor_domain_closed": true,
+  "static_seed_coverage_complete": true,
+  "dynamic_18_selector_rerun_complete": false,
+  "dynamic_tuple_coverage_complete": false,
+  "round2_castle_resolved": false,
+  "semantic_category_classification_complete": false,
+  "hostile_selector_domain_complete": false,
+  "hostile_family_mapping_complete": false,
+  "four_armed_mapping_complete": false,
+  "large_bat_mapping_complete": false,
+  "normal_small_bat_mapping_complete": false,
+  "hurry_up_bat_mapping_revalidated": false,
+  "boss_identity_mapping_complete": false,
+  "boss_form_mapping_complete": "PARTIAL(9 forms mechanism proven)",
+  "boss_composite_ownership_complete": false,
+  "normal_composite_ownership_complete": false,
+  "palette_selector_mapping_complete": true,
+  "effective_palette_bank_mapping_complete": true,
+  "palette_color_contents_complete": false,
+  "optimizer_semantic_input_valid": false,
+  "whole_game_fail_closed": true
+ },
+ "OVERALL": "PARTIAL - static selector+spawn+boss mechanism + palette effective-bank PROVEN; dynamic rerun, 16-color contents, real compositor representatives, category-per-selector, boss composites OPEN (bounded, not fabricated)"
+}

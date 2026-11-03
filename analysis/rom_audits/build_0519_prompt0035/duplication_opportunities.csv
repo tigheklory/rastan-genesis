@@ -1,0 +1,7 @@
+opportunity,measured_bytes,classification,can_add_with_others,requirements
+exact cross-library pattern copies,14048,exact duplicate,"yes, after validating consumers",reuse canonical pattern slots
+"combined repeated map rows, net of u16 index",30720,exact duplicate,yes,shared row dictionary + per-row IDs
+current authored descriptor dense index to u32 live bands,262144,proven structural,alternative to u16 row below,native lookup shape change
+current authored descriptor dense index to u16 record IDs,273408,proven structural,alternative to u32 row above,native lookup + payload-base resolution
+PC080 exact 32-byte tile identities,181728,theoretical identity-remap ceiling,scenario only,tile-code indirection/remap; not direct deletion
+PC090 exact 128-byte cell identities,85632,theoretical identity-remap ceiling,scenario only,sprite-code indirection/remap; not direct deletion

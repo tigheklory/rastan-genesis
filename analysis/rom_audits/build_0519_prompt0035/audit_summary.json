@@ -1,0 +1,110 @@
+{
+  "rom_size": 4054712,
+  "rom_sha256": "ab34fc39a1cf635e0cdd1c69a37b6e0d46eab90f4ec1104bf7e2962eced43706",
+  "limit": 4194304,
+  "remaining": 139592,
+  "category_totals": {
+    "code": 28906,
+    "padding": 84400,
+    "retained_arcade": 388826,
+    "maps": 1519770,
+    "palettes": 1246,
+    "frontend": 27048,
+    "graphics": 1081998,
+    "sprite_metadata": 311960,
+    "audio": 610558
+  },
+  "descriptor": {
+    "span_entries_per_context": 35584,
+    "contexts": 2,
+    "dense_index_bytes": 284672,
+    "payload_bytes": 55424,
+    "unique_payload_records": 866,
+    "r1s1_live_entries": 4096,
+    "r1s2_live_entries": 1536,
+    "live_entries_total": 5632,
+    "compact_u32_band_index_bytes": 22528,
+    "compact_u16_record_id_bytes": 11264,
+    "saving_u32_band_index": 262144,
+    "saving_u16_record_ids": 273408,
+    "contexts_detail": [
+      {
+        "entries": 35584,
+        "unique_records": 664,
+        "repeated_pointer_bytes": 139680,
+        "top_pointer_repeat": 13309
+      },
+      {
+        "entries": 35584,
+        "unique_records": 625,
+        "repeated_pointer_bytes": 139836,
+        "top_pointer_repeat": 13309
+      }
+    ]
+  },
+  "duplication": {
+    "pc080_tiles_32": {
+      "stored_units": 16384,
+      "unique_units": 10705,
+      "stored_bytes": 524288,
+      "unique_bytes": 342560,
+      "raw_duplicate_bytes": 181728,
+      "zero_units": 2,
+      "zero_excess_bytes": 32
+    },
+    "pc090_cells_128": {
+      "stored_units": 4219,
+      "unique_units": 3550,
+      "stored_bytes": 540032,
+      "unique_bytes": 454400,
+      "raw_duplicate_bytes": 85632,
+      "zero_units": 22,
+      "zero_excess_bytes": 2688
+    },
+    "pc090_subtiles_32": {
+      "stored_units": 16876,
+      "unique_units": 9800,
+      "stored_bytes": 540032,
+      "unique_bytes": 313600,
+      "raw_duplicate_bytes": 226432,
+      "zero_units": 3539,
+      "zero_excess_bytes": 113216
+    },
+    "map_rows_128": {
+      "stored_units": 832,
+      "unique_units": 579,
+      "stored_bytes": 106496,
+      "unique_bytes": 74112,
+      "raw_duplicate_bytes": 32384,
+      "u16_index_bytes": 1664,
+      "net_saving_with_index": 30720
+    }
+  },
+  "cross_library_bytes": 14048,
+  "projection": {
+    "current_design": [
+      7593400,
+      7673400,
+      7833400
+    ],
+    "conservative_dedup": [
+      5127896,
+      5207896,
+      5367896
+    ],
+    "shared_library": [
+      3749176,
+      3969176,
+      4319176
+    ],
+    "current_missing_scene_sum": 3478688,
+    "pattern_cell_saving_used_in_shared": 267360,
+    "all_18_context_dense_index_bytes": 2562048,
+    "all_18_context_u32_band_index_bytes": 141312,
+    "all_18_context_u32_band_saving": 2420736,
+    "notes": [
+      "ranges include unresolved later-round package/preload/variant demand",
+      "audio and base PC080/PC090 corpora are already complete and are not multiplied"
+    ]
+  }
+}

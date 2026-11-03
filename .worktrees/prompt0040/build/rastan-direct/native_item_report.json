@@ -1,0 +1,122 @@
+{
+  "arcade_sources": {
+    "page_a_icons": "0x056226",
+    "page_a_text": "0x05672A",
+    "page_b_icons": "0x0562B0",
+    "page_b_text": "0x05697E"
+  },
+  "format": "rastan-native-item-description-ring-v3",
+  "geometry": {
+    "columns": 64,
+    "initial_top_row": 0,
+    "logical_rows": 64,
+    "mapping": "physical_row = logical_row & 31",
+    "page_a_column": 10,
+    "page_a_destination": "0x00C00828",
+    "page_a_logical_row": 8,
+    "page_b_column": 10,
+    "page_b_destination": "0x00C00028",
+    "page_b_install_pixel": 96,
+    "page_b_logical_row": 64,
+    "page_b_physical_row": 0,
+    "physical_rows": 32,
+    "stream_row_stride": 2
+  },
+  "icons": {
+    "arcade_sprite_control": "0x0060",
+    "effective_colbank": "0x30",
+    "page_a_records": 17,
+    "page_b_records": 3,
+    "palette_authority": "generated pc090oj_palsel_lut scene 0",
+    "palette_lines_by_attribute": {
+      "0x0000": 2,
+      "0x0003": 3
+    },
+    "pattern_slots": [
+      1419,
+      1498
+    ],
+    "resident_cells": [
+      20,
+      39
+    ],
+    "source_codes": [
+      "0x0513",
+      "0x0512",
+      "0x0511",
+      "0x0516",
+      "0x050D",
+      "0x050E",
+      "0x0A6E",
+      "0x0A6F",
+      "0x0A70",
+      "0x0A5F",
+      "0x0A60",
+      "0x0A5D",
+      "0x0A5E",
+      "0x0A63",
+      "0x0A5A",
+      "0x0A5B",
+      "0x0A5C",
+      "0x0A69",
+      "0x0A67",
+      "0x0A65"
+    ],
+    "unique_cells": 20
+  },
+  "semantic_cut": "arcade item attract state/scroll/dwell -> native Plane-B ring and native icon SAT",
+  "sha256": {
+    "icon_patterns": "84f27fb3087632914d19ee13dd4f5e219cc4d76a2f6533a3ab39b3cb4442dc60",
+    "icon_records": "a1f3ae15e356c9a95e99a0b4cfe922a8417d0a631fd4248614e4036c67621ff0",
+    "initial_rows": "35829f4ab5564a77430969f14112bc944b1e6b27144cdcab901df8eb64147c57",
+    "logical_map": "32a410773210c7be0217461ba0e5debfa95ea782bcc4067c98fcf667d788879a",
+    "plane_patterns": "d360cc65414de72bd7f82f474f2421994d36512947ef12b313cb3f892306c321"
+  },
+  "text": {
+    "page_a_rows": 28,
+    "page_b_rows": 7,
+    "pattern_slots": [
+      1,
+      27
+    ],
+    "source_to_slot": {
+      "0x0020": 0,
+      "0x002E": 13,
+      "0x0041": 7,
+      "0x0042": 19,
+      "0x0043": 15,
+      "0x0044": 11,
+      "0x0045": 6,
+      "0x0046": 26,
+      "0x0047": 4,
+      "0x0048": 22,
+      "0x0049": 2,
+      "0x004A": 27,
+      "0x004B": 16,
+      "0x004C": 17,
+      "0x004D": 23,
+      "0x004E": 3,
+      "0x004F": 9,
+      "0x0050": 8,
+      "0x0052": 1,
+      "0x0053": 10,
+      "0x0054": 20,
+      "0x0055": 12,
+      "0x0056": 21,
+      "0x0057": 5,
+      "0x0058": 24,
+      "0x0059": 25,
+      "0x2749": 18,
+      "0x274B": 14
+    },
+    "unique_patterns": 27
+  },
+  "vram_ownership": {
+    "frontend_hud_fixed_cells": 20,
+    "native_cells": 49,
+    "physical_pattern_limit_exclusive": 1536,
+    "plane_pattern_limit_exclusive": 1339,
+    "source": "current pc090oj_hooks.s constants + native_hud_report.json",
+    "sprite_tile_base": 1339
+  }
+}

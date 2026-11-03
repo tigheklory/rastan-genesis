@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rastan Rope-Race History</title>
+<style>
+  :root{
+    --bg:#0e1116; --panel:#161b22; --panel2:#1c2330; --line:#2a3340; --ink:#e6edf3;
+    --muted:#9aa7b4; --faint:#6b7684; --accent:#e8b23a; --accent2:#4aa3ff;
+    --good:#3fb950; --bad:#f06a5a; --warn:#d98a2b; --reject:#c74b4b; --arcade:#e8b23a;
+    --neutral:#5b6675; --chip:#222b38;
+    --mono:"SFMono-Regular",ui-monospace,"Cascadia Mono",Menlo,Consolas,monospace;
+    --sans:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  :root:not([data-theme=dark]) @media (prefers-color-scheme: light){}
+  @media (prefers-color-scheme: light){:root:not([data-theme=dark]){
+    --bg:#f4f1ea; --panel:#fffdf8; --panel2:#f1ece1; --line:#e0d8c8; --ink:#1c2128;
+    --muted:#5a6470; --faint:#8a94a0; --chip:#eee8dc; --neutral:#9aa3b0;
+  }}
+  :root[data-theme=light]{
+    --bg:#f4f1ea; --panel:#fffdf8; --panel2:#f1ece1; --line:#e0d8c8; --ink:#1c2128;
+    --muted:#5a6470; --faint:#8a94a0; --chip:#eee8dc; --neutral:#9aa3b0;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.5;
+    -webkit-font-smoothing:antialiased}
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 16px 80px}
+  header h1{font-size:28px;margin:0 0 4px;letter-spacing:-.02em;text-wrap:balance}
+  header .sub{color:var(--muted);font-size:14px;margin:0 0 2px}
+  .lowerbetter{display:inline-block;margin-top:10px;font-size:12px;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--bg);background:var(--accent);padding:3px 10px;border-radius:999px;font-weight:700}
+  h2{font-size:17px;margin:34px 0 12px;letter-spacing:-.01em;border-bottom:1px solid var(--line);padding-bottom:6px}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:18px}
+  .tile{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+  .tile .v{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+  .tile .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+  .tile .x{font-size:11px;color:var(--faint);margin-top:3px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .controls{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;margin:0 0 12px;font-size:13px}
+  .controls label{display:inline-flex;gap:6px;align-items:center;color:var(--muted);cursor:pointer}
+  .controls input[type=checkbox]{accent-color:var(--accent2)}
+  .btn{background:var(--chip);color:var(--ink);border:1px solid var(--line);border-radius:7px;
+    padding:5px 11px;font-size:12px;cursor:pointer;font-family:inherit}
+  .btn:hover{border-color:var(--accent2)}
+  .btn.active{background:var(--accent2);color:#06121f;border-color:var(--accent2)}
+  input[type=search],select{background:var(--chip);color:var(--ink);border:1px solid var(--line);
+    border-radius:7px;padding:5px 9px;font-size:12px;font-family:inherit}
+  .chartbox{position:relative;width:100%}
+  canvas{width:100%;display:block;touch-action:none;border-radius:8px}
+  #tip{position:fixed;z-index:30;pointer-events:none;background:var(--panel2);border:1px solid var(--line);
+    border-radius:8px;padding:9px 11px;font-size:12px;max-width:280px;box-shadow:0 8px 28px rgba(0,0,0,.45);
+    opacity:0;transition:opacity .08s}
+  #tip .b{font-weight:700;font-size:13px}
+  #tip .row{color:var(--muted);font-variant-numeric:tabular-nums}
+  #tip .st{font-weight:700}
+  .legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted);margin-top:10px;align-items:center}
+  .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+  .sq{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+  #detail{margin-top:14px;background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--accent2);
+    border-radius:8px;padding:14px 16px;font-size:14px;display:none}
+  #detail.on{display:block}
+  #detail h3{margin:0 0 6px;font-size:16px}
+  #detail .meta{color:var(--muted);font-size:12px;margin-bottom:8px;font-variant-numeric:tabular-nums}
+  .ev{display:inline-block;font-size:10px;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;
+    border-radius:999px;border:1px solid var(--line);color:var(--muted);margin-left:6px}
+  .badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+    padding:2px 8px;border-radius:999px}
+  .b-accepted{background:rgba(63,185,80,.16);color:var(--good)}
+  .b-rejected{background:rgba(199,75,75,.18);color:var(--reject)}
+  .b-intermediate{background:rgba(217,138,43,.16);color:var(--warn)}
+  .b-consumed{background:var(--chip);color:var(--faint)}
+  .b-experiment{background:rgba(74,163,255,.14);color:var(--accent2)}
+  .b-unknown{background:var(--chip);color:var(--faint)}
+  .timeline{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+  .era{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+  .era h4{margin:0 0 6px;font-size:13px}
+  .era ul{margin:0;padding-left:16px;font-size:12px;color:var(--muted)}
+  .era li{cursor:pointer;margin:3px 0}
+  .era li:hover{color:var(--accent2)}
+  details.method{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:0 16px;margin-top:8px}
+  details.method summary{cursor:pointer;padding:13px 0;font-weight:600;font-size:14px}
+  details.method ol{margin:0 0 14px;padding-left:20px;font-size:13px;color:var(--muted)}
+  table{width:100%;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}
+  th,td{text-align:right;padding:5px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+  th:first-child,td:first-child,th.l,td.l{text-align:left}
+  th{position:sticky;top:0;background:var(--panel);cursor:pointer;color:var(--muted);font-weight:600;z-index:2}
+  .tblwrap{max-height:420px;overflow:auto;border:1px solid var(--line);border-radius:10px;margin-top:10px}
+  .foot{color:var(--faint);font-size:11px;margin-top:10px;line-height:1.7}
+  .foot code{font-family:var(--mono);color:var(--muted)}
+  a{color:var(--accent2)}
+  .hudgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Rastan Genesis — Rope-Race Performance History</h1>
+  <p class="sub">Deterministic start→first-rope benchmark across the project's build history. Canonical gameplay ROMs.</p>
+  <p class="sub">Arcade Silver Standard (Rastan World Rev 1): <b>771 frames / 12,850.000 ms</b> · dataset generated <span id="gen"></span></p>
+  <span class="lowerbetter">↓ lower frames = faster = better</span>
+</header>
+
+<div class="tiles" id="tiles"></div>
+
+<h2>Performance curve</h2>
+<div class="card">
+  <div class="controls">
+    <button class="btn" id="vFrames">Frames</button>
+    <button class="btn" id="vGap">Gap to arcade</button>
+    <span style="width:14px"></span>
+    <label><input type="checkbox" id="fAccepted" checked> accepted</label>
+    <label><input type="checkbox" id="fRejected" checked> rejected</label>
+    <label><input type="checkbox" id="fOther" checked> other/intermediate</label>
+    <span style="width:14px"></span>
+    <label><input type="checkbox" id="annOn" checked> annotations</label>
+    <label><input type="checkbox" id="fhOn"> _full_hud overlay</label>
+    <span style="width:14px"></span>
+    <input type="search" id="jump" placeholder="jump to build # (e.g. 0415)" size="18">
+    <button class="btn" id="zLate">Zoom late (≥0410)</button>
+    <button class="btn" id="zReset">Reset view</button>
+    <button class="btn" id="theme">Theme</button>
+  </div>
+  <div class="chartbox"><canvas id="chart" height="460"></canvas></div>
+  <div class="legend">
+    <span><span class="dot" style="background:var(--good)"></span>accepted</span>
+    <span><span class="dot" style="background:var(--reject)"></span>rejected (do not read as a milestone)</span>
+    <span><span class="dot" style="background:var(--warn)"></span>intermediate</span>
+    <span><span class="dot" style="background:var(--accent2)"></span>experiment</span>
+    <span><span class="dot" style="background:var(--neutral)"></span>benchmarked / acceptance not individually recorded</span>
+    <span><span class="sq" style="background:var(--arcade)"></span>arcade 771</span>
+    <span>drag = pan · wheel/pinch = zoom · click a point = details</span>
+  </div>
+  <div id="detail"></div>
+</div>
+
+<h2>Full-HUD cost (late range)</h2>
+<div class="card" id="hudcard"><div class="hudgrid" id="hudgrid"></div>
+  <p class="foot">Full-HUD artifacts exist only for 0434–0437. <b>0434 <code>_full_hud</code> = 803 is NOT a valid full-HUD cost baseline</b> — that mode did not actually produce the intended gameplay HUD. 0435 restored the <b>upper</b> gameplay HUD (lower HUD still absent → an incomplete restoration candidate, not a complete arcade HUD).</p>
+</div>
+
+<h2>Milestone timeline</h2>
+<div class="timeline" id="timeline"></div>
+
+<h2>Method &amp; caveats</h2>
+<details class="method"><summary>What this benchmark measures, and how to read it</summary>
+<ol>
+<li><b>Route:</b> coin → start → hold Right → first rope attachment (Segment 2). Frame count from first controllable frame to the deterministic rope-attach state transition. Stock MAME invincibility cheat only prevents enemy-contact disruption of the Right-only route; AI, collision lookup, velocity, camera, scrolling, timers and rope logic all still run.</li>
+<li><b>Arcade Silver Standard</b> = 771 frames / 12,850.000 ms (Rastan World Rev 1). Lower = faster.</li>
+<li><b>Determinism:</b> most builds produce three identical trial frame counts; values here are the medians.</li>
+<li><b>Global route, not exhaustive coverage:</b> a local optimization produces NO rope change if the Right→rope route never exercises it — e.g. 0425 (Plane-A selector 1/2), 0433 (death effects), 0434 (vertical rows). No rope change ≠ the optimization did nothing.</li>
+<li><b>Correctness ≠ speed:</b> fast benchmarkable builds can be rejected on real hardware — e.g. 0415 and 0421. Rejected builds are shown but visually distinct; do not read them as accepted milestones.</li>
+<li><b>Data correction:</b> the initial parallel historical sweep exposed a shared-resource/concurrency issue in the <i>orchestration wrapper</i> that produced false <code>BENCHMARK_ERROR</code> entries for several otherwise-good ROMs. Those builds (0412–0419, 0421) were rerun sequentially (<code>--jobs 1 --force</code>); the corrected deterministic PASS values are used here. The ROMs themselves were not defective.</li>
+<li><b>Causation:</b> a 1–2-frame change between adjacent builds is not treated as causal without corroborating report evidence; annotations are tagged by evidence strength.</li>
+</ol>
+</details>
+
+<h2>Raw data</h2>
+<div class="controls">
+  <label><input type="checkbox" id="tPassOnly"> PASS only</label>
+  <span class="foot" style="margin:0">click a column header to sort</span>
+</div>
+<div class="tblwrap"><table id="tbl"><thead><tr>
+  <th class="l" data-k="b">Build</th><th data-k="f">Frames</th><th data-k="ms">ms</th>
+  <th data-k="da">Gap vs arcade</th><th data-k="dp">Δ vs prev</th>
+  <th class="l" data-k="acc">Acceptance</th><th class="l" data-k="st">Status</th><th class="l" data-k="note">Note</th>
+</tr></thead><tbody id="tbody"></tbody></table></div>
+
+<p class="foot" id="integrity"></p>
+</div>
+
+<div id="tip"></div>
+<script>
+const DATA=/*__DATA__*/{"canon":[{"b":282,"f":1082,"ms":18056.583,"dp":null,"da":311.0,"st":"PASS","note":""},{"b":283,"f":1083,"ms":18073.271,"dp":1.0,"da":312.0,"st":"PASS","note":""},{"b":284,"f":1083,"ms":18073.271,"dp":0.0,"da":312.0,"st":"PASS","note":""},{"b":285,"f":1140,"ms":19024.496,"dp":57.0,"da":369.0,"st":"PASS","note":""},{"b":286,"f":1140,"ms":19024.496,"dp":0.0,"da":369.0,"st":"PASS","note":""},{"b":287,"f":1142,"ms":19057.872,"dp":2.0,"da":371.0,"st":"PASS","note":""},{"b":288,"f":null,"ms":null,"dp":null,"da":null,"st":"NO_ROPE","note":"frame_budget_exhausted"},{"b":289,"f":null,"ms":null,"dp":null,"da":null,"st":"NO_ROPE","note":"frame_budget_exhausted"},{"b":290,"f":null,"ms":null,"dp":null,"da":null,"st":"NO_ROPE","note":"frame_budget_exhausted"},{"b":291,"f":null,"ms":null,"dp":null,"da":null,"st":"NO_ROPE","note":"frame_budget_exhausted"},{"b":292,"f":1142,"ms":19057.872,"dp":0.0,"da":371.0,"st":"PASS","note":""},{"b":293,"f":1142,"ms":19057.872,"dp":0.0,"da":371.0,"st":"PASS","note":""},{"b":294,"f":1142,"ms":19057.872,"dp":0.0,"da":371.0,"st":"PASS","note":""},{"b":295,"f":1142,"ms":19057.872,"dp":0.0,"da":371.0,"st":"PASS","note":""},{"b":296,"f":1142,"ms":19057.872,"dp":0.0,"da":371.0,"st":"PASS","note":""},{"b":297,"f":1142,"ms":19057.872,"dp":0.0,"da":371.0,"st":"PASS","note":""},{"b":298,"f":1142,"ms":19057.872,"dp":0.0,"da":371.0,"st":"PASS","note":""},{"b":299,"f":1142,"ms":19057.872,"dp":0.0,"da":371.0,"st":"PASS","note":""},{"b":300,"f":1142,"ms":19057.872,"dp":0.0,"da":371.0,"st":"PASS","note":""},{"b":301,"f":2879,"ms":48045.197,"dp":1737.0,"da":2108.0,"st":"PASS","note":""},{"b":302,"f":1114,"ms":18590.604,"dp":-1765.0,"da":343.0,"st":"PASS","note":""},{"b":303,"f":null,"ms":null,"dp":null,"da":null,"st":"NO_ROPE","note":"frame_budget_exhausted"},{"b":304,"f":null,"ms":null,"dp":null,"da":null,"st":"NO_ROPE","note":"frame_budget_exhausted"},{"b":305,"f":null,"ms":null,"dp":null,"da":null,"st":"NO_ROPE","note":"frame_budget_exhausted"},{"b":306,"f":1130,"ms":18857.615,"dp":16.0,"da":359.0,"st":"PASS","note":""},{"b":307,"f":1133,"ms":18907.679,"dp":3.0,"da":362.0,"st":"PASS","note":""},{"b":308,"f":null,"ms":null,"dp":null,"da":null,"st":"NO_GAMEPLAY","note":"frame_budget_exhausted"},{"b":309,"f":1263,"ms":21077.139,"dp":130.0,"da":492.0,"st":"PASS","note":""},{"b":310,"f":1259,"ms":21010.387,"dp":-4.0,"da":488.0,"st":"PASS","note":""},{"b":311,"f":1265,"ms":21110.515,"dp":6.0,"da":494.0,"st":"PASS","note":""},{"b":312,"f":1267,"ms":21143.892,"dp":2.0,"da":496.0,"st":"PASS","note":""},{"b":313,"f":1265,"ms":21110.515,"dp":-2.0,"da":494.0,"st":"PASS","note":""},{"b":314,"f":1265,"ms":21110.515,"dp":0.0,"da":494.0,"st":"PASS","note":""},{"b":315,"f":1265,"ms":21110.515,"dp":0.0,"da":494.0,"st":"PASS","note":""},{"b":316,"f":1265,"ms":21110.515,"dp":0.0,"da":494.0,"st":"PASS","note":""},{"b":317,"f":1265,"ms":21110.515,"dp":0.0,"da":494.0,"st":"PASS","note":""},{"b":318,"f":1265,"ms":21110.515,"dp":0.0,"da":494.0,"st":"PASS","note":""},{"b":319,"f":1278,"ms":21327.461,"dp":13.0,"da":507.0,"st":"PASS","note":""},{"b":320,"f":1265,"ms":21110.515,"dp":-13.0,"da":494.0,"st":"PASS","note":""},{"b":321,"f":1265,"ms":21110.515,"dp":0.0,"da":494.0,"st":"PASS","note":""},{"b":322,"f":1265,"ms":21110.515,"dp":0.0,"da":494.0,"st":"PASS","note":""},{"b":323,"f":1265,"ms":21110.515,"dp":0.0,"da":494.0,"st":"PASS","note":""},{"b":324,"f":1265,"ms":21110.515,"dp":0.0,"da":494.0,"st":"PASS","note":""},{"b":325,"f":1286,"ms":21460.967,"dp":21.0,"da":515.0,"st":"PASS","note":""},{"b":326,"f":1366,"ms":22796.019,"dp":80.0,"da":595.0,"st":"PASS","note":""},{"b":327,"f":1366,"ms":22796.019,"dp":0.0,"da":595.0,"st":"PASS","note":""},{"b":328,"f":1227,"ms":20476.366,"dp":-139.0,"da":456.0,"st":"PASS","note":""},{"b":329,"f":1209,"ms":20175.979,"dp":-18.0,"da":438.0,"st":"PASS","note":""},{"b":330,"f":1209,"ms":20175.979,"dp":0.0,"da":438.0,"st":"PASS","note":""},{"b":331,"f":1209,"ms":20175.979,"dp":0.0,"da":438.0,"st":"PASS","note":""},{"b":332,"f":1209,"ms":20175.979,"dp":0.0,"da":438.0,"st":"PASS","note":""},{"b":333,"f":1225,"ms":20442.989,"dp":16.0,"da":454.0,"st":"PASS","note":""},{"b":334,"f":1225,"ms":20442.989,"dp":0.0,"da":454.0,"st":"PASS","note":""},{"b":335,"f":1225,"ms":20442.989,"dp":0.0,"da":454.0,"st":"PASS","note":""},{"b":336,"f":1225,"ms":20442.989,"dp":0.0,"da":454.0,"st":"PASS","note":""},{"b":337,"f":1225,"ms":20442.989,"dp":0.0,"da":454.0,"st":"PASS","note":""},{"b":338,"f":1225,"ms":20442.989,"dp":0.0,"da":454.0,"st":"PASS","note":""},{"b":339,"f":1225,"ms":20442.989,"dp":0.0,"da":454.0,"st":"PASS","note":""},{"b":340,"f":1225,"ms":20442.989,"dp":0.0,"da":454.0,"st":"PASS","note":""},{"b":341,"f":1225,"ms":20442.989,"dp":0.0,"da":454.0,"st":"PASS","note":""},{"b":342,"f":1225,"ms":20442.989,"dp":0.0,"da":454.0,"st":"PASS","note":""},{"b":343,"f":1227,"ms":20476.366,"dp":2.0,"da":456.0,"st":"PASS","note":""},{"b":344,"f":1227,"ms":20476.366,"dp":0.0,"da":456.0,"st":"PASS","note":""},{"b":345,"f":1227,"ms":20476.366,"dp":0.0,"da":456.0,"st":"PASS","note":""},{"b":346,"f":1227,"ms":20476.366,"dp":0.0,"da":456.0,"st":"PASS","note":""},{"b":347,"f":1228,"ms":20493.054,"dp":1.0,"da":457.0,"st":"PASS","note":""},{"b":348,"f":1227,"ms":20476.366,"dp":-1.0,"da":456.0,"st":"PASS","note":""},{"b":349,"f":1227,"ms":20476.366,"dp":0.0,"da":456.0,"st":"PASS","note":""},{"b":350,"f":1217,"ms":20309.484,"dp":-10.0,"da":446.0,"st":"PASS","note":""},{"b":351,"f":1283,"ms":21410.902,"dp":66.0,"da":512.0,"st":"PASS","note":""},{"b":352,"f":1284,"ms":21427.59,"dp":1.0,"da":513.0,"st":"PASS","note":""},{"b":353,"f":1279,"ms":21344.15,"dp":-5.0,"da":508.0,"st":"PASS","note":""},{"b":354,"f":1284,"ms":21427.59,"dp":5.0,"da":513.0,"st":"PASS","note":""},{"b":355,"f":1276,"ms":21294.085,"dp":-8.0,"da":505.0,"st":"PASS","note":""},{"b":356,"f":1163,"ms":19408.324,"dp":-113.0,"da":392.0,"st":"PASS","note":""},{"b":357,"f":1082,"ms":18056.583,"dp":-81.0,"da":311.0,"st":"PASS","note":""},{"b":358,"f":1082,"ms":18056.583,"dp":0.0,"da":311.0,"st":"PASS","note":""},{"b":359,"f":1084,"ms":18089.959,"dp":2.0,"da":313.0,"st":"PASS","note":""},{"b":360,"f":1084,"ms":18089.959,"dp":0.0,"da":313.0,"st":"PASS","note":""},{"b":361,"f":1082,"ms":18056.583,"dp":-2.0,"da":311.0,"st":"PASS","note":""},{"b":362,"f":1082,"ms":18056.583,"dp":0.0,"da":311.0,"st":"PASS","note":""},{"b":363,"f":1107,"ms":18473.787,"dp":25.0,"da":336.0,"st":"PASS","note":""},{"b":364,"f":1108,"ms":18490.475,"dp":1.0,"da":337.0,"st":"PASS","note":""},{"b":365,"f":1109,"ms":18507.163,"dp":1.0,"da":338.0,"st":"PASS","note":""},{"b":366,"f":1015,"ms":16938.477,"dp":-94.0,"da":244.0,"st":"PASS","note":""},{"b":367,"f":1032,"ms":17222.175,"dp":17.0,"da":261.0,"st":"PASS","note":""},{"b":368,"f":1015,"ms":16938.477,"dp":-17.0,"da":244.0,"st":"PASS","note":""},{"b":369,"f":1015,"ms":16938.477,"dp":0.0,"da":244.0,"st":"PASS","note":""},{"b":370,"f":1015,"ms":16938.477,"dp":0.0,"da":244.0,"st":"PASS","note":""},{"b":371,"f":1015,"ms":16938.477,"dp":0.0,"da":244.0,"st":"PASS","note":""},{"b":372,"f":1015,"ms":16938.477,"dp":0.0,"da":244.0,"st":"PASS","note":""},{"b":373,"f":1017,"ms":16971.853,"dp":2.0,"da":246.0,"st":"PASS","note":""},{"b":374,"f":1017,"ms":16971.853,"dp":0.0,"da":246.0,"st":"PASS","note":""},{"b":375,"f":1019,"ms":17005.229,"dp":2.0,"da":248.0,"st":"PASS","note":""},{"b":376,"f":1016,"ms":16955.165,"dp":-3.0,"da":245.0,"st":"PASS","note":""},{"b":377,"f":1016,"ms":16955.165,"dp":0.0,"da":245.0,"st":"PASS","note":""},{"b":378,"f":1046,"ms":17455.81,"dp":30.0,"da":275.0,"st":"PASS","note":""},{"b":379,"f":1046,"ms":17455.81,"dp":0.0,"da":275.0,"st":"PASS","note":""},{"b":380,"f":1046,"ms":17455.81,"dp":0.0,"da":275.0,"st":"PASS","note":""},{"b":381,"f":1056,"ms":17622.691,"dp":10.0,"da":285.0,"st":"PASS","note":""},{"b":382,"f":1056,"ms":17622.691,"dp":0.0,"da":285.0,"st":"PASS","note":""},{"b":383,"f":1056,"ms":17622.691,"dp":0.0,"da":285.0,"st":"PASS","note":""},{"b":384,"f":1060,"ms":17689.444,"dp":4.0,"da":289.0,"st":"PASS","note":""},{"b":385,"f":1060,"ms":17689.444,"dp":0.0,"da":289.0,"st":"PASS","note":""},{"b":386,"f":1060,"ms":17689.444,"dp":0.0,"da":289.0,"st":"PASS","note":""},{"b":387,"f":1070,"ms":17856.325,"dp":10.0,"da":299.0,"st":"PASS","note":""},{"b":388,"f":null,"ms":null,"dp":null,"da":null,"st":"NO_ROPE","note":"frame_budget_exhausted"},{"b":389,"f":null,"ms":null,"dp":null,"da":null,"st":"NO_ROPE","note":"frame_budget_exhausted"},{"b":390,"f":1060,"ms":17689.444,"dp":-10.0,"da":289.0,"st":"PASS","note":""},{"b":391,"f":1060,"ms":17689.444,"dp":0.0,"da":289.0,"st":"PASS","note":""},{"b":392,"f":1060,"ms":17689.444,"dp":0.0,"da":289.0,"st":"PASS","note":""},{"b":393,"f":1060,"ms":17689.444,"dp":0.0,"da":289.0,"st":"PASS","note":""},{"b":394,"f":1061,"ms":17706.132,"dp":1.0,"da":290.0,"st":"PASS","note":""},{"b":395,"f":1061,"ms":17706.132,"dp":0.0,"da":290.0,"st":"PASS","note":""},{"b":396,"f":1061,"ms":17706.132,"dp":0.0,"da":290.0,"st":"PASS","note":""},{"b":397,"f":1061,"ms":17706.132,"dp":0.0,"da":290.0,"st":"PASS","note":""},{"b":398,"f":1061,"ms":17706.132,"dp":0.0,"da":290.0,"st":"PASS","note":""},{"b":399,"f":1061,"ms":17706.132,"dp":0.0,"da":290.0,"st":"PASS","note":""},{"b":400,"f":1061,"ms":17706.132,"dp":0.0,"da":290.0,"st":"PASS","note":""},{"b":401,"f":1439,"ms":24014.254,"dp":378.0,"da":668.0,"st":"PASS","note":""},{"b":402,"f":1054,"ms":17589.315,"dp":-385.0,"da":283.0,"st":"PASS","note":""},{"b":403,"f":1054,"ms":17589.315,"dp":0.0,"da":283.0,"st":"PASS","note":""},{"b":404,"f":1081,"ms":18039.895,"dp":27.0,"da":310.0,"st":"PASS","note":""},{"b":405,"f":1077,"ms":17973.142,"dp":-4.0,"da":306.0,"st":"PASS","note":""},{"b":406,"f":1078,"ms":17989.831,"dp":1.0,"da":307.0,"st":"PASS","note":""},{"b":407,"f":997,"ms":16638.09,"dp":-81.0,"da":226.0,"st":"PASS","note":""},{"b":408,"f":998,"ms":16654.778,"dp":1.0,"da":227.0,"st":"PASS","note":""},{"b":409,"f":1034,"ms":17255.552,"dp":36.0,"da":263.0,"st":"PASS","note":""},{"b":410,"f":1008,"ms":16821.66,"dp":-26.0,"da":237.0,"st":"PASS","note":""},{"b":411,"f":978,"ms":16321.015,"dp":-30.0,"da":207.0,"st":"PASS","note":""},{"b":412,"f":949,"ms":15837.059,"dp":-29.0,"da":178.0,"st":"PASS","note":""},{"b":413,"f":917,"ms":15303.038,"dp":-32.0,"da":146.0,"st":"PASS","note":""},{"b":414,"f":915,"ms":15269.661,"dp":-2.0,"da":144.0,"st":"PASS","note":""},{"b":415,"f":854,"ms":14251.684,"dp":-61.0,"da":83.0,"st":"PASS","note":""},{"b":416,"f":856,"ms":14285.06,"dp":2.0,"da":85.0,"st":"PASS","note":""},{"b":417,"f":911,"ms":15202.909,"dp":55.0,"da":140.0,"st":"PASS","note":""},{"b":418,"f":911,"ms":15202.909,"dp":0.0,"da":140.0,"st":"PASS","note":""},{"b":419,"f":878,"ms":14652.2,"dp":-33.0,"da":107.0,"st":"PASS","note":""},{"b":420,"f":null,"ms":null,"dp":null,"da":null,"st":"NO_GAMEPLAY","note":"frame_budget_exhausted"},{"b":421,"f":879,"ms":14668.888,"dp":1.0,"da":108.0,"st":"PASS","note":""},{"b":422,"f":879,"ms":14668.888,"dp":0.0,"da":108.0,"st":"PASS","note":""},{"b":423,"f":858,"ms":14318.437,"dp":-21.0,"da":87.0,"st":"PASS","note":""},{"b":424,"f":817,"ms":13634.222,"dp":-41.0,"da":46.0,"st":"PASS","note":""},{"b":425,"f":817,"ms":13634.222,"dp":0.0,"da":46.0,"st":"PASS","note":""},{"b":426,"f":806,"ms":13450.653,"dp":-11.0,"da":35.0,"st":"PASS","note":""},{"b":427,"f":806,"ms":13450.653,"dp":0.0,"da":35.0,"st":"PASS","note":""},{"b":428,"f":803,"ms":13400.588,"dp":-3.0,"da":32.0,"st":"PASS","note":""},{"b":429,"f":804,"ms":13417.276,"dp":1.0,"da":33.0,"st":"PASS","note":""},{"b":430,"f":804,"ms":13417.276,"dp":0.0,"da":33.0,"st":"PASS","note":""},{"b":431,"f":805,"ms":13433.964,"dp":1.0,"da":34.0,"st":"PASS","note":""},{"b":432,"f":803,"ms":13400.588,"dp":-2.0,"da":32.0,"st":"PASS","note":""},{"b":433,"f":803,"ms":13400.588,"dp":0.0,"da":32.0,"st":"PASS","note":""},{"b":434,"f":803,"ms":13400.588,"dp":0.0,"da":32.0,"st":"PASS","note":""},{"b":435,"f":803,"ms":13400.588,"dp":0.0,"da":32.0,"st":"PASS","note":""},{"b":436,"f":807,"ms":13467.341,"dp":4.0,"da":36.0,"st":"PASS","note":""},{"b":437,"f":806,"ms":13450.653,"dp":-1.0,"da":35.0,"st":"PASS","note":""}],"fullhud":{"434":{"b":434,"f":803,"ms":13400.588,"dp":null,"da":32.0,"st":"PASS","note":""},"435":{"b":435,"f":854,"ms":14251.684,"dp":51.0,"da":83.0,"st":"PASS","note":""},"436":{"b":436,"f":861,"ms":14368.501,"dp":7.0,"da":90.0,"st":"PASS","note":""},"437":{"b":437,"f":859,"ms":14335.125,"dp":-2.0,"da":88.0,"st":"PASS","note":""}},"summary":{"first":{"b":282,"f":1082,"ms":18056.583,"dp":null,"da":311.0,"st":"PASS","note":""},"cur":{"b":437,"f":806,"ms":13450.653,"dp":-1.0,"da":35.0,"st":"PASS","note":""},"best":{"b":428,"f":803,"ms":13400.588,"dp":-3.0,"da":32.0,"st":"PASS","note":""},"nPass":145,"nRejectBench":0,"bigimp":{"to":302,"d":-1765,"from":301},"bigreg":{"to":301,"d":1737,"from":300},"below":{"1200":282,"1100":282,"1000":407,"900":415,"850":424},"arcade":771,"arcade_ms":12850.0},"generated":"2026-10-17T04:04:43.282252+00:00","preCount":281,"preNote":"builds 1-281: no gameplay / rope route never reached (pre-benchmarkable)"};
+/* curated acceptance + annotations (authoritative per project reports/AGENTS_LOG). evidence: P=proven/measured, A=strongly associated, H=historical context, U=cause not established */
+const ANN={
+ 401:{acc:"experiment",ev:"P",t:"Ownership-isolation experiment (perf not the goal): full two-plane snapshot copy (~40K cyc/frame). Rope spikes 1061→1439.",d:"Immutable WORK/READY/DISPLAYED frame-ownership isolation with a full two-plane snapshot copy. Documentation explicitly estimated ~40K cycles/frame of extra copy work and warned 0401 would run slower than 0400 under load. The rope benchmark detecting this known global regression is the point — not a failed architecture concept."},
+ 407:{acc:"accepted",ev:"P",t:"Pure-native sprite closeout; first big sprite win. 1078→997.",d:"Completed the pure-native sprite closeout + optimized direct native enqueue. Local: queue 399.45→172.11 cyc/piece; queue work/update 13,135.84→3,940.43; worker avg −21.94%; graphics avg −29.87%; workers/rendered frame 0.6567→0.8342."},
+ 411:{acc:"accepted",ev:"P",t:"SAT/residency opt; first average-worker-under-one-frame. 1008→978.",d:"SAT ~9,808.69→7,220.27 cyc/update; first-free residency scan ~4,317.19→522.23; worker avg 126,786.39 vs the 128,009-cycle frame budget."},
+ 412:{acc:"accepted",ev:"P",t:"P1 HUD glyph direct identity / fast queue. 978-era→949.",d:"Finalizer 38,572.31→32,408.16 cyc/completed update (−15.98%)."},
+ 413:{acc:"accepted",ev:"P",t:"Removed redundant nested MOVEM in the generated actor probe chain. 949→917.",d:"Local: inactive path 260 cyc, generic hit 420 cyc, generic miss/universal 632 cyc."},
+ 415:{acc:"rejected",ev:"P",t:"FAST BUT INVALID: incremental BG-A. 854, but real hardware exposed stale entering rows/columns.",d:"Incremental background dramatically cut cost (row/map 153,890→98,298; IRQ median 233,829→179,471) but maintained only the 40×28 complete-cell viewport, omitting the partial 41st column / 29th row exposed by fine scroll → stale Plane A/B ring content became visible. Rejected on real Genesis."},
+ 416:{acc:"intermediate",ev:"A",t:"Correctness-repair attempt (41×29). Not the final accepted solution.",d:"Expanded resident span to 41×29 and kept much of the 0415 win, but later analysis showed the old background representation still depended on the full 64-cell logical ring invariants. Intermediate, not final."},
+ 417:{acc:"accepted",ev:"P",t:"Full 64-cell logical correctness restored; performance paid back. 856→911.",d:"Restored the full 64-cell logical background coordinate model after the 0415/0416 real-hardware failures, deliberately restoring resolver work that had been unsafely deleted. Selector-0 row/map returned ≈ to the Build-0414 level."},
+ 418:{acc:"accepted",ev:"P",t:"128-KiB VDP DMA source-boundary fix; the six Segment-2 A-0154 holes resolved. No rope change.",d:"Fixed VDP DMA transfers crossing a 128-KiB ROM source-bank boundary (hardware wraps the source counter within the bank). Resolved the A-0154 holes; rope unchanged at 911."},
+ 419:{acc:"accepted",ev:"P",t:"Fused Plane-A visual + collision traversal. 911→878 (accepted on hardware).",d:"Fused previously separate Plane-A name and collision traversals over the same live descriptors, preserving independent visual and collision outputs."},
+ 420:{acc:"rejected",ev:"P",t:"REJECTED: illegal TST.L A0 (68020+ only). No valid rope result.",d:"Contained an illegal 68000 instruction (TST.L A0). Rejected; unbenchmarkable (NO_GAMEPLAY)."},
+ 421:{acc:"rejected",ev:"P",t:"BENCHMARKABLE BUT REJECTED: Segment-0 regression. 879 completes, but the build is invalid.",d:"Four-cell Plane-A grouping crossed the live 64-column ring front and caused a Segment-0 regression. The rope race completes (879) but speed alone is insufficient — rejected."},
+ 422:{acc:"accepted",ev:"P",t:"Ring-seam correction; repaired the 0421 regression. 879.",d:"Kept grouping except at the block crossing the live ring front, where it falls back to the per-cell resolver."},
+ 423:{acc:"accepted",ev:"P",t:"Plane-B native (6-byte visual records). 879→858.",d:"Replaced repeated Plane-B directional-column interpretation with generated 6-byte records (targeted 64,578→12,486 cyc, −80.68%)."},
+ 424:{acc:"accepted",ev:"P",t:"Plane-A selector-0 four-row hoist — one of the largest late valid wins. 858→817.",d:"Hoisted Plane-A selector-0 descriptor/native-record work to a four-row segment level (targeted 112,090→49,918 cyc, −55.47%)."},
+ 425:{acc:"accepted",ev:"A",t:"Plane-A selector 1/2 four-column opt. Rope unchanged (817) — route doesn't exercise it.",d:"Optimized Plane-A selector 1/2 four-column blocks. The Right→rope route does not execute that selector path, so the global rope number did not move. No rope change ≠ no effect."},
+ 426:{acc:"accepted",ev:"P",t:"Compact common-enemy/generic sprite path. 817→806.",d:"Moved the proven Level-B gameplay sprite path to compact generated 6-byte pieces (controlled enemy work 14,850→12,800 cyc, −13.80%). Accepted on real Genesis."},
+ 427:{acc:"consumed",ev:"P",t:"Same source as 0426; build label mechanically consumed. 806.",d:"Canonical rebuild of the same 0426 source — not a new optimization."},
+ 428:{acc:"accepted",ev:"P",t:"Rastan player native optimization. 806→803 (establishes the 803 plateau).",d:"Replaced generalized per-piece player/secondary work with compact generated native records + direct bounded queue appends (−3 frames, −50.065 ms, −0.372%). Accepted."},
+ 429:{acc:"unknown",ev:"U",t:"804. Intermediate/mechanical — classification not established here.",d:"Measured 804. Whether this reflects a code change, a mechanical label, or intermediate work is not established in the reviewed evidence; see AGENTS_LOG."},
+ 430:{acc:"unknown",ev:"U",t:"804. Intermediate/mechanical — classification not established here.",d:"Measured 804; cause not established in reviewed evidence."},
+ 431:{acc:"unknown",ev:"U",t:"805. Intermediate/mechanical — classification not established here.",d:"Measured 805; cause not established in reviewed evidence."},
+ 432:{acc:"unknown",ev:"U",t:"803. Returns to the plateau — classification not established here.",d:"Measured 803; cause not established in reviewed evidence."},
+ 433:{acc:"accepted",ev:"P",t:"Death-effect optimization. Rope unchanged (803) — route doesn't exercise it.",d:"Optimized death-effect presentation; the rope route does not exercise that workload, so the benchmark stayed exactly 803 / 13,400.588 ms."},
+ 434:{acc:"accepted",ev:"P",t:"General vertical paired-row optimization (accepted on hardware). Rope unchanged (803).",d:"Substantially optimized general vertical paired-row generation; accepted on real Genesis. Rope route unchanged — again demonstrating the global-route nature of the benchmark."},
+ 435:{acc:"accepted",ev:"P",t:"UPPER gameplay HUD restoration candidate (lower HUD still missing). Canonical 803; _full_hud 854 (+51 / +6.35%).",d:"Restored the upper gameplay HUD. Canonical reduced-HUD stays 803; the _full_hud build is 854 (+51 frames, +851.096 ms, +6.351%). Subsequently proven visually INCOMPLETE because the lower HUD was still absent — an upper/full-HUD restoration candidate, NOT a complete restored arcade HUD."},
+ 436:{acc:"intermediate",ev:"A",t:"Vertical-origin split: deterministic 803→807 regression; root-cause correction pending.",d:"Implemented independent frontend/gameplay Y-origin configuration and introduced runtime native_active_y_origin state (the user intended build-time constants). Canonical 803→807 (+4 / +66.753 ms); _full_hud 854→861 (+7). The RAM-backed active-origin mechanism coincides with the deterministic regression; it has NOT been instruction-by-instruction proven to account for all of it. Root-cause correction pending."},
+ 437:{acc:"intermediate",ev:"P",t:"Compile-time vertical-origin correction (continues 0436): 806 fr (−1 vs 0436, +3 vs the 803 plateau). Regression reduced, not resolved; real-hardware acceptance pending.",d:"Build 0437 family (2,698,936 B each; canonical gate PASS, gameplay-entry PASS, known-epoch FAIL; 30 s GENESIS NTSC trace 1,798 frames). Deterministic rope: canonical 806/806/806 = 13,450.653 ms (+3 vs 0435, −1 vs 0436); _full_hud 859. Direct ROM disassembly found 0437 retained a +8-cycle gameplay pass-entry branch shape vs 0435; the remaining regression over the 803 plateau is isolated but not resolved. No numbered ROM beyond 437; counter at 437. Real-hardware acceptance required from Tighe."},
+};
+</script>
+<script>
+(function(){
+const $=s=>document.querySelector(s);
+const canon=DATA.canon, fh=DATA.fullhud, S=DATA.summary;
+const ARC=S.arcade;
+const pass=canon.filter(r=>r.st==="PASS"&&r.f!=null);
+$("#gen").textContent=DATA.generated.replace("T"," ").replace(/\..*/,"")+" UTC";
+
+/* acceptance resolver */
+function accOf(r){ const a=ANN[r.b]; if(a) return a.acc;
+  if(r.st==="NO_GAMEPLAY"||r.st==="MISSING_ARTIFACT") return r.b===420?"rejected":"unbenchmarkable";
+  if(r.st==="NO_ROPE") return "unbenchmarkable";
+  return "unknown"; }
+const COL={accepted:"var(--good)",rejected:"var(--reject)",intermediate:"var(--warn)",
+  experiment:"var(--accent2)",consumed:"var(--faint)",unknown:"var(--neutral)",unbenchmarkable:"var(--faint)"};
+
+/* ---- summary tiles ---- */
+const bigReg=(function(){let m=null,pv=null;for(const r of pass){if(pv&&(r.f-pv.f)>(m?m.d:-1e9))m={from:pv.b,to:r.b,d:r.f-pv.f};pv=r;}return m;})();
+const bigImp=(function(){let m=null,pv=null;for(const r of pass){if(pv&&(r.f-pv.f)<(m?m.d:1e9))m={from:pv.b,to:r.b,d:r.f-pv.f};pv=r;}return m;})();
+const bestAccepted=pass.filter(r=>accOf(r)==="accepted"||accOf(r)==="consumed").reduce((a,r)=>!a||r.f<a.f?r:a,null);
+const tiles=[
+  ["Arcade standard",ARC+" fr","12,850.0 ms — target"],
+  ["Earliest benchmarked","B"+S.first.b+" · "+S.first.f+" fr",fmtms(S.first.ms)],
+  ["Current build","B"+S.cur.b+" · "+S.cur.f+" fr",fmtms(S.cur.ms)],
+  ["Best accepted","B"+bestAccepted.b+" · "+bestAccepted.f+" fr","gap +"+(bestAccepted.f-ARC)],
+  ["Current gap to arcade","+"+(S.cur.f-ARC)+" fr",(((S.cur.f-ARC)/ARC*100).toFixed(1))+"% over"],
+  ["Total improvement","−"+(S.first.f-S.cur.f)+" fr","B"+S.first.b+"→B"+S.cur.b],
+  ["Largest 1-build gain","−"+Math.abs(bigImp.d)+" fr","B"+bigImp.from+"→B"+bigImp.to],
+  ["Largest 1-build regression","+"+bigReg.d+" fr","B"+bigReg.from+"→B"+bigReg.to+(bigReg.to===301?" (early outlier)":"")],
+  ["Benchmarked (PASS)",pass.length+" builds","of 437 canonical"],
+  ["Rejected but benchmarkable","1 build","B0421 (speed ≠ accepted)"],
+];
+$("#tiles").innerHTML=tiles.map(t=>`<div class="tile"><div class="v">${t[1]}</div><div class="k">${t[0]}</div><div class="x">${t[2]}</div></div>`).join("");
+function fmtms(m){return m==null?"":(m).toLocaleString(undefined,{minimumFractionDigits:1,maximumFractionDigits:1})+" ms";}
+
+/* ---- full-HUD cards ---- */
+$("#hudgrid").innerHTML=[435,436,437].map(b=>{
+  const c=canon.find(r=>r.b===b), h=fh[b];
+  const df=h.f-c.f, dm=(h.ms-c.ms), pc=(df/c.f*100);
+  return `<div class="tile"><div class="k">Build ${b} — canonical vs _full_hud</div>
+    <div class="v">${c.f} → ${h.f} fr</div>
+    <div class="x">penalty +${df} fr · +${dm.toFixed(1)} ms · +${pc.toFixed(2)}%</div></div>`;
+}).join("") + `<div class="tile"><div class="k">Build 434 _full_hud</div><div class="v">803 fr</div>
+  <div class="x" style="color:var(--warn)">NOT a valid full-HUD baseline — HUD not actually present</div></div>`;
+
+/* ---- chart ---- */
+const cv=$("#chart"), ctx=cv.getContext("2d"), tip=$("#tip");
+let mode="frames"; // or "gap"
+let showFH=false;
+let filt={accepted:true,rejected:true,other:true};
+let annOn=true;
+let view=null; // {x0,x1} build range
+let dpr=Math.max(1,window.devicePixelRatio||1);
+let plotRect={x:0,y:0,w:0,h:0};
+function cssv(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
+
+function visiblePts(){
+  return canon.filter(r=>{
+    if(r.f==null) return false;
+    const a=accOf(r);
+    if(a==="accepted"||a==="consumed"){ if(!filt.accepted) return false; }
+    else if(a==="rejected"){ if(!filt.rejected) return false; }
+    else { if(!filt.other) return false; }
+    return true;
+  });
+}
+function yval(r){ return mode==="gap" ? (r.f-ARC) : r.f; }
+
+function resize(){ dpr=Math.max(1,window.devicePixelRatio||1);
+  const w=cv.clientWidth; cv.width=w*dpr; cv.height=460*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); draw(); }
+window.addEventListener("resize",resize);
+
+function draw(){
+  const W=cv.clientWidth,H=460;
+  ctx.clearRect(0,0,W,H);
+  const pts=visiblePts(); if(!pts.length) return;
+  const bmin=view?view.x0:Math.min(...pts.map(p=>p.b)), bmax=view?view.x1:Math.max(...pts.map(p=>p.b));
+  const inv=pts.filter(p=>p.b>=bmin&&p.b<=bmax);
+  const ys=inv.map(yval);
+  let ymin=Math.min(...ys, mode==="gap"?0:ARC), ymax=Math.max(...ys, mode==="gap"?0:ARC);
+  const pad=(ymax-ymin)*0.12||10; ymin-=pad; ymax+=pad;
+  if(mode==="gap"&&ymin>0) ymin=-5;
+  const L=58,R=16,T=18,B=34;
+  plotRect={x:L,y:T,w:W-L-R,h:H-T-B,bmin,bmax,ymin,ymax};
+  const X=b=>L+(b-bmin)/(bmax-bmin||1)*(W-L-R);
+  const Y=v=>T+(1-(v-ymin)/(ymax-ymin||1))*(H-T-B);
+  // grid + y labels
+  ctx.font="11px "+cssv("--mono"); ctx.textAlign="right"; ctx.textBaseline="middle";
+  const steps=6;
+  for(let i=0;i<=steps;i++){ const v=ymin+(ymax-ymin)*i/steps, y=Y(v);
+    ctx.strokeStyle=cssv("--line"); ctx.beginPath();ctx.moveTo(L,y);ctx.lineTo(W-R,y);ctx.stroke();
+    ctx.fillStyle=cssv("--faint"); ctx.fillText(Math.round(v),L-6,y); }
+  // x labels
+  ctx.textAlign="center"; ctx.textBaseline="top";
+  const xticks=6;
+  for(let i=0;i<=xticks;i++){ const b=Math.round(bmin+(bmax-bmin)*i/xticks);
+    ctx.fillStyle=cssv("--faint"); ctx.fillText("B"+b,X(b),H-B+6); }
+  // arcade reference
+  const ay=Y(mode==="gap"?0:ARC);
+  ctx.strokeStyle=cssv("--arcade"); ctx.setLineDash([6,4]); ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(L,ay);ctx.lineTo(W-R,ay);ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle=cssv("--arcade"); ctx.textAlign="left"; ctx.textBaseline="bottom";
+  ctx.font="10px "+cssv("--sans");
+  ctx.fillText("ARCADE SILVER STANDARD — "+ARC+" FRAMES"+(mode==="gap"?" (gap 0)":""),L+4,ay-3);
+  // connect accepted-ish line (neutral+accepted+consumed+intermediate+experiment, exclude rejected from the trend line)
+  const trend=inv.filter(p=>accOf(p)!=="rejected").sort((a,b)=>a.b-b.b);
+  ctx.strokeStyle=cssv("--accent2"); ctx.lineWidth=1.6; ctx.globalAlpha=.55;
+  ctx.beginPath(); let started=false, lastb=null;
+  for(const p of trend){ const x=X(p.b),y=Y(yval(p));
+    if(started && p.b-lastb>3){ ctx.stroke(); ctx.beginPath(); started=false; } // break big gaps
+    if(!started){ctx.moveTo(x,y);started=true;} else ctx.lineTo(x,y); lastb=p.b; }
+  ctx.stroke(); ctx.globalAlpha=1;
+  // full-HUD overlay
+  if(showFH){ ctx.strokeStyle=cssv("--warn"); ctx.lineWidth=1.6; ctx.setLineDash([3,3]); ctx.beginPath();
+    let st=false; for(const b of [435,436,437]){ if(b<bmin||b>bmax)continue; const h=fh[b]; const x=X(b),y=Y(mode==="gap"?h.f-ARC:h.f);
+      if(!st){ctx.moveTo(x,y);st=true;}else ctx.lineTo(x,y);} ctx.stroke(); ctx.setLineDash([]);
+    for(const b of [435,436,437]){ if(b<bmin||b>bmax)continue; const h=fh[b]; const x=X(b),y=Y(mode==="gap"?h.f-ARC:h.f);
+      ctx.fillStyle=cssv("--warn"); ctx.beginPath();ctx.arc(x,y,3.5,0,7);ctx.fill(); } }
+  // points
+  ptScreen=[];
+  for(const p of inv){ const a=accOf(p); const x=X(p.b),y=Y(yval(p));
+    const col=COL[a]||cssv("--neutral"); const ann=ANN[p.b];
+    ctx.fillStyle=col; ctx.beginPath();
+    if(a==="rejected"){ ctx.rect(x-3.6,y-3.6,7.2,7.2); } else { ctx.arc(x,y,ann?4.2:3,0,7); }
+    ctx.fill();
+    if(ann){ ctx.strokeStyle=cssv("--ink"); ctx.lineWidth=1; ctx.globalAlpha=.5;
+      ctx.beginPath();ctx.arc(x,y,6,0,7);ctx.stroke();ctx.globalAlpha=1; }
+    ptScreen.push({x,y,r:p});
+  }
+  // annotation callouts (sparse)
+  if(annOn){ ctx.font="10px "+cssv("--sans");
+    const key=[401,407,415,417,419,424,428,435,436,437].filter(b=>b>=bmin&&b<=bmax);
+    for(const b of key){ const p=inv.find(q=>q.b===b); if(!p)continue; const x=X(b),y=Y(yval(p));
+      const up=(ANN[b].acc==="rejected"||b===401||b===436); const ly=up?y-14:y+16;
+      ctx.fillStyle=cssv("--muted"); ctx.textAlign="center"; ctx.textBaseline=up?"bottom":"top";
+      ctx.fillText("B"+b, x, up?y-7:y+7);
+    } }
+}
+let ptScreen=[];
+// interaction
+let drag=null;
+cv.addEventListener("pointerdown",e=>{drag={x:e.clientX,bmin:plotRect.bmin,bmax:plotRect.bmax};cv.setPointerCapture(e.pointerId);});
+cv.addEventListener("pointerup",()=>drag=null);
+cv.addEventListener("pointermove",e=>{
+  const rect=cv.getBoundingClientRect();
+  if(drag){ const span=plotRect.bmax-plotRect.bmin; const dx=(e.clientX-drag.x)/plotRect.w*span;
+    let x0=drag.bmin-dx,x1=drag.bmax-dx; const lo=282,hi=437;
+    if(x0<lo){x1+=lo-x0;x0=lo;} if(x1>hi){x0-=x1-hi;x1=hi;} x0=Math.max(lo,x0);
+    view={x0:Math.round(x0),x1:Math.round(x1)}; draw(); return; }
+  // hover
+  const mx=e.clientX-rect.left, my=e.clientY-rect.top; let best=null,bd=1e9;
+  for(const s of ptScreen){ const d=(s.x-mx)**2+(s.y-my)**2; if(d<bd){bd=d;best=s;} }
+  if(best&&bd<120){ showTip(best,e.clientX,e.clientY); } else { tip.style.opacity=0; }
+});
+cv.addEventListener("pointerleave",()=>tip.style.opacity=0);
+cv.addEventListener("wheel",e=>{ e.preventDefault();
+  const rect=cv.getBoundingClientRect(); const mx=e.clientX-rect.left;
+  const b0=plotRect.bmin,b1=plotRect.bmax; const bx=b0+(mx-plotRect.x)/plotRect.w*(b1-b0);
+  const f=e.deltaY<0?0.8:1.25; let n0=bx-(bx-b0)*f, n1=bx+(b1-bx)*f;
+  n0=Math.max(282,Math.round(n0)); n1=Math.min(437,Math.round(n1)); if(n1-n0<4)return;
+  view={x0:n0,x1:n1}; draw();
+},{passive:false});
+cv.addEventListener("click",e=>{
+  const rect=cv.getBoundingClientRect(); const mx=e.clientX-rect.left,my=e.clientY-rect.top;
+  let best=null,bd=1e9; for(const s of ptScreen){const d=(s.x-mx)**2+(s.y-my)**2;if(d<bd){bd=d;best=s;}}
+  if(best&&bd<160) openDetail(best.r);
+});
+function showTip(s,cx,cy){ const r=s.r,a=accOf(r),ann=ANN[r.b];
+  const prev=pass.filter(p=>p.b<r.b).slice(-1)[0];
+  tip.innerHTML=`<div class="b">Build ${String(r.b).padStart(4,"0")} <span class="st" style="color:${COL[a]}">${a}</span></div>`+
+   `<div class="row">${r.f} frames · ${fmtms(r.ms)}</div>`+
+   `<div class="row">gap vs arcade: +${r.f-ARC} fr</div>`+
+   (prev?`<div class="row">Δ vs B${prev.b}: ${(r.f-prev.f>=0?"+":"")+(r.f-prev.f)} fr</div>`:"")+
+   (ann?`<div style="margin-top:5px">${ann.t}</div>`:"");
+  tip.style.left=Math.min(cx+14,innerWidth-290)+"px"; tip.style.top=(cy+14)+"px"; tip.style.opacity=1;
+}
+function openDetail(r){ const a=accOf(r),ann=ANN[r.b]; const d=$("#detail");
+  const prev=pass.filter(p=>p.b<r.b).slice(-1)[0];
+  const evn={P:"proven / measured",A:"strongly associated",H:"historical context",U:"cause not established"};
+  d.innerHTML=`<h3>Build ${String(r.b).padStart(4,"0")} <span class="badge b-${a}">${a}</span>${ann?`<span class="ev">${evn[ann.ev]||ann.ev}</span>`:""}</h3>`+
+   `<div class="meta">${r.f} frames · ${fmtms(r.ms)} · gap vs arcade +${r.f-ARC}${prev?` · Δ vs B${prev.b} ${(r.f-prev.f>=0?"+":"")+(r.f-prev.f)}`:""}${fh[r.b]?` · _full_hud ${fh[r.b].f} fr`:""}</div>`+
+   `<div>${ann?ann.d:"Benchmarked PASS. Acceptance/cause not individually recorded in the reviewed evidence for this build."}</div>`;
+  d.classList.add("on"); d.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+// controls
+function setMode(m){mode=m;$("#vFrames").classList.toggle("active",m==="frames");$("#vGap").classList.toggle("active",m==="gap");draw();}
+$("#vFrames").onclick=()=>setMode("frames"); $("#vGap").onclick=()=>setMode("gap"); setMode("frames");
+$("#fAccepted").onchange=e=>{filt.accepted=e.target.checked;draw();};
+$("#fRejected").onchange=e=>{filt.rejected=e.target.checked;draw();};
+$("#fOther").onchange=e=>{filt.other=e.target.checked;draw();};
+$("#annOn").onchange=e=>{annOn=e.target.checked;draw();};
+$("#fhOn").onchange=e=>{showFH=e.target.checked;draw();};
+$("#zLate").onclick=()=>{view={x0:410,x1:437};draw();};
+$("#zReset").onclick=()=>{view=null;draw();};
+$("#jump").addEventListener("keydown",e=>{ if(e.key!=="Enter")return;
+  const b=parseInt(String(e.target.value).replace(/\D/g,""),10); if(!b)return;
+  view={x0:Math.max(282,b-8),x1:Math.min(437,b+8)}; draw();
+  const r=canon.find(q=>q.b===b); if(r&&r.f!=null) openDetail(r);
+});
+$("#theme").onclick=()=>{ const cur=document.documentElement.getAttribute("data-theme");
+  const next=cur==="light"?"dark":(cur==="dark"?"light":(matchMedia("(prefers-color-scheme: dark)").matches?"light":"dark"));
+  document.documentElement.setAttribute("data-theme",next); draw(); };
+
+/* ---- milestone timeline ---- */
+const eras=[
+ ["Sprite-performance campaign",[[407,"pure-native sprite closeout — first big win"],[411,"SAT/residency; avg worker < 1 frame"],[413,"probe MOVEM overhead removed"]]],
+ ["Ownership experiment",[[401,"full two-plane snapshot (perf regression, by design)"]]],
+ ["Background opt + correctness",[[415,"fast but REJECTED (stale ring)"],[417,"full 64-cell correctness restored"],[418,"128-KiB DMA boundary fix"],[419,"fused visual+collision"]]],
+ ["Ring-seam & native background",[[421,"benchmarkable but REJECTED"],[422,"ring-seam correction"],[423,"Plane-B native"],[424,"selector-0 hoist (−41)"]]],
+ ["Late native + HUD",[[426,"compact enemy/generic sprites"],[428,"player native — 803 plateau"],[433,"death effects (off-route)"],[434,"vertical rows (off-route)"],[435,"upper HUD restoration candidate"],[436,"vertical-origin split (regression, pending)"],[437,"compile-time vertical-origin correction (806)"]]],
+];
+$("#timeline").innerHTML=eras.map(([h,items])=>`<div class="era"><h4>${h}</h4><ul>`+
+  items.map(([b,t])=>`<li data-b="${b}">B${String(b).padStart(4,"0")} — ${t}</li>`).join("")+`</ul></div>`).join("");
+document.querySelectorAll(".era li").forEach(li=>li.onclick=()=>{ const b=+li.dataset.b;
+  view={x0:Math.max(282,b-10),x1:Math.min(437,b+10)}; draw();
+  const r=canon.find(q=>q.b===b); if(r&&r.f!=null) openDetail(r); window.scrollTo({top:$("#chart").getBoundingClientRect().top+scrollY-70,behavior:"smooth"});});
+
+/* ---- raw table ---- */
+let sortK="b",sortDir=1,passOnly=false;
+function rows(){ let rs=canon.slice(); if(passOnly) rs=rs.filter(r=>r.st==="PASS");
+  rs.sort((a,b)=>{ const ka=a[sortK]??(sortK==="acc"?accOf(a):-1), kb=b[sortK]??(sortK==="acc"?accOf(b):-1);
+    if(sortK==="acc"){return sortDir*String(accOf(a)).localeCompare(accOf(b));}
+    if(sortK==="st"||sortK==="note"){return sortDir*String(ka).localeCompare(String(kb));}
+    return sortDir*((ka)-(kb)); }); return rs; }
+function renderTbl(){ const tb=$("#tbody");
+  tb.innerHTML=rows().map(r=>{const a=accOf(r);
+    return `<tr><td class="l">${String(r.b).padStart(4,"0")}</td><td>${r.f??"—"}</td><td>${r.ms!=null?r.ms.toFixed(1):"—"}</td>`+
+    `<td>${r.f!=null?"+"+(r.f-ARC):"—"}</td><td>${r.dp!=null?(r.dp>=0?"+":"")+r.dp:"—"}</td>`+
+    `<td class="l"><span class="badge b-${a}">${a}</span></td><td class="l">${r.st}</td><td class="l">${(ANN[r.b]?ANN[r.b].t:r.note)||""}</td></tr>`;}).join("");
+}
+document.querySelectorAll("#tbl th").forEach(th=>th.onclick=()=>{const k=th.dataset.k;
+  if(sortK===k)sortDir*=-1;else{sortK=k;sortDir=1;} renderTbl();});
+$("#tPassOnly").onchange=e=>{passOnly=e.target.checked;renderTbl();};
+renderTbl();
+
+/* ---- integrity footer ---- */
+$("#integrity").innerHTML=`Dataset: <code>states/traces/historical_rope_benchmark/canonical_results.{csv,json}</code> + <code>full_hud_results.csv</code> (generated ${DATA.generated.replace("T"," ").replace(/\..*/,"")} UTC) · batch tool <code>tools/mame/run_historical_rope_benchmarks.py</code>. `+
+ `Records embedded: ${canon.length} benchmarkable-era canonical builds (0282–0436) + ${Object.keys(fh).length} _full_hud. `+
+ `Excluded from the chart: ${DATA.preCount} pre-benchmarkable builds (${DATA.preNote}). `+
+ `Corrected sequential reruns (0412–0419, 0421) incorporated; 0420 = NO_GAMEPLAY (illegal instruction). `+
+ `Arcade reference: Rastan World Rev 1, 771 fr / 12,850.0 ms (docs/design/Cody_arcade_rastan_rope_race_silver_standard.md). No benchmarks were rerun to build this report.`;
+
+resize();
+})();
+</script>
+</body>
+</html>

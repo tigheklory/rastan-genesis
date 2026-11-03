@@ -1,0 +1,8 @@
+report	date	topic	status	H12_relevance	imported_finding
+Andy_0010D000_pc080sn_descriptor_table_wram_mapping_design.md	2026-06-29	0x10D000 descriptor table	CURRENT	H12 CORE	16 col ptrs at A5+0x1000; ROM sources 0x1691C+; A5-relative populator; Genesis WRAM 0x00FF1000
+Cody_build0116_10d000_wram_rebase_implementation.md	2026-06-29	0x10D000 WRAM rebase	CURRENT	H12 CORE	raw 0x10D0xx->0x00FF10xx; table built at runtime in WRAM
+Cody_build0117_pc080sn_descriptor_source_pointer_relocation.md	2026-06-29	descriptor source ptr relocation	CURRENT	H12 CORE	ROM sources 0x1691C/18BDC/2399C/3725C relocated +0x200 for Genesis
+Cody_boss_positions_and_palette_staging_decompilation.md	recent	boss 0x43458 + palette staging	CURRENT (in C tree)	reconciled (not redone)	0x43458 table 0x43484 27 entries; palette publish direction A5+0x1600->CLCS; boss line F = 0x3BA88[round][15]->0x4FD02
+Cody_build0374_marker_3a_rope_ledge.md	recent	marker 0x3A semantics	CURRENT	H12 marker classify	0x3A = scheduled-hostile zero-X positioning; NOT platform/terrain/special-solid
+Cody_build0373_missing_round1_rope_block.md	recent	rope ledge (0x2A290/0x3008)	SUPERSEDED/DISPROVEN	NOT H12 (do not fix)	0373 block ID falsified; rope-ledge investigation SUSPENDED by Tighe
+Cody_build0366_cave_block_collision_palette.md	recent	cave special-solid A5+0x0242	CURRENT (Genesis)	background (WRAM rebase lesson)	arcade abs 0x10Cxxx WRAM must map to Genesis A5-relative

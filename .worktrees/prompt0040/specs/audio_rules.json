@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "description": "Audio and sound-command adaptation rules.",
+  "rules": [
+    {
+      "id": "sound_pipeline_tbd",
+      "status": "planned",
+      "notes": [
+        "Track sound latch addresses, command semantics, and any Z80-side replacement policy here."
+      ]
+    }
+  ]
+}

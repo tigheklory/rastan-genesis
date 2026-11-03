@@ -1,0 +1,4 @@
+category	creator_pc	produces	status
+ENEMY_KILL_DROP	(unknown)	?	NOT FOUND (H9 gap; H18 did not yet identify a drop creator)
+FIXED_MARKER	0x41180/0x41362	marker-materialized actors (rec_type set at 0x41362)	MECHANISM PROVEN; rec_type-12 pickup via marker NOT yet confirmed
+SCRIPTED_POSITIONAL	0x450D8 -> 0x45248	scene-gated actors (base/target-char)	MECHANISM PROVEN; rec_type-12 pickup via scripted NOT yet confirmed

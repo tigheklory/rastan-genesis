@@ -1,0 +1,23 @@
+{
+  "input_vgm": "audio/rastan_music_dump/converted_vgm/01 - Credit.vgm",
+  "data_start_offset": 128,
+  "commands_parsed": 329,
+  "last_sample_clock": 378669,
+  "last_time_seconds": 8.586598639455783,
+  "cmd_counts_hex": {
+    "0x54": 155,
+    "0x61": 15,
+    "0x66": 1,
+    "0x70": 43,
+    "0x71": 34,
+    "0x72": 21,
+    "0x73": 35,
+    "0x74": 2,
+    "0x78": 1,
+    "0x7B": 7,
+    "0x7F": 15
+  },
+  "parse_errors": [],
+  "events_csv": "audio/rastan_music_dump/conversion_attempts/01 - Credit_events.csv",
+  "ym2151_csv": "audio/rastan_music_dump/conversion_attempts/01 - Credit_ym2151_writes.csv"
+}

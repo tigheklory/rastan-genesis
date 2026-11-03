@@ -1,0 +1,6 @@
+loader_pc	rom_source	dest	count	role	status
+0x3B9F8	0x4EAF6 (768 words) + 0x4FE62 (16 words)	CLCS 0x200000 lines 0..48	784 words	cold-start master palette initialization	COMPLETE
+0x3BA20	0x4FD02 via 0x3BA88[(round-1)*32+working_line]	A5+0x1600 working lines 0..31	32 lines	round palette construction	COMPLETE
+0x45D7C	A5+0x1600 working lines 0..31	CLCS 0x200000 physical lines 0..31	8 chunks x 64 words	publish pre-reload working palette	COMPLETE; prior direction reversed
+0x45DC4	A5+0x1600 working lines 0..31	CLCS 0x200600 physical lines 48..79	8 chunks x 64 words	publish post-0x3BA20 round palette for PC090OJ banks	COMPLETE
+boss line-F colours	0x4FD02 via round table working line 15	CLCS physical bank 0x3F (sprite_ctrl 0x60 + nibble F)	16 words	normal boss palette	COMPLETE; physical bank 63 = 48 + working line 15

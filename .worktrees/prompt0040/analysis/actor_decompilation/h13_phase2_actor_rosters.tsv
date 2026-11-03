@@ -1,0 +1,13 @@
+technical_id	base	state	handler	marker_route	reachable_rounds	round_status	name_status
+materialized_0x00F4	0x00F4	0x1E	0x40E88	'H' 0x48	-	PENDING (handler not reached by a unique phase-2 grid marker; chain/generic)	PENDING
+materialized_0x0DAB	0x0DAB	0x20	0x40EDE	'O'..'Q' 0x4F-0x51	[3, 5]	REACHABLE via handler in rounds 3,5	PENDING
+materialized_0x09EA	0x09EA	0x13/0x15/0x17/0x20	0x43840/0x43F88/0x40EDE	multi	-	PENDING (handler not reached by a unique phase-2 grid marker; chain/generic)	PENDING
+materialized_0x0179	0x0179	0x15	0x43840	'a'..'c'/'n'..'p'/'z'	[5, 6]	REACHABLE via handler in rounds 5,6	PENDING
+materialized_0x0224	0x0224	H5	0x43xxx	multi	-	PENDING (handler not reached by a unique phase-2 grid marker; chain/generic)	PENDING
+materialized_0x0266	0x0266	H5	0x43xxx	multi	-	PENDING (handler not reached by a unique phase-2 grid marker; chain/generic)	PENDING
+materialized_0x0235	0x0235	H5	0x43984	—	-	PENDING (handler not reached by a unique phase-2 grid marker; chain/generic)	PENDING
+materialized_0x09F6	0x09F6	H5	0x439AE	—	-	PENDING (handler not reached by a unique phase-2 grid marker; chain/generic)	PENDING
+materialized_0x01FC	0x01FC	H5	0x43BEA	—	-	PENDING (handler not reached by a unique phase-2 grid marker; chain/generic)	PENDING
+materialized_0x0236	0x0236	H5	0x43C34	—	-	PENDING (handler not reached by a unique phase-2 grid marker; chain/generic)	PENDING
+materialized_0x0546	0x0546	H5	0x43DFA	—	-	PENDING (handler not reached by a unique phase-2 grid marker; chain/generic)	PENDING
+materialized_0x05E9	0x05E9	H5	0x43FC4	—	-	PENDING (handler not reached by a unique phase-2 grid marker; chain/generic)	PENDING
