@@ -54920,3 +54920,28 @@ TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0069
   Build 0532 remains unaccepted pending minimal/aggressive record-16→17 and record-21 gameplay.
 - Reports: `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0064_resume_build0532_r1s2_boundary_fix.md`
   and `docs/design/Cody_build0532_r1s2_next_to_author_boundary_fix.md`.
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0072 — current palette integration and Build-0532 diagnostic (Cody, 2026-11-03)
+
+- Tighe accepted Build 0532 as the integration baseline but reproduced the larger later R1-S2 Plane-A
+  corruption. Existing 0529/0530 traces predate the 0530-0532 semantics and cannot prove its first bad
+  Build-0532 transition. No speculative Plane-A change or Build 0533 was made; counter remains 0532.
+- Current tracked `Test.json` SHA is
+  `24914ababc7fab52aac8258dd1f9f7b3d5df230b81421c03d9ce68d1526135ae`. Forced normal generation proved
+  the Make dependency chain but exposed that the sprite generator omitted Tighe's authored
+  `object:castle.green_sword_knight.r1.n3` object.
+- Extended the existing `(code,effective-bank)` generator with the exact PROMT-ID-0069 ranked `0x033E`
+  Composer frames. Independent verification covers 30 knight codes, Tighe's current Rastan index swap,
+  current profile SHA across generated families, and protected Line 2. Added canonical decision
+  `PAL-PC090OJ-R1S2-GREEN-SWORD-KNIGHT-001`; no later-round mapping was inferred.
+- Added a separate read-only Build-0532 tracer and reducer, guarded to the accepted invincible R1-S2 ROM,
+  exact symbols, and exact row assets. It records ordered staged/provenance/dirty/VDP transitions and a
+  complete marker snapshot. Historical Build-0530 tooling remains unchanged. Five-frame NTSC MAME smoke
+  run passed.
+- Local source/tooling commit: `dac22e0d11cfc22032574f079d0e68d5257eb82b` (not pushed). Report:
+  `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0072_build0533_plane_a_and_current_palette_integration.md`.
+- Minimum next input: run `tools/diagnostics/run_r1s2_build0532_remaining_trace.sh`, reproduce only the
+  later record-21 failure, press `M` at first visible corruption, and close MAME. This is one Genesis run;
+  no arcade replay is requested.
+
+`TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0072`
