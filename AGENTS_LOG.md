@@ -54824,3 +54824,16 @@ SOURCE CODE -> BESTIARY -> EDITOR. Static only, no traces, no ROM/Test.json/pale
 - Build 0531 remains a candidate pending Tighe's ordinary and aggressive jump-assisted chain tests.
   Reports: `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0062_r1s2_first_bad_write_diagnosis.md`
   and `docs/design/Cody_build0531_r1s2_partial_record_rematerialization_fix.md`.
+
+## CORRECTION: R1-S2 green knight is NOT the lizardman (Andy, 2026-11-03)
+- Reverted commit 1b8d621a (via 2732037d). It made field enemies visible in R1-S2 on the FALSE premise that
+  the castle green sword-knight = lizardman (base 0x004B). Tighe confirmed they are DIFFERENT enemies.
+- Error: I matched on "green + humanoid + palette bank 0x36" and treated a shared palette bank as identity.
+  A shared bank is NOT identity. Both earlier guesses (0x0A73 armored-man death anim, 0x004B lizardman) are
+  WRONG for the green knight.
+- The knight's actor base is UNRESOLVED. Static ID has failed twice (SCHEDULE_ONLY roster; compositor_vm
+  returns a generic default for non-route-documented anims). Authoritative path: a runtime capture of R1-S2
+  reading the live PC090OJ actor records / sprite base+bank for the on-screen knights. No further static
+  guessing.
+- Editor filter restored to the prior (PROMPT-0038) state; no Composer behavior change remains from the
+  reverted work.
