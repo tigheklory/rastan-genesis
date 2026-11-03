@@ -10,6 +10,9 @@ NATIVE = ROOT / "build/pc080sn_boundary/record_native_maps.bin"
 PAN = ROOT / "build/pc080sn_boundary/pan_row_maps.bin"
 EXPECTED_NATIVE = "823c200a7fafd73fb29d21672252b9124b268e46f49ae98da6fba56bcc285900"
 EXPECTED_PAN = "d88893fcd9bdf927bb39599bbbdd7b9a768bd9511dba7d2ff03dca4c619c6910"
+# Exact Build-0532 native name word for arcade dynamic surface-mark code $25C7.
+# This is diagnostic classification only; production still resolves the code through the LUT.
+SURFACE_MARK_WORD = 0x02DF
 
 def sha(path: Path) -> str: return hashlib.sha256(path.read_bytes()).hexdigest()
 def load(path: Path):
@@ -33,7 +36,12 @@ def main() -> int:
     def pan_row(rec,row):
         off=int.from_bytes(pan[rec*4:rec*4+4],"big"); s=off+row*128
         return pan[s:s+128]
-    implicated=[]
+    # MAME's Genesis VDP address-space readback is not valid in every build.  A capture in
+    # which all 32 rows have one identical hash is a blank/readback artifact, not evidence
+    # that all 32 published rows diverged.
+    vdp_hashes={r["vdp_hash"] for r in markerrows}
+    vdp_readback_valid=len(vdp_hashes)>1
+    implicated=[]; overlays=[]
     for r in markerrows:
         tag=int(r["owner"],16); logical=(tag-1)&63 if tag else None
         actual=words_bytes(r["staged_words_64"]); matches=[]
@@ -43,7 +51,17 @@ def main() -> int:
                 try:
                     if actual==pan_row(rec,logical): matches.append(f"pan:r{rec}:l{logical}")
                 except Exception: pass
-        if r["staged_hash"]!=r["vdp_hash"] or not matches:
+        if not matches and logical is not None:
+            actual_words=[int.from_bytes(actual[i:i+2],"big") for i in range(0,128,2)]
+            for rec in (16,17,20,21):
+                expected=native_row(rec,logical)
+                expected_words=[int.from_bytes(expected[i:i+2],"big") for i in range(0,128,2)]
+                diffs=[i for i,(x,y) in enumerate(zip(actual_words,expected_words)) if x!=y]
+                if (len(diffs)==4 and diffs==list(range(diffs[0],diffs[0]+4)) and
+                        all(actual_words[i]==SURFACE_MARK_WORD for i in diffs)):
+                    overlays.append((r["physical"],logical,rec,diffs[0]))
+                    matches.append(f"arcade_surface_mark:native:r{rec}:l{logical}:c{diffs[0]}-{diffs[-1]}")
+        if (vdp_readback_valid and r["staged_hash"]!=r["vdp_hash"]) or not matches:
             implicated.append((r["physical"],r["owner"],r["staged_hash"],r["vdp_hash"],",".join(matches) or "NO_16_17_20_21_MATCH"))
     recent=[w for w in writes if mf-900<=int(w["frame"])<=mf]
     counts=Counter(w["writer"] for w in recent)
@@ -51,11 +69,15 @@ def main() -> int:
     lines=["# Build 0532 remaining Plane-A trace reduction","",
            f"Marker frame: {mf}",f"State: record {marker['record']}, selector {marker['selector']}, front {marker['front']}",
            f"Ordered staging writes in prior 900 frames: {len(recent)}",f"Provenance writes total: {len(owners)}","",
+           f"VDP readback usable: {'yes' if vdp_readback_valid else 'no (all 32 row hashes identical; ignored)'}","",
            "Writer counts near marker:"]
     lines += [f"- {k}: {v}" for k,v in sorted(counts.items())]
     lines += ["","Rows requiring examination (staged/VDP mismatch or no exact Build-0532 record 16/17/20/21 asset match):","",
               "| physical | owner tag | staged hash | VDP hash | exact asset matches |","|---:|---:|---:|---:|---|"]
     lines += [f"| {p} | {o} | `{s}` | `{v}` | {m} |" for p,o,s,v,m in implicated]
+    lines += ["","Arcade-authored dynamic surface-mark overlays:"]
+    lines += ([f"- physical {p}, logical {l}, record {rec}, columns {col}-{col+3}: four native `$25C7` / `$02DF` cells"
+               for p,l,rec,col in overlays] or ["- none"])
     lines += ["","Use `ordered_writes.tsv`, `provenance_writes.tsv`, and `row_snapshots.tsv` to walk backward from these rows. The writer PC and complete state tuple are recorded on every transition."]
     out.write_text("\n".join(lines)+"\n")
     print(out)
