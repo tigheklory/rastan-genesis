@@ -98,8 +98,49 @@ producer or published in a different order. The exact runtime order is not prese
 
 ## First Bad State
 
-Not yet established for Build 0532. Claiming one from the earlier traces would conflate different code
-semantics. The separate Build-0532 tracer records, for every staging transition:
+Tighe completed the focused capture at
+`states/traces/r1s2_remaining_build_0532/genesis_20261103_220739/` and reported that pressing the marker
+key took about one second after noticing the visual change. The marker is frame 2146, so the ordered
+review covered at least 60 frames before it. The first change relevant to the marked area is at frame
+2101, 45 frames before the marker:
+
+| Field | Captured value |
+|---|---|
+| record / selector / front | `$0011` / 1 / 11 |
+| camera / player | FG Y `$0051`; player X/Y `$0121/$0040` |
+| logical / physical row | 20 / 20 |
+| columns | 4 through 7 |
+| writer | `genesistan_hook_tilemap_fg_fill`, store PC `$071D1A` |
+| old native names | `$63F3,$6418,$64A1,$63E9` |
+| new native names | four `$02DF` words |
+| owner before/after | logical 20 (`$15` tag), unchanged |
+| staged hash after | `$77A57EF0` |
+
+This is **not a first incorrect Plane-A transition**. It is the native realization of the original
+arcade dynamic surface marker. The caller is `genesistan_collision_surface_mark_visual_native`, which
+retains the original `collision_map_surface_mark_5a2ee` decision and publishes four arcade code `$25C7`
+cells. Build 0532 maps `$25C7` to native name `$02DF` (slot 735); the compiled 32 pattern bytes at
+`$25C7 * 32` are byte-identical to `build/regions/pc080sn.bin`.
+
+Most importantly, the already-preserved original-arcade trace independently contains the same event:
+
+- original arcade frame 2459, record `$0011`, selector 1, strip/group 3/2, front 11;
+- FG Y `$0053`, player X/Y `$0129/$003F` (the equivalent scroll/player neighborhood);
+- original PCs `$05A350..$05A356` write attribute/code `0000:25C7` to logical row 20, columns 4..7;
+- the overwritten arcade cells are the same record-16 row cells that the Genesis native row held.
+
+Thus the static Palette Editor map is not the complete runtime image at this point: the original game
+legitimately overlays these four cells after collision postprocessing. The marker snapshot has zero
+unexplained staged rows: all other rows exactly match the Build-0532 record 16/17 assets, and row 20
+matches record-16 logical row 20 with exactly this four-cell arcade-authored overlay.
+
+The capture's VDP-address-space readback returned one identical blank hash for all 32 rows, so that
+channel is classified unusable rather than treated as 32 missing publications. The ordered staging,
+owner, dirty, and original-arcade name-RAM evidence remains valid. The reducer now detects this readback
+condition and recognizes an exact four-cell `$25C7` overlay instead of reporting it as a static-row
+failure.
+
+The separate Build-0532 tracer records, for every staging transition:
 
 - frame and total event order;
 - record, selector, completed selector, front, group, strip, and camera/player coordinates;
@@ -114,15 +155,15 @@ native/pan row oracles. The historical Build-0530 tracer is unchanged.
 
 ## Second Root Cause
 
-Not proven without the Build-0532 ordered failure capture. The remaining discriminating possibilities are:
+The completed marker capture does not contain the reported larger record-21 failure and therefore proves
+no second residency/publication root cause. It ended in record 17 shortly after an arcade-authored dynamic
+overlay. There is no evidence here for stronger provenance, another row epoch, a missing publication, or a
+later destructive static-row overwrite.
 
-1. correct row and provenance followed by a later staging overwrite;
-2. correct staging followed by missing/reordered VDP publication;
-3. wrong current/predecessor source on a path not represented by the formula oracle;
-4. logical-row identity proving too weak because the same row has multiple live record/ownership epochs.
-
-The fourth possibility does not authorize metadata yet. The capture must first prove that identical logical
-row tags can legally refer to different required contents at the first bad transition.
+If the visible complaint is specifically the narrow four-tile `$25C7` strip, its source semantics are now
+proven original-arcade behavior rather than a Genesis Plane-A residency defect. If the separate larger
+record-21 area still occurs, one further capture must continue past these expected surface marks and place
+the marker only at that larger record-21 change.
 
 ## Production Correction
 
@@ -167,9 +208,11 @@ Passed:
 - Python compilation, shell syntax, `git diff --check`;
 - five-frame Genesis NTSC MAME tracer smoke run against the exact accepted ROM.
 
-No new Plane-A regression exists yet because the first bad Build-0532 transition has not been captured.
-The reducer classifies marker rows against the exact Build-0532 record 16/17/20/21 native/pan assets and
-preserves the full ordered evidence needed to write a failing deterministic regression after capture.
+No new Plane-A regression was added because the captured transition is byte-for-byte source-backed arcade
+behavior, not a failure that Build 0532 should suppress. The reducer now classifies marker rows against the
+exact Build-0532 record 16/17/20/21 native/pan assets, recognizes only an exact contiguous four-cell native
+`$25C7` surface overlay, and rejects the all-identical blank VDP-readback artifact. On Tighe's capture it
+reports `implicated_rows=0` and one arcade surface overlay at physical/logical row 20, columns 4..7.
 
 ## Manual Test for Tighe
 
@@ -179,17 +222,19 @@ Run from the project root:
 tools/diagnostics/run_r1s2_build0532_remaining_trace.sh
 ```
 
-Reproduce only the later record-21 corruption in the preselected accepted invincible R1-S2 ROM. Press `M`
-immediately when corruption first becomes visible, then close MAME. No original-arcade replay is requested.
+Continue past the earlier narrow four-tile surface marks; those are now proven original behavior. Reproduce
+only the separate larger record-21 corruption in the preselected accepted invincible R1-S2 ROM. Press `M`
+when that larger area first becomes visible, then close MAME. No original-arcade replay is requested.
 Reduce the newly printed trace directory with:
 
 ```bash
 tools/diagnostics/reduce_r1s2_build0532_remaining_trace.py states/traces/r1s2_remaining_build_0532/genesis_<timestamp>
 ```
 
-This is the minimum remaining input. The next implementation should begin from the first mismatching row's
-ordered timeline, add a regression that fails under Build-0532 semantics, make the smallest semantic fix,
-then build the unused 0533 family with the current profile.
+This is the minimum remaining input only if the larger record-21 failure remains distinct from the marked
+four-cell overlay. The next implementation must begin from an actually mismatching row's ordered timeline,
+not suppress the source-backed `$25C7` writer, then add a regression and build the unused 0533 family with
+the current profile.
 
 ## Files / Local Commits / Logs
 
@@ -197,6 +242,8 @@ Local source/tooling commit (not pushed):
 
 - `dac22e0d11cfc22032574f079d0e68d5257eb82b` — current palette integration and separate Build-0532
   diagnostic package.
+- `5ec1ded7` — completed-capture reduction: exact arcade `$25C7` surface-overlay classification and
+  invalid all-blank VDP-readback rejection.
 
 Primary files:
 

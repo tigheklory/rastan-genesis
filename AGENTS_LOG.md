@@ -54945,3 +54945,23 @@ TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0069
   no arcade replay is requested.
 
 `TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0072`
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0072 — completed marker reduction (Cody, 2026-11-03)
+
+- Reduced Tighe's `genesis_20261103_220739` capture using his reported approximately one-second
+  reaction delay. The relevant transition is frame 2101, 45 frames before the frame-2146 marker:
+  logical/physical row 20 columns 4-7 changed to four native `$02DF` names.
+- This is not a destructive residency write. It is the native `$25C7` visual tail of original
+  `collision_map_surface_mark_5a2ee`. The preserved original-arcade trace independently writes
+  `0000:25C7` to the same row 20 columns 4-7 at the equivalent record-17 selector-1 front-11 state.
+  All other marker rows exactly match Build-0532 assets; the marked snapshot has zero unexplained rows.
+- Corrected the reducer to recognize exact four-cell arcade surface overlays and to reject the capture's
+  all-identical blank VDP-readback hash as an unusable read channel. Reduction result:
+  `implicated_rows=0`, one valid surface overlay.
+- No production suppression, Plane-A change, ROM, or build number was introduced. If Tighe still sees the
+  separate larger record-21 failure, the minimum next capture is to continue past these expected narrow
+  surface marks and press `M` only at the larger record-21 change.
+- Updated report:
+  `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0072_build0533_plane_a_and_current_palette_integration.md`.
+
+`TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0072`
