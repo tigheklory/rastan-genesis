@@ -1,7 +1,0 @@
-{
-  "rule": "Arcade-to-Genesis correlation must use build/rastan-direct/address_map.json. This export does not derive Genesis addresses by arithmetic.",
-  "arcade_image": "analysis/ghidra/rastan_arcade/input/rastan_world_rev1_maincpu_68000.bin",
-  "arcade_space": {"load_base": "0x000000", "size": "0x60000"},
-  "genesis_mapping_source": "build/rastan-direct/address_map.json",
-  "status": "machine-readable exact mapping should be performed with project scripts against address_map.json; no +0x200/-0x200 proof is encoded here"
-}

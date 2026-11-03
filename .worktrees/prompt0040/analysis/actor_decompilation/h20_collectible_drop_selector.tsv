@@ -1,3 +1,0 @@
-question	finding	status
-does an enemy-death collectible drop exist?	not found via reward-field (A5+0x12FA/0x013A) xref; weapon path vestigial; energy is player-state/damage	NOT FOUND
-RNG/deterministic drop selector?	none reached	N/A
