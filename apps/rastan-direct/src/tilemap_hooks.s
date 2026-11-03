@@ -1455,8 +1455,36 @@ resolve_plane_a_collision_cell:
      * has already applied that invariant transform and the active package's
      * code->slot mapping.  No-publication camera motion therefore copies one
      * final 64-word native row instead of reusing selector-0 source geometry. */
-    tst.w   ARCADE_PC080SN_SELECTOR_OFFSET(%a5)
-    beq.s   .Lplane_a_row_dynamic
+    move.w  ARCADE_PC080SN_SELECTOR_OFFSET(%a5), %d1
+    beq.w   .Lplane_a_row_dynamic
+    /* Selector-1 publishes logical rows from 63 downward; selector-2 publishes
+     * from 0 upward.  During a partially authored record, rows already passed
+     * by that live front belong to the current record even when their physical
+     * N/N+32 slot was subsequently reused.  Re-materialize those rows from the
+     * current immutable pan-row asset, not from the completed predecessor. */
+    moveq   #0, %d2
+    move.w  ARCADE_PC080SN_STRIP_GROUP_OFFSET(%a5), %d2
+    andi.w  #0x000F, %d2
+    lsl.w   #2, %d2
+    moveq   #0, %d3
+    move.w  ARCADE_PC080SN_STRIP_INDEX_OFFSET(%a5), %d3
+    andi.w  #0x0003, %d3
+    add.w   %d3, %d2                         /* live authored front 0..63 */
+    cmpi.w  #1, %d1
+    beq.s   .Lplane_a_row_check_current_selector1
+    cmpi.w  #2, %d1
+    bne.s   .Lplane_a_row_completed_source
+    move.w  0(%sp), %d1                     /* selector-2 current range 0..front */
+    cmp.w   %d1, %d2
+    bhs.s   .Lplane_a_row_current_selector12
+    bra.s   .Lplane_a_row_completed_source
+.Lplane_a_row_check_current_selector1:
+    moveq   #63, %d1
+    sub.w   %d2, %d1                         /* selector-1 current range 63-front..63 */
+    move.w  0(%sp), %d2
+    cmp.w   %d1, %d2
+    bhs.s   .Lplane_a_row_current_selector12
+.Lplane_a_row_completed_source:
     /* A no-publication camera step exposes the completed record still held
      * by the arcade PC080SN ring; A5+0x013E already names the next record.
      * Selector-0 predecessors are regenerated from the live source pointers
@@ -1468,6 +1496,7 @@ resolve_plane_a_collision_cell:
     move.w  0x013E(%a5), %d1
     beq.s   .Lplane_a_row_dynamic
     subq.w  #1, %d1
+.Lplane_a_row_selector12_asset:
     cmpi.w  #FG_BOUNDARY_RECORDS, %d1
     bhs.s   .Lplane_a_row_dynamic
     lsl.l   #2, %d1
@@ -1492,6 +1521,11 @@ resolve_plane_a_collision_cell:
     move.l  (%a0)+, (%a6)+
     dbra    %d7, .Lplane_a_row_precompiled_copy
     bra.w   .Lplane_a_row_mark_dirty
+
+.Lplane_a_row_current_selector12:
+    moveq   #0, %d1
+    move.w  0x013E(%a5), %d1
+    bra.s   .Lplane_a_row_selector12_asset
 
 .Lplane_a_row_dynamic:
     move.w  #16, plane_a_src_ref_block       /* current mixed-ring seam mode */

@@ -116,6 +116,10 @@ def static_contract() -> None:
     require(row_a, ("movea.l 0(%a0,%d1.w), %a4",
                     "genesistan_plane_a_pan_row_maps",
                     "FG_PAN_ROW_MAP_BYTES",
+                    ".Lplane_a_row_check_current_selector1:",
+                    ".Lplane_a_row_current_selector12:",
+                    "ARCADE_PC080SN_STRIP_GROUP_OFFSET",
+                    "ARCADE_PC080SN_STRIP_INDEX_OFFSET",
                     "tst.w   0x132C(%a5)",
                     "subq.w  #1, %d1",
                     ".Lplane_a_row_precompiled_copy:",
@@ -378,6 +382,47 @@ def verify_no_publication_predecessor_selection() -> None:
         expected = name_word(0, 16, logical, 0)
         if tags[logical & 31] != logical or words[logical & 31] != expected:
             fail(f"logical alias {logical}/{alias} materialized incorrectly")
+
+    # PROMT-ID-0062 gameplay/arcade-oracle case: a partially authored vertical
+    # record is not uniformly predecessor-owned.  Selector 1 authors 63 down
+    # through 63-front; selector 2 authors 0 up through front.  A physical
+    # alias miss must therefore select the current record for an already-
+    # authored row and the completed record for the still-retained remainder.
+    def materialization_record(selector: int, front: int, logical: int,
+                               current: int, completed: int) -> int:
+        if selector == 1 and logical >= 63 - front:
+            return current
+        if selector == 2 and logical <= front:
+            return current
+        return completed
+
+    for front in range(LOGICAL):
+        for logical in range(LOGICAL):
+            want1 = 17 if logical >= 63 - front else 16
+            got1 = materialization_record(1, front, logical, 17, 16)
+            if got1 != want1:
+                fail(f"selector-1 partial ownership mismatch front={front} row={logical}")
+            want2 = 21 if logical <= front else 20
+            got2 = materialization_record(2, front, logical, 21, 20)
+            if got2 != want2:
+                fail(f"selector-2 partial ownership mismatch front={front} row={logical}")
+
+    # At the captured selector-1 front 21, rows 44..46 were correctly authored
+    # by record 17, their physical slots were reused by rows 12..14, and the
+    # upward reversal then required genuine materialization of 44..46.  The
+    # rematerialized source must still be current record 17.
+    trace_front = 21
+    for current_row, alias_row in ((46, 14), (45, 13), (44, 12)):
+        ordinary(current_row, 17)
+        ordinary(alias_row, 16)
+        if tags[current_row & 31] != alias_row:
+            fail(f"trace alias setup failed for {current_row}/{alias_row}")
+        source = materialization_record(1, trace_front, current_row, 17, 16)
+        if source != 17:
+            fail(f"trace row {current_row} selected predecessor record {source}")
+        ordinary(current_row, source)
+        if words[current_row & 31] != name_word(0, 17, current_row, 0):
+            fail(f"trace row {current_row} did not restore current-record contents")
 
 
 def verify_plane_b_independent_context() -> None:
