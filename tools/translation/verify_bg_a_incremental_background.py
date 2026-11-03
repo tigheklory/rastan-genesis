@@ -17,6 +17,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / "apps/rastan-direct/src/tilemap_hooks.s"
 VDP_SOURCE = ROOT / "apps/rastan-direct/src/vdp_comm.s"
+NATIVE_MAPS = ROOT / "build/pc080sn_boundary/record_native_maps.bin"
+PAN_ROWS = ROOT / "build/pc080sn_boundary/pan_row_maps.bin"
 LOGICAL = 64
 PHYSICAL_W = 64
 PHYSICAL_H = 32
@@ -383,26 +385,28 @@ def verify_no_publication_predecessor_selection() -> None:
         if tags[logical & 31] != logical or words[logical & 31] != expected:
             fail(f"logical alias {logical}/{alias} materialized incorrectly")
 
-    # PROMT-ID-0062 gameplay/arcade-oracle case: a partially authored vertical
-    # record is not uniformly predecessor-owned.  Selector 1 authors 63 down
-    # through 63-front; selector 2 authors 0 up through front.  A physical
+    # PROMT-ID-0062/0063 gameplay and arcade-oracle case: a partially authored
+    # vertical record is not uniformly predecessor-owned.  Original 0x055948
+    # publishes at the old cursor and then increments 0x10CA, so the stored
+    # front is the next row to author.  Selector 1 has authored 63 down through
+    # 64-front; selector 2 has authored 0 up through front-1.  A physical
     # alias miss must therefore select the current record for an already-
     # authored row and the completed record for the still-retained remainder.
     def materialization_record(selector: int, front: int, logical: int,
                                current: int, completed: int) -> int:
-        if selector == 1 and logical >= 63 - front:
+        if selector == 1 and front > 0 and logical >= 64 - front:
             return current
-        if selector == 2 and logical <= front:
+        if selector == 2 and logical < front:
             return current
         return completed
 
     for front in range(LOGICAL):
         for logical in range(LOGICAL):
-            want1 = 17 if logical >= 63 - front else 16
+            want1 = 17 if front > 0 and logical >= 64 - front else 16
             got1 = materialization_record(1, front, logical, 17, 16)
             if got1 != want1:
                 fail(f"selector-1 partial ownership mismatch front={front} row={logical}")
-            want2 = 21 if logical <= front else 20
+            want2 = 21 if logical < front else 20
             got2 = materialization_record(2, front, logical, 21, 20)
             if got2 != want2:
                 fail(f"selector-2 partial ownership mismatch front={front} row={logical}")
@@ -423,6 +427,83 @@ def verify_no_publication_predecessor_selection() -> None:
         ordinary(current_row, source)
         if words[current_row & 31] != name_word(0, 17, current_row, 0):
             fail(f"trace row {current_row} did not restore current-record contents")
+
+    # PROMT-ID-0063 exact generated-row oracle.  The complete selector-0
+    # predecessor maps and selector-1 pan rows are the same final-native assets
+    # consumed by production.  At front zero no current row exists: logical 63
+    # / physical 31 must remain record 16 at the 16->17 boundary and record 20
+    # at the 20->21 boundary.  Build 0531's inclusive test selected the incoming
+    # record instead.  Every later selector-1 front has the same one-row error
+    # at logical 63-front; repeated reversals can therefore accumulate several
+    # independently wrong record-21 rows.
+    native = NATIVE_MAPS.read_bytes()
+    pan = PAN_ROWS.read_bytes()
+    records = 46
+    native_table_bytes = records * 12
+
+    def native_row(record: int, logical: int) -> bytes:
+        entry = record * 12
+        offset = int.from_bytes(native[entry:entry + 4], "big")
+        start = native_table_bytes + offset + logical * 128
+        row = native[start:start + 128]
+        if len(row) != 128:
+            fail(f"short native row record={record} row={logical}")
+        return row
+
+    def pan_row(record: int, logical: int) -> bytes:
+        entry = record * 4
+        offset = int.from_bytes(pan[entry:entry + 4], "big")
+        if offset == 0xFFFFFFFF:
+            fail(f"record {record} has no selector pan-row asset")
+        start = offset + logical * 128
+        row = pan[start:start + 128]
+        if len(row) != 128:
+            fail(f"short pan row record={record} row={logical}")
+        return row
+
+    for completed, current in ((16, 17), (20, 21)):
+        for front in range(LOGICAL):
+            boundary = 63 - front
+            expected = native_row(completed, boundary)
+            build_0531_wrong = pan_row(current, boundary)
+            if expected == build_0531_wrong:
+                fail(
+                    "0063 boundary oracle is not discriminating "
+                    f"records={completed}/{current} front={front} row={boundary}"
+                )
+            source = materialization_record(
+                1, front, boundary, current, completed
+            )
+            if source != completed:
+                fail(
+                    "selector-1 next-to-author boundary selected current "
+                    f"record={current} front={front} logical={boundary}"
+                )
+            physical = boundary & 31
+            tags[physical] = (boundary + 32) & 63
+            words[physical] = native_row(completed, (boundary + 32) & 63)
+            tags[physical] = boundary
+            words[physical] = expected
+            if tags[physical] != boundary or words[physical] != expected:
+                fail(
+                    "0063 predecessor boundary materialization mismatch "
+                    f"record={current} front={front} logical={boundary} physical={physical}"
+                )
+            if front:
+                first_current = 64 - front
+                source = materialization_record(
+                    1, front, first_current, current, completed
+                )
+                if source != current:
+                    fail(
+                        "selector-1 first authored row selected predecessor "
+                        f"record={current} front={front} logical={first_current}"
+                    )
+                if pan_row(current, first_current) != native_row(current, first_current):
+                    fail(
+                        "pan/native current row disagreement "
+                        f"record={current} logical={first_current}"
+                    )
 
 
 def verify_plane_b_independent_context() -> None:

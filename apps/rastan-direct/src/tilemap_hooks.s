@@ -1458,10 +1458,10 @@ resolve_plane_a_collision_cell:
     move.w  ARCADE_PC080SN_SELECTOR_OFFSET(%a5), %d1
     beq.w   .Lplane_a_row_dynamic
     /* Selector-1 publishes logical rows from 63 downward; selector-2 publishes
-     * from 0 upward.  During a partially authored record, rows already passed
-     * by that live front belong to the current record even when their physical
-     * N/N+32 slot was subsequently reused.  Re-materialize those rows from the
-     * current immutable pan-row asset, not from the completed predecessor. */
+     * from 0 upward.  0x055948 publishes at the old strip/group position and
+     * then increments 0x10CA, so this live front names the NEXT row to author.
+     * During a partially authored record, only rows strictly behind that front
+     * belong to the current record when their physical N/N+32 slot is reused. */
     moveq   #0, %d2
     move.w  ARCADE_PC080SN_STRIP_GROUP_OFFSET(%a5), %d2
     andi.w  #0x000F, %d2
@@ -1469,18 +1469,22 @@ resolve_plane_a_collision_cell:
     moveq   #0, %d3
     move.w  ARCADE_PC080SN_STRIP_INDEX_OFFSET(%a5), %d3
     andi.w  #0x0003, %d3
-    add.w   %d3, %d2                         /* live authored front 0..63 */
+    add.w   %d3, %d2                         /* next-to-author front 0..63 */
     cmpi.w  #1, %d1
     beq.s   .Lplane_a_row_check_current_selector1
     cmpi.w  #2, %d1
     bne.s   .Lplane_a_row_completed_source
-    move.w  0(%sp), %d1                     /* selector-2 current range 0..front */
+    tst.w   %d2
+    beq.s   .Lplane_a_row_completed_source   /* front 0: no current rows yet */
+    move.w  0(%sp), %d1                     /* selector-2 current range 0..front-1 */
     cmp.w   %d1, %d2
-    bhs.s   .Lplane_a_row_current_selector12
+    bhi.s   .Lplane_a_row_current_selector12
     bra.s   .Lplane_a_row_completed_source
 .Lplane_a_row_check_current_selector1:
-    moveq   #63, %d1
-    sub.w   %d2, %d1                         /* selector-1 current range 63-front..63 */
+    tst.w   %d2
+    beq.s   .Lplane_a_row_completed_source   /* front 0: no current rows yet */
+    moveq   #64, %d1
+    sub.w   %d2, %d1                         /* selector-1 current range 64-front..63 */
     move.w  0(%sp), %d2
     cmp.w   %d1, %d2
     bhs.s   .Lplane_a_row_current_selector12
