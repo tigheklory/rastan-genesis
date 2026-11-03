@@ -54824,3 +54824,24 @@ SOURCE CODE -> BESTIARY -> EDITOR. Static only, no traces, no ROM/Test.json/pale
 - Build 0531 remains a candidate pending Tighe's ordinary and aggressive jump-assisted chain tests.
   Reports: `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0062_r1s2_first_bad_write_diagnosis.md`
   and `docs/design/Cody_build0531_r1s2_partial_record_rematerialization_fix.md`.
+
+### MAME Exit Summary (2026-11-03 10:47:40)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## R1-S2 green warrior now authorable in Palette Composer (Andy, 2026-11-03)
+- Direct Tighe request: add the R1-S2 castle "green warriors" to the Palette Composer so their colors can
+  be authored. Editor tooling only; no production ROM/ASM/C; Test.json + palette_decisions.json unchanged.
+- IDENTITY (from PROVEN r1p1_enemy_semantic_corpus.tsv): green warrior = lizardman, base 0x004B, effective
+  bank 0x36, nibble 0x6 (GREEN). It is a FIELD enemy that also appears in the castle (family-0 base in the
+  R1-S2 roster). Disproved earlier guess 0x0A73 (its R1 nibble-0 palette is the red/orange flame palette →
+  red in both arcade and Genesis).
+- ROOT CAUSE of absence: PROMPT-0038 §10 membership filter hid field_phase1 enemies from S2/castle scenes.
+  That assumption was wrong (field enemies reappear in the castle). Corrected app.js so field enemies show
+  in gameplay FIELD + CASTLE (S1+S2), still hidden from S3 boss.
+- Why red: Genesis palsel LUT authored only scene-1 (R1-S1), where bank 0x36 -> line 1 (green); R1-S2
+  unauthored so bank 0x36 falls to a red default line. Fix path: author bank-0x36 green for R1-S2
+  (0x3BA88[1][6]->0x4FD02 source) to a sprite line 0/1/3 (line 2 Plane-B protected) + palsel LUT regen.
+- Files: tools/graphics_editor/app.js (filter), verify_r1s2_castle_browser.py (tests 12/12b/13, 16/16 PASS,
+  Test.json hash-unchanged), docs/design/Andy_r1s2_green_warrior_field_enemy_visibility_fix.md.

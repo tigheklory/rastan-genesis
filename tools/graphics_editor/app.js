@@ -129,18 +129,21 @@ function renderList(){const L=$('#list');L.innerHTML='';
     if(Array.isArray(cov.roster)&&cov.roster.length){const rl=el('div','dim');rl.style.cssText='margin:2px 0 6px;font-size:11px;';rl.textContent='known for this scene: '+cov.roster.join(', ');L.appendChild(rl);}
    }
   }
-  // PROMPT-ID-0038 §10: scene-membership filter (from the corrected Bestiary). A scene-tagged usage (the
-  // marker-chain castle actors) shows only for its subround; FIELD enemies (membership=field_phase1) show
-  // only in field/S1 scenes, NOT the castle/S2 — so Lizardman/Chimera no longer appear in R1-S2 Castle;
-  // SHARED assets (player/weapons/items/effects) always show. "All Assets" reveals everything (research).
-  const isFieldScene=!ACTIVE_SCENE||/-S1-/.test(ACTIVE_SCENE)||ACTIVE_SCENE==='context:gameplay.r01.p01';
+  // Scene-membership filter. A scene-tagged usage (the marker-chain castle actors) shows only for its
+  // subround; SHARED assets (player/weapons/items/effects) always show; "All Assets" reveals everything.
+  // FIELD enemies (membership=field_phase1) show in the gameplay FIELD **and CASTLE** scenes (S1 + S2):
+  // Tighe confirmed (2026-11) the R1-S2 castle "green warriors" ARE field enemies — the proven lizardman
+  // (base 0x004B, effective bank 0x36, nibble 6 = GREEN; r1p1_enemy_semantic_corpus) reappears in the
+  // castle. The earlier PROMPT-0038 §10 rule that hid them from S2 was WRONG and is corrected here so the
+  // castle sprite palette (e.g. bank 0x36 -> green) can be authored. Still hidden from the S3 boss scene.
+  const isFieldScene=!ACTIVE_SCENE||/-S[12]-/.test(ACTIVE_SCENE)||ACTIVE_SCENE==='context:gameplay.r01.p01';
   const tb=el('div','groupbar');const ck0=el('input');ck0.type='checkbox';ck0.checked=!!window._allAssets;
   ck0.onchange=()=>{window._allAssets=ck0.checked;renderList();};const lab=el('label','dim');lab.appendChild(ck0);
   lab.appendChild(el('span',null,' All Assets (research — show every sprite regardless of scene)'));tb.appendChild(lab);L.appendChild(tb);
   const sceneUsages=O.usages.filter(u=>{
     if(window._allAssets)return true;
     if(u.scene_key)return u.scene_key===ACTIVE_SCENE;        // marker-chain actor: its subround only
-    if(u.membership==='field_phase1')return isFieldScene;    // field enemy: field/S1 scenes only
+    if(u.membership==='field_phase1')return isFieldScene;    // field enemy: field/S1 + castle/S2 scenes
     return true;                                             // shared (player/weapons/items/effects)
   });
   // group usages by object_id -> ONE palette-domain row (preview frames are representations, not consumers)
