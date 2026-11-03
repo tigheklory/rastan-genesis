@@ -32,6 +32,11 @@ SEMANTIC = {
     ),
 }
 CHANGED_EXISTING = ("usage:small_bat:bank0x3E", "usage:large_bat:bank0x3E")
+CURRENT_AUTHORED = (
+    "object:player.rastan",
+    "object:castle.green_sword_knight.r1.n3",
+)
+GREEN_KNIGHT_DECISION = "PAL-PC090OJ-R1S2-GREEN-SWORD-KNIGHT-001"
 
 
 def fail(message: str) -> None:
@@ -66,6 +71,10 @@ def main() -> int:
         fail("production Makefile still consumes stale Build-0400 Test snapshot")
     if "analysis/graphics_optimizer/editor_policy/Test.json" not in makefile:
         fail("production Makefile does not consume the live Test profile")
+    if 2 not in profile.get("reserved_lines", []):
+        fail("current profile does not protect reserved CRAM line 2")
+    if "2" in cram.get("lines", {}):
+        fail("generated Test CRAM unexpectedly writes protected line 2")
 
     # Every bank-keyed authored line must survive to the scene-1 generated LUT.
     emitted = []
@@ -109,7 +118,7 @@ def main() -> int:
     # The only pre-existing usages changed since Build 0458 are the two bat
     # mappings; both must appear exactly in the current reindexed-region manifest.
     produced = editor.get("usage_decisions", {})
-    for uid in CHANGED_EXISTING + ("usage:flying_demon:bank0x35",):
+    for uid in CHANGED_EXISTING + ("usage:flying_demon:bank0x35",) + CURRENT_AUTHORED:
         authored = mappings[uid]
         generated = produced.get(uid)
         if generated is None:
@@ -118,6 +127,13 @@ def main() -> int:
             fail(f"reindexed line mismatch for {uid}")
         if generated["index_map"] != authored["index_map"]:
             fail(f"reindexed index_map mismatch for {uid}")
+
+    knight = mappings["object:castle.green_sword_knight.r1.n3"]
+    if int(knight["line"]) != 0:
+        fail("current R1 green-knight authored destination is not line 0")
+    decision = registry.get(GREEN_KNIGHT_DECISION)
+    if not decision or decision["genesis_realization"]["palette_line"] != knight["line"]:
+        fail("canonical R1 green-knight decision is absent or disagrees with Test")
 
     required_source = (
         "PC090OJ_GAMEOVER_PROFILE_LINE",
@@ -137,6 +153,8 @@ def main() -> int:
     print("hud_p1=semantic_object hud_score=semantic_object")
     print("changed_existing=small_bat,large_bat:exact")
     print("demon=current_line_and_index_map:exact")
+    print("current_authored=rastan,green_sword_knight.r1.n3:exact")
+    print("line2=reserved,not_generated")
     return 0
 
 

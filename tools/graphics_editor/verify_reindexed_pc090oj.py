@@ -97,6 +97,8 @@ def main():
     # ---- Rastan retention breakdown ----
     rastan = [c for c in base if base[c][0] == "rastan"]
     r_mismatch = [c for c in rastan if ("base", c) in set(mismatch)]
+    knight = [c for c in base if base[c][0] == "green_sword_knight.r1.n3"]
+    knight_mismatch = [c for c in knight if ("base", c) in set(mismatch)]
 
     total_req = sum(len(bs) for bs in code_banks.values())
     print("total (code,bank) requirements:      %d" % total_req)
@@ -113,8 +115,11 @@ def main():
     print("stray writes outside authored cells: %d" % stray)
     print("-- RASTAN (object:player.rastan) retention --")
     print("  rastan base codes:  %d   mismatched: %d" % (len(rastan), len(r_mismatch)))
+    print("-- R1 GREEN SWORD KNIGHT (object:castle.green_sword_knight.r1.n3) --")
+    print("  knight base codes:  %d   mismatched: %d" % (len(knight), len(knight_mismatch)))
 
-    ok = (not mismatch and not incomplete and stray == 0 and not divergent_bad)
+    ok = (not mismatch and not incomplete and stray == 0 and not divergent_bad
+          and bool(knight) and not knight_mismatch)
     print("VERIFY:", "PASS" if ok else "FAIL")
     sys.exit(0 if ok else 1)
 

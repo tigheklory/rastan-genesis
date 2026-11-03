@@ -38,7 +38,7 @@ WEAPON_ARTIFACT_FRAME = 69
 
 USAGE_BANK = {"rastan": 0x33, "lizardman": 0x36, "valkyrie": 0x32, "chimera": 0x34,
               "flying_demon": 0x35, "small_bat": 0x3E, "large_bat": 0x3E, "four_armed_insect": 0x3A,
-              "cave_block": 0x3C, "burst": 0x30,
+              "cave_block": 0x3C, "burst": 0x30, "green_sword_knight.r1.n3": 0x33,
               "weapon.sword": 0x33, "weapon.axe": 0x33, "weapon.hammer": 0x33, "weapon.fire_sword": 0x33}
 
 USAGE_UID = {"rastan": "object:player.rastan",
@@ -47,6 +47,7 @@ USAGE_UID = {"rastan": "object:player.rastan",
              "four_armed_insect": "usage:four_armed_insect:bank0x3A",
              "small_bat": "usage:small_bat:bank0x3E", "large_bat": "usage:large_bat:bank0x3E",
              "cave_block": "usage:cave_block:bank0x3C", "burst": "usage:burst:bank0x30",
+             "green_sword_knight.r1.n3": "object:castle.green_sword_knight.r1.n3",
              "weapon.sword": "object:weapon.sword", "weapon.axe": "object:weapon.axe",
              "weapon.hammer": "object:weapon.hammer", "weapon.fire_sword": "object:weapon.fire_sword"}
 
@@ -157,6 +158,49 @@ def _burst_cells():
     return codes
 
 
+def _green_sword_knight_cells():
+    """Cells from the exact ranked family-2 0x033E frames exposed by Composer.
+
+    PROMT-ID-0069 established base 0x033E and the compositor route used by the
+    Palette Composer.  Mirror ``server._castle_frames``'s distinct-frame rank
+    and the knight object's eight-frame slice so unrelated programs in the
+    shared byte-sized animation table do not acquire this semantic identity.
+    """
+    p = os.path.join(ROOT, "tools/graphics_optimizer")
+    if p not in sys.path:
+        sys.path.insert(0, p)
+    from compositor_vm import ActorRenderState, visible_pieces
+
+    distinct = {}
+    for anim in range(0x100):
+        try:
+            pieces = visible_pieces(ActorRenderState(0x033E, anim, 0))
+        except Exception:
+            continue
+        if len(pieces) < 2:
+            continue
+        signature = tuple((piece.tile & 0x1FFF, piece.x & 0x1FF,
+                           piece.y & 0x1FF, piece.hflip, piece.vflip,
+                           piece.palette & 0xF) for piece in pieces)
+        distinct.setdefault(signature, (anim, pieces))
+    preferred = {0x93, 0x94, 0x95}
+    ranked = sorted(
+        distinct.values(),
+        key=lambda item: (0 if item[0] in preferred else 1,
+                          0 if len({piece.palette & 0xF for piece in item[1]}) > 1 else 1,
+                          -len(item[1]), item[0]),
+    )
+    codes = set()
+    for _anim, pieces in ranked[:8]:
+        for piece in pieces:
+            code = piece.tile & 0x1FFF
+            if code < TILE_MAX:
+                codes.add(code)
+    if not codes:
+        raise SystemExit("Green Sword Knight compositor domain produced no cells")
+    return codes
+
+
 def resolve(profile, corpus_tsv):
     """Resolve the complete (code,bank) requirement set. Returns (cb_map, code_banks)."""
     code_sets = {"rastan": _h24_player_cells()}
@@ -164,6 +208,9 @@ def resolve(profile, corpus_tsv):
     code_sets.update(_enemy_cells(corpus_tsv))
     code_sets["cave_block"] = set(range(0x0179, 0x017D))     # proven 2x2 composite (== compositor VM)
     code_sets["burst"] = _burst_cells()
+    # Tighe authored only the exact R1 green-armor context.  Do not infer the
+    # unresolved later-round variants exposed by the Composer.
+    code_sets["green_sword_knight.r1.n3"] = _green_sword_knight_cells()
 
     cb_map = {}
     code_banks = {}

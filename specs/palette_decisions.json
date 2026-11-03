@@ -48,6 +48,54 @@
  },
  "decisions": [
   {
+   "id": "PAL-PC090OJ-R1S2-GREEN-SWORD-KNIGHT-001",
+   "status": "decided",
+   "context": {
+    "scene": "PAL-R1-S2-PLANEA-CASTLE",
+    "stage": "Round 1, Stage 2 only; later castle rounds remain separately unresolved",
+    "subsystem": "PC090OJ native family-2 Green Sword Knight",
+    "actor_family": "family-2 base 0x033E / animation family 0x93",
+    "actor_classes": null
+   },
+   "arcade_semantics": {
+    "source_attribute_nibble": "0x3 green-armor authoring context",
+    "sprite_control": "directly scheduled family-2 actor",
+    "colbank_bits": "effective runtime bank 0x33",
+    "effective_palette_bank": "0x33",
+    "palette_source": "Round-1 line 3 -> 0x3BA88 round table -> pool 0x0C green-armor reference established by PROMT-ID-0069"
+   },
+   "genesis_realization": {
+    "palette_line": 0,
+    "route_kind": "Palette Composer semantic-object reindex through the production PC090OJ (code,effective-bank) generator",
+    "dynamic_behavior": "Tighe-authored object:castle.green_sword_knight.r1.n3 index_map is generated into the native sprite region; the existing scene-1 bank-0x33 palsel route selects line 0",
+    "shared_line_ownership": "line 0 is the authored Round-1 gameplay destination; line 2 remains reserved"
+   },
+   "decision_basis": "Tighe's current Palette Composer Test.json authors the exact R1 n3 semantic object. PROMT-ID-0069 establishes base 0x033E, compositor geometry, and the Round-1 green-armor arcade reference; Tighe's saved Genesis line and index mapping are authoritative.",
+   "known_defects": [
+    "The arcade body-line/field-CRAM nuance documented by PROMT-ID-0069 remains unresolved and does not alter Tighe's authored Genesis mapping.",
+    "No later-round knight mapping is inferred from this Round-1 decision."
+   ],
+   "consumers_to_inspect": [
+    "analysis/graphics_optimizer/editor_policy/Test.json object:castle.green_sword_knight.r1.n3",
+    "tools/graphics_editor/gen_reindexed_pc090oj.py Green Sword Knight compositor-domain producer",
+    "tools/graphics_editor/verify_reindexed_pc090oj.py independent transformed-cell verifier",
+    "tools/graphics_editor/verify_palette_families.py current-profile provenance gate",
+    "apps/rastan-direct/src/pc090oj_assets.s generated PC090OJ region consumer",
+    "apps/rastan-direct/src/pc090oj_hooks.s effective-bank variant and palsel consumers"
+   ],
+   "evidence": [
+    "docs/design/Andy_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0069_green_knight_all_castle_palette_contexts.md",
+    "analysis/graphics_optimizer/editor_policy/Test.json",
+    "tools/graphics_editor/verify_green_knight.py"
+   ],
+   "scene_applicability": {
+    "scene_keys": [
+     "PAL-R1-S2-PLANEA-CASTLE"
+    ],
+    "cross_scene_candidate": false
+   }
+  },
+  {
    "id": "PAL-PC090OJ-GAMEPLAY-RASTAN-SWORD-001",
    "status": "proven",
    "context": {

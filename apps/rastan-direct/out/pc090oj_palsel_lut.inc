@@ -6,7 +6,7 @@
  * dims: NUM_SCENES=4 (scene index masked 0x03), BANK_WIDTH=128 (bank masked 0x7f), element=1 byte, line range 0..3
  * index = (scene & 0x03) << 7 | (effective_bank & 0x7f)
  * route_table_sha1=08a4801408ac80e8
- * palette_tool_profile_sha256=86505de8a7566e0a13a083bf6b3715fa61eb9242102091aadb589d7583cde9fb
+ * palette_tool_profile_sha256=24914ababc7fab52aac8258dd1f9f7b3d5df230b81421c03d9ce68d1526135ae
  * Palette Tool mappings: 0x30->0, 0x32->0, 0x33->0, 0x34->0, 0x35->1, 0x36->1, 0x3A->1, 0x3C->0, 0x3E->0
  * baked PC090OJ route rows:
  *   scene=0 bank=0x33 line=3
