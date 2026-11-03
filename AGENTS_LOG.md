@@ -54837,3 +54837,32 @@ SOURCE CODE -> BESTIARY -> EDITOR. Static only, no traces, no ROM/Test.json/pale
   guessing.
 - Editor filter restored to the prior (PROMPT-0038) state; no Composer behavior change remains from the
   reverted work.
+
+## PROMPT-ID-0069 — Green Sword Knight palette path + castle sections (Andy, 2026-11-03)
+TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0069
+- PROVEN identity: R1-S2 castle knight = family-2 base 0x033E, anim 0x93 (only scheduled R1-S2 enemy;
+  geometry-confirmed). Not lizardman 0x004B, not 0x0A73. Directly-scheduled (R1 markers 'E' retire, 'M'
+  burst; h14_phase2_visible_bases has no R1 entry).
+- PROVEN per-section appearance (decode_field_schedule, family-2 0x033E): R1-S2 v0/c{0,3,4}; R2-S2 adds v1;
+  R3 v0/v1; R4 v1/v2; R5 v1/v2; R6 v1/v2. Appears in all six castle sections.
+- PROVEN render/palette chain + RESOLUTION (§1-§5): creation 0x45684 (pal_nib_456ec) sets +0x27 line (bit6);
+  0x3C9E8 uses +0x27 when bit6 SET, else the compositor control-byte nibble; loader 0x3BA20 ->
+  0x3BA88[round][line] -> 0x4FD02+pool*32. KEY: the castle knight is DIRECTLY-SCHEDULED, NOT marker-
+  transformed (R1 markers 'E' retire / 'M' burst; h14_phase2_visible_bases has no R1 entry), so 0x4092E does
+  NOT clear +0x27 -> bit6 stays SET -> DISPLAY palette = creation line (nibbles 4/2/1 for c0/c3/c4), NOT the
+  control-byte nibble (7/3) that only governs transformed actors (0x0224/0x00F4/0x09EA). Earlier "line 7 ->
+  red/blue" was the WRONG (transformed) route for this directly-scheduled actor; corrected.
+- GREEN CONFIRMED (per-section creation route): R1-S2 c0 nib4 pool0x12 GREEN, c3 nib2 pool0x0F GREEN, c4 nib1
+  pool0x0B red/blue default. Most variants R1-R6 are green (armor); c4/default are the alternate red/blue
+  instances. The compositor_vm PREVIEW mis-colors 0x033E (approx tile indices) but the pool DATA is green
+  (ROM authority per §6).
+- DONE: added green_knight_usages() to tools/graphics_editor/server.py -> one semantic object "Green Sword
+  Knight" (object:castle.green_sword_knight.r{N}.n{nibble}) in EVERY castle section R1-S2..R6-S2, one
+  selectable entry per palette-distinct (variant,nibble), each carrying that section/variant's creation-route
+  arcade reference palette (16 pool colors) + knight frames (anim 0x93 first). Scene-tagged so each shows only
+  in its section. No Test.json / palette_decisions.json change (authoring is Tighe's). No Cody files touched.
+- Verify: verify_green_knight.py 14/14 PASS; verify_r1s2_castle_browser.py 15/15 (test 1 updated: knight now
+  in R1-S2, 0x0224/0x00F4 still absent); per_piece 6/6; roster 5/5; Test.json hash unchanged.
+- Launch: tools/graphics_editor/run.sh ; UI: select a castle section (R1-S2..R6-S2) -> Sprites/Objects ->
+  "Green Sword Knight" variants.
+- Report: docs/design/Andy_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0069_green_knight_all_castle_palette_contexts.md

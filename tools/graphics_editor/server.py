@@ -180,7 +180,7 @@ def _castle_frames(base):
     the palette differs per round). Cached per base."""
     if base in _CASTLE_FRAMES_CACHE:
         return _CASTLE_FRAMES_CACHE[base]
-    PREFERRED = {0x0224: [0x91, 0x27], 0x00F4: [0x70]}
+    PREFERRED = {0x0224: [0x91, 0x27], 0x00F4: [0x70], 0x033E: [0x93, 0x94, 0x95]}
     distinct = {}
     for anim in range(0x100):
         pcs = _manifest_vm_pieces(base, anim, 0)
@@ -272,6 +272,87 @@ def r1s2_castle_usages():
         "used_colors": [], "mrd_pairs": [], "n_used": 0,
     })
     _CASTLE_USAGES_CACHE = out
+    return out
+
+
+# PROMPT-ID-0069: the castle "Green Sword Knight" (family-2 base 0x033E, anim 0x93) across ALL castle
+# sections R1-S2..R6-S2. It is the ONLY scheduled R1-S2 enemy (decode_field_schedule, table 0x4A104) and is
+# DIRECTLY-SCHEDULED (not marker-transformed), so its +0x27 palette line (set by creation 0x45684, bit6)
+# survives and 0x3C9E8 uses it as the DISPLAY palette (NOT the compositor control-byte nibble, which only
+# governs transformed actors). Display line = creation nibble = pal_nib_456ec[variant*18+(round-1)*3+comp_adj]
+# -> 0x3BA88[round][nibble] -> pool -> 0x4FD02. Most variants are green (armor); the c4/default is red/blue.
+_KNIGHT_SECTIONS_CACHE = None
+def _green_knight_sections():
+    """Per castle round: list of (variant, creation_nibble, [comps]) palette-distinct knight variants."""
+    global _KNIGHT_SECTIONS_CACHE
+    if _KNIGHT_SECTIONS_CACHE is not None:
+        return _KNIGHT_SECTIONS_CACHE
+    mc = _maincpu()
+    tbl = [mc[0x456EC + i] for i in range(72)]  # family-2 nibble table (0x45684)
+    def nib(rnd, v, c):
+        ca = c - 2 if c >= 3 else c
+        return tbl[v * 18 + (rnd - 1) * 3 + ca]
+    # family-2 0x033E schedule variants/comps per round (decode_field_schedule.py)
+    APPEAR = {1: [(0, 0), (0, 3), (0, 4)], 2: [(0, 0), (0, 3), (0, 4), (1, 0)],
+              3: [(0, 3), (0, 4), (1, 0), (1, 4)], 4: [(1, 0), (1, 3), (1, 4), (2, 0)],
+              5: [(1, 3), (1, 4), (2, 0), (2, 3), (2, 4)], 6: [(1, 3), (2, 0), (2, 3), (2, 4)]}
+    out = {}
+    for rnd, vcs in APPEAR.items():
+        seen = {}
+        for (v, c) in vcs:
+            n = nib(rnd, v, c)
+            seen.setdefault((v, n), []).append(c)
+        out[rnd] = [(v, n, cs) for (v, n), cs in seen.items()]
+    _KNIGHT_SECTIONS_CACHE = out
+    return out
+
+
+_KNIGHT_USAGES_CACHE = None
+def green_knight_usages():
+    """Scene-tagged browsable Green Sword Knight objects for every castle section, each palette-distinct
+    variant carrying its CREATION-route arcade palette reference (16 pool colors). Cached, additive."""
+    global _KNIGHT_USAGES_CACHE
+    if _KNIGHT_USAGES_CACHE is not None:
+        return _KNIGHT_USAGES_CACHE
+    frames, total = _castle_frames(0x033E)
+    knight_frames = frames[:8]
+    mc = _maincpu()
+    out = []
+    for rnd, variants in _green_knight_sections().items():
+        scene = "PAL-R%d-S2-PLANEA-CASTLE" % rnd
+        for (v, nib, comps) in variants:
+            pal = _arcade_round_palette(rnd, nib)                      # creation pool colors
+            pool = mc[0x3BA88 + (rnd - 1) * 32 + nib]
+            ref = []
+            for idx, c in enumerate(pal):
+                disp, cram, _ = gen_quant(c)
+                ref.append({"src_index": idx, "arcade_index": idx, "palette": "0x%X" % nib,
+                            "arcade_rgb8": c, "hex": "#%02X%02X%02X" % tuple(c),
+                            "pixel_count": 1, "genesis_rgb8": disp, "genesis_cram": cram})
+            clabel = "/".join("c%d" % c for c in comps)
+            vlabel = "R%d v%d %s · line 0x%X pool 0x%02X" % (rnd, v, clabel, nib, pool)
+            note = ("family-2 base 0x033E (only R1-S2 scheduled enemy; DIRECTLY-SCHEDULED, not transformed) "
+                    "-> creation palette 0x45684 nibble 0x%X -> 0x3BA88[R%d] -> pool 0x%02X -> 0x4FD02. "
+                    "Display line = +0x27 (bit6 set), NOT the control-byte nibble. Comp variants %s."
+                    % (nib, rnd, pool, clabel))
+            for order, (anim, pcs) in enumerate(knight_frames):
+                pp = [dict(p, pal=pal) for p in pcs]                   # force creation-line palette
+                xs = [p["x"] for p in pp]; ys = [p["y"] for p in pp]
+                out.append({
+                    "usage_id": "usage:knight_r%d_v%d_n%x:anim0x%02X" % (rnd, v, nib, anim),
+                    "object_id": "object:castle.green_sword_knight.r%d.n%x" % (rnd, nib),
+                    "map_key": "object:castle.green_sword_knight.r%d.n%x" % (rnd, nib),
+                    "frame_category": vlabel, "frame_label": "anim 0x%02X" % anim, "frame_order": order,
+                    "player_counts": None, "weapon_counts": None,
+                    "display_name": "Green Sword Knight", "variant_label": vlabel,
+                    "sprite_bank": "0x3%X" % nib, "sprite_banks": ["0x3%X" % nib], "multi_bank": False,
+                    "scene_key": scene, "round": rnd, "base": "0x033E", "provisional": True,
+                    "identity_note": note, "pieces": pp, "n_pieces": len(pp),
+                    "bounds": [max(xs) - min(xs) + 16, max(ys) - min(ys) + 16],
+                    "composite_proven": True, "preview_type": "ARCADE CREATION-PALETTE (0x45684)",
+                    "used_colors": ref, "mrd_pairs": [], "n_used": 16, "frames_total_distinct": total,
+                })
+    _KNIGHT_USAGES_CACHE = out
     return out
 
 
@@ -1034,7 +1115,8 @@ def build_usages(banks):
                                  "frame_label": label, "object_id": obj_id}
             defs.append((key, label, bank, pieces, True))
 
-    usages = list(r1s2_castle_usages())   # PROMPT-ID-0029: scene-tagged R1-S2 castle actors (cached)
+    usages = list(green_knight_usages())  # PROMPT-ID-0069: Green Sword Knight, all castle sections (cached)
+    usages += list(r1s2_castle_usages())  # PROMPT-ID-0029: scene-tagged R1-S2 castle actors (cached)
     for key, name, bank, pieces, proven in defs:
         pal = banks.get(bank)
         if not pal or not pieces:

@@ -50,8 +50,11 @@ def main() -> int:
     def bases(sk): return sorted({u.get("base") for u in scene(sk) if u.get("base")})
 
     r1 = scene("PAL-R1-S2-PLANEA-CASTLE")
-    ck("1. R1-S2 shows ONLY the 'M' burst (0x0224/0x00F4 correctly ABSENT in R1)",
-       len(r1) == 1 and r1[0].get("incomplete") and not bases("PAL-R1-S2-PLANEA-CASTLE"), [u["usage_id"] for u in r1])
+    r1b = bases("PAL-R1-S2-PLANEA-CASTLE")
+    # R1-S2 castle: the 'M' burst + the Green Sword Knight (base 0x033E, PROMPT-0069); the WRONGLY-attributed
+    # marker-chain bases 0x0224/0x00F4 remain correctly ABSENT in R1 (they are R2+).
+    ck("1. R1-S2 shows the 'M' burst + Green Sword Knight 0x033E; 0x0224/0x00F4 ABSENT",
+       any(u.get("incomplete") for u in r1) and "0x033E" in r1b and "0x0224" not in r1b and "0x00F4" not in r1b, r1b)
     ck("2. 0x0224 is in R2-S2 and R4-S2 (H14)", "0x0224" in bases("PAL-R2-S2-PLANEA-CASTLE") and
        "0x0224" in bases("PAL-R4-S2-PLANEA-CASTLE"))
     ck("3. 0x00F4 is in R4/R5/R6-S2 (H14)", all("0x00F4" in bases("PAL-R%d-S2-PLANEA-CASTLE" % r) for r in (4, 5, 6)))
