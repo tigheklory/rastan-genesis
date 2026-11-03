@@ -46,6 +46,7 @@
     .global vdp_commit_bg_columns_if_dirty
     .global fg_col_dirty
     .global bg_col_dirty
+    .global plane_a_resident_logical_rows
     .global rastan_direct_update_inputs
 
     .extern vdp_set_reg
@@ -771,6 +772,22 @@ genesistan_hook_tilemap_plane_a_selector12_native:
     cmpi.w  #16, %d4
     blo     .Lplane_a_sel12_segment_loop
 
+    /* One ordinary selector-1/2 publication semantically owns this complete
+     * logical row.  Record that identity only after all sixteen four-cell
+     * segments have run.  The bounded scene replay installs all 32 identities
+     * together after its final projection, so it deliberately skips this
+     * incremental update.  Zero means invalid; logical rows are stored +1. */
+    tst.b   plane_a_initial_ring_rebuild_active
+    bne.s   .Lplane_a_sel12_residency_recorded
+    moveq   #0, %d0
+    move.w  0(%sp), %d0
+    move.w  %d0, %d1
+    andi.w  #0x001F, %d1
+    addq.w  #1, %d0
+    lea     plane_a_resident_logical_rows, %a0
+    move.b  %d0, 0(%a0,%d1.w)
+.Lplane_a_sel12_residency_recorded:
+
     adda.w  #16, %sp
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
@@ -858,6 +875,25 @@ genesistan_plane_a_scene_scroll_reseed_native:
     move.w  (%sp)+, ARCADE_PC080SN_SELECTOR_OFFSET(%a5)
     clr.b   plane_a_initial_ring_rebuild_active
 
+    /* The replay above has materialized the exact final 32-row native Plane-A
+     * projection selected by the retained post-0x0504FA camera.  Install only
+     * its row identities beside the existing staging buffer; this is 32 bytes
+     * of provenance, not a second graphics map.  Every 32-row window maps
+     * bijectively onto physical rows 0..31. */
+    move.w  ARCADE_PC080SN_SCROLL_Y_FG_OFFSET(%a5), %d0
+    bsr     .Lplane_a_visible_top_from_scroll_d0
+    lea     plane_a_resident_logical_rows, %a0
+    moveq   #31, %d7
+.Lscene_scroll_reseed_residency_loop:
+    move.w  %d0, %d1
+    andi.w  #0x001F, %d1
+    move.w  %d0, %d2
+    addq.w  #1, %d2                         /* zero remains invalid */
+    move.b  %d2, 0(%a0,%d1.w)
+    addq.w  #1, %d0
+    andi.w  #0x003F, %d0
+    dbra    %d7, .Lscene_scroll_reseed_residency_loop
+
     move.l  #0xFFFFFFFF, fg_row_dirty
     clr.l   fg_col_dirty
     clr.l   fg_col_dirty + 4
@@ -933,14 +969,17 @@ genesistan_plane_a_scene_scroll_reseed_native_exit:
 
 /* Native Plane A no-publication vertical-scroll route.
  *
- * The arcade no-publish arms update camera Y without invoking the normal row
- * publisher.  These byte-neutral hook targets reproduce the displaced 10BA
- * bookkeeping, derive the old/new visible top from arcade-owned 10B0, publish
- * every entering logical row through the semantic ROM row formula, then jump
- * back to the original scroll-store tail where arcade code writes 10B0.
+ * Semantic cut: the arcade no-publish arms update camera Y without invoking
+ * the PC080SN name-RAM author.  Preserve an already-resident native Plane-A
+ * row exactly; only materialize when logical N enters a physical slot still
+ * occupied by its N+32 alias.  These byte-neutral hook targets reproduce the
+ * displaced 10BA bookkeeping, derive the old/new visible top from arcade-owned
+ * 10B0, ensure each entering logical row is resident, then jump back to the
+ * original scroll-store tail where arcade code writes 10B0.
  *
- * No C08000/name-RAM image, tall FG buffer, projection path, or collision write
- * is used here.
+ * The retired chip tail is the original C08000/name-RAM write machinery.  No
+ * chip shadow, tall FG buffer, duplicate 32-row graphics buffer, projection
+ * path, or collision write is used here.
  */
 genesistan_plane_a_pan_publish_entering_rows_up:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
@@ -1400,6 +1439,18 @@ resolve_plane_a_collision_cell:
     andi.w  #0x001F, %d1
     move.w  %d1, 2(%sp)                      /* physical resident row */
 
+    /* Original 0x055704/0x055790 performs no name-RAM write.  If this exact
+     * logical row still owns its native physical slot, staged_fg_buffer and
+     * VRAM already carry the arcade-retained contents (including any ordinary
+     * current-record publication), so return without reconstructing or dirtying
+     * it.  A differing N/N+32 tag proves genuine Genesis materialization is
+     * required. */
+    lea     plane_a_resident_logical_rows, %a0
+    move.w  %d0, %d2
+    addq.w  #1, %d2                         /* zero tag means invalid */
+    cmp.b   0(%a0,%d1.w), %d2
+    beq.w   .Lplane_a_row_already_resident
+
     /* Selector-1/2 world rows have swapped source block axes.  The compiler
      * has already applied that invariant transform and the active package's
      * code->slot mapping.  No-publication camera motion therefore copies one
@@ -1557,6 +1608,14 @@ resolve_plane_a_collision_cell:
     bset    %d0, %d1
     move.l  %d1, fg_row_dirty
 
+    /* Content is complete before ownership changes.  Subsequent no-publication
+     * reversals for this same logical row must preserve these exact words. */
+    lea     plane_a_resident_logical_rows, %a0
+    move.w  0(%sp), %d1
+    addq.w  #1, %d1
+    move.b  %d1, 0(%a0,%d0.w)
+
+.Lplane_a_row_already_resident:
     addq.w  #4, %sp
     movem.l (%sp)+, %d1-%d7/%a0-%a6
     rts
@@ -5302,6 +5361,14 @@ plane_a_src_ref_block:
  * transition package selection while the same producer enumerates all cells. */
 plane_a_initial_ring_rebuild_active:
     .byte 0
+    .align 2
+
+/* Logical identity of each final native Plane-A physical row.  Entry P stores
+ * logical row+1 (1..64), zero invalid.  This 32-byte provenance vector makes
+ * the arcade retained-ring decision explicit without duplicating any name
+ * words or introducing a chip-shaped backing map. */
+plane_a_resident_logical_rows:
+    .space 32
     .align 2
 
 genesistan_shadow_input_390001:

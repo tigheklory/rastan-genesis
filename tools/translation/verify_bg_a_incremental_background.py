@@ -96,7 +96,9 @@ def static_contract() -> None:
                     ".Lplane_a_sel12_shared_loop",
                     ".Lplane_a_native_metatile_record_from_d2",
                     "0x20(%a4,%d0.w)", "cmpi.w  #32",
-                    "cmpi.w  #16, %d4", "fg_row_dirty"), "selector-1/2")
+                    "cmpi.w  #16, %d4", "fg_row_dirty",
+                    "plane_a_resident_logical_rows",
+                    ".Lplane_a_sel12_residency_recorded:"), "selector-1/2")
     if "MAP_GET_COLLISION" in sel12 or "MAP_GET_NAME_COLLISION_A" in sel12:
         fail("selector-1/2 reintroduces generic coordinate discovery below rebuilt A3 pointers")
     if "MAP_GET_NAME_COLLISION_A" in sel0:
@@ -130,7 +132,16 @@ def static_contract() -> None:
                     "moveq   #0, %d4", "MAP_PUBLISH_NAME_A_BLOCK4",
                     "addq.w  #4, %d4",
                     "cmpi.w  #BG_LOGICAL_SPAN, %d4",
-                    "fg_row_dirty"), "Plane-A row producer")
+                    "fg_row_dirty", "plane_a_resident_logical_rows",
+                    ".Lplane_a_row_already_resident:",
+                    "cmp.b   0(%a0,%d1.w), %d2"), "Plane-A row producer")
+    scene_reseed = section(source, "genesistan_plane_a_scene_scroll_reseed_native:",
+                           "/* Native Plane A no-publication vertical-scroll route.")
+    require(scene_reseed, (".Lscene_scroll_reseed_residency_loop:",
+                           "plane_a_resident_logical_rows",
+                           "ARCADE_PC080SN_SCROLL_Y_FG_OFFSET(%a5)",
+                           "bsr     .Lplane_a_visible_top_from_scroll_d0"),
+            "Plane-A scene residency seed")
     resolver = section(source, "resolve_plane_a_cell:",
                        "/* Resolve one gameplay collision word")
     require(resolver, ("cmpi.w  #0xFFFF, plane_a_src_ref_block",
@@ -319,6 +330,54 @@ def verify_no_publication_predecessor_selection() -> None:
     completed_records = tuple(record - 1 for record in vertical_records)
     if completed_records != (16, 20, 42, 43):
         fail(f"vertical predecessor inventory changed: {completed_records}")
+
+    # Native Plane A is one 64x32 final buffer.  A 32-byte provenance vector
+    # distinguishes the two logical rows which alias each physical row.  An
+    # ordinary publication changes the owner; a no-publication event for the
+    # same logical owner must preserve its exact current contents, while N+32
+    # genuinely requires predecessor materialization.
+    tags = [None] * PHYSICAL_H
+    words = [STALE] * PHYSICAL_H
+    top = 37
+    for logical in ((top + i) & 63 for i in range(PHYSICAL_H)):
+        physical = logical & 31
+        tags[physical] = logical
+        words[physical] = name_word(0, 16, logical, 0)
+
+    def ordinary(logical: int, record: int) -> None:
+        physical = logical & 31
+        tags[physical] = logical
+        words[physical] = name_word(0, record, logical, 0)
+
+    def no_publication(logical: int, predecessor: int) -> bool:
+        physical = logical & 31
+        if tags[physical] == logical:
+            return False
+        tags[physical] = logical
+        words[physical] = name_word(0, predecessor, logical, 0)
+        return True
+
+    confirmed = ((44, 17), (45, 17), (46, 17),
+                 (12, 17), (13, 17), (14, 17),
+                 (60, 21), (61, 21), (62, 21),
+                 (35, 21), (36, 21), (37, 21), (38, 21),
+                 (39, 21), (40, 21), (41, 21), (42, 21))
+    for logical, record in confirmed:
+        ordinary(logical, record)
+        before = words[logical & 31]
+        if no_publication(logical, record - 1):
+            fail(f"resident logical row {logical} was rematerialized")
+        if words[logical & 31] != before:
+            fail(f"resident logical row {logical} changed on no-publication")
+
+    for logical in (1, 12, 31, 44, 63):
+        alias = (logical + 32) & 63
+        ordinary(alias, 17)
+        if not no_publication(logical, 16):
+            fail(f"logical alias {logical}/{alias} was not materialized")
+        expected = name_word(0, 16, logical, 0)
+        if tags[logical & 31] != logical or words[logical & 31] != expected:
+            fail(f"logical alias {logical}/{alias} materialized incorrectly")
 
 
 def verify_plane_b_independent_context() -> None:
@@ -560,7 +619,7 @@ def main() -> None:
           "accessor PASS; Build 0422 generated semantics + ring-safe grouped "
           "row resolution PASS; initial 64x64 seed, N/N+32 semantics, "
           "source rebase, trailing retention, independent Plane-B context, "
-          "no-publication completed-record selection, "
+          "no-publication completed-record selection + per-row retention, "
           "Build 0434 vertical-row context/LUT/miss equivalence, "
           "Build 0439 selector-0 active/static residency context equivalence, "
           "32-row projection, dirty gather, and 32-word column DMA PASS")
