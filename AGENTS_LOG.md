@@ -54866,3 +54866,19 @@ TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0069
 - Launch: tools/graphics_editor/run.sh ; UI: select a castle section (R1-S2..R6-S2) -> Sprites/Objects ->
   "Green Sword Knight" variants.
 - Report: docs/design/Andy_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0069_green_knight_all_castle_palette_contexts.md
+
+## PROMPT-ID-0069 follow-up — Green Knight palette corrected + 2 UI bugs fixed (Andy, 2026-11-03)
+TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0069
+- Tighe reported: knight preview not green + color selection not reflected. Root cause: knight pieces carried
+  a per-piece "palette" nibble, so /api/render took the multi-bank per-piece branch -> rendered nibble-7 blue
+  AND returned before applying the authored target mapping. Fixed: knight uses a SINGLE-line palette (stripped
+  per-piece nibble) -> preview shows the reference + Genesis target mapping honored (verified base!=mapped).
+- Palette CORRECTION: the creation-table route (0x45684 nibbles 4/2/1 -> pools 0x12/0x0F/0x0B) renders
+  FLESH/RED, not green; the per-piece control-byte route gives green head (line3) + blue body (line7, R1).
+  The green-armored knight matching the arcade = the program's line-3 control byte -> 0x3BA88[round][3] ->
+  pool 0x0C (consistent R1-R6, verified by render). The tool now shows pool 0x0C green per section.
+- UNRESOLVED nuance: why the body (line 7) is green on screen while the field palette table loads line7=blue
+  in R1 -> a castle-CRAM detail; a one-time R1-S2 CRAM read would settle it. Line 3 (pool 0x0C) is the
+  authorable green-armor reference used now.
+- verify_green_knight.py 14/14 (incl. render-is-green + Test.json unchanged); castle_browser 15/15. Explicit
+  staging; no Cody files.

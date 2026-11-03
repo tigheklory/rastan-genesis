@@ -7,12 +7,26 @@ change, no palette_decisions.json change, no Cody files touched.
 
 ## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0069 Result
 
-**RESOLVED.** The visible Green Sword Knight is family-2 base `0x033E`. It is **directly-scheduled, not
-marker-transformed**, so its `+0x27` palette line (bit6 set by creation `0x45684`) **survives** and
-`0x3C9E8` uses it — the knight's displayed palette is the **creation line**, not the compositor control-byte
-line. Lines 4/2 (the c0/c3 variants) resolve to **green** pools; this matches the arcade green armor. The
-per-section references below are green-confirmed and were added to the Palette Composer for all six castle
-sections.
+**RESOLVED (green-armor palette) + two UI bugs fixed.** The visible Green Sword Knight is family-2 base
+`0x033E` (anim `0x93`), the only scheduled castle enemy. Its **green-armor palette is the knight program's
+line-3 control byte → `0x3BA88[round][3]` → pool `0x0C`**, which renders the green-armored sword knight
+matching the arcade across all rounds (verified by render). It is added to the Palette Composer for all six
+castle sections (one "Green Sword Knight" per section), each showing that section's pool-`0x0C` green
+reference and the knight frames.
+
+**Correction to an earlier draft of this report:** the creation-table route (`0x45684` → nibbles 4/2/1 →
+pools `0x12/0x0F/0x0B`) renders **flesh/red**, NOT green — it is NOT the knight's on-screen palette. And the
+per-piece control-byte route gives head=line3(green)+body=line7(blue in R1), also not uniformly green. The
+green that matches the screenshot is **line 3 / pool `0x0C`** (consistent R1–R6). Why the body (line 7) reads
+green on screen while the field palette table loads line 7 = blue in R1 is an **unresolved castle-CRAM
+nuance** (see Remaining uncertainty); line 3 is the authorable green-armor reference and is what the tool
+now shows.
+
+**Two UI bugs fixed (your report):** (1) the preview was blue and (2) color selection wasn't reflected —
+both because the knight's pieces carried a per-piece `"palette"` nibble, so `/api/render` took the multi-bank
+per-piece branch (rendering nibble-7 blue and returning before applying the authored `target` mapping).
+Fixed by giving the knight a single-line palette (stripped the per-piece nibble), so the preview shows the
+green reference and the Genesis target mapping is honored.
 
 ## Family-2 / Visible-Knight Semantics
 

@@ -9,7 +9,7 @@ and no lizardman leaks into the knight object.
 TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0069
 """
 from __future__ import annotations
-import importlib.util, json, threading, time, urllib.request, hashlib
+import importlib.util, json, threading, time, urllib.request, urllib.parse, struct, zlib, hashlib
 from http.server import ThreadingHTTPServer
 from pathlib import Path
 
@@ -49,10 +49,23 @@ def main() -> int:
     need = {"PAL-R%d-S2-PLANEA-CASTLE" % r for r in range(1, 7)}
     ck("4. knight present in ALL six castle sections R1..R6-S2", need <= scenes, sorted(scenes))
 
-    # per-section palette-distinct variants (each (round,nibble) is its own authoring domain)
-    def variants(rnd):
-        return {u["object_id"] for u in kn if u.get("round") == rnd}
-    ck("5. R1-S2 has multiple palette-distinct variants (separately authorable)", len(variants(1)) >= 2, variants(1))
+    # the knight's reference palette renders GREEN (armor line 3 / pool 0x0C), not blue/flesh
+    def pixels(blob):
+        i, W, H, ct, idat = 8, None, None, None, b""
+        while i < len(blob):
+            ln = struct.unpack(">I", blob[i:i+4])[0]; t = blob[i+4:i+8]; d = blob[i+8:i+8+ln]
+            if t == b"IHDR": W, H, _, ct = struct.unpack(">IIBB", d[:10])
+            elif t == b"IDAT": idat += d
+            elif t == b"IEND": break
+            i += 12 + ln
+        raw = zlib.decompress(idat); chn = 4 if ct == 6 else 3; stride = W*chn+1
+        return [tuple(raw[y*stride+1+x*chn:y*stride+1+x*chn+3]) for y in range(H) for x in range(W)]
+    r1u = next(u for u in kn if u["round"] == 1)
+    png = urllib.request.urlopen(f"http://127.0.0.1:{port}/api/render?usage=" + urllib.parse.quote(r1u["usage_id"])).read()
+    cols = pixels(png)
+    grn = sum(1 for r, g, b in cols if g > r + 0x20 and g > b + 0x10 and g > 0x50)
+    blu = sum(1 for r, g, b in cols if b > g + 0x20 and b > r + 0x20)
+    ck("5. R1-S2 knight renders GREEN (armor), not blue", grn > 20 and blu == 0, "green=%d blue=%d" % (grn, blu))
 
     # R1-S2 creation nibbles: c0->4, c3->2, c4->1 (from 0x45684 table); c0/c3 green, c4 not
     secs = srv._green_knight_sections()
@@ -66,7 +79,7 @@ def main() -> int:
     one = kn[0]
     ck("10. variant carries a 16-colour arcade reference palette", len(one.get("used_colors", [])) == 16)
     ck("11. variant carries knight frames (pieces)", bool(one.get("pieces")) and one.get("n_pieces", 0) >= 2)
-    ck("12. preview uses the creation palette (not control-byte)", one.get("preview_type", "").startswith("ARCADE CREATION-PALETTE"))
+    ck("12. preview uses the green-armor line (pool 0x0C)", one.get("preview_type", "").startswith("ARCADE GREEN-ARMOR"))
 
     # scene-membership: a knight entry shows only in its own castle section (mirror app.js scene_key rule)
     def visible(active):

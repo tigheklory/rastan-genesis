@@ -317,11 +317,18 @@ def green_knight_usages():
     frames, total = _castle_frames(0x033E)
     knight_frames = frames[:8]
     mc = _maincpu()
+    # ARMOR palette = the knight program's green control-byte line (line 3 -> pool 0x0C), which renders the
+    # green-armored sword knight matching the arcade across all rounds (verified). The creation-table route
+    # (0x45684 -> nibbles 4/2/1 -> pools 0x12/0x0F/0x0B) renders flesh/red and does NOT match; and the
+    # per-piece body line (line 7) is blue in R1 (pool 0x0B) vs green on screen -> an unresolved castle-CRAM
+    # nuance (see the 0069 report). Line 3 (pool 0x0C) is the authorable green-armor reference.
+    ARMOR_LINE = 3
     out = []
-    for rnd, variants in _green_knight_sections().items():
+    for rnd in sorted(_green_knight_sections().keys()):
         scene = "PAL-R%d-S2-PLANEA-CASTLE" % rnd
-        for (v, nib, comps) in variants:
-            pal = _arcade_round_palette(rnd, nib)                      # creation pool colors
+        for _ignore in (True,):
+            nib = ARMOR_LINE
+            pal = _arcade_round_palette(rnd, nib)                      # green armor line (pool 0x0C)
             pool = mc[0x3BA88 + (rnd - 1) * 32 + nib]
             ref = []
             for idx, c in enumerate(pal):
@@ -329,14 +336,19 @@ def green_knight_usages():
                 ref.append({"src_index": idx, "arcade_index": idx, "palette": "0x%X" % nib,
                             "arcade_rgb8": c, "hex": "#%02X%02X%02X" % tuple(c),
                             "pixel_count": 1, "genesis_rgb8": disp, "genesis_cram": cram})
-            clabel = "/".join("c%d" % c for c in comps)
-            vlabel = "R%d v%d %s · line 0x%X pool 0x%02X" % (rnd, v, clabel, nib, pool)
-            note = ("family-2 base 0x033E (only R1-S2 scheduled enemy; DIRECTLY-SCHEDULED, not transformed) "
-                    "-> creation palette 0x45684 nibble 0x%X -> 0x3BA88[R%d] -> pool 0x%02X -> 0x4FD02. "
-                    "Display line = +0x27 (bit6 set), NOT the control-byte nibble. Comp variants %s."
-                    % (nib, rnd, pool, clabel))
+            v = 0
+            vlabel = "R%d green armor · line 0x%X pool 0x%02X" % (rnd, nib, pool)
+            note = ("family-2 base 0x033E (only R1-S2 scheduled enemy; anim 0x93). Green-armor palette = the "
+                    "knight program's line 0x%X control byte -> 0x3BA88[R%d] -> pool 0x%02X -> 0x4FD02 "
+                    "(matches the arcade green). Body line 7 is blue in R1 per the field table -> an "
+                    "unresolved castle-CRAM nuance; line 3 is the authorable green-armor reference."
+                    % (nib, rnd, pool))
             for order, (anim, pcs) in enumerate(knight_frames):
-                pp = [dict(p, pal=pal) for p in pcs]                   # force creation-line palette
+                # SINGLE creation-line palette (not per-piece): strip the per-piece "palette" nibble so the
+                # render path uses the one pool palette (via used_colors overlay) and honors the authored
+                # target mapping, instead of the multi-bank per-piece branch (which showed nibble-7 blue and
+                # ignored the mapping). See /api/render usage branch.
+                pp = [{k: v for k, v in p.items() if k != "palette"} for p in pcs]
                 xs = [p["x"] for p in pp]; ys = [p["y"] for p in pp]
                 out.append({
                     "usage_id": "usage:knight_r%d_v%d_n%x:anim0x%02X" % (rnd, v, nib, anim),
@@ -349,7 +361,7 @@ def green_knight_usages():
                     "scene_key": scene, "round": rnd, "base": "0x033E", "provisional": True,
                     "identity_note": note, "pieces": pp, "n_pieces": len(pp),
                     "bounds": [max(xs) - min(xs) + 16, max(ys) - min(ys) + 16],
-                    "composite_proven": True, "preview_type": "ARCADE CREATION-PALETTE (0x45684)",
+                    "composite_proven": True, "preview_type": "ARCADE GREEN-ARMOR (line 3 / pool 0x0C)",
                     "used_colors": ref, "mrd_pairs": [], "n_used": 16, "frames_total_distinct": total,
                 })
     _KNIGHT_USAGES_CACHE = out
