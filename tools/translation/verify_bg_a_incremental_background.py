@@ -505,6 +505,49 @@ def verify_no_publication_predecessor_selection() -> None:
                         f"record={current} logical={first_current}"
                     )
 
+            # Exercise both traversal directions and an immediate reversal on
+            # the same physical N/N+32 slot.  Repeated crossings must restore
+            # the predecessor boundary row every time; for a nonzero front,
+            # the adjacent first-authored row must independently restore the
+            # current record.  This models the cadence difference between
+            # ordinary and jump-assisted rope ascent without adding any
+            # jump-specific rendering rule.
+            alias = (boundary + 32) & 63
+            for _crossing in range(3):
+                tags[physical] = alias
+                words[physical] = native_row(completed, alias)
+                source = materialization_record(
+                    1, front, boundary, current, completed
+                )
+                words[physical] = (
+                    pan_row(current, boundary)
+                    if source == current else native_row(completed, boundary)
+                )
+                tags[physical] = boundary
+                if words[physical] != expected:
+                    fail(
+                        "0063 repeated boundary reversal selected wrong row "
+                        f"record={current} front={front} logical={boundary}"
+                    )
+            if front:
+                current_physical = first_current & 31
+                current_alias = (first_current + 32) & 63
+                tags[current_physical] = current_alias
+                words[current_physical] = native_row(completed, current_alias)
+                source = materialization_record(
+                    1, front, first_current, current, completed
+                )
+                words[current_physical] = (
+                    pan_row(current, first_current)
+                    if source == current else native_row(completed, first_current)
+                )
+                tags[current_physical] = first_current
+                if words[current_physical] != pan_row(current, first_current):
+                    fail(
+                        "0063 immediate reversal lost first current row "
+                        f"record={current} front={front} logical={first_current}"
+                    )
+
 
 def verify_plane_b_independent_context() -> None:
     cases = ((4, 7), (5, 7), (5, 8))
