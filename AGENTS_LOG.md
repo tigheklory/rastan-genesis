@@ -54736,3 +54736,35 @@ SOURCE CODE -> BESTIARY -> EDITOR. Static only, no traces, no ROM/Test.json/pale
   skipped/partial row publication.
 - Diagnosis only: no production source, trace, generated asset, or ROM changed. Report:
   `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0059_r1s2_gameplay_trace_analysis.md`.
+
+### MAME Exit Summary (2026-11-03 03:14:18)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0060 — Build 0530 Plane A no-publication residency fix (Cody, 2026-11-03)
+
+- Corrected the confirmed mismatch between arcade `$055704/$055790` semantic no-publication and
+  Genesis full-row reconstruction. The existing `staged_fg_buffer` remains the only final native
+  64x32 Plane A image; a 32-byte logical-row provenance vector distinguishes N from its N+32
+  physical alias.
+- Scene/checkpoint replay installs all 32 identities from final scroll, ordinary selector-1/2
+  publication changes one identity after its complete row, and pan materialization changes identity
+  only after complete content staging. Exact logical matches now preserve staged/VRAM words and do
+  not set a dirty bit; genuine aliases retain the existing predecessor materializer.
+- Verification explicitly preserves current record-17 L44-L46/L12-L14 and record-21 L60-L62/
+  L35-L42, while requiring predecessor materialization for N/N+32 alias cases. Full-span,
+  selector-0/1/2, scene/checkpoint/pan, canonical, gameplay-entry, six epoch/package, mandatory
+  Genesis NTSC trace, and complete variant-family gates PASS.
+- Source commit: `974dc0b0c9f3c351536d982e1f0e9dfa2cc45d38`. Counter/ledger advanced to 0530.
+- Normal: `dist/rastan-direct/rastan_direct_video_test_build_0530.bin`, SHA-256
+  `dbbc1377286e37a7d61b3ac75df613db6a2f9734a009f0f58e7e02b74c0a248b`, 3,792,568 bytes.
+- R1-S2: `dist/rastan-direct/rastan_direct_video_test_build_0530_S1-2.bin`, SHA-256
+  `bfb3ed8ffc0e6cfe24cac80a6a1be0523f49cec299393ce4c3f7409ae936a23d`, 3,792,568 bytes.
+- Invincible R1-S2: `dist/rastan-direct/rastan_direct_video_test_build_0530_invincible_S1-2.bin`,
+  SHA-256 `6f2afedca192b275bf3068c9e83b534320ca81cc9c6938940093ef78616c65b3`,
+  3,792,568 bytes. Both R1-S2 derivatives pass the established Genesis NTSC functional start at
+  frame 412 with stage `$0010`, record `$0011`, both planes full, and zero map misses.
+- Sparse predecessor-only corruption is not claimed fixed; its first materialization path is
+  unchanged. Build 0530 remains a candidate pending Tighe's conventional/jump-assisted gameplay.
+- Report: `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0060_r1s2_no_publication_residency_fix.md`.
