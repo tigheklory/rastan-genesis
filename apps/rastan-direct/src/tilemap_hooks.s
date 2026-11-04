@@ -610,15 +610,14 @@ genesistan_hook_tilemap_plane_a_selector12_native:
     andi.w  #0x003F, %d0
     move.w  %d0, 0(%sp)             /* logical row */
 
-    /* Use the retained pre-step scroll to derive both the old and post-step
-     * resident windows.  Original selector-1/2 authors the PC080SN row before
-     * committing 10B0.  The arcade's 64-row name RAM can retain that authored
-     * row alongside its N-32 alias; Genesis Plane A cannot.  Visual publication
-     * must therefore be limited to the post-step 32-row native window, while
-     * collision publication still covers the complete semantic row. */
+    /* Preserve the arcade's ordinary selector-1/2 authoring event, including
+     * its four-row offscreen prefetch margin around the 28-row NTSC display.
+     * The old visible top remains the source context used by the established
+     * producer.  We also retain the post-step top so the one edge row that can
+     * enter before the no-publication hook runs is materialized below. */
     move.w  ARCADE_PC080SN_SCROLL_Y_FG_OFFSET(%a5), %d0
     bsr     .Lplane_a_visible_top_from_scroll_d0
-    move.w  %d0, 16(%sp)            /* pre-step visible top logical row */
+    move.w  %d0, 2(%sp)             /* pre-step visible top logical row */
 
     move.w  ARCADE_PC080SN_SCROLL_Y_FG_OFFSET(%a5), %d0
     tst.b   plane_a_initial_ring_rebuild_active
@@ -633,7 +632,7 @@ genesistan_hook_tilemap_plane_a_selector12_native:
     add.w   ARCADE_PC080SN_SCROLL_Y_DELTA_OFFSET(%a5), %d0
 .Lplane_a_sel12_post_scroll_ready:
     bsr     .Lplane_a_visible_top_from_scroll_d0
-    move.w  %d0, 2(%sp)             /* post-step visible top logical row */
+    move.w  %d0, 16(%sp)            /* post-step visible top logical row */
 
     lea     PC080SN_DESC_REBUILD_PTR_TABLE, %a3
     lea     genesistan_pc080sn_tile_vram_lut, %a2
@@ -680,10 +679,12 @@ genesistan_hook_tilemap_plane_a_selector12_native:
     beq.s   .Lplane_a_sel12_shared_blank
     movea.l %a0, %a4
 
-    /* Resolve visual attributes only when this logical row belongs to the
-     * post-step Genesis resident window.  The retained arcade authoring event
-     * is still honored for collision below even when its 64-row prefetch is
-     * not yet physically resident on the 32-row Genesis plane. */
+    /* An ordinary 0x55A14 call is the arcade's semantic decision to author
+     * this row, including rows in the physical plane's offscreen prefetch
+     * margin.  Only the bounded 64-row initialization replay projects its
+     * final 32 rows through the residency test. */
+    tst.b   plane_a_initial_ring_rebuild_active
+    beq.s   .Lplane_a_sel12_shared_attr_resident
     move.w  0(%sp), %d0
     sub.w   2(%sp), %d0
     andi.w  #0x003F, %d0
@@ -712,6 +713,8 @@ genesistan_hook_tilemap_plane_a_selector12_native:
     move.l  %a4, %d1
     beq.s   .Lplane_a_sel12_shared_outputs_ready
     move.w  0x20(%a4,%d0.w), %d2             /* collision for every column */
+    tst.b   plane_a_initial_ring_rebuild_active
+    beq.s   .Lplane_a_sel12_shared_visual_resident
     move.w  0(%sp), %d1
     sub.w   2(%sp), %d1
     andi.w  #0x003F, %d1
@@ -745,6 +748,8 @@ genesistan_hook_tilemap_plane_a_selector12_native:
     move.w  %d2, 0(%a6,%d3.w)
     lea     staged_fg_buffer, %a6
 
+    tst.b   plane_a_initial_ring_rebuild_active
+    beq.s   .Lplane_a_sel12_stage_entering_row
     move.w  0(%sp), %d0
     sub.w   2(%sp), %d0
     andi.w  #0x003F, %d0
@@ -776,17 +781,11 @@ genesistan_hook_tilemap_plane_a_selector12_native:
     cmpi.w  #16, %d4
     blo     .Lplane_a_sel12_segment_loop
 
-    /* Record ownership only when the authored row was physically published.
-     * An off-window arcade prefetch remains represented by retained stream
-     * state and collision data, not by destructively relabeling its N-32
-     * Genesis alias.  Zero means invalid; logical rows are stored +1. */
+    /* The ordinary author owns this complete physical row, including when it
+     * is in the four-row offscreen prefetch margin.  The scene replay installs
+     * all final identities together.  Zero means invalid; rows are stored +1. */
     tst.b   plane_a_initial_ring_rebuild_active
     bne.s   .Lplane_a_sel12_residency_recorded
-    move.w  0(%sp), %d0
-    sub.w   2(%sp), %d0
-    andi.w  #0x003F, %d0
-    cmpi.w  #32, %d0
-    bhs.s   .Lplane_a_sel12_residency_recorded
     moveq   #0, %d0
     move.w  0(%sp), %d0
     move.w  %d0, %d1
@@ -796,11 +795,11 @@ genesistan_hook_tilemap_plane_a_selector12_native:
     move.b  %d0, 0(%a0,%d1.w)
 .Lplane_a_sel12_residency_recorded:
 
-    /* A selector-1/2 authoring call can cross a camera row before returning
-     * to 0x55696/0x5572E for the retained 10B0 store.  Those calls bypass the
-     * no-publication hooks at 0x55704/0x55790, so materialize the genuinely
-     * entering row(s) here using the same native row source/provenance path.
-     * This is bounded by the retained scroll delta and creates no backing map. */
+    /* A selector-1/2 authoring call can cross a visible edge before returning
+     * to 0x55696/0x5572E for the retained 10B0 store.  It bypasses the existing
+     * no-publication hook, so materialize only that entering Plane-A edge.  Do
+     * not suppress or reconstruct the ordinary prefetch row, and do not touch
+     * independently owned Plane B. */
     tst.b   plane_a_initial_ring_rebuild_active
     bne.s   .Lplane_a_sel12_entering_rows_done
     move.w  ARCADE_PC080SN_SELECTOR_OFFSET(%a5), %d0
@@ -809,25 +808,23 @@ genesistan_hook_tilemap_plane_a_selector12_native:
     cmpi.w  #2, %d0
     bne.s   .Lplane_a_sel12_entering_rows_done
 
-    move.w  16(%sp), %d4
-    move.w  2(%sp), %d5
+    move.w  2(%sp), %d4
+    move.w  16(%sp), %d5
 .Lplane_a_sel12_entering_rows_up_loop:
     cmp.w   %d5, %d4
     beq.s   .Lplane_a_sel12_entering_rows_done
     addq.w  #1, %d4
     andi.w  #0x003F, %d4
     move.w  %d4, %d0
-    addi.w  #31, %d0
+    addi.w  #27, %d0
     andi.w  #0x003F, %d0
     move.w  %d0, %d3
     bsr     .Lplane_a_publish_logical_row_native
-    move.w  %d3, %d0
-    bsr     .Lplane_b_publish_logical_row_native
     bra.s   .Lplane_a_sel12_entering_rows_up_loop
 
 .Lplane_a_sel12_entering_rows_down:
-    move.w  16(%sp), %d4
-    move.w  2(%sp), %d5
+    move.w  2(%sp), %d4
+    move.w  16(%sp), %d5
 .Lplane_a_sel12_entering_rows_down_loop:
     cmp.w   %d5, %d4
     beq.s   .Lplane_a_sel12_entering_rows_done
@@ -836,8 +833,6 @@ genesistan_hook_tilemap_plane_a_selector12_native:
     move.w  %d4, %d0
     move.w  %d0, %d3
     bsr     .Lplane_a_publish_logical_row_native
-    move.w  %d3, %d0
-    bsr     .Lplane_b_publish_logical_row_native
     bra.s   .Lplane_a_sel12_entering_rows_down_loop
 
 .Lplane_a_sel12_entering_rows_done:

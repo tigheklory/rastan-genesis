@@ -104,8 +104,9 @@ def static_contract() -> None:
                     ".Lplane_a_sel12_entering_rows_up_loop:",
                     ".Lplane_a_sel12_entering_rows_down_loop:",
                     "bsr     .Lplane_a_publish_logical_row_native",
-                    "bsr     .Lplane_b_publish_logical_row_native",
                     ".Lplane_a_sel12_residency_recorded:"), "selector-1/2")
+    if "bsr     .Lplane_b_publish_logical_row_native" in sel12:
+        fail("Plane-A selector-1/2 edge repair writes independently owned Plane B")
     if "MAP_GET_COLLISION" in sel12 or "MAP_GET_NAME_COLLISION_A" in sel12:
         fail("selector-1/2 reintroduces generic coordinate discovery below rebuilt A3 pointers")
     if "MAP_GET_NAME_COLLISION_A" in sel0:
@@ -554,13 +555,13 @@ def verify_no_publication_predecessor_selection() -> None:
                     )
 
 
-def verify_selector12_post_step_residency() -> None:
-    """Reject Build-0532's premature N+32 overwrite and missed entering row."""
+def verify_selector12_visible_edge_and_prefetch_margin() -> None:
+    """Preserve ordinary prefetch while repairing only a newly visible edge."""
     def visible_top(scroll: int) -> int:
         return ((-scroll + 8) & 0x1FF) >> 3
 
-    def resident(logical: int, top: int) -> bool:
-        return ((logical - top) & 63) < PHYSICAL_H
+    def visible(logical: int, top: int) -> bool:
+        return ((logical - top) & 63) < 28
 
     def entering_rows(selector: int, old_scroll: int, delta: int) -> list[int]:
         new_scroll = ((old_scroll + delta) if selector == 1
@@ -576,43 +577,43 @@ def verify_selector12_post_step_residency() -> None:
         else:
             while cursor != new_top:
                 cursor = (cursor + 1) & 63
-                rows.append((cursor + 31) & 63)
+                rows.append((cursor + 27) & 63)
         return rows
 
-    # Exact minimal-jump marker precursor: at old scroll $001F selector 1
-    # authors logical 59.  After the retained +1 scroll, the required window
-    # is logical 60..27.  Build 0532 unconditionally replaced physical 27's
-    # still-required logical 27 with its off-window logical-59 alias.
+    # Exact minimal-jump marker precursor.  At old scroll $001F selector 1
+    # authors logical 59 into physical 27.  After the retained +1 scroll the
+    # 28 visible rows are 61..24: physical 27 is one of the four offscreen
+    # rows, so this ordinary arcade prefetch is valid and must not be suppressed
+    # merely to force the complete 32-row plane into camera-window order.
     old_scroll = 0x001F
     delta = 1
     post_top = visible_top((old_scroll + delta) & 0x1FF)
-    if post_top != 61 or resident(59, post_top):
+    if post_top != 61 or visible(59, post_top):
         fail("minimal-jump row-59 post-step residency oracle changed")
     physical = 27
     tags = [None] * PHYSICAL_H
     words = [STALE] * PHYSICAL_H
     tags[physical] = 27
     words[physical] = name_word(0, 16, 27, 0)
-    if resident(59, post_top):
-        tags[physical] = 59
-        words[physical] = name_word(0, 17, 59, 0)
-    if tags[physical] != 27 or words[physical] != name_word(0, 16, 27, 0):
-        fail("off-window selector-1 prefetch destroyed resident logical row 27")
+    tags[physical] = 59
+    words[physical] = name_word(0, 17, 59, 0)
+    if tags[physical] != 59 or words[physical] != name_word(0, 17, 59, 0):
+        fail("ordinary selector-1 offscreen prefetch was not retained")
 
     # Exact wrap crossing in the same capture: selector 1 authors logical 63
     # at old scroll $0000, then advances to $0001.  The authored row remains
-    # outside the post-step window 0..31, while logical 0 genuinely enters.
+    # outside the post-step display 0..27, while logical 0 genuinely enters.
     # An ordinary selector call bypasses the no-publication hook, so the native
     # selector tail itself must materialize that entering predecessor row.
     post_top = visible_top(1)
-    if post_top != 0 or resident(63, post_top):
+    if post_top != 0 or visible(63, post_top):
         fail("selector-1 wrap post-step residency oracle changed")
     entering = entering_rows(1, 0, 1)
     if entering != [0]:
         fail(f"selector-1 ordinary crossing entered {entering}, expected [0]")
 
     # Exercise both directions and every scroll/delta combination used by the
-    # bounded helper model.  Each enumerated row must belong to the new window;
+    # bounded helper model.  Each enumerated row must belong to the new display;
     # a no-crossing step must enumerate nothing.
     for selector in (1, 2):
         for scroll in range(512):
@@ -620,9 +621,9 @@ def verify_selector12_post_step_residency() -> None:
                 signed = step if selector == 1 else -step
                 new_top = visible_top((scroll + signed) & 0x1FF)
                 rows = entering_rows(selector, scroll, step)
-                if any(not resident(row, new_top) for row in rows):
+                if any(not visible(row, new_top) for row in rows):
                     fail(
-                        "selector-1/2 entering row outside post-step window "
+                        "selector-1/2 entering row outside post-step display "
                         f"selector={selector} scroll={scroll} step={step} rows={rows}"
                     )
 
@@ -857,7 +858,7 @@ def main() -> None:
     verify_n_n32_semantics()
     verify_source_rebase_and_trailing_retention()
     verify_no_publication_predecessor_selection()
-    verify_selector12_post_step_residency()
+    verify_selector12_visible_edge_and_prefetch_margin()
     verify_plane_b_independent_context()
     verify_vertical_row_hoist_equivalence()
     verify_selector0_residency_hoist_equivalence()

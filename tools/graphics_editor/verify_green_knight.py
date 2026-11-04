@@ -81,13 +81,20 @@ def main() -> int:
     ck("11. variant carries knight frames (pieces)", bool(one.get("pieces")) and one.get("n_pieces", 0) >= 2)
     ck("12. preview uses the green-armor line (pool 0x0C)", one.get("preview_type", "").startswith("ARCADE GREEN-ARMOR"))
 
+    # Original arcade $04684E selects the normal $93-$96 frames and the
+    # actor+$3E==8 rope frames $4D/$56-$5A for this same family-2 identity.
+    r1_anim_labels = {u.get("frame_label") for u in kn if u.get("round") == 1}
+    live_labels = {"anim 0x%02X" % a for a in (0x93, 0x94, 0x95, 0x96, 0x4D, 0x56, 0x57, 0x58, 0x59, 0x5A)}
+    ck("13. R1 knight exposes exact normal and rope animation domain", r1_anim_labels == live_labels,
+       sorted(r1_anim_labels))
+
     # scene-membership: a knight entry shows only in its own castle section (mirror app.js scene_key rule)
     def visible(active):
         return [u for u in kn if u.get("scene_key") == active]
-    ck("13. R1-S2 knight entries show in R1-S2 only", all(u["scene_key"] == "PAL-R1-S2-PLANEA-CASTLE" for u in visible("PAL-R1-S2-PLANEA-CASTLE")) and visible("PAL-R1-S2-PLANEA-CASTLE"))
+    ck("14. R1-S2 knight entries show in R1-S2 only", all(u["scene_key"] == "PAL-R1-S2-PLANEA-CASTLE" for u in visible("PAL-R1-S2-PLANEA-CASTLE")) and visible("PAL-R1-S2-PLANEA-CASTLE"))
 
     t1 = hashlib.sha256(tjson.read_bytes()).hexdigest() if tjson.is_file() else None
-    ck("14. Test.json unchanged", t0 == t1)
+    ck("15. Test.json unchanged", t0 == t1)
 
     httpd.shutdown()
     print(f"\n{'GREEN_KNIGHT PASS' if not F else str(len(F)) + ' FAILED'}  (pass={len(P)})")

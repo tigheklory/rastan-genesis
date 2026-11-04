@@ -315,7 +315,14 @@ def green_knight_usages():
     if _KNIGHT_USAGES_CACHE is not None:
         return _KNIGHT_USAGES_CACHE
     frames, total = _castle_frames(0x033E)
-    knight_frames = frames[:8]
+    # Original arcade $04684E: normal mode selects $93-$96; rope mode
+    # (actor+$3E == 8) selects $4D/$56-$5A.  Show the exact live domain, not
+    # the former eight-frame visual rank that admitted unrelated programs and
+    # omitted the rope artwork.
+    knight_anim_domain = {0x93, 0x94, 0x95, 0x96, 0x4D, 0x56, 0x57, 0x58, 0x59, 0x5A}
+    knight_frames = [frame for frame in frames if frame[0] in knight_anim_domain]
+    if {frame[0] for frame in knight_frames} != knight_anim_domain:
+        raise RuntimeError("Green Sword Knight arcade animation domain is incomplete")
     mc = _maincpu()
     # ARMOR palette = the knight program's green control-byte line (line 3 -> pool 0x0C), which renders the
     # green-armored sword knight matching the arcade across all rounds (verified). The creation-table route

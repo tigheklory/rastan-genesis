@@ -66,6 +66,13 @@ BASE_PRIORITY = [0x36, 0x35, 0x32, 0x3E, 0x34, 0x3A, 0x33, 0x3C, 0x30]
 BURST_BASE = 0x0275
 BURST_ANIMS = (0x9E, 0x9F, 0xA0)
 
+# Original arcade $04684E owns the family-2 actor's displayed animation.
+# mode actor+$3E == 2 selects $93 + {1,2,3}, with $93 retained from creation;
+# rope mode actor+$3E == 8 selects $4D plus table {0,$09,$0A,$0B,$0C,$0D}.
+# This is the complete source-selected domain for the approved R1 knight usage,
+# not a visual/ranking heuristic over unrelated programs sharing base $033E.
+GREEN_KNIGHT_ANIMS = (0x93, 0x94, 0x95, 0x96, 0x4D, 0x56, 0x57, 0x58, 0x59, 0x5A)
+
 
 def _imap(profile, uid):
     m = profile["usage_palette_mappings"].get(uid) or {}
@@ -159,39 +166,17 @@ def _burst_cells():
 
 
 def _green_sword_knight_cells():
-    """Cells from the exact ranked family-2 0x033E frames exposed by Composer.
-
-    PROMT-ID-0069 established base 0x033E and the compositor route used by the
-    Palette Composer.  Mirror ``server._castle_frames``'s distinct-frame rank
-    and the knight object's eight-frame slice so unrelated programs in the
-    shared byte-sized animation table do not acquire this semantic identity.
-    """
+    """Cells from the exact arcade-selected R1 family-2 knight animations."""
     p = os.path.join(ROOT, "tools/graphics_optimizer")
     if p not in sys.path:
         sys.path.insert(0, p)
     from compositor_vm import ActorRenderState, visible_pieces
 
-    distinct = {}
-    for anim in range(0x100):
-        try:
-            pieces = visible_pieces(ActorRenderState(0x033E, anim, 0))
-        except Exception:
-            continue
-        if len(pieces) < 2:
-            continue
-        signature = tuple((piece.tile & 0x1FFF, piece.x & 0x1FF,
-                           piece.y & 0x1FF, piece.hflip, piece.vflip,
-                           piece.palette & 0xF) for piece in pieces)
-        distinct.setdefault(signature, (anim, pieces))
-    preferred = {0x93, 0x94, 0x95}
-    ranked = sorted(
-        distinct.values(),
-        key=lambda item: (0 if item[0] in preferred else 1,
-                          0 if len({piece.palette & 0xF for piece in item[1]}) > 1 else 1,
-                          -len(item[1]), item[0]),
-    )
     codes = set()
-    for _anim, pieces in ranked[:8]:
+    for anim in GREEN_KNIGHT_ANIMS:
+        pieces = visible_pieces(ActorRenderState(0x033E, anim, 0))
+        if len(pieces) < 2:
+            raise SystemExit(f"Green Sword Knight arcade animation 0x{anim:02X} has no composite")
         for piece in pieces:
             code = piece.tile & 0x1FFF
             if code < TILE_MAX:

@@ -99,6 +99,25 @@ def main():
     r_mismatch = [c for c in rastan if ("base", c) in set(mismatch)]
     knight = [c for c in base if base[c][0] == "green_sword_knight.r1.n3"]
     knight_mismatch = [c for c in knight if ("base", c) in set(mismatch)]
+    # Independently re-derive the exact $04684E normal+rope animation domain;
+    # this rejects the former rank-based eight-frame subset even if generator
+    # and output agree with each other.
+    vm_path = os.path.join(ROOT, "tools/graphics_optimizer")
+    if vm_path not in sys.path:
+        sys.path.insert(0, vm_path)
+    from compositor_vm import ActorRenderState, visible_pieces
+    knight_anims = (0x93, 0x94, 0x95, 0x96, 0x4D, 0x56, 0x57, 0x58, 0x59, 0x5A)
+    knight_expected = {
+        piece.tile & 0x1FFF
+        for anim in knight_anims
+        for piece in visible_pieces(ActorRenderState(0x033E, anim, 0))
+        if (piece.tile & 0x1FFF) < 0x1000
+    }
+    knight_covered = {
+        code for (code, bank), (_usagebase, uid, _line, _imap) in cb_map.items()
+        if bank == 0x33 and uid == "object:castle.green_sword_knight.r1.n3"
+    }
+    knight_domain_bad = knight_covered != knight_expected
 
     total_req = sum(len(bs) for bs in code_banks.values())
     print("total (code,bank) requirements:      %d" % total_req)
@@ -117,9 +136,11 @@ def main():
     print("  rastan base codes:  %d   mismatched: %d" % (len(rastan), len(r_mismatch)))
     print("-- R1 GREEN SWORD KNIGHT (object:castle.green_sword_knight.r1.n3) --")
     print("  knight base codes:  %d   mismatched: %d" % (len(knight), len(knight_mismatch)))
+    print("  $04684E normal+rope domain: expected %d covered %d exact=%s"
+          % (len(knight_expected), len(knight_covered), not knight_domain_bad))
 
     ok = (not mismatch and not incomplete and stray == 0 and not divergent_bad
-          and bool(knight) and not knight_mismatch)
+          and bool(knight) and not knight_mismatch and not knight_domain_bad)
     print("VERIFY:", "PASS" if ok else "FAIL")
     sys.exit(0 if ok else 1)
 
