@@ -41,9 +41,15 @@ def main() -> int:
     # that all 32 published rows diverged.
     vdp_hashes={r["vdp_hash"] for r in markerrows}
     vdp_readback_valid=len(vdp_hashes)>1
+    marker_y=int(marker["fg_y"],16)
+    visible_top=((-marker_y+8)&0x1ff)>>3
+    expected_by_physical={(visible_top+i)&31:(visible_top+i)&63 for i in range(32)}
     implicated=[]; overlays=[]
     for r in markerrows:
+        physical=int(r["physical"])
         tag=int(r["owner"],16); logical=(tag-1)&63 if tag else None
+        expected_logical=expected_by_physical[physical]
+        owner_mismatch=logical != expected_logical
         actual=words_bytes(r["staged_words_64"]); matches=[]
         if logical is not None:
             for rec in (16,17,20,21):
@@ -61,20 +67,25 @@ def main() -> int:
                         all(actual_words[i]==SURFACE_MARK_WORD for i in diffs)):
                     overlays.append((r["physical"],logical,rec,diffs[0]))
                     matches.append(f"arcade_surface_mark:native:r{rec}:l{logical}:c{diffs[0]}-{diffs[-1]}")
-        if (vdp_readback_valid and r["staged_hash"]!=r["vdp_hash"]) or not matches:
-            implicated.append((r["physical"],r["owner"],r["staged_hash"],r["vdp_hash"],",".join(matches) or "NO_16_17_20_21_MATCH"))
+        if (vdp_readback_valid and r["staged_hash"]!=r["vdp_hash"]) or not matches or owner_mismatch:
+            implicated.append((r["physical"],expected_logical,r["owner"],
+                                "YES" if owner_mismatch else "no",
+                                r["staged_hash"],r["vdp_hash"],
+                                ",".join(matches) or "NO_16_17_20_21_MATCH"))
     recent=[w for w in writes if mf-900<=int(w["frame"])<=mf]
     counts=Counter(w["writer"] for w in recent)
     out=td/"reduction_summary.md"
     lines=["# Build 0532 remaining Plane-A trace reduction","",
            f"Marker frame: {mf}",f"State: record {marker['record']}, selector {marker['selector']}, front {marker['front']}",
+           f"Camera FG Y: {marker['fg_y']}; required resident logical window: {visible_top}..{(visible_top+31)&63} (wrapped)",
            f"Ordered staging writes in prior 900 frames: {len(recent)}",f"Provenance writes total: {len(owners)}","",
            f"VDP readback usable: {'yes' if vdp_readback_valid else 'no (all 32 row hashes identical; ignored)'}","",
            "Writer counts near marker:"]
     lines += [f"- {k}: {v}" for k,v in sorted(counts.items())]
-    lines += ["","Rows requiring examination (staged/VDP mismatch or no exact Build-0532 record 16/17/20/21 asset match):","",
-              "| physical | owner tag | staged hash | VDP hash | exact asset matches |","|---:|---:|---:|---:|---|"]
-    lines += [f"| {p} | {o} | `{s}` | `{v}` | {m} |" for p,o,s,v,m in implicated]
+    lines += ["","Rows requiring examination (resident-owner mismatch, staged/VDP mismatch, or no exact Build-0532 record 16/17/20/21 asset match):","",
+              "| physical | required logical | owner tag | owner mismatch | staged hash | VDP hash | exact asset matches |","|---:|---:|---:|:---:|---:|---:|---|"]
+    lines += [f"| {p} | {e} | {o} | {mismatch} | `{s}` | `{v}` | {m} |"
+              for p,e,o,mismatch,s,v,m in implicated]
     lines += ["","Arcade-authored dynamic surface-mark overlays:"]
     lines += ([f"- physical {p}, logical {l}, record {rec}, columns {col}-{col+3}: four native `$25C7` / `$02DF` cells"
                for p,l,rec,col in overlays] or ["- none"])

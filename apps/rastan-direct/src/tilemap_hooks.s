@@ -570,7 +570,7 @@ genesistan_hook_tilemap_plane_a_selector0_native:
 
 genesistan_hook_tilemap_plane_a_selector12_native:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
-    suba.w  #16, %sp
+    suba.w  #20, %sp
 
     lea     0x00FF0000, %a5
     move.b  #1, fg_native_gameplay_owner
@@ -610,17 +610,30 @@ genesistan_hook_tilemap_plane_a_selector12_native:
     andi.w  #0x003F, %d0
     move.w  %d0, 0(%sp)             /* logical row */
 
-    /* Build 0399: same fix as selector0 -- use the LIVE arcade Plane-A vertical
-     * scroll (a5@0x10B0) so this horizontal column producer shares one coherent
-     * vertical front with the vertical row/pan producers.  Was staged_scroll_y_fg
-     * (latent copy); arithmetic below unchanged, only the scroll source operand. */
+    /* Use the retained pre-step scroll to derive both the old and post-step
+     * resident windows.  Original selector-1/2 authors the PC080SN row before
+     * committing 10B0.  The arcade's 64-row name RAM can retain that authored
+     * row alongside its N-32 alias; Genesis Plane A cannot.  Visual publication
+     * must therefore be limited to the post-step 32-row native window, while
+     * collision publication still covers the complete semantic row. */
     move.w  ARCADE_PC080SN_SCROLL_Y_FG_OFFSET(%a5), %d0
-    neg.w   %d0
-    addq.w  #8, %d0
-    andi.w  #0x01FF, %d0
-    lsr.w   #3, %d0
-    andi.w  #0x003F, %d0
-    move.w  %d0, 2(%sp)             /* visible top logical row */
+    bsr     .Lplane_a_visible_top_from_scroll_d0
+    move.w  %d0, 16(%sp)            /* pre-step visible top logical row */
+
+    move.w  ARCADE_PC080SN_SCROLL_Y_FG_OFFSET(%a5), %d0
+    tst.b   plane_a_initial_ring_rebuild_active
+    bne.s   .Lplane_a_sel12_post_scroll_ready
+    cmpi.w  #1, ARCADE_PC080SN_SELECTOR_OFFSET(%a5)
+    beq.s   .Lplane_a_sel12_project_selector1
+    cmpi.w  #2, ARCADE_PC080SN_SELECTOR_OFFSET(%a5)
+    bne.s   .Lplane_a_sel12_post_scroll_ready
+    sub.w   ARCADE_PC080SN_SCROLL_Y_DELTA_OFFSET(%a5), %d0
+    bra.s   .Lplane_a_sel12_post_scroll_ready
+.Lplane_a_sel12_project_selector1:
+    add.w   ARCADE_PC080SN_SCROLL_Y_DELTA_OFFSET(%a5), %d0
+.Lplane_a_sel12_post_scroll_ready:
+    bsr     .Lplane_a_visible_top_from_scroll_d0
+    move.w  %d0, 2(%sp)             /* post-step visible top logical row */
 
     lea     PC080SN_DESC_REBUILD_PTR_TABLE, %a3
     lea     genesistan_pc080sn_tile_vram_lut, %a2
@@ -667,15 +680,10 @@ genesistan_hook_tilemap_plane_a_selector12_native:
     beq.s   .Lplane_a_sel12_shared_blank
     movea.l %a0, %a4
 
-    /* An ordinary 0x55A14 call is the arcade's semantic decision to publish
-     * exactly this entering row.  It runs before 0x55696/0x5572E commits the
-     * new Y scroll, so testing against that old window would reject the row
-     * and expose the physical row from 32 logical rows earlier.  The bounded
-     * 64-row scene reseed is the only caller that still needs the residency
-     * test to select its final 32 rows.  Collision consumes its independent
-     * record field in both cases. */
-    tst.b   plane_a_initial_ring_rebuild_active
-    beq.s   .Lplane_a_sel12_shared_attr_resident
+    /* Resolve visual attributes only when this logical row belongs to the
+     * post-step Genesis resident window.  The retained arcade authoring event
+     * is still honored for collision below even when its 64-row prefetch is
+     * not yet physically resident on the 32-row Genesis plane. */
     move.w  0(%sp), %d0
     sub.w   2(%sp), %d0
     andi.w  #0x003F, %d0
@@ -704,8 +712,6 @@ genesistan_hook_tilemap_plane_a_selector12_native:
     move.l  %a4, %d1
     beq.s   .Lplane_a_sel12_shared_outputs_ready
     move.w  0x20(%a4,%d0.w), %d2             /* collision for every column */
-    tst.b   plane_a_initial_ring_rebuild_active
-    beq.s   .Lplane_a_sel12_shared_visual_resident
     move.w  0(%sp), %d1
     sub.w   2(%sp), %d1
     andi.w  #0x003F, %d1
@@ -739,8 +745,6 @@ genesistan_hook_tilemap_plane_a_selector12_native:
     move.w  %d2, 0(%a6,%d3.w)
     lea     staged_fg_buffer, %a6
 
-    tst.b   plane_a_initial_ring_rebuild_active
-    beq.s   .Lplane_a_sel12_stage_entering_row
     move.w  0(%sp), %d0
     sub.w   2(%sp), %d0
     andi.w  #0x003F, %d0
@@ -772,13 +776,17 @@ genesistan_hook_tilemap_plane_a_selector12_native:
     cmpi.w  #16, %d4
     blo     .Lplane_a_sel12_segment_loop
 
-    /* One ordinary selector-1/2 publication semantically owns this complete
-     * logical row.  Record that identity only after all sixteen four-cell
-     * segments have run.  The bounded scene replay installs all 32 identities
-     * together after its final projection, so it deliberately skips this
-     * incremental update.  Zero means invalid; logical rows are stored +1. */
+    /* Record ownership only when the authored row was physically published.
+     * An off-window arcade prefetch remains represented by retained stream
+     * state and collision data, not by destructively relabeling its N-32
+     * Genesis alias.  Zero means invalid; logical rows are stored +1. */
     tst.b   plane_a_initial_ring_rebuild_active
     bne.s   .Lplane_a_sel12_residency_recorded
+    move.w  0(%sp), %d0
+    sub.w   2(%sp), %d0
+    andi.w  #0x003F, %d0
+    cmpi.w  #32, %d0
+    bhs.s   .Lplane_a_sel12_residency_recorded
     moveq   #0, %d0
     move.w  0(%sp), %d0
     move.w  %d0, %d1
@@ -788,7 +796,53 @@ genesistan_hook_tilemap_plane_a_selector12_native:
     move.b  %d0, 0(%a0,%d1.w)
 .Lplane_a_sel12_residency_recorded:
 
-    adda.w  #16, %sp
+    /* A selector-1/2 authoring call can cross a camera row before returning
+     * to 0x55696/0x5572E for the retained 10B0 store.  Those calls bypass the
+     * no-publication hooks at 0x55704/0x55790, so materialize the genuinely
+     * entering row(s) here using the same native row source/provenance path.
+     * This is bounded by the retained scroll delta and creates no backing map. */
+    tst.b   plane_a_initial_ring_rebuild_active
+    bne.s   .Lplane_a_sel12_entering_rows_done
+    move.w  ARCADE_PC080SN_SELECTOR_OFFSET(%a5), %d0
+    cmpi.w  #1, %d0
+    beq.s   .Lplane_a_sel12_entering_rows_down
+    cmpi.w  #2, %d0
+    bne.s   .Lplane_a_sel12_entering_rows_done
+
+    move.w  16(%sp), %d4
+    move.w  2(%sp), %d5
+.Lplane_a_sel12_entering_rows_up_loop:
+    cmp.w   %d5, %d4
+    beq.s   .Lplane_a_sel12_entering_rows_done
+    addq.w  #1, %d4
+    andi.w  #0x003F, %d4
+    move.w  %d4, %d0
+    addi.w  #31, %d0
+    andi.w  #0x003F, %d0
+    move.w  %d0, %d3
+    bsr     .Lplane_a_publish_logical_row_native
+    move.w  %d3, %d0
+    bsr     .Lplane_b_publish_logical_row_native
+    bra.s   .Lplane_a_sel12_entering_rows_up_loop
+
+.Lplane_a_sel12_entering_rows_down:
+    move.w  16(%sp), %d4
+    move.w  2(%sp), %d5
+.Lplane_a_sel12_entering_rows_down_loop:
+    cmp.w   %d5, %d4
+    beq.s   .Lplane_a_sel12_entering_rows_done
+    subq.w  #1, %d4
+    andi.w  #0x003F, %d4
+    move.w  %d4, %d0
+    move.w  %d0, %d3
+    bsr     .Lplane_a_publish_logical_row_native
+    move.w  %d3, %d0
+    bsr     .Lplane_b_publish_logical_row_native
+    bra.s   .Lplane_a_sel12_entering_rows_down_loop
+
+.Lplane_a_sel12_entering_rows_done:
+
+    adda.w  #20, %sp
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
