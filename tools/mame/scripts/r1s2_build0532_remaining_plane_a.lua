@@ -86,6 +86,7 @@ markers:write("frame\tsequence\tfg_y\trecord\tselector\tstrip\tgroup\tfront\tpla
 markerrows:write("frame\tphysical\towner\tdirty\tstaged_hash\tvdp_hash\tstaged_words_64\tvdp_words_64\tstate\n")
 meta:write("platform=GENESIS NTSC MAME\nmachine=genesis\npurpose=Build 0532 remaining R1-S2 first-bad-transition\n")
 meta:write("input_policy=manual only; no game-memory, ROM, controller, or save-state writes\n")
+meta:write("gameplay_route="..(os.getenv("R1S2_TRACE_ROUTE") or "unspecified_manual_route").."\n")
 meta:write("rom_sha256="..(os.getenv("ROM_SHA") or "UNKNOWN").."\nrom_source_commit="..(os.getenv("ROM_SOURCE_COMMIT") or "UNKNOWN").."\n")
 meta:write("marker_key=M\nstarted="..os.date("!%Y-%m-%dT%H:%M:%SZ").."\n")
 

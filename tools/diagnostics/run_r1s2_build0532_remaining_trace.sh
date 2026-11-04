@@ -7,6 +7,8 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 ROM="${R1S2_0532_ROM:-${ROOT}/dist/rastan-direct/rastan_direct_video_test_build_0532_invincible_S1-2.bin}"
 SYMBOLS="${ROOT}/apps/rastan-direct/out/symbol.txt"
 TRACE_ROOT="${R1S2_0532_TRACE_ROOT:-${ROOT}/states/traces/r1s2_remaining_build_0532}"
+TRACE_ROUTE="${R1S2_0532_TRACE_ROUTE:-unspecified_manual_route}"
+TRACE_INSTRUCTION="${R1S2_0532_TRACE_INSTRUCTION:-Reproduce the later record-21 corruption. Press M immediately when it first becomes visible, then close MAME.}"
 STAMP="$(date -u +%Y%m%d_%H%M%S)"
 TRACE_DIR="${TRACE_ROOT}/genesis_${STAMP}"
 LUA="${ROOT}/tools/mame/scripts/r1s2_build0532_remaining_plane_a.lua"
@@ -44,6 +46,7 @@ sym() {
 }
 
 export TRACE_DIR ROM_SHA="$EXPECTED_ROM_SHA" ROM_SOURCE_COMMIT="566e9c63e5254be6179a0948a34958c20959c68c"
+export R1S2_TRACE_ROUTE="$TRACE_ROUTE"
 export R1S2_STAGED_FG_ADDR="$(sym staged_fg_buffer)"
 export R1S2_FG_ROW_DIRTY_ADDR="$(sym fg_row_dirty)"
 export R1S2_PROVENANCE_ADDR="$(sym plane_a_resident_logical_rows)"
@@ -66,7 +69,8 @@ echo "Build 0532 remaining R1-S2 Plane-A capture (read-only)"
 echo "ROM: $ROM"
 echo "SHA-256: $EXPECTED_ROM_SHA"
 echo "Output: $TRACE_DIR"
-echo "Reproduce the later record-21 corruption. Press M immediately when it first becomes visible, then close MAME."
+echo "Route: $TRACE_ROUTE"
+echo "$TRACE_INSTRUCTION"
 echo "No controller input, ROM, game memory, or save state is modified by this script."
 exec "$MAME_BIN" genesis -cart "$ROM" -window -resolution 640x448 \
   -sound "$MAME_SOUND" -midiprovider none -skip_gameinfo \
