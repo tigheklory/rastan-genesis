@@ -115,13 +115,15 @@ z80_write_command:
        player_state==3 re-appearance at a large player_x, so requiring the spawn
        column suppresses it while preserving the accepted spawn/respawn start.
 
-       Natural R1-S1 -> R1-S2 proves one more original distinction: retained
-       substate 9 publishes the authentic Scene-2 request $27, then the shared
-       appearance cue $25 occurs at the new spawn column.  $25 is not a second
-       music-selection request in the original sound driver.  The native
-       Aggressive fallback therefore applies only while the retained record is
-       in R1-S1's outdoor range; castle/boss appearance cues are consumed and
-       cannot replace their authentic $27/$1C selections. */
+       Natural R1-S1 -> R1-S2 proves one more original distinction: the shared
+       appearance cue $25 is followed by the authentic Scene-2 request $1B.
+       The separate retained substate-9 route at $055F68 can publish $27, and
+       the direct-start derivative exercises that route, but the captured
+       natural boundary is $25,$1B.  $25 is not a second music-selection
+       request in the original sound driver.  The native Aggressive fallback
+       therefore applies only while the retained record is in R1-S1's outdoor
+       range; castle/boss appearance cues are consumed and cannot replace the
+       authentic following $1B/$1C selections. */
     cmpi.b  #0x25, %d0
     bne.s   .Lnot_appearance
     cmpi.w  #0x0002, ARCADE_OUTER_STATE
