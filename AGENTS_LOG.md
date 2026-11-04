@@ -55026,3 +55026,35 @@ TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0069
   Build 0534 remains unaccepted pending Tighe's normal/aggressive climbing, reversal, later-record, and
   green-knight rope-palette gameplay checks.
 - Standalone report: `docs/design/Cody_build0534_visible_plane_a_edge_and_knight_rope_palette.md`.
+
+### MAME Exit Summary (2026-11-04 16:58:43)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-11-04 17:00:55)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-11-04 17:08:21)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-11-04 17:12:08)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0079 — Build 0538 natural Round-1 transitions (Cody, 2026-11-04)
+
+- Resumed interrupted historical PROMT-ID-0076 without discarding its partial AUDIO-015 timing-harness work. Original and Genesis evidence corrects the inherited ordering premise: natural R1-S2 entry emits `$25,$1B`; `$27` is a separate valid retained/direct-start route mapped to the same existing Re-In-Carnation payload. R1-S3 emits `$25,$1C`.
+- Source commits `e62f72b3`, `dc2debf3`, `4e894cb5`, `452873f6`, `31adf1e7`, and `5da153de` distinguish substate-13 gameplay ownership from death/READY frontend reset, activate the unchanged generated palette at successful package installation, classify `$25` as Aggressive World only at a genuine outdoor spawn, and add a machine-state natural-transition regression. Comment-only provenance correction: `ce6bf240`.
+- Build 0534's 28-visible-row/four-prefetch-row Plane-A implementation is unchanged. The isolated final-segment stale 8-pixel pipe row remains **OPEN** because this task obtained no narrow first-bad-row provenance proof sufficient to risk that working model.
+- Natural regression PASS: R1-S2 stable record `$0011`, package 5, palette MATCH and `$25,$1B`; R1-S3 stable record `$0017`, package 5, palette MATCH and `$25,$1C`; zero banked-stream mismatches. Direct R1-S2 `$27` regression also PASS.
+- Build 0538 normal ROM: 3,841,720 bytes, SHA-256 `8279100957f710e768dece23a8b39d1b4c9e978228f0be89f31ec53926747ee6`. Counter 538. Candidate pending Tighe's natural gameplay acceptance.
+- `Test.json` SHA remains `24914ababc7fab52aac8258dd1f9f7b3d5df230b81421c03d9ce68d1526135ae`. Palette Editor/Composer/generator/warrior-coverage files modified: **NO**. Warrior non-mode-2/non-mode-8 programs `$71-$74` are handed to Andy for runtime crouch identification and Composer coverage.
+- Report: `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0079_resume_natural_round1_transitions.md`. No GitHub push was performed.
+
+`TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0079`
