@@ -54965,3 +54965,38 @@ TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0069
   `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0072_build0533_plane_a_and_current_palette_integration.md`.
 
 `TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0072`
+
+### MAME Exit Summary (2026-11-04 11:32:11)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0072 — Build 0533 Plane-A residency fix (Cody, 2026-11-04)
+
+- Tighe's minimal-jump Build-0532 capture marker at frame 2106 is usable despite the approximately
+  0.25-second reaction delay. Owner-aware reduction proves two wrong physical aliases at FG Y `$0021`:
+  physical 0 contains logical 32 instead of required logical 0, and physical 27 contains logical 59
+  instead of required logical 27.
+- Root cause: ordinary selector-1/2 authoring occurs before the retained scroll commit. Build 0532
+  published a legal arcade 64-row prefetch even when it was outside the Genesis post-step 32-row window,
+  destructively replacing N-32, while an ordinary step that crossed a camera row bypassed the existing
+  no-publication entering-row materializer.
+- Commit `a2f777a8f749a6a9e959e0178b06b8290a4aa3e4` limits visual/provenance publication to the post-step
+  resident window, preserves full collision authoring, and materializes rows genuinely entering on the
+  same ordinary step through the existing native Plane-A/Plane-B publishers. No graphics shadow, 64-row
+  backing map, coordinate/input special case, or PC080SN emulator was added.
+- Build 0533 normal SHA: `3e43bee4bc652980826a4e67bc6cee005d035c934620c4d6fc7b2a77812bcf2b`.
+  Primary invincible R1-S2 SHA: `34aff3f4f6ef91cba70ccb018f48cb3c8747d068e6512ae58a37d96055a4e2cd`.
+  Counter/ledger 0532 -> 0533; all artifacts are 3,792,568 bytes.
+- Canonical, gameplay-entry, six Round-1 epoch/package, 30-second Genesis NTSC MAME, configured-family,
+  invincibility, static subround, and both normal/invincible R1-S2 functional-start gates pass. Direct
+  starts reach frame 412, stage `$0010`, record `$0011`, package 5, full planes, and zero map misses.
+- Build 0533 forced and verified Tighe's current `Test.json` SHA
+  `24914ababc7fab52aac8258dd1f9f7b3d5df230b81421c03d9ce68d1526135ae`, including the current Rastan and
+  R1 green-sword-knight decisions; visual palette acceptance remains Tighe's.
+- Exact traced defect: **PROVEN FIXED BY CODE**, pending Tighe gameplay acceptance with minimal climbing,
+  record 21 continuation, reversal, and aggressive jump-assisted climbing.
+- Standalone report:
+  `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0072_build0533_plane_a_and_current_palette_integration.md`.
+
+`TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0072`

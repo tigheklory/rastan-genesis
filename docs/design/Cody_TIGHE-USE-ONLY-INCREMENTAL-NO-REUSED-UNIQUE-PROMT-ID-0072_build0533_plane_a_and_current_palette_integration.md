@@ -1,263 +1,236 @@
-# Build 0533 Plane-A and current-palette integration result
+# Build 0533 Plane-A residency and current-palette integration
 
-Date: 2026-11-03
+Date: 2026-11-04
 
-Assignment: `TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0072`
+Agent/task: Cody — `TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0072`
+
+Baseline: Tighe-accepted Build 0532
+
+Candidate: Build 0533, awaiting Tighe gameplay/palette acceptance
+
+STOP status: no STOP condition
 
 ## Accepted Build-0532 Baseline
 
-Tighe accepted Build 0532 as the integration baseline while explicitly retaining the later R1-S2
-Plane-A defect. The accepted normal ROM is
+Build 0532 remains the accepted integration baseline. Its normal ROM is
 `dist/rastan-direct/rastan_direct_video_test_build_0532.bin`, SHA-256
-`1682b5409010e4da850d8bc24ebac2877253e5ee8ad5d3e043df36b4fafd6838`. The focused manual-test ROM is
-`dist/rastan-direct/rastan_direct_video_test_build_0532_invincible_S1-2.bin`, SHA-256
-`adf3eb18b633f547e21b129ad026c59862a7f921734db9155fe2294c57917879`. ROM-producing source is
+`1682b5409010e4da850d8bc24ebac2877253e5ee8ad5d3e043df36b4fafd6838`; its focused invincible R1-S2 ROM
+is `rastan_direct_video_test_build_0532_invincible_S1-2.bin`, SHA-256
+`adf3eb18b633f547e21b129ad026c59862a7f921734db9155fe2294c57917879`. ROM-producing source was
 `566e9c63e5254be6179a0948a34958c20959c68c`.
 
-The branch was not reset. Work after 0532, including PROMT-ID-0069 and repository cleanup, remains in
-history. The counter and consumed ledger remain 0532; this task did not consume 0533.
+The branch was not reset. PROMT-ID-0069 Palette Composer work, Tighe's current profile, repository
+cleanup, and the accepted 0525–0532 Plane-A corrections remain intact.
 
 ## Current Test.json Provenance
 
-- path: `/home/tighe/projects/rastan-genesis/analysis/graphics_optimizer/editor_policy/Test.json`;
-- SHA-256: `24914ababc7fab52aac8258dd1f9f7b3d5df230b81421c03d9ce68d1526135ae`;
-- size and mtime at integration: 305,510 bytes, 2026-11-03 14:57:29 -0500;
-- Git state: tracked mode 100644, blob `8a0a45641ff640d9b70b53b6b5294d7cd297e567`, unmodified by Cody;
-- Build-0532 profile SHA: `86505de8a7566e0a13a083bf6b3715fa61eb9242102091aadb589d7583cde9fb`.
+- Authoritative path: `/home/tighe/projects/rastan-genesis/analysis/graphics_optimizer/editor_policy/Test.json`
+- SHA-256 at Build 0533: `24914ababc7fab52aac8258dd1f9f7b3d5df230b81421c03d9ce68d1526135ae`
+- Size/mtime: 305,510 bytes; 2026-11-03 14:57:29 -0500
+- Git state: tracked mode 100644, blob `8a0a45641ff640d9b70b53b6b5294d7cd297e567`, unmodified by Cody
+- Build-0532 profile SHA: `86505de8a7566e0a13a083bf6b3715fa61eb9242102091aadb589d7583cde9fb`
 
-The production chain is not one generator:
+The forced normal build proved this production chain:
 
-1. `gen_pc090oj_palsel_lut.py` generates `out/pc090oj_palsel_lut.inc`; `pc090oj_hooks.o` consumes it.
-2. `gen_reindexed_pc090oj.py` generates `pc090oj_editor.bin` and
-   `out/pc090oj_sprite_variants.inc`; `pc090oj_assets.o` and `pc090oj_hooks.o` consume them.
-3. `gen_test_palette_cram.py` generates CRAM lines 0, 1, and 3; `palette_hooks.o` includes them.
-4. `export_subround_palette_manifest.py --profile Test` generates the R1-S1/R1-S2 scene CRAM binaries;
-   `palette_hooks.o` includes them.
-5. `gen_reindexed_region.py` generates the authored PC080SN Layer-A region used by the boundary compiler
-   and native Plane-A assets.
-6. `build_pc090oj_hud_white.py` generates the semantic PC090OJ profile included by `pc090oj_assets.o`.
+`Tighe current Test.json -> gen_pc090oj_palsel_lut.py / gen_reindexed_pc090oj.py /
+gen_test_palette_cram.py / export_subround_palette_manifest.py / compile_pc080sn_genesis.py /
+build_pc090oj_hud_white.py -> generated palette, reindexed PC090OJ, Plane-A and semantic profile data ->
+palette_hooks.o / pc090oj_hooks.o / pc090oj_assets.o / tilemap_hooks.o -> linked ROM`.
 
-Every corresponding Make target directly depends on the live profile. The normal prepatch/link graph
-depends on those objects, and the final ROM rule runs `verify_palette_families.py`. No stale snapshot or
-parallel palette path is used.
+Generated evidence carries the current profile SHA. Key hashes are:
+
+- `pc090oj_palsel_lut.inc`: `87737f13ae488359dd9dc4a37a92423c002150a4715a270340e34b7bd9956f8d`
+- `pc090oj_sprite_variants.inc`: `77a2370d47e0574e50fc2bff187c41f1826cece90be32c81f77868ee1188cd8c`
+- `pc090oj_editor.bin`: `c6dfce3893a52e0f45bc27e3b816467df0f1fddba9e37f5e87b95885f794b629`
+- semantic PC090OJ profile: `cfff14aada0338903c62dfdd1e188fd43a0eea7cfcdd6d9dc52080ea141a1975`
+- R1-S2 CRAM: `281f9f38c8e58101f6c01aa5d5578605313949ea9e32e26f287355a19767c26d`
 
 ## Tighe Palette Changes Since 0532
 
-The exact semantic delta from the Build-0532 profile is:
+The semantic profile delta remains:
 
-- new `object:castle.green_sword_knight.r1.n3`, destination line 0, with Tighe's complete authored
-  index map;
-- `object:player.rastan`: source indices 7 and 15 exchanged destinations (old `7->6`, `15->3`; current
-  `7->3`, `15->6`);
-- `PAL-R1-S2-PLANEA-CASTLE` gained target-palette line-0 index 6 = `$002C`;
-- no `plane_usage_palette_mappings` or `target_palette_lines` changes.
+- new `object:castle.green_sword_knight.r1.n3`, destination line 0, with Tighe's complete authored map;
+- `object:player.rastan` source indices 7 and 15 exchange destinations (`7->3`, `15->6`);
+- `PAL-R1-S2-PLANEA-CASTLE` target line-0 index 6 is `$002C`;
+- no plane-usage mapping or target-palette-line policy change.
 
 Only the exact Round-1 knight context is authored. Later-round knight variants remain unresolved and
-were not inferred. Canonical registry entry `PAL-PC090OJ-R1S2-GREEN-SWORD-KNIGHT-001` records the current
-decision without changing Tighe's profile. Existing Rastan decision
-`PAL-PC090OJ-GAMEPLAY-RASTAN-SWORD-001` remains the narrower proven nibble-3/sword route and is not
-reinterpreted as a global player-body mapping.
-
-## Generated Palette Integration
-
-Forced Makefile-owned generation exposed that the dependency graph was correct but
-`gen_reindexed_pc090oj.py` did not yet enumerate the PROMT-ID-0069 knight semantic object. The generated
-manifest therefore omitted Tighe's new mapping. The generator now feeds the exact eight ranked
-decompilation/compositor-backed `0x033E` frames used by Palette Composer into the existing
-`(code,effective-bank)` variant pipeline. There is no assembly hardcode and no new palette choice.
-
-The result covers 30 knight base codes plus one genuine code/bank variant at code `$030C`; all transformed
-cells independently match the authored map. Current generated hashes include:
-
-- `pc090oj_editor.bin`: `c6dfce3893a52e0f45bc27e3b816467df0f1fddba9e37f5e87b95885f794b629`;
-- `pc090oj_sprite_variants.inc`: `77a2370d47e0574e50fc2bff187c41f1826cece90be32c81f77868ee1188cd8c`;
-- `pc090oj_palsel_lut.inc`: `87737f13ae488359dd9dc4a37a92423c002150a4715a270340e34b7bd9956f8d`;
-- R1-S2 CRAM: `281f9f38c8e58101f6c01aa5d5578605313949ea9e32e26f287355a19767c26d`.
-
-The generated reports and includes all carry the current profile SHA. Line 2 remains reserved and is not
-among the generated Test CRAM lines.
+were not inferred. Line 2 remains reserved and is not generated. Automated checks prove integration,
+not visual acceptance.
 
 ## Build-0532 Remaining Plane-A Failure
 
-Tighe's Build-0532 test proves that the larger later record-21 corruption survives the corrected
-next-to-author formula. Existing Build-0529/0530 captures cannot establish the second Build-0532
-transition: they predate exact-owner preservation, current-row rematerialization, and the exclusive
-boundary fix, and contain already-proven earlier failures.
+Tighe's focused minimal-jump capture is:
 
-The retained semantic cut remains:
+`states/traces/r1s2_minimal_jump_stale_row_build_0532/genesis_20261104_162107/`.
 
-`arcade publish/preserve decision -> final Genesis Plane-A resident words`
+The marker is frame 2106, only two frames after the immediately relevant author event and 115 frames
+before capture end. A roughly 0.25-second reaction delay is therefore harmless. The old reducer reported
+zero implicated rows because it asked whether each row matched *any* valid record asset. It did not ask
+whether that logical row belonged in that physical slot at the current camera position.
 
-The retired chip tail remains PC080SN C08000/name-RAM row walking and writes.
-`staged_fg_buffer` remains the only final-native 64x32 Plane-A image. No shadow map, 64-row backing store,
-or PC080SN emulation was added.
+At marker FG Y `$0021`, the required 32-row window is logical 60..63,0..27. The corrected reduction finds:
 
-Source inspection confirms that the formula-only verifier is insufficient to diagnose the report. A row
-can be staged and tagged by selector-1/2 or the no-publication materializer and then be touched by another
-producer or published in a different order. The exact runtime order is not present in existing evidence.
+| Physical | Required logical | Actual owner | Actual exact asset |
+|---:|---:|---:|---|
+| 0 | 0 | 32 (`$21` tag) | record-16 logical 32 |
+| 27 | 27 | 59 (`$3C` tag) | record-17 logical 59 |
+
+This is wrong provenance with internally valid row contents, explaining why static asset matching passed.
 
 ## First Bad State
 
-Tighe completed the focused capture at
-`states/traces/r1s2_remaining_build_0532/genesis_20261103_220739/` and reported that pressing the marker
-key took about one second after noticing the visual change. The marker is frame 2146, so the ordered
-review covered at least 60 frames before it. The first change relevant to the marked area is at frame
-2101, 45 frames before the marker:
+The first incorrect transition in this record begins at frame 2068:
 
-| Field | Captured value |
-|---|---|
-| record / selector / front | `$0011` / 1 / 11 |
-| camera / player | FG Y `$0051`; player X/Y `$0121/$0040` |
-| logical / physical row | 20 / 20 |
-| columns | 4 through 7 |
-| writer | `genesistan_hook_tilemap_fg_fill`, store PC `$071D1A` |
-| old native names | `$63F3,$6418,$64A1,$63E9` |
-| new native names | four `$02DF` words |
-| owner before/after | logical 20 (`$15` tag), unchanged |
-| staged hash after | `$77A57EF0` |
+- record/selector/front/group/strip: `$0011` / 1 / 0 / 0 / 0;
+- pre-step FG Y `$0000`, retained delta `+1`; post-step FG Y `$0001`;
+- pre-step visible top 1; post-step visible top 0;
+- original selector-1 author: logical row 63, physical alias 31;
+- writer path: `genesistan_hook_tilemap_plane_a_selector12_native`, captured store PC `$070900`;
+- owner before: logical 31 (`$20` tag); staged hash `$4F701A97`;
+- owner/content after: logical 63 (`$40` tag), staged hash `$076984EF`, dirty set;
+- required post-step physical-31 owner: logical 31, so the logical-63 write is premature;
+- simultaneously entering logical row 0 is not materialized because the ordinary author branch bypasses
+  the no-publication hooks; physical 0 remains logical 32.
 
-This is **not a first incorrect Plane-A transition**. It is the native realization of the original
-arcade dynamic surface marker. The caller is `genesistan_collision_surface_mark_visual_native`, which
-retains the original `collision_map_surface_mark_5a2ee` decision and publishes four arcade code `$25C7`
-cells. Build 0532 maps `$25C7` to native name `$02DF` (slot 735); the compiled 32 pattern bytes at
-`$25C7 * 32` are byte-identical to `build/regions/pc080sn.bin`.
+The same destructive prefetch repeats. Immediately before the marker, frame 2104 authors logical 59 while
+FG Y is `$001F`; after the retained `+1` step, the required window is 61..28, so logical 59 is still outside
+the window. Build 0532 nevertheless replaces physical row 27's required logical 27. By marker frame 2106,
+the window is 60..27 and that wrong alias is visible/resident.
 
-Most importantly, the already-preserved original-arcade trace independently contains the same event:
-
-- original arcade frame 2459, record `$0011`, selector 1, strip/group 3/2, front 11;
-- FG Y `$0053`, player X/Y `$0129/$003F` (the equivalent scroll/player neighborhood);
-- original PCs `$05A350..$05A356` write attribute/code `0000:25C7` to logical row 20, columns 4..7;
-- the overwritten arcade cells are the same record-16 row cells that the Genesis native row held.
-
-Thus the static Palette Editor map is not the complete runtime image at this point: the original game
-legitimately overlays these four cells after collision postprocessing. The marker snapshot has zero
-unexplained staged rows: all other rows exactly match the Build-0532 record 16/17 assets, and row 20
-matches record-16 logical row 20 with exactly this four-cell arcade-authored overlay.
-
-The capture's VDP-address-space readback returned one identical blank hash for all 32 rows, so that
-channel is classified unusable rather than treated as 32 missing publications. The ordered staging,
-owner, dirty, and original-arcade name-RAM evidence remains valid. The reducer now detects this readback
-condition and recognizes an exact four-cell `$25C7` overlay instead of reporting it as a static-row
-failure.
-
-The separate Build-0532 tracer records, for every staging transition:
-
-- frame and total event order;
-- record, selector, completed selector, front, group, strip, and camera/player coordinates;
-- physical row/column and writer PC/path;
-- owner tag and dirty state before the write;
-- pre-first-write and post-frame 64-word staged and VDP rows;
-- every provenance change;
-- all 32 complete staged/VDP rows at Tighe's first-visible-corruption marker.
-
-It is SHA-guarded to the accepted invincible R1-S2 ROM, its exact Build-0532 symbols, and the Build-0532
-native/pan row oracles. The historical Build-0530 tracer is unchanged.
+Original arcade authority independently supports this distinction. Selector-1 `FUN_00055696` calls
+`FUN_00055948/FUN_00055990/FUN_00055A14` before committing `A5+0x10B0 += A5+0x10DA`. The arcade can
+pre-author logical N in its 64-row PC080SN name RAM while logical N-32 remains separately resident. A
+Genesis 64x32 Plane A cannot publish both aliases simultaneously.
 
 ## Second Root Cause
 
-The completed marker capture does not contain the reported larger record-21 failure and therefore proves
-no second residency/publication root cause. It ended in record 17 shortly after an arcade-authored dynamic
-overlay. There is no evidence here for stronger provenance, another row epoch, a missing publication, or a
-later destructive static-row overwrite.
+Build 0532 conflated two different retained arcade events:
 
-If the visible complaint is specifically the narrow four-tile `$25C7` strip, its source semantics are now
-proven original-arcade behavior rather than a Genesis Plane-A residency defect. If the separate larger
-record-21 area still occurs, one further capture must continue past these expected surface marks and place
-the marker only at that larger record-21 change.
+1. **Authoring/prefetch:** selector-1/2 produces a legal 64-row logical row and collision data before the
+   scroll commit. That row may still be outside the Genesis 32-row physical window.
+2. **Physical entry:** the scroll commit can move a different logical row into the Genesis window. When an
+   ordinary author call occurs on the same step, control bypasses the existing no-publication materializer.
+
+The result is both a destructive off-window N/N+32 overwrite and a missed entering predecessor row. This is
+not jump-specific, not incorrect Python row data, and not a palette defect. Jump cadence merely changes
+which legal producer/scroll sequences coincide.
 
 ## Production Correction
 
-No Plane-A production correction was made. There is no proven second cause to correct, and the assignment
-explicitly permits a focused Build-0532 diagnostic package when dynamic evidence is genuinely missing.
-The valid Build 0525-0532 corrections remain unchanged.
+Source commit: `a2f777a8f749a6a9e959e0178b06b8290a4aa3e4`.
 
-The palette production correction is complete in local commit
-`dac22e0d11cfc22032574f079d0e68d5257eb82b`: the established generator now consumes Tighe's exact authored
-knight identity, and the existing independent verifier anchors generated pixels and routing to the live
-profile.
+`genesistan_hook_tilemap_plane_a_selector12_native` now:
+
+- derives the old and retained post-step camera windows from `A5+0x10B0`, selector 1/2, and `A5+0x10DA`;
+- preserves complete 64-column collision publication for every arcade-authored row;
+- stages visual words, dirties the row, and changes `plane_a_resident_logical_rows` only if the authored
+  logical row is resident in the post-step Genesis window;
+- leaves a still-required N-32 alias untouched when the arcade pre-authors off-window N;
+- materializes every logical row genuinely entering during the same ordinary selector step, using the
+  existing exact-owner/native row materializer for Plane A and established Plane-B row publisher;
+- preserves initial scene replay, selector-2/downward movement, wrap, multi-pixel bounded deltas, reversals,
+  collision, and the 0525–0532 source-selection rules.
+
+No shadow tilemap, 64-row graphics buffer, coordinate special case, chain special case, input path, or
+PC080SN emulator was added. `staged_fg_buffer` remains the sole final 64x32 Plane-A image.
+
+### Native-replacement boundary acknowledgement
+
+- **Semantic cut retained:** original arcade decision to author a logical selector-1/2 row, publish its
+  collision semantics, and advance camera Y.
+- **Chip-specific tail removed/remaining bypassed:** PC080SN C08000 name-RAM destination walking and 64-row
+  physical retention. The native tail emits only resident final Genesis Plane-A/Plane-B words and dirty jobs.
+- **Transitional compatibility retained:** existing 32-byte `plane_a_resident_logical_rows` provenance vector
+  beside `staged_fg_buffer`; producers are scene seed/selector/pan materializers and consumers are exact-owner
+  row publication. It stores no graphics and remains the minimum alias identity needed by the 32-row plane.
 
 ## Build 0533 Candidate
 
-No Build 0533 ROM was produced. Counter 0532 is unchanged. Consequently there is no Build-0533 normal,
-S1-2, or invincible-S1-2 SHA to report, and no claim that the Plane-A defect is fixed by code. Shipping a
-palette-only 0533 would not satisfy the Plane-A candidate objective.
+Counter/ledger advanced 0532 -> 0533. Every artifact is 3,792,568 bytes.
+
+| Artifact | SHA-256 |
+|---|---|
+| `rastan_direct_video_test_build_0533.bin` | `3e43bee4bc652980826a4e67bc6cee005d035c934620c4d6fc7b2a77812bcf2b` |
+| `rastan_direct_video_test_build_0533_S1-2.bin` | `b293bf72001c629f69e9d53ceb157b5f38bca3fc9954c0724e4599fb4602b341` |
+| `rastan_direct_video_test_build_0533_invincible_S1-2.bin` | `34aff3f4f6ef91cba70ccb018f48cb3c8747d068e6512ae58a37d96055a4e2cd` |
+| `rastan_direct_video_test_build_0533_invincible.bin` | `c6dc0d03648fd73ba72b82392f73fd9f02425eb34acd8b740a8236b66da33e92` |
+| `rastan_direct_video_test_build_0533_d.bin` | `de432cf4aac252cde1414f324c465586c1db0f58e3d3ecd4ae77a732cc0687c2` |
+| `rastan_direct_video_test_build_0533_s.bin` | `264ee1d606fdc29f06737174e0a885fca72b4432417d245eb186cb095bf8e800` |
+| `rastan_direct_video_test_build_0533_do.bin` | `9b95ed694623fc7c2686e455a5c789130826285deddbf182cebf8f9578450b4e` |
+| `rastan_direct_video_test_build_0533_c.bin` | `2e9e5ca5db7d2f61e653d213e9f5cc7afedf382f06229308f44965085df2a24c` |
+| `rastan_direct_video_test_build_0533_full_hud.bin` | `23895293914b42659ce3a26f5f76a8fda22a25fc440a8397a5e580c99f659fb6` |
+
+The canonical manifest reports 228 expected opcode-replacement sites and `$39DEB8` expected Genesis bytes
+covered. This source change is inside the established native helper; it adds no remap site.
 
 ## Palette ROM Verification
 
-There is no new ROM to verify. The current authored decisions are verified through every generated
-production input and linked-object dependency, but they are not claimed to be present in Build 0532 and
-are not yet linked into Build 0533. When the Plane-A cause is corrected, the normal Make build must
-regenerate these inputs and the final ROM must be checked at the linked symbols before delivery.
-
-Therefore:
-
-- current authored palette decisions integrated into production generation: **yes**;
-- Build 0533 contains Tighe's latest authored decisions: **not applicable; Build 0533 was not produced**;
-- palette visually accepted: **no; requires Tighe's eventual candidate test**.
+Build 0533 was built only after forced generation from current `Test.json`. The Makefile's
+`verify_palette_families.py` reports the live profile SHA on LUT, PC090OJ editor, semantic profile, and CRAM
+outputs; Rastan and Round-1 green-knight maps are exact; Line 2 is reserved. Therefore Build 0533 contains
+Tighe's latest authored decisions. Their appearance is not claimed visually accepted.
 
 ## Automated Regression
 
 Passed:
 
-- forced Makefile-owned current-profile generation;
-- `verify_reindexed_pc090oj.py`: 961 `(code,bank)` requirements, 837 unique codes, 124 variants,
-  76/76 divergent codes distinct, zero mismatches/incomplete/stray writes, 30 knight codes exact;
-- `verify_palette_families.py`: all generated profile SHAs match, Rastan and R1 knight maps exact,
-  line 2 reserved/not generated;
-- `verify_green_knight.py`: 14/14;
-- Python compilation, shell syntax, `git diff --check`;
-- five-frame Genesis NTSC MAME tracer smoke run against the exact accepted ROM.
+- corrected trace reducer: marker 2106 reports the two resident-owner mismatches above;
+- deterministic selector-1/2 post-step residency model, exact frame-2104 off-window row-59 case, ordinary
+  wrap-entry row-0 case, both directions, every 9-bit scroll, and deltas 1..8;
+- assembly and `git diff --check`;
+- native row/source, scene/checkpoint/pan, collision separation, selector equivalence, boot guards;
+- canonical gate: 228/228 replacement sites and expected coverage;
+- Genesis NTSC gameplay-entry gate and all six Round-1 epoch/package cases;
+- mandatory 30-second Genesis NTSC MAME trace with no address/bus/illegal/crash-handler errors;
+- normal and invincible R1-S2 direct starts: frame 412, stage `$0010`, record `$0011`, package 5, both
+  planes 2048/2048 nonzero, zero map misses;
+- complete configured family and invincibility contract;
+- current-profile palette-family, reindex, green-knight, and Line-2 protections.
 
-No new Plane-A regression was added because the captured transition is byte-for-byte source-backed arcade
-behavior, not a failure that Build 0532 should suppress. The reducer now classifies marker rows against the
-exact Build-0532 record 16/17/20/21 native/pan assets, recognizes only an exact contiguous four-cell native
-`$25C7` surface overlay, and rejects the all-identical blank VDP-readback artifact. On Tighe's capture it
-reports `implicated_rows=0` and one arcade surface overlay at physical/logical row 20, columns 4..7.
+The exact traced defect is **PROVEN FIXED BY CODE**. Static/automated evidence cannot establish visual
+gameplay acceptance or prove that no separate later R1-S2 defect exists.
 
-## Manual Test for Tighe
+## USER MUST VERIFY
 
-Run from the project root:
+Primary ROM:
 
-```bash
-tools/diagnostics/run_r1s2_build0532_remaining_trace.sh
-```
+`dist/rastan-direct/rastan_direct_video_test_build_0533_invincible_S1-2.bin`
 
-Continue past the earlier narrow four-tile surface marks; those are now proven original behavior. Reproduce
-only the separate larger record-21 corruption in the preselected accepted invincible R1-S2 ROM. Press `M`
-when that larger area first becomes visible, then close MAME. No original-arcade replay is requested.
-Reduce the newly printed trace directory with:
+SHA-256: `34aff3f4f6ef91cba70ccb018f48cb3c8747d068e6512ae58a37d96055a4e2cd`
 
-```bash
-tools/diagnostics/reduce_r1s2_build0532_remaining_trace.py states/traces/r1s2_remaining_build_0532/genesis_<timestamp>
-```
-
-This is the minimum remaining input only if the larger record-21 failure remains distinct from the marked
-four-cell overlay. The next implementation must begin from an actually mismatching row's ordered timeline,
-not suppress the source-backed `$25C7` writer, then add a regression and build the unused 0533 family with
-the current profile.
+1. Climb R1-S2 with only the three required chain jumps and inspect the former one-row strip at record 16/17.
+2. Continue through record 21 and inspect the previously larger corrupt area.
+3. Reverse vertical direction, then repeat with aggressive jump-assisted climbing.
+4. Confirm Tighe's latest player and R1-S2 green-knight palette choices; visual palette acceptance remains his.
+5. Note any remaining corruption with record/area and minimal versus aggressive route; no new trace is requested
+   unless a distinct defect remains.
 
 ## Files / Local Commits / Logs
 
-Local source/tooling commit (not pushed):
+Production/test commit:
 
-- `dac22e0d11cfc22032574f079d0e68d5257eb82b` — current palette integration and separate Build-0532
-  diagnostic package.
-- `5ec1ded7` — completed-capture reduction: exact arcade `$25C7` surface-overlay classification and
-  invalid all-blank VDP-readback rejection.
+- `a2f777a8f749a6a9e959e0178b06b8290a4aa3e4` — Plane-A ordinary-scroll residency correction,
+  deterministic regression, and owner-aware Build-0532 trace reduction.
 
-Primary files:
+Existing project tools reused:
 
-- `tools/graphics_editor/gen_reindexed_pc090oj.py`;
-- `tools/graphics_editor/verify_reindexed_pc090oj.py`;
-- `tools/graphics_editor/verify_palette_families.py`;
-- `specs/palette_decisions.json`;
-- `tools/diagnostics/run_r1s2_build0532_remaining_trace.sh`;
-- `tools/mame/scripts/r1s2_build0532_remaining_plane_a.lua`;
+- Build-0532 SHA-guarded minimal-jump tracer and reducer;
+- original arcade Ghidra export and disassembly;
+- native row/pan assets and full-span verifier;
+- Makefile canonical/gameplay/epoch/MAME gates;
+- subround generator, static verifier, and Genesis NTSC functional verifier.
+
+New tooling created: none. The existing reducer and verifier were extended because asset identity alone did
+not test physical-slot ownership.
+
+Files changed in the source commit:
+
+- `apps/rastan-direct/src/tilemap_hooks.s`;
+- `tools/translation/verify_bg_a_incremental_background.py`;
 - `tools/diagnostics/reduce_r1s2_build0532_remaining_trace.py`.
 
-The successful smoke capture is
-`states/traces/r1s2_remaining_build_0532/genesis_20261103_220157/`; it is ignored diagnostic output and was
-not staged. The preceding `220144` launch exposed an environment-number parsing error, which was corrected
-before the successful smoke run. No trace or screenshot is committed. No push was performed.
+Documentation/log changes are committed separately. Numbered ROMs and normal generated build products remain
+preserved outside Git according to project policy. No GitHub push was performed.
 
 `TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0072`
