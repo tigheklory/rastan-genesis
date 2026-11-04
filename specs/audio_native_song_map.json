@@ -24,6 +24,13 @@
       "evidence": "ORIGINAL ARCADE R1 music sequencer at 0x055DDC: substate a5+0x13AA==9 (the castle phase, entered via 0x03A848 setting 13AA=9 / 1394=1) sends command 0x27 via jsr 0x3A0EC; the castle plays Re-In-Carnation (Scene 2). The substate-9 send has no sound-enable (a5+0x34) precondition, so unlike 0x19 it is delivered on Genesis. Pending Tighe Genesis hardware audition."
     },
     {
+      "wire_command": "0x1B",
+      "track": "05 - Re-In-Carnation (Scene 2)",
+      "status": "proven",
+      "semantics": "Round 1 Subround 2 castle-entry music decision following the shared player-appearance cue",
+      "evidence": "ORIGINAL ARCADE transition trace states/traces/prompt0076_arcade_r1s2_to_r1s3_audio_v2: stable record 0x11 emits appearance cue 0x25 at frame 787 followed by six-channel command 0x1B at frame 788. Genesis retained-transition evidence in states/traces/build0536_audio015_natural_round1_transitions_v2 reproduces 0x25 then 0x1B while activating record 0x11/package 5. The native song asset is the existing single Re-In-Carnation payload; no audio data is duplicated."
+    },
+    {
       "wire_command": "0x1C",
       "track": "06 - The Devil Boss Carnival (Scene 3 Boss)",
       "status": "proven",

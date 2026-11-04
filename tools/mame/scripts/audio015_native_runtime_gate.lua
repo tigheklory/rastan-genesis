@@ -36,10 +36,12 @@ local expected_palette_lines = nil
 if natural_transition_route then
   assert(scene_addr and tileset_addr and active_record_addr and active_package_addr and staged_palette_addr,
     "natural transition route requires native state symbol addresses")
+  local r1s2_palette = read_file(assert(os.getenv("AUDIO015_R1S2_PALETTE"), "AUDIO015_R1S2_PALETTE required"))
+  assert(#r1s2_palette == 96, "R1S2 palette asset must contain Lines 0, 1, and 3")
   expected_palette_lines = {
-    [0] = read_file(assert(os.getenv("AUDIO015_TEST_LINE0"), "AUDIO015_TEST_LINE0 required")),
-    [1] = read_file(assert(os.getenv("AUDIO015_TEST_LINE1"), "AUDIO015_TEST_LINE1 required")),
-    [3] = read_file(assert(os.getenv("AUDIO015_TEST_LINE3"), "AUDIO015_TEST_LINE3 required")),
+    [0] = r1s2_palette:sub(1, 32),
+    [1] = r1s2_palette:sub(33, 64),
+    [3] = r1s2_palette:sub(65, 96),
   }
 end
 
@@ -113,8 +115,8 @@ local expected_source_seen = false
 local r1s2_stable = false
 local r1s3_stable = false
 local r1s2_palette_match = false
-local mode_press_until = -1
-local last_mode_press = -10000
+local last_finish_request = -10000
+local finish_requests = 0
 local transition_snapshots = {}
 local event
 
@@ -136,6 +138,31 @@ local function snapshot(label)
     expected_palette_lines and (palette_lines_match() and "MATCH" or "MISMATCH") or "N/A")
   transition_snapshots[#transition_snapshots + 1] = row
   event("TRANSITION_SNAPSHOT", 0, 0, row)
+end
+
+-- Reproduce the established MAME "Finish Current Sub-Round Now!" mutation
+-- for the two Round-1 internal boundaries.  This only requests completion;
+-- the retained arcade controller still performs each natural teardown,
+-- subround setup, package activation, palette activation, and sound decision.
+local function request_round1_finish()
+  local marker = mprog:read_u8(0xff1243) & 0xff
+  local target
+  if marker < 0x10 then
+    target = 0x10                 -- R1S1 -> R1S2
+  elseif marker < 0x16 then
+    target = 0x16                 -- R1S2 -> R1S3
+  else
+    return false
+  end
+  mprog:write_u8(0xff1243, target)
+  mprog:write_u8(0xff0047, 1)
+  mprog:write_u8(0xff0005, 2)
+  mprog:write_u8(0xff0104, 1)
+  mprog:write_u8(0xff0003, 2)
+  finish_requests = finish_requests + 1
+  event("FINISH_SUBROUND_REQUEST", 0x1243, target,
+    string.format("stock mutation marker=%02X->%02X", marker, target))
+  return true
 end
 
 event = function(kind, address, data, note)
@@ -305,6 +332,7 @@ local function write_summary(result, reason)
   for _, value in ipairs(retained_values) do retained[#retained + 1] = string.format("%02X", value) end
   out:write("retained_command_values=", table.concat(retained, ","), "\n")
   out:write("transition_snapshots=", table.concat(transition_snapshots, " | "), "\n")
+  out:write(string.format("finish_subround_requests=%d\n", finish_requests))
   out:write(string.format("r1s2_stable=%s\nr1s2_palette_match=%s\nr1s3_stable=%s\n",
     r1s2_stable and "YES" or "NO", r1s2_palette_match and "YES" or "NO",
     r1s3_stable and "YES" or "NO"))
@@ -384,19 +412,19 @@ emu.register_frame_done(function()
          mprog:read_u8(scene_addr) == 1 and mprog:read_u8(tileset_addr) == 1 and package == 5 then
         r1s2_palette_match = palette_lines_match()
         r1s2_stable = r1s2_palette_match
-        snapshot("R1S2_STABLE")
+        if r1s2_palette_match then snapshot("R1S2_STABLE") end
       end
       if stable and not r1s3_stable and record >= 0x0017 and
          mprog:read_u8(scene_addr) == 1 and mprog:read_u8(tileset_addr) == 1 and package == 6 then
         r1s3_stable = true
         snapshot("R1S3_STABLE")
       end
-      if stable and not r1s3_stable and frame - last_mode_press >= 180 then
-        last_mode_press = frame
-        mode_press_until = frame + 7
-        snapshot("MODE_FINISH_REQUEST")
+      if stable and not r1s3_stable and frame - last_finish_request >= 180 then
+        if request_round1_finish() then
+          last_finish_request = frame
+          snapshot("FINISH_SUBROUND_REQUEST")
+        end
       end
-      set_input("P1 Mode", frame <= mode_press_until)
     end
     if route == "final_life" then
       for _, name in ipairs({"P1 Up", "P1 Down", "P1 Left", "P1 Right", "P1 B", "P1 C"}) do

@@ -24,23 +24,18 @@ for required in "$ROM" "$Z80_BIN" "$SCRIPT"; do
 done
 
 mkdir -p "$OUTPUT_DIR"
-MAME_CONTROL_ARGS=()
 if [[ ${AUDIO015_ROUTE:-gameplay_right} == natural_round1_transitions ]]; then
-    MAME_CONTROL_ARGS=(-ctrl1 md6button)
     export AUDIO015_SCENE_ADDR=${AUDIO015_SCENE_ADDR:-$(symbol_address genesistan_current_scene_id)}
     export AUDIO015_TILESET_ADDR=${AUDIO015_TILESET_ADDR:-$(symbol_address genesistan_current_pc080sn_tileset_id)}
     export AUDIO015_ACTIVE_RECORD_ADDR=${AUDIO015_ACTIVE_RECORD_ADDR:-$(symbol_address fg_boundary_active_record)}
     export AUDIO015_ACTIVE_PACKAGE_ADDR=${AUDIO015_ACTIVE_PACKAGE_ADDR:-$(symbol_address fg_boundary_active_package)}
     export AUDIO015_STAGED_PALETTE_ADDR=${AUDIO015_STAGED_PALETTE_ADDR:-$(symbol_address staged_palette_words)}
-    export AUDIO015_TEST_LINE0=${AUDIO015_TEST_LINE0:-"$ROOT/build/rastan-direct/test_palette_line0.bin"}
-    export AUDIO015_TEST_LINE1=${AUDIO015_TEST_LINE1:-"$ROOT/build/rastan-direct/test_palette_line1.bin"}
-    export AUDIO015_TEST_LINE3=${AUDIO015_TEST_LINE3:-"$ROOT/build/rastan-direct/test_palette_line3.bin"}
+    export AUDIO015_R1S2_PALETTE=${AUDIO015_R1S2_PALETTE:-"$ROOT/build/palette_export/cram/PAL-R1-S2-PLANEA-CASTLE.bin"}
 fi
 TRACE_DIR="$OUTPUT_DIR" AUDIO015_ROM="$ROM" AUDIO015_Z80_BIN="$Z80_BIN" \
 AUDIO015_MAX_FRAMES="${AUDIO015_MAX_FRAMES:-1000}" \
 AUDIO015_ROUTE="${AUDIO015_ROUTE:-gameplay_right}" timeout 300s mame genesis \
     -cart "$ROM" -video none -sound none -nothrottle -skip_gameinfo \
-    "${MAME_CONTROL_ARGS[@]}" \
     -autoboot_script "$SCRIPT" \
     > "$OUTPUT_DIR/mame_stdout.txt" 2> "$OUTPUT_DIR/mame_stderr.txt"
 
