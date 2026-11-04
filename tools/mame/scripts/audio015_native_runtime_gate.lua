@@ -132,9 +132,9 @@ local function palette_lines_match()
 end
 
 local function snapshot(label)
-  local row = string.format("%s@%d scene=%d tileset=%d record=%04X package=%04X palette=%s",
+  local row = string.format("%s@%d scene=%d tileset=%d retained_record=%04X active_record=%04X package=%04X palette=%s",
     label, frame, mprog:read_u8(scene_addr), mprog:read_u8(tileset_addr),
-    m16(active_record_addr), m16(active_package_addr),
+    m16(0xff013e), m16(active_record_addr), m16(active_package_addr),
     expected_palette_lines and (palette_lines_match() and "MATCH" or "MISMATCH") or "N/A")
   transition_snapshots[#transition_snapshots + 1] = row
   event("TRANSITION_SNAPSHOT", 0, 0, row)
@@ -415,11 +415,16 @@ emu.register_frame_done(function()
         if r1s2_palette_match then snapshot("R1S2_STABLE") end
       end
       if stable and not r1s3_stable and record >= 0x0017 and
-         mprog:read_u8(scene_addr) == 1 and mprog:read_u8(tileset_addr) == 1 and package == 6 then
+         mprog:read_u8(scene_addr) == 1 and mprog:read_u8(tileset_addr) == 1 and package == 5 then
         r1s3_stable = true
         snapshot("R1S3_STABLE")
       end
-      if stable and not r1s3_stable and frame - last_finish_request >= 180 then
+      -- The stock finish mutation itself requires only an active session.
+      -- R1S2 can leave the narrow appearance-state range long before the
+      -- bounded dwell expires, so retain the already-proven stable R1S2
+      -- snapshot as authority for the second request.
+      if (stable or (r1s2_stable and m16(0xff0000) == 2)) and
+         not r1s3_stable and frame - last_finish_request >= 180 then
         if request_round1_finish() then
           last_finish_request = frame
           snapshot("FINISH_SUBROUND_REQUEST")
