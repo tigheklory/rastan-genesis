@@ -49,6 +49,7 @@
     .extern genesistan_scene_present_pending
     .extern vdp_set_reg
     .extern vdp_dma_words_to_vram
+    .extern vdp_install_test_lines
 
     .equ VDP_REG_MODE2,         1
     .equ VDP_MODE2_DISPLAY_OFF, 0x34
@@ -626,6 +627,12 @@ fg_boundary_install:
     move.w  fg_boundary_pending_variant, fg_boundary_active_variant
     move.w  fg_boundary_pending_package, fg_boundary_active_package
     move.w  fg_boundary_pending_round, fg_boundary_active_round
+    /* Natural subround teardown can reactivate gameplay ownership before the
+     * retained controller publishes its new a5+0x1242 stage index.  Package
+     * activation is the first boundary where stage, record, and native epoch
+     * are mutually current, so refresh the already-generated scene palette
+     * here.  This changes no authored palette data and adds no palette path. */
+    bsr     vdp_install_test_lines
     addq.l  #1, fg_boundary_epoch_transitions
     tst.b   genesistan_scene_present_pending
     bne.s   .Linstall_leave_display_off

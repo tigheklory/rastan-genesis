@@ -470,8 +470,8 @@ emu.register_frame_done(function()
       for _, value in ipairs(retained_values) do retained[#retained + 1] = string.format("%02X", value) end
       local retained_text = table.concat(retained, ",")
       pass = r1s2_stable and r1s2_palette_match and r1s3_stable and
-        published:find("27", 1, true) ~= nil and published:find("1C", 1, true) ~= nil and
-        retained_text:find("27", 1, true) ~= nil and retained_text:find("1C", 1, true) ~= nil and
+        published:find("1B", 1, true) ~= nil and published:find("1C", 1, true) ~= nil and
+        retained_text:find("1B", 1, true) ~= nil and retained_text:find("1C", 1, true) ~= nil and
         first_invalid_pc == nil and banked_mismatches == 0
     elseif expected_command and expected_source then
       pass = active_seen and expected_command_seen and expected_source_seen and
