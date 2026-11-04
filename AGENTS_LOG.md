@@ -55000,3 +55000,29 @@ TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0069
   `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0072_build0533_plane_a_and_current_palette_integration.md`.
 
 `TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0072`
+
+### MAME Exit Summary (2026-11-04 12:31:19)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## Build 0534 — restore Plane-A prefetch and cover knight rope palette (Cody, 2026-11-04)
+
+- Tighe rejected Build 0533 after it turned the formerly isolated R1-S2 bad row into broad corruption
+  above it. Re-reduction using the actual 28-row NTSC display proves that Build 0533 had incorrectly
+  treated four valid offscreen rows as part of a 32-row camera window.
+- Source commit `0a61245403911d3da8291a978d384fb621cd500a` restores ordinary selector-1/2
+  authoring and its four-row prefetch margin, then materializes only a Plane-A edge that becomes visible
+  before the retained no-publication hook runs. Plane B is not republished; no backing map or shadow
+  tilemap was added.
+- Original arcade `$04684E` proves actor-base `$033E` rope mode uses animations
+  `$4D,$56-$5A`, which the prior green-knight generator omitted. The existing decided palette mapping
+  `PAL-PC090OJ-R1S2-GREEN-SWORD-KNIGHT-001` is unchanged; its production consumer now covers the exact
+  normal `$93-$96` and rope `$4D,$56-$5A` domain.
+- Canonical/static gates, exact sprite-domain verification, 30-second Genesis NTSC MAME trace, complete
+  family, and normal/invincible R1-S2 functional starts PASS. Counter/ledger advanced 0533 -> 0534.
+- Primary candidate: `dist/rastan-direct/rastan_direct_video_test_build_0534_invincible_S1-2.bin`,
+  3,792,568 bytes, SHA-256 `6a0006af4b7d112a32a12f368398fda02be83385cd12668a2beaab8d24ecd9a0`.
+  Build 0534 remains unaccepted pending Tighe's normal/aggressive climbing, reversal, later-record, and
+  green-knight rope-palette gameplay checks.
+- Standalone report: `docs/design/Cody_build0534_visible_plane_a_edge_and_knight_rope_palette.md`.
