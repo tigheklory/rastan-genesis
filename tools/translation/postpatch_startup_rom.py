@@ -124,7 +124,12 @@ CANONICAL_OPCODE_REPLACE_COUNT = 228  # RG-003 reclassifies frontend teardown 0x
 # (recovered Scene Clear + Final Boss), growing the aligned audio section by
 # +0x27000 (0x30FEB8 -> 0x335EB8); RG-021 adds the Round-2 native
 # PC080SN package corpus (+0x8000).
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x34DEB8
+# Build 0535's first authoritative rebuild after the committed Audio Composer
+# profile advanced from revision 14 to revision 15 includes the two approved
+# Ending PSG routes which the stale generated Build-0534 outputs had omitted.
+# The Ending stream grows by 45,714 bytes; after the existing 0x8000 audio and
+# 0x1000 crash-section alignments, complete canonical coverage grows by 0xC000.
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x359EB8
 
 # DIAGNOSTIC_SYMBOLS — symbols allowed for bookmarks_v2 helper_symbol resolution.
 #
