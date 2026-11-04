@@ -3,6 +3,7 @@
     .global load_scene_tiles
     .global genesistan_frontend_presentation_reset
     .global genesistan_frontend_owner_reset
+    .global genesistan_gameplay_owner_reset
     .global genesistan_presentation_mark_unsafe
     .global genesistan_presentation_mark_ready_after_publish
     .global genesistan_presentation_publish_complete
@@ -247,6 +248,25 @@ genesistan_frontend_owner_reset:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
     bsr     .Lpresentation_mark_unsafe_body
     bsr     .Lfrontend_owner_reset_body
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
+/* Natural sub-round ownership handoff.
+ *
+ * Original arcade 0x056440 is shared by the substate-8 READY/death teardown
+ * and the substate-13 next-sub-round teardown.  The former genuinely returns
+ * presentation ownership to scene 0; the latter clears the old sub-round
+ * immediately before retained gameplay rebuilds the next one.  Preserve that
+ * retained distinction by keeping scene-1 patterns and the already-generated
+ * gameplay palette active at substate 13, without activating frontend HUD/SAT
+ * ownership.  Plane and gameplay SAT contents remain owned by the caller's
+ * following clear and retained scene producers. */
+genesistan_gameplay_owner_reset:
+    movem.l %d0-%d7/%a0-%a6, -(%sp)
+    bsr     .Lpresentation_mark_unsafe_body
+    moveq   #1, %d0
+    bsr     load_scene_tiles
+    bsr     genesistan_hud_deactivate
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 

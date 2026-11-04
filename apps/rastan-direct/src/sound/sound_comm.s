@@ -19,7 +19,9 @@
     .equ ARCADE_PHASE_STATE,  0x00FF0002
     .equ ARCADE_PLAYER_STATE, 0x00FF10E8
     .equ ARCADE_PLAYER_X,     0x00FF10BE
+    .equ ARCADE_PLAYER_RECORD, 0x00FF013E
     .equ SPAWN_COLUMN_X,      0x0028
+    .equ R1_CASTLE_FIRST_RECORD, 0x0011
 
 z80_request_bus:
     move.w  #0x0100, Z80_BUSREQ
@@ -111,7 +113,15 @@ z80_write_command:
        (ORIGINAL ARCADE appearance and R1-S1 respawn are both player_x == 0x20);
        the residual restart ~2/3 through segment 8 is a mid-stage
        player_state==3 re-appearance at a large player_x, so requiring the spawn
-       column suppresses it while preserving the accepted spawn/respawn start. */
+       column suppresses it while preserving the accepted spawn/respawn start.
+
+       Natural R1-S1 -> R1-S2 proves one more original distinction: retained
+       substate 9 publishes the authentic Scene-2 request $27, then the shared
+       appearance cue $25 occurs at the new spawn column.  $25 is not a second
+       music-selection request in the original sound driver.  The native
+       Aggressive fallback therefore applies only while the retained record is
+       in R1-S1's outdoor range; castle/boss appearance cues are consumed and
+       cannot replace their authentic $27/$1C selections. */
     cmpi.b  #0x25, %d0
     bne.s   .Lnot_appearance
     cmpi.w  #0x0002, ARCADE_OUTER_STATE
@@ -120,6 +130,8 @@ z80_write_command:
     bne.s   .Lcommand_consumed
     cmpi.w  #SPAWN_COLUMN_X, ARCADE_PLAYER_X
     bhi.s   .Lcommand_consumed
+    cmpi.w  #R1_CASTLE_FIRST_RECORD, ARCADE_PLAYER_RECORD
+    bhs.s   .Lcommand_consumed
     bra.s   .Lpublish
 .Lnot_appearance:
     /* Original command $1E is the authentic GAME OVER music cue (song-table

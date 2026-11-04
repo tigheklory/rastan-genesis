@@ -22,6 +22,13 @@
       "status": "proven",
       "semantics": "Round 1 Subround 2 (castle interior) music change",
       "evidence": "ORIGINAL ARCADE R1 music sequencer at 0x055DDC: substate a5+0x13AA==9 (the castle phase, entered via 0x03A848 setting 13AA=9 / 1394=1) sends command 0x27 via jsr 0x3A0EC; the castle plays Re-In-Carnation (Scene 2). The substate-9 send has no sound-enable (a5+0x34) precondition, so unlike 0x19 it is delivered on Genesis. Pending Tighe Genesis hardware audition."
+    },
+    {
+      "wire_command": "0x1C",
+      "track": "06 - The Devil Boss Carnival (Scene 3 Boss)",
+      "status": "proven",
+      "semantics": "Round 1 Subround 3 boss-entry music change",
+      "evidence": "ORIGINAL ARCADE natural retained transition trace states/traces/prompt0076_arcade_r1s2_to_r1s3_audio_v2: record 0x17 boss entry emits shared appearance cue 0x25 at frame 982 followed by six-channel song command 0x1C at frame 983; this is the original Scene-3 boss entry where The Devil Boss Carnival plays. The native bridge already consumes the non-outdoor 0x25 and now dispatches the authentic following 0x1C."
     }
   ],
   "diagnostic_selection_doc": [

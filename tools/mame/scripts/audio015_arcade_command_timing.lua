@@ -13,6 +13,8 @@ local trace_dir = assert(os.getenv("TRACE_DIR"), "TRACE_DIR is required")
 local max_frames = tonumber(os.getenv("AUDIO015_ARCADE_MAX_FRAMES") or "1800")
 local coin_frame = tonumber(os.getenv("AUDIO015_ARCADE_COIN_FRAME") or "600")
 local start_press_frame = tonumber(os.getenv("AUDIO015_ARCADE_START_FRAME") or "655")
+local start_selector = tonumber(os.getenv("AUDIO015_ARCADE_START_SELECTOR") or "-1")
+local finish_after_appearance = tonumber(os.getenv("AUDIO015_ARCADE_FINISH_AFTER_APPEARANCE") or "-1")
 local A5 = 0x10c000
 
 -- Invincibility keeps the player alive to observe the full live command stream.
@@ -22,14 +24,29 @@ local want_invincible = (os.getenv("AUDIO015_ARCADE_INVINCIBLE") or "1") ~= "0"
 local cheat_api = assert(emu.plugin and emu.plugin.cheat,
   "MAME cheat plugin unavailable; launch with -cheat")
 local invincibility = nil
+local finish_subround = nil
 for index, description in pairs(cheat_api.list()) do
   if description == "Invincibility" then
     invincibility = assert(cheat_api.get(index), "Invincibility cheat unavailable")
     invincibility.set_enabled(want_invincible)
-    break
+  elseif description == "Finish Current Sub-Round Now!" then
+    finish_subround = assert(cheat_api.get(index), "Finish Current Sub-Round Now cheat unavailable")
   end
 end
 assert(invincibility, "stock rastan Invincibility cheat not found")
+if finish_after_appearance >= 0 then
+  assert(finish_subround, "stock rastan Finish Current Sub-Round Now cheat not found")
+end
+
+-- Optional established starting-subround selector used by the existing
+-- arcade_subround_cheat_probe.  This chooses the initial state only; the
+-- subsequent finish cheat enters the retained transition controller.
+local main_region = machine.memory.regions[":maincpu"]
+local selector_address = 0x05ff9f
+if start_selector >= 0 then
+  assert(main_region, "missing :maincpu ROM region")
+  main_region:write_u8(selector_address, start_selector & 0xff)
+end
 
 local fields = {}
 for _, port in pairs(machine.ioport.ports) do
@@ -49,6 +66,7 @@ local function ar8(address) return audio_program:read_u8(address) & 0xff end
 
 local frame = 0
 local appearance_frame = nil
+local finish_triggered = false
 local nibble = nil
 local commands = {}
 local taps = {}
@@ -124,17 +142,27 @@ end
 
 emu.register_frame_done(function()
   frame = frame + 1
+  if start_selector >= 0 then
+    main_region:write_u8(selector_address, start_selector & 0xff)
+  end
   set_input("Coin 1", frame >= coin_frame and frame <= coin_frame + 12)
   set_input("1 Player Start", frame >= start_press_frame and frame <= start_press_frame + 12)
 
   local appeared = r16(A5 + 0x0000) == 2 and
                    r16(A5 + 0x0002) == 3 and
                    r16(A5 + 0x0004) == 0 and
-                   r8(A5 + 0x3865) == 1 and
                    r16(A5 + 0x10be) == 0x0020 and
                    r16(A5 + 0x10e8) >= 1 and r16(A5 + 0x10e8) <= 3
   if appearance_frame == nil and appeared then appearance_frame = frame end
   set_input("P1 Right", appearance_frame ~= nil)
+
+  if appearance_frame ~= nil and finish_after_appearance >= 0 and not finish_triggered and
+     frame >= appearance_frame + finish_after_appearance then
+    finish_subround.set_enabled(true)
+    finish_triggered = true
+  elseif finish_triggered and finish_subround.get_enabled() then
+    finish_subround.set_enabled(false)
+  end
 
   -- MAME's DRC can bypass Lua memory taps after warm-up.  Polling the ring
   -- storage once per frame provides durable corroboration: consumed slots

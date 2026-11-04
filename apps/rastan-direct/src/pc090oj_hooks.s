@@ -49,6 +49,7 @@
     .extern genesistan_hook_cwindow_clear  /* Native Plane A/B consequence of arcade 0x0561A0. */
     .extern genesistan_frontend_presentation_reset
     .extern genesistan_frontend_owner_reset
+    .extern genesistan_gameplay_owner_reset
     .extern genesistan_hud_activate_frontend
     .extern genesistan_hud_prepare_frontend
     .extern genesistan_hud_deactivate
@@ -1980,10 +1981,19 @@ genesistan_pc090oj_hook_copy_56114:
 genesistan_pc090oj_hook_zero_fill_56440:
     clr.w   transient_items_active
 
-    /* RG-003: 0x056440 is also the retained death/item-to-READY lifecycle
-     * boundary.  Restore the frontend pattern/palette owner and stage a clean
-     * native SAT before the retained READY producer repopulates the planes. */
+    /* Original 0x056440 has two live retained callers.  Substate 8 is the
+     * death/item-to-READY lifecycle boundary and restores frontend ownership.
+     * Substate 13 is the natural next-sub-round teardown: retained gameplay
+     * immediately reconstructs the next scene, so preserve scene-1 ownership
+     * and activate its existing generated palette/package context instead of
+     * replacing it with scene 0. */
+    cmpi.w  #0x000D, 0x13AA(%a5)
+    beq.s   .Lzero_fill_gameplay_owner
     bsr     genesistan_frontend_owner_reset
+    bra.s   .Lzero_fill_owner_ready
+.Lzero_fill_gameplay_owner:
+    bsr     genesistan_gameplay_owner_reset
+.Lzero_fill_owner_ready:
 
     /* Build 0458 / OPEN-031: the original 0x056440 teardown called the generic
      * 0x0561A0 clear, whose semantic prologue zeroed all four retained PC080SN

@@ -17,7 +17,31 @@ local route = os.getenv("AUDIO015_ROUTE") or "gameplay_right"
 local seed_source = tonumber(os.getenv("AUDIO015_SEED_SOURCE") or "")
 local expected_command = tonumber(os.getenv("AUDIO015_EXPECT_COMMAND") or "")
 local expected_source = tonumber(os.getenv("AUDIO015_EXPECT_SOURCE") or "")
+local natural_transition_route = route == "natural_round1_transitions"
+local scene_addr = tonumber(os.getenv("AUDIO015_SCENE_ADDR") or "")
+local tileset_addr = tonumber(os.getenv("AUDIO015_TILESET_ADDR") or "")
+local active_record_addr = tonumber(os.getenv("AUDIO015_ACTIVE_RECORD_ADDR") or "")
+local active_package_addr = tonumber(os.getenv("AUDIO015_ACTIVE_PACKAGE_ADDR") or "")
+local staged_palette_addr = tonumber(os.getenv("AUDIO015_STAGED_PALETTE_ADDR") or "")
 local seed_applied = false
+
+local function read_file(path)
+  local f = assert(io.open(path, "rb"), "cannot open " .. path)
+  local data = assert(f:read("*a"))
+  f:close()
+  return data
+end
+
+local expected_palette_lines = nil
+if natural_transition_route then
+  assert(scene_addr and tileset_addr and active_record_addr and active_package_addr and staged_palette_addr,
+    "natural transition route requires native state symbol addresses")
+  expected_palette_lines = {
+    [0] = read_file(assert(os.getenv("AUDIO015_TEST_LINE0"), "AUDIO015_TEST_LINE0 required")),
+    [1] = read_file(assert(os.getenv("AUDIO015_TEST_LINE1"), "AUDIO015_TEST_LINE1 required")),
+    [3] = read_file(assert(os.getenv("AUDIO015_TEST_LINE3"), "AUDIO015_TEST_LINE3 required")),
+  }
+end
 
 local driver_file = assert(io.open(driver_path, "rb"))
 local driver = assert(driver_file:read("*a"))
@@ -51,6 +75,7 @@ local first_invalid_sp = nil
 local first_invalid_address = nil
 local command_values = {}
 local consumed_values = {}
+local retained_values = {}
 local command_data_writes = 0
 local qhead_writes = 0
 local qtail_writes = 0
@@ -85,8 +110,35 @@ local last_active = 0
 local expected_command_seen = false
 local expected_command_armed = false
 local expected_source_seen = false
+local r1s2_stable = false
+local r1s3_stable = false
+local r1s2_palette_match = false
+local mode_press_until = -1
+local last_mode_press = -10000
+local transition_snapshots = {}
+local event
 
-local function event(kind, address, data, note)
+local function palette_lines_match()
+  for line, bytes in pairs(expected_palette_lines) do
+    assert(#bytes == 32, "expected palette line must contain 16 words")
+    for i = 0, 15 do
+      local expected = (bytes:byte(i * 2 + 1) << 8) | bytes:byte(i * 2 + 2)
+      if m16(staged_palette_addr + line * 32 + i * 2) ~= expected then return false end
+    end
+  end
+  return true
+end
+
+local function snapshot(label)
+  local row = string.format("%s@%d scene=%d tileset=%d record=%04X package=%04X palette=%s",
+    label, frame, mprog:read_u8(scene_addr), mprog:read_u8(tileset_addr),
+    m16(active_record_addr), m16(active_package_addr),
+    expected_palette_lines and (palette_lines_match() and "MATCH" or "MISMATCH") or "N/A")
+  transition_snapshots[#transition_snapshots + 1] = row
+  event("TRANSITION_SNAPSHOT", 0, 0, row)
+end
+
+event = function(kind, address, data, note)
   local source = z8(0x1fa0) | (z8(0x1fa1) << 8) | (z8(0x1fa2) << 16)
   events:write(string.format("%d\t%s\t%04X\t%04X\t%06X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%06X\t%04X\t%02X\t%s\n",
     frame, kind, zreg("PC"), zreg("SP"), maincpu.state["PC"].value & 0xffffff,
@@ -207,6 +259,7 @@ taps[#taps + 1] = mprog:install_write_tap(0x00a01fd0, 0x00a01fd1, "audio015_qhea
 -- producer PC distinguishes a lost arcade request from a native dispatch error.
 taps[#taps + 1] = mprog:install_write_tap(0x00ff0292, 0x00ff0297, "audio015_arcade_sound_queue",
   function(address, data, _)
+    retained_values[#retained_values + 1] = data & 0xff
     local sp = assert(maincpu.state["SP"] or maincpu.state["A7"], "68000 SP unavailable").value & 0xffffff
     local stack = {}
     for offset = 0, 12, 4 do
@@ -248,6 +301,13 @@ local function write_summary(result, reason)
   out:write(string.format("first_invalid_access=%s\n", first_invalid_address and string.format("%04X", first_invalid_address) or "NONE"))
   out:write("command_values=", table.concat(commands, ","), "\n")
   out:write("consumed_values=", table.concat(consumed, ","), "\n")
+  local retained = {}
+  for _, value in ipairs(retained_values) do retained[#retained + 1] = string.format("%02X", value) end
+  out:write("retained_command_values=", table.concat(retained, ","), "\n")
+  out:write("transition_snapshots=", table.concat(transition_snapshots, " | "), "\n")
+  out:write(string.format("r1s2_stable=%s\nr1s2_palette_match=%s\nr1s3_stable=%s\n",
+    r1s2_stable and "YES" or "NO", r1s2_palette_match and "YES" or "NO",
+    r1s3_stable and "YES" or "NO"))
   out:write(string.format("expected_command=%s\nexpected_command_seen=%s\nexpected_source=%s\nexpected_source_seen=%s\n",
     expected_command and string.format("%02X", expected_command) or "NONE",
     expected_command_seen and "YES" or "NO",
@@ -315,6 +375,29 @@ emu.register_frame_done(function()
     else
       set_input("P1 Right", route == "gameplay_right" and frame >= 360)
     end
+    if natural_transition_route then
+      local stable = m16(0xff0000) == 2 and m16(0xff0002) == 3 and
+        m16(0xff10e8) >= 1 and m16(0xff10e8) <= 3
+      local record = m16(0xff013e)
+      local package = m16(active_package_addr)
+      if stable and not r1s2_stable and record >= 0x0011 and record < 0x0017 and
+         mprog:read_u8(scene_addr) == 1 and mprog:read_u8(tileset_addr) == 1 and package == 5 then
+        r1s2_palette_match = palette_lines_match()
+        r1s2_stable = r1s2_palette_match
+        snapshot("R1S2_STABLE")
+      end
+      if stable and not r1s3_stable and record >= 0x0017 and
+         mprog:read_u8(scene_addr) == 1 and mprog:read_u8(tileset_addr) == 1 and package == 6 then
+        r1s3_stable = true
+        snapshot("R1S3_STABLE")
+      end
+      if stable and not r1s3_stable and frame - last_mode_press >= 180 then
+        last_mode_press = frame
+        mode_press_until = frame + 7
+        snapshot("MODE_FINISH_REQUEST")
+      end
+      set_input("P1 Mode", frame <= mode_press_until)
+    end
     if route == "final_life" then
       for _, name in ipairs({"P1 Up", "P1 Down", "P1 Left", "P1 Right", "P1 B", "P1 C"}) do
         set_input(name, false)
@@ -351,7 +434,18 @@ emu.register_frame_done(function()
     local music_periods = timer_control_at_active and math.floor((timer_control_writes - timer_control_at_active) / 2) or 0
     local expected_periods = active_frame and math.floor((frame - active_frame) * 1.011 + 0.5) or 0
     local pass
-    if expected_command and expected_source then
+    if natural_transition_route then
+      local published_rows = {}
+      for _, value in ipairs(command_values) do published_rows[#published_rows + 1] = string.format("%02X", value) end
+      local published = table.concat(published_rows, ",")
+      local retained = {}
+      for _, value in ipairs(retained_values) do retained[#retained + 1] = string.format("%02X", value) end
+      local retained_text = table.concat(retained, ",")
+      pass = r1s2_stable and r1s2_palette_match and r1s3_stable and
+        published:find("27", 1, true) ~= nil and published:find("1C", 1, true) ~= nil and
+        retained_text:find("27", 1, true) ~= nil and retained_text:find("1C", 1, true) ~= nil and
+        first_invalid_pc == nil and banked_mismatches == 0
+    elseif expected_command and expected_source then
       pass = active_seen and expected_command_seen and expected_source_seen and
         command_data_writes >= 2 and qtail_writes >= 2 and music_periods > 500 and
         ym_data_writes > 32 and psg_writes > 4 and banked_reads > 32 and
