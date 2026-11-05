@@ -99,27 +99,37 @@ def main():
     r_mismatch = [c for c in rastan if ("base", c) in set(mismatch)]
     knight = [c for c in base if base[c][0] == "green_sword_knight.r1.n3"]
     knight_mismatch = [c for c in knight if ("base", c) in set(mismatch)]
-    # Independently re-derive the COMPLETE same-actor base-$033E animation domain (PROMPT-ID-0078): NORMAL
-    # $93-$96, CROUCH $71-$73 (state-0x0F alt 0x40E0E, base-preserving), AIRBORNE $20-$23 (engine 0x473B8
-    # states 0D/0E), ROPE $4D,$56-$5A. ($74 is the state-0x20 torch, base 0x0DAB, correctly excluded.) This
-    # rejects any rank-based subset AND fails if a refactor silently drops the crouch, airborne, or rope block.
+    # Independently re-derive the COMPLETE same-actor base-$033E animation domain. CORRECTED under
+    # PROMPT-ID-0084 from Cody's ORIGINAL ARCADE sweep (PROMPT-ID-0080): 29 PROGRAMS / 109 CODES (the old
+    # 17/77 is now a FAILING subset). This tuple is an independent re-statement (NOT imported from the
+    # generator's GREEN_KNIGHT_ANIMS), the codes are re-derived via the compositor VM, and the result is
+    # compared to what the generator actually baked -- so a refactor that drops any block (including the
+    # new state-$1F sequences $97-$9C and $A1-$A6) fails. ($74 is the state-0x20 torch $0DAB, excluded.)
     vm_path = os.path.join(ROOT, "tools/graphics_optimizer")
     if vm_path not in sys.path:
         sys.path.insert(0, vm_path)
     from compositor_vm import ActorRenderState, visible_pieces
-    knight_anims = (0x93, 0x94, 0x95, 0x96, 0x71, 0x72, 0x73,
-                    0x20, 0x21, 0x22, 0x23, 0x4D, 0x56, 0x57, 0x58, 0x59, 0x5A)
+    NORMAL = (0x93, 0x94, 0x95, 0x96)
+    SHORT_REACTION = (0x71, 0x72, 0x73)
+    AIRBORNE = (0x20, 0x21, 0x22, 0x23)
+    LOW_ACTION_A = (0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6)   # state-$1F table 0x42FBC
+    LOW_ACTION_B = (0x97, 0x98, 0x99, 0x9A, 0x9B, 0x9C)   # state-$1F table 0x42FD4
+    ROPE = (0x4D, 0x56, 0x57, 0x58, 0x59, 0x5A)
+    knight_anims = NORMAL + SHORT_REACTION + AIRBORNE + LOW_ACTION_A + LOW_ACTION_B + ROPE
+    assert len(knight_anims) == 29 and 0x74 not in knight_anims, "knight program expectation corrupt"
     knight_expected = {
         piece.tile & 0x1FFF
         for anim in knight_anims
         for piece in visible_pieces(ActorRenderState(0x033E, anim, 0))
         if (piece.tile & 0x1FFF) < 0x1000
     }
+    sword_codes = set(range(0x26B, 0x275))                # complete moving-weapon artwork 26B-274
     knight_covered = {
         code for (code, bank), (_usagebase, uid, _line, _imap) in cb_map.items()
         if bank == 0x33 and uid == "object:castle.green_sword_knight.r1.n3"
     }
-    knight_domain_bad = knight_covered != knight_expected
+    knight_domain_bad = (knight_covered != knight_expected or len(knight_expected) != 109
+                         or not (sword_codes <= knight_covered))
 
     total_req = sum(len(bs) for bs in code_banks.values())
     print("total (code,bank) requirements:      %d" % total_req)
@@ -138,8 +148,8 @@ def main():
     print("  rastan base codes:  %d   mismatched: %d" % (len(rastan), len(r_mismatch)))
     print("-- R1 GREEN SWORD KNIGHT (object:castle.green_sword_knight.r1.n3) --")
     print("  knight base codes:  %d   mismatched: %d" % (len(knight), len(knight_mismatch)))
-    print("  $04684E normal+rope domain: expected %d covered %d exact=%s"
-          % (len(knight_expected), len(knight_covered), not knight_domain_bad))
+    print("  complete 29-program domain: expected %d covered %d (sword 26B-274 covered=%s) exact=%s"
+          % (len(knight_expected), len(knight_covered), sword_codes <= knight_covered, not knight_domain_bad))
 
     ok = (not mismatch and not incomplete and stray == 0 and not divergent_bad
           and bool(knight) and not knight_mismatch and not knight_domain_bad)

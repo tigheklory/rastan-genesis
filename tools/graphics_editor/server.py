@@ -315,26 +315,51 @@ def green_knight_usages():
     if _KNIGHT_USAGES_CACHE is not None:
         return _KNIGHT_USAGES_CACHE
     frames, total = _castle_frames(0x033E)
-    # COMPLETE same-actor base-$033E animation domain, resolved from the actor state machine (PROMPT-ID-0078),
-    # NOT a visual rank. The field schedule (0x4A104) spawns the knight as family-2 (+$3E == 2, byte e[1]);
-    # +$3E is written only at spawn (0x4A08A) and ->0x0C on death-explode (0x40D4C) and is NEVER 8. The
-    # engines reached through the state dispatcher (0x40BAA) render, from the warrior's own $033E sheet:
-    #   * NORMAL   walk/idle $93-$96 : ground engine 0x47140 (states 3-0C,12) fam2 -> $93+{0,1,3};
-    #              state-0x11 engine 0x4684E (+$3E==2) -> $93+{1,2,3}.
-    #   * CROUCH   low pose  $71-$73 : state-0x0F alt path 0x40E0E (+$03!=0, sfx 0x17, BASE-PRESERVING) ->
-    #              $70+n; short ~24px-tall poses. Cody's runtime-observed crouch/reaction block (0079 handoff).
-    #              NOTE $74 is EXCLUDED: state-0x20 0x40F82 sets base 0x0DAB (torch), not the knight.
-    #   * AIRBORNE jump/low  $20-$23 : airborne engine 0x473B8 (states 0D/0E, fam2) -> $20+tbl[0x47562];
-    #              compact ~32x48 figure (states<0x0D give the walk set). State-machine, not runtime-confirmed.
-    #   * ROPE     climb     $4D,$56-$5A : state-0x11 engine 0x4684E rope branch, reached via +$3E==8 (family
-    #              8) rendering from the SHARED $033E sheet -- the same visual warrior climbing. Preserved +
-    #              re-verified per PROMPT-ID-0078 (not family-2's own +$3E; see report).
-    # Every pose is one semantic actor and inherits the SINGLE authored mapping (same object_id per round).
+    # COMPLETE same-actor base-$033E animation domain, resolved from the actor state machine, CORRECTED under
+    # PROMPT-ID-0084 using Cody's ORIGINAL ARCADE R1 castle sweep (PROMPT-ID-0080). The earlier 17-program
+    # claim (PROMPT-ID-0078) was SUPERSEDED: the preserved arcade sweep (1,286 $033E observations) displays 12
+    # additional state-$1F programs. The corrected proven union is 29 PROGRAMS / 109 CODES (not 17 / 77); the
+    # 12 added programs contribute 32 codes (26D-274 and 389-3A0). The field schedule (0x4A104) spawns the
+    # knight family-2 (+$3E == 2); +$3E is written only at spawn (0x4A08A) and ->0x0C on death (0x40D4C), NEVER
+    # 8. Engines reached via the state dispatcher (0x40BAA) render, from the warrior's own $033E sheet:
+    #   * NORMAL      $93-$96 : ground engine 0x47140 (states 3-0C,12) + state-0x11 0x4684E (+$3E==2).
+    #   * SHORT REACTION $71-$73 : state-0x0F alt path 0x40E0E (+$03!=0, sfx 0x17, BASE-PRESERVING); a short
+    #              mode-driven reaction/effect. NOT proven to be the "crouch/duck" pose Tighe observed -- label
+    #              stays "short reaction/effect (crouch visual pending)". $74 EXCLUDED (state-0x20 torch $0DAB).
+    #   * AIRBORNE    $20-$23 : airborne engine 0x473B8 (states 0D/0E, fam2) -> $20+tbl[0x47562]; passive/
+    #              turning airborne domain (human pose name strongly supported, not individually pinned).
+    #   * LOW/WEAPON ACTION A $A1-$A6 : state-$1F engine 0x42EF8, family 2, actor+$21 bit2 == 0; table 0x42FBC
+    #              -> $93,$A1-$A6 (+reflect). PROVEN DISPLAYED by the arcade sweep; exact human name unproven.
+    #   * LOW/WEAPON ACTION B $97-$9C : state-$1F engine 0x42EF8, family 2, actor+$21 bit2 != 0 (writes +$37=$61);
+    #              table 0x42FD4 -> $97-$9C (+reflect). PROVEN DISPLAYED by the arcade sweep; name unproven.
+    #   * ROPE        $4D,$56-$5A : state-0x11 engine 0x4684E rope branch, reached via +$3E==8 (family 8)
+    #              rendering from the SHARED $033E sheet -- the same visual warrior climbing. Preserved.
+    # The embedded sword is an attached piece of these same programs (upright $93 = 26B,26C; the state-$1F
+    # programs rotate the weapon through the complete sword artwork 26D-274). It is a warrior sub-context,
+    # NOT a separate actor; it has ZERO pattern-code overlap with Rastan's player weapon tables (never
+    # globally recolor the player sword/axe/hammer). Every pose is ONE semantic actor inheriting the SINGLE
+    # authored mapping (same object_id per round). See the PROMPT-ID-0084 report for palette provenance.
     KNIGHT_ANIM_STATE = dict(
         [(a, "normal") for a in (0x93, 0x94, 0x95, 0x96)]
-        + [(a, "crouch") for a in (0x71, 0x72, 0x73)]
+        + [(a, "short_reaction") for a in (0x71, 0x72, 0x73)]
         + [(a, "airborne") for a in (0x20, 0x21, 0x22, 0x23)]
+        + [(a, "low_action_a") for a in (0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6)]
+        + [(a, "low_action_b") for a in (0x97, 0x98, 0x99, 0x9A, 0x9B, 0x9C)]
         + [(a, "rope") for a in (0x4D, 0x56, 0x57, 0x58, 0x59, 0x5A)])
+    # Honest, non-overclaiming UI pose-group headers (Cody 0080 requirements #3/#4): the state-$1F and
+    # short-reaction names stay provisional until a runtime capture proves the human gameplay meaning.
+    POSE_LABEL = {
+        "normal": "Normal walk/idle ($93-$96)",
+        "short_reaction": "Short reaction/effect — crouch visual pending ($71-$73)",
+        "airborne": "Airborne / low pose ($20-$23)",
+        "low_action_a": "Low / weapon action A — state $1F ($A1-$A6)",
+        "low_action_b": "Low / weapon action B — state $1F ($97-$9C)",
+        "rope": "Rope climb — shared-sheet family-8 ($4D,$56-$5A)",
+    }
+    # Sword sub-context (Cody 0080): attached-piece weapon artwork inside the warrior's own programs.
+    SWORD_SUBCONTEXT = "object:castle.green_sword_knight.weapon.sword"
+    SWORD_CODES = tuple(range(0x26B, 0x275))                     # complete moving-weapon artwork 26B-274
+    SWORD_REPRESENTATIVE_ANIMS = {0x93, 0xA3, 0xA6, 0x99, 0x9C}  # representatives; all codes still covered
     knight_anim_domain = set(KNIGHT_ANIM_STATE)
     knight_frames = [frame for frame in frames if frame[0] in knight_anim_domain]
     if {frame[0] for frame in knight_frames} != knight_anim_domain:
@@ -361,11 +386,34 @@ def green_knight_usages():
                             "pixel_count": 1, "genesis_rgb8": disp, "genesis_cram": cram})
             v = 0
             vlabel = "R%d green armor · line 0x%X pool 0x%02X" % (rnd, nib, pool)
-            note = ("family-2 base 0x033E (only R1-S2 scheduled enemy; anim 0x93). Green-armor palette = the "
-                    "knight program's line 0x%X control byte -> 0x3BA88[R%d] -> pool 0x%02X -> 0x4FD02 "
-                    "(matches the arcade green). Body line 7 is blue in R1 per the field table -> an "
-                    "unresolved castle-CRAM nuance; line 3 is the authorable green-armor reference."
-                    % (nib, rnd, pool))
+            note = ("family-2 base 0x033E. Green-armor palette = the knight program's line 0x%X control byte "
+                    "-> 0x3BA88[R%d] -> pool 0x%02X -> 0x4FD02 (matches the arcade green). Body line 7 is blue "
+                    "in R1 per the field table -> an unresolved castle-CRAM nuance; line 3 is the authorable "
+                    "green-armor reference." % (nib, rnd, pool))
+            # PROMPT-ID-0084 (Cody 0080 requirement #5): preserve BOTH provenance layers, do NOT flatten to one
+            # bank. (1) embedded bit-6-clear per-piece program defaults; (2) the preserved R1 arcade sweep's
+            # actor creation attribute (+$27) with bit 6 set, which makes 0x3C9E8/0x3C902 override every
+            # piece's low byte uniformly. Surface the registry-bank-$33 vs observed-$34/$31 conflict for Tighe.
+            palette_provenance = {
+                "embedded_defaults": {
+                    "note": "bit-6-clear per-piece program control nibbles; effective bank = 0x30 + nibble",
+                    "normal_and_state_1F": {"sword_piece": "nibble 3 / bank 0x33", "body_piece": "nibble 7 / bank 0x37"},
+                    "airborne_$20_$23": "nibble 7 / bank 0x37",
+                    "short_reaction_$71_$73": "nibble C / bank 0x3C",
+                    "rope_shared_sheet": "nibble 0/4/9 / bank 0x30/0x34/0x39",
+                },
+                "actor_override": {
+                    "note": "preserved R1 sweep: every $033E record has creation attr +$27 = 0x44 (960 obs) or "
+                            "0x41 (326 obs), bit 6 set; 0x3C9E8/0x3C902 overrides all piece low bytes to one line",
+                    "effective_line": "4 (bank 0x34) or 1 (bank 0x31) under the 0x30 colbank",
+                },
+                "registry_conflict": {
+                    "decision_id": "PAL-PC090OJ-R1S2-GREEN-SWORD-KNIGHT-001",
+                    "registry_records": "authoring reference R1 line 3 -> pool 0x0C, runtime bank 0x33",
+                    "observed_in_sweep": "actor attribute selects line 4/bank 0x34 or line 1/bank 0x31",
+                    "status": "UNRESOLVED field-CRAM relationship (see 0069); surfaced, not silently redefined",
+                },
+            }
             for order, (anim, pcs) in enumerate(knight_frames):
                 # SINGLE creation-line palette (not per-piece): strip the per-piece "palette" nibble so the
                 # render path uses the one pool palette (via used_colors overlay) and honors the authored
@@ -373,12 +421,16 @@ def green_knight_usages():
                 # ignored the mapping). See /api/render usage branch.
                 pp = [{k: v for k, v in p.items() if k != "palette"} for p in pcs]
                 xs = [p["x"] for p in pp]; ys = [p["y"] for p in pp]
+                state = KNIGHT_ANIM_STATE[anim]
+                frame_sword_codes = sorted(c for c in (p["code"] for p in pp) if c in SWORD_CODES)
                 out.append({
                     "usage_id": "usage:knight_r%d_v%d_n%x:anim0x%02X" % (rnd, v, nib, anim),
                     "object_id": "object:castle.green_sword_knight.r%d.n%x" % (rnd, nib),
                     "map_key": "object:castle.green_sword_knight.r%d.n%x" % (rnd, nib),
-                    "frame_category": vlabel, "frame_label": "anim 0x%02X" % anim, "frame_order": order,
-                    "anim_state": KNIGHT_ANIM_STATE[anim],
+                    # The pose-group is the honest UI header (app.js groups by frame_category); the round's
+                    # green-armor line label is kept in variant_label.
+                    "frame_category": POSE_LABEL[state], "frame_label": "anim 0x%02X" % anim, "frame_order": anim,
+                    "anim_state": state, "pose_label": POSE_LABEL[state],
                     "player_counts": None, "weapon_counts": None,
                     "display_name": "Green Sword Knight", "variant_label": vlabel,
                     "sprite_bank": "0x3%X" % nib, "sprite_banks": ["0x3%X" % nib], "multi_bank": False,
@@ -387,6 +439,13 @@ def green_knight_usages():
                     "bounds": [max(xs) - min(xs) + 16, max(ys) - min(ys) + 16],
                     "composite_proven": True, "preview_type": "ARCADE GREEN-ARMOR (line 3 / pool 0x0C)",
                     "used_colors": ref, "mrd_pairs": [], "n_used": 16, "frames_total_distinct": total,
+                    "palette_provenance": palette_provenance,
+                    # Sword sub-context evidence (Cody 0080 #6): the attached-piece weapon lives in the SAME
+                    # programs and inherits the SAME warrior mapping -- NOT a separate palette identity.
+                    "weapon_subcontext": SWORD_SUBCONTEXT,
+                    "weapon_sword_codes": ["0x%03X" % c for c in SWORD_CODES],
+                    "frame_sword_codes": ["0x%03X" % c for c in frame_sword_codes],
+                    "sword_representative": anim in SWORD_REPRESENTATIVE_ANIMS,
                 })
     _KNIGHT_USAGES_CACHE = out
     return out

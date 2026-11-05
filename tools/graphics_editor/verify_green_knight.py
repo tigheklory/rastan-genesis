@@ -1,15 +1,20 @@
 #!/usr/bin/env python3
-"""PROMPT-ID-0069 / extended PROMPT-ID-0078 — Green Sword Knight in the Palette Composer.
+"""PROMPT-ID-0069 / 0078 / CORRECTED PROMPT-ID-0084 — Green Sword Knight in the Palette Composer.
 
 Proves (static, no trace, no ROM): the knight (family-2 base 0x033E) is a scene-tagged browsable object in
 every castle section R1-S2..R6-S2 carrying its arcade palette reference; R1-S2 c0/c3 are green; no lizardman
-leaks into the knight object; and (PROMPT-ID-0078) the knight exposes the COMPLETE family-2 animation domain
-from the actor state machine -- NORMAL $93-$96, CROUCH/low-pose $20-$23 (airborne engine 0x473B8 states
-0D/0E), ROPE $4D,$56-$5A -- as ONE semantic object whose authored Test.json index transform is applied
-EXACTLY (not a color-only check). Fails if any proven pose block is dropped, and asserts Test.json unchanged.
+leaks into the knight object; and (CORRECTED under PROMPT-ID-0084 from Cody's ORIGINAL ARCADE sweep,
+PROMPT-ID-0080) the knight exposes the COMPLETE 29-PROGRAM / 109-CODE family-2 animation domain -- NORMAL
+$93-$96, SHORT REACTION $71-$73, AIRBORNE $20-$23, LOW/WEAPON ACTION A $A1-$A6 and B $97-$9C (state-$1F),
+ROPE $4D,$56-$5A -- as ONE semantic object whose authored Test.json index transform is applied EXACTLY
+(not a color-only check). The old 17-program/77-code claim can NO LONGER pass as complete. Also proves:
+$71-$73 is NOT labeled a proven "crouch"; $74 stays excluded; the complete sword artwork 26B-274 is covered;
+and both palette-provenance layers (embedded defaults + actor +$27 override) are surfaced. Asserts
+Test.json unchanged.
 
 TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0069
 TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0078
+TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0084
 """
 from __future__ import annotations
 import importlib.util, json, threading, time, urllib.request, urllib.parse, struct, zlib, hashlib
@@ -84,28 +89,38 @@ def main() -> int:
     ck("11. variant carries knight frames (pieces)", bool(one.get("pieces")) and one.get("n_pieces", 0) >= 2)
     ck("12. preview uses the green-armor line (pool 0x0C)", one.get("preview_type", "").startswith("ARCADE GREEN-ARMOR"))
 
-    # PROMPT-ID-0078: the COMPLETE same-actor base-$033E animation domain from the actor state machine --
-    # NORMAL $93-$96, CROUCH $71-$73 (state-0x0F alt 0x40E0E, base-preserving; Cody's runtime block),
-    # AIRBORNE $20-$23 (engine 0x473B8 states 0D/0E), ROPE $4D,$56-$5A. The expected set is derived from the
-    # sub-domains, so dropping ANY block fails the regression (the exact failure Tighe found: one animation
-    # state silently outside the semantic palette object).
+    # CORRECTED PROMPT-ID-0084 from Cody's ORIGINAL ARCADE sweep (PROMPT-ID-0080): the COMPLETE same-actor
+    # base-$033E animation domain is 29 PROGRAMS, re-stated here independently (NOT imported from the server/
+    # generator). The old 17-program set is now a FAILING subset. Dropping ANY block fails the regression.
     NORMAL = {0x93, 0x94, 0x95, 0x96}
-    CROUCH = {0x71, 0x72, 0x73}
-    AIRBORNE = {0x20, 0x21, 0x22, 0x23}
-    ROPE = {0x4D, 0x56, 0x57, 0x58, 0x59, 0x5A}
-    DOMAIN = NORMAL | CROUCH | AIRBORNE | ROPE
+    SHORT_REACTION = {0x71, 0x72, 0x73}                         # state-0x0F alt 0x40E0E (NOT a proven crouch)
+    AIRBORNE = {0x20, 0x21, 0x22, 0x23}                         # engine 0x473B8 states 0D/0E
+    LOW_ACTION_A = {0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6}         # state-$1F table 0x42FBC (NEW: was omitted)
+    LOW_ACTION_B = {0x97, 0x98, 0x99, 0x9A, 0x9B, 0x9C}         # state-$1F table 0x42FD4 (NEW: was omitted)
+    ROPE = {0x4D, 0x56, 0x57, 0x58, 0x59, 0x5A}                 # shared-sheet family-8 climb
+    DOMAIN = NORMAL | SHORT_REACTION | AIRBORNE | LOW_ACTION_A | LOW_ACTION_B | ROPE
+    assert len(DOMAIN) == 29
+    OLD_17 = NORMAL | SHORT_REACTION | AIRBORNE | ROPE          # PROMPT-ID-0078's incomplete set
     r1 = [u for u in kn if u.get("round") == 1]
     r1_anims = {int(u["frame_label"].split()[-1], 16) for u in r1}
-    ck("13. R1 knight exposes the COMPLETE normal+crouch+airborne+rope domain", r1_anims == DOMAIN,
-       sorted("0x%02X" % a for a in (DOMAIN ^ r1_anims)))
-    ck("14. CROUCH block $71-$73 present (the state Tighe/Cody found missing)", CROUCH <= r1_anims)
+    ck("13. R1 knight exposes the COMPLETE 29-program domain (normal+reaction+airborne+1F-A+1F-B+rope)",
+       r1_anims == DOMAIN and len(r1_anims) == 29, sorted("0x%02X" % a for a in (DOMAIN ^ r1_anims)))
+    ck("13b. the old 17-program set is NO LONGER complete (0084 regression)", r1_anims != OLD_17 and OLD_17 < r1_anims)
+    ck("14. SHORT-REACTION block $71-$73 present", SHORT_REACTION <= r1_anims)
     ck("15. ROPE block $4D,$56-$5A preserved + re-verified (not dropped by refactor)", ROPE <= r1_anims)
     ck("15b. AIRBORNE block $20-$23 present (states 0D/0E)", AIRBORNE <= r1_anims)
-    ck("15c. torch $74 (base 0x0DAB) correctly NOT in the knight domain", 0x74 not in r1_anims)
-    # anim_state tags each frame so the UI groups the one actor's poses
+    ck("15c. state-$1F LOW/WEAPON ACTION A $A1-$A6 present (Cody 0080 missing programs)", LOW_ACTION_A <= r1_anims)
+    ck("15d. state-$1F LOW/WEAPON ACTION B $97-$9C present (Cody 0080 missing programs)", LOW_ACTION_B <= r1_anims)
+    ck("15e. torch $74 (base 0x0DAB) correctly NOT in the knight domain", 0x74 not in r1_anims)
+    # anim_state tags each frame so the UI groups the one actor's poses -- labels must be HONEST: $71-$73 is a
+    # "short_reaction", NOT a proven "crouch"; state-$1F sequences are provisional "low_action_a/b".
     states = {u.get("anim_state") for u in r1}
-    ck("16. every R1 frame carries an anim_state (normal/crouch/airborne/rope)",
-       states == {"normal", "crouch", "airborne", "rope"}, states)
+    ck("16. anim_state tags are the 6 honest pose groups (no false 'crouch')",
+       states == {"normal", "short_reaction", "airborne", "low_action_a", "low_action_b", "rope"}, states)
+    sr_labels = {u.get("pose_label", "") for u in r1 if u.get("anim_state") == "short_reaction"}
+    ck("16b. NO frame is a proven 'crouch'; $71-$73 label keeps it pending (0084 honesty requirement)",
+       not any(u.get("anim_state") == "crouch" for u in r1)
+       and all("pending" in lbl.lower() for lbl in sr_labels) and sr_labels)
     # ONE semantic actor: every R1 pose inherits a SINGLE authored object_id (not pose-specific identities)
     r1_objs = {u.get("object_id") for u in r1}
     ck("17. all R1 poses are ONE semantic object (single authored mapping)", len(r1_objs) == 1, r1_objs)
@@ -124,6 +139,28 @@ def main() -> int:
             genre.transform(bytes([(i << 4) | i]) * genre.CELL, 0, imap))
         for i in range(16))
     ck("19. authored index transform is EXACT for every source index (not just 'green')", bool(exact))
+
+    # 0084: the complete domain re-derives to 109 codes (independent compositor VM) and covers the complete
+    # moving-weapon sword artwork 26B-274. Re-derived here, NOT read from the generator's constant.
+    import sys as _sys
+    vm_path = str(ROOT / "tools/graphics_optimizer")
+    if vm_path not in _sys.path:
+        _sys.path.insert(0, vm_path)
+    from compositor_vm import ActorRenderState, visible_pieces
+    domain_codes = {p.tile & 0x1FFF for a in DOMAIN for p in visible_pieces(ActorRenderState(0x033E, a, 0))
+                    if (p.tile & 0x1FFF) < 0x1000}
+    ck("19b. complete domain re-derives to 109 distinct pattern codes", len(domain_codes) == 109, len(domain_codes))
+    sword = set(range(0x26B, 0x275))
+    ck("19c. complete sword artwork 26B-274 is covered by the warrior domain",
+       sword <= domain_codes, sorted("0x%03X" % c for c in (sword - domain_codes)))
+    # 0084 requirement #5: both palette-provenance layers are surfaced (embedded defaults + actor override)
+    pp = one.get("palette_provenance") or {}
+    ck("19d. palette provenance surfaces embedded defaults AND actor +$27 override (not flattened to $33)",
+       bool(pp.get("embedded_defaults")) and bool(pp.get("actor_override")) and bool(pp.get("registry_conflict")))
+    # 0084 requirement #6: sword exposed as a warrior sub-context (not a separate palette identity)
+    ck("19e. sword exposed as warrior sub-context inheriting the same object", all(
+        u.get("weapon_subcontext") == "object:castle.green_sword_knight.weapon.sword"
+        and u.get("object_id") != u.get("weapon_subcontext") for u in r1))
 
     # scene-membership: a knight entry shows only in its own castle section (mirror app.js scene_key rule)
     def visible(active):

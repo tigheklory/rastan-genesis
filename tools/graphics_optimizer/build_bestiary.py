@@ -285,9 +285,33 @@ def phase_section(r):
     conf=d.get('castle_confirmed_MAME')
     corro=('<div class="muted" style="margin-top:4px"><i>Corroboration (MAME, not authority):</i> '
            +", ".join(f'<span class="mono">{c}</span>' for c in conf)+'</div>') if conf else ''
+    # PROMPT-ID-0084 (corrects PROMPT-ID-0078 via Cody's ORIGINAL ARCADE sweep, PROMPT-ID-0080): the R1-S2
+    # green sword warrior's COMPLETE displayed base-0x033E pose domain is 29 programs / 109 codes (the old
+    # 17/77 claim is SUPERSEDED). Labels for state-$1F and $71-$73 stay provisional until runtime proof.
+    warrior=('<div class="statusbox ok" style="margin-top:4px"><b>R1-S2 Green Sword Warrior '
+         '(<span class="mono">object:castle.green_sword_knight</span>, family-2 base <span class="mono">0x033E</span>):</b> '
+         'COMPLETE displayed pose domain = <b>29 programs / 109 pattern codes</b> (CORRECTED under '
+         'PROMT-ID-0084 from Cody&#39;s original-arcade R1 sweep; the earlier 17/77 claim is superseded). '
+         'NORMAL <span class="mono">$93-$96</span>; AIRBORNE <span class="mono">$20-$23</span>; '
+         'short reaction/effect <span class="mono">$71-$73</span> (state-$0F; <i>crouch visual unproven</i>); '
+         'state-$1F low/weapon action A <span class="mono">$A1-$A6</span> and B <span class="mono">$97-$9C</span> '
+         '(newly proven displayed); rope-climb shared-sheet family-8 <span class="mono">$4D,$56-$5A</span>. '
+         'Embedded sword artwork <span class="mono">26B-274</span> is an attached piece of these same programs '
+         '(zero overlap with Rastan&#39;s player weapon codes). <span class="mono">$74</span> is the torch '
+         '(base <span class="mono">0x0DAB</span>), NOT the warrior. Palette provenance is two-layer: embedded '
+         'bit-6-clear defaults (sword nibble 3/$33, body nibble 7/$37; airborne $37; reaction $3C; rope '
+         '$30/$34/$39) AND the preserved-sweep actor <span class="mono">+$27</span> override '
+         '(<span class="mono">$44/$41</span>, bit 6) forcing line 4/$34 or 1/$31 — NOT a flat $33.</div>')
+    hazards=('<div class="statusbox pend" style="margin-top:4px"><b>R1-S2 hazards — UNRESOLVED, do not fabricate:</b> '
+         'floor spikes, moving wooden gate, moving spiked traps, falling water (NOT the R1-S1 waterfall), static '
+         'pit lava, animated pit flames. The scene-wide Plane-A corpus is authoring evidence only; it does NOT '
+         'label which codes belong to which hazard. Resolve each via one original-arcade owner/world-cell/write '
+         'capture (<span class="mono">tools/mame/run_arcade_marker_capture_wsl.sh</span>). Warrior hammer/axe and '
+         'Flame Sword remain UNRESOLVED (no positive source path); no silhouette relabeling.</div>')
     cas=(f'<span class="ok"><b>Schedule (0x4A104) content — STATIC:</b> family-2 spawners {sp_html}'
          f' &nbsp;<i>(base 0x033E route mechanism, anim 0x93)</i>; direct hostile bases {dh_html}.</span>'
-         f'<div class="ok" style="margin-top:4px">Char-spawned identities (0x41180 <span class="mono">+0x03≠0</span>, target char <span class="mono">+0x0D</span> ∈ 0x45–0x7b): per-scene map-marker rosters PROVEN (H13) and Phase-2 marker chains executed to exact +0x1E base writes (H14).</div>{corro}')
+         f'<div class="ok" style="margin-top:4px">Char-spawned identities (0x41180 <span class="mono">+0x03≠0</span>, target char <span class="mono">+0x0D</span> ∈ 0x45–0x7b): per-scene map-marker rosters PROVEN (H13) and Phase-2 marker chains executed to exact +0x1E base writes (H14).</div>'
+         f'{warrior if r==1 else ""}{hazards if r==1 else ""}{corro}')
     return (f'<div class="phaserow">'
             f'<div class="pbox"><b>SUB-ROUND 1 · 0x13E {d["outdoor_13E"]}</b><span class="ok">0x4A104 field schedule: {lst(d["phase1_field"])}</span></div>'
             f'<div class="pbox"><b>SUB-ROUND 2 · 0x13E {s2win}</b>{cas}</div>'

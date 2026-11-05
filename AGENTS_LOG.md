@@ -55096,3 +55096,39 @@ TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0069
   `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0080_r1s2_palette_bestiary_handoff_for_andy.md`.
 
 `TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0080`
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0084 — Corrected R1-S2 green-warrior palette domain + reusable arcade capture (Andy, 2026-11-05)
+
+- Corrects PROMPT-ID-0078 with Cody's PROMPT-ID-0080 original-arcade audit. No ROM build, no build-counter
+  change, no Test.json change, no Cody transition/audio/Plane-A/`tilemap_hooks.s` touched, no push.
+- Warrior domain corrected **17 programs / 77 codes -> 29 programs / 109 codes**. Added the two state-$1F
+  tables: `$A1-$A6` (0x42FBC) and `$97-$9C` (0x42FD4), contributing the 32 new codes `26D-274` + `389-3A0`
+  (complete sword artwork `26B-274` now covered). Independently re-derived through the compositor VM =
+  Cody's exact 109/32.
+- Honest labels: `$71-$73` relabeled from "crouch" to "short reaction/effect (crouch visual pending)";
+  state-$1F groups labeled "low/weapon action A/B" (provisional). `$74` torch (`0x0DAB`) kept excluded.
+- Palette provenance surfaced as TWO layers (not flattened to `$33`): embedded bit-6-clear program
+  defaults (sword 3/`$33`, body 7/`$37`; airborne `$37`; reaction `$3C`; rope `$30/$34/$39`) AND the
+  preserved-sweep actor `+$27` override (`$44/$41`, bit 6 -> line 4/`$34` or 1/`$31`). Registry-vs-sweep
+  bank conflict recorded, not silently redefined. Tighe's authored mapping unchanged.
+- Sword exposed as warrior sub-context `object:castle.green_sword_knight.weapon.sword` inheriting the same
+  mapping (NOT a second identity); representatives `$93,$A3,$A6,$99,$9C`; player weapons untouched.
+- Hammer, axe, Flame Sword, floor spikes, moving wooden gate, moving spiked traps, falling water, pit
+  flames all kept **UNRESOLVED** (not fabricated, no silhouette relabeling, R1-S1 waterfall not reused).
+- New reusable ORIGINAL ARCADE harness (read-only): `tools/mame/scripts/arcade_marker_capture.lua` +
+  `tools/mame/run_arcade_marker_capture_wsl.sh`. One marker key (M), rolling pre-marker history; captures
+  active actor records, emitted PC090OJ records (owner-correlated), PC080SN writes (both planes), CRAM
+  writes, and collision/state. Reuses the proven actor/SAT decode (`arcade_actor_renderer_verify.lua`) and
+  marker/tap pattern (`r1s2_resident_oracle_arcade.lua`). Smoke-tested headless against `rastan` with zero
+  input writes: 5 auto-markers in the attract demo -> 36 actor records, 362 PC090OJ records, 9,581 PC080SN
+  writes, CRAM + collision, all parseable. Plumbing proven; hazard identities NOT asserted.
+- Verification: `verify_green_knight.py` 31/31 (old 17-set now fails as complete; 109 re-derived; sword
+  covered; both provenance layers; no proven "crouch"); `verify_reindexed_pc090oj.py` VERIFY PASS (knight
+  109/109, sword covered, exact=True, Rastan 344/0, stray 0, divergent all-distinct);
+  `verify_r1s2_castle_browser.py` 15/15. Test.json SHA unchanged
+  `24914ababc7fab52aac8258dd1f9f7b3d5df230b81421c03d9ce68d1526135ae`.
+- Bestiary corrected + regenerated (`build_bestiary.py` R1 sub-round-2 card -> `rastan_actor_bestiary.html`,
+  consistency_check PASS); obsolete 17-program claim retired; 0078/0080 reports preserved.
+- Report: docs/design/Andy_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0084_corrected_r1s2_palette_domain.md.
+
+`TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0084`
