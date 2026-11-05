@@ -68,15 +68,29 @@
       "status": "proven",
       "track": "05 - Re-In-Carnation (Scene 2)",
       "wire_command": "0x27"
+    },
+    {
+      "evidence": "ORIGINAL ARCADE transition trace states/traces/prompt0076_arcade_r1s2_to_r1s3_audio_v2: stable record 0x11 emits appearance cue 0x25 at frame 787 followed by six-channel command 0x1B at frame 788. Genesis retained-transition evidence in states/traces/build0536_audio015_natural_round1_transitions_v2 reproduces 0x25 then 0x1B while activating record 0x11/package 5. The native song asset is the existing single Re-In-Carnation payload; no audio data is duplicated.",
+      "semantics": "Round 1 Subround 2 castle-entry music decision following the shared player-appearance cue",
+      "status": "proven",
+      "track": "05 - Re-In-Carnation (Scene 2)",
+      "wire_command": "0x1B"
+    },
+    {
+      "evidence": "ORIGINAL ARCADE natural retained transition trace states/traces/prompt0076_arcade_r1s2_to_r1s3_audio_v2: record 0x17 boss entry emits shared appearance cue 0x25 at frame 982 followed by six-channel song command 0x1C at frame 983; this is the original Scene-3 boss entry where The Devil Boss Carnival plays. The native bridge already consumes the non-outdoor 0x25 and now dispatches the authentic following 0x1C.",
+      "semantics": "Round 1 Subround 3 boss-entry music change",
+      "status": "proven",
+      "track": "06 - The Devil Boss Carnival (Scene 3 Boss)",
+      "wire_command": "0x1C"
     }
   ],
   "fm6_reserved": true,
-  "profile": "/tmp/rg0010-source/analysis/audio/decision_profiles/music-test.json",
-  "profile_revision": 14,
-  "profile_revision_id": "music-test.r14.20261023T204126Z",
-  "profile_sha256": "989ba223ce13715d1fced0b6223cea4813f6b5e101b81aa3bf59007c69e7b067",
+  "profile": "../../analysis/audio/decision_profiles/music-test.json",
+  "profile_revision": 15,
+  "profile_revision_id": "music-test.r15.20261024T214957Z",
+  "profile_sha256": "4ab8f9d6c95f549d43beb62d9fcb2b5d2165537d7e1e259283a577860abaedb4",
   "schema": "rastan-genesis-native-audio-library/v1",
-  "song_table_rows": 12,
+  "song_table_rows": 14,
   "songs": [
     {
       "diagnostic_command": "0xD0",
@@ -161,7 +175,8 @@
       "slug": "track_05_re_in_carnation_scene_2",
       "track": "05 - Re-In-Carnation (Scene 2)",
       "wire_commands": [
-        "0x27"
+        "0x27",
+        "0x1B"
       ]
     },
     {
@@ -178,7 +193,9 @@
       "loop_ticks": 1152,
       "slug": "track_06_the_devil_boss_carnival_scene_3_boss",
       "track": "06 - The Devil Boss Carnival (Scene 3 Boss)",
-      "wire_commands": []
+      "wire_commands": [
+        "0x1C"
+      ]
     },
     {
       "diagnostic_command": "0xD6",
@@ -217,8 +234,8 @@
       "has_loop": false,
       "id": 9,
       "intro": "out/audio_native/track_09_the_man_of_saga_ending_intro.bin",
-      "intro_bytes": 146959,
-      "intro_sha256": "63a2ef9cd6845844578d0b85e189797b4eb3347fb744382ff74225eb3383f0a4",
+      "intro_bytes": 192673,
+      "intro_sha256": "404616360a4f651be9814b0c86e3abbd7800ea41631d363b86cfe8a50201ba25",
       "intro_ticks": 5177,
       "loop": "out/audio_native/track_09_the_man_of_saga_ending_loop.bin",
       "loop_bytes": 1,
