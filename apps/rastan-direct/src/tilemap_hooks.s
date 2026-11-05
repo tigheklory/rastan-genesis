@@ -1053,6 +1053,19 @@ genesistan_plane_a_pan_publish_entering_rows_up:
     beq.s   .Lplane_a_pan_up_done
     addq.w  #1, %d4
     andi.w  #0x003F, %d4
+
+    /* The 32-row residency edge (top+31) preserves the four legitimate
+     * prefetch rows, but it is not sufficient after a direction reversal.
+     * Ordinary selector-1/2 authoring can reuse the newly-visible bottom
+     * row's physical slot for its N-32 alias after that row was prefetched.
+     * Revalidate the actual 28-row display edge before it becomes visible;
+     * exact-owner provenance makes this a no-op when prefetch is still valid. */
+    move.w  %d4, %d0
+    addi.w  #27, %d0
+    andi.w  #0x003F, %d0
+    bsr     .Lplane_a_publish_logical_row_native
+
+    /* Retain the independent four-row offscreen prefetch edge. */
     move.w  %d4, %d0
     addi.w  #31, %d0
     andi.w  #0x003F, %d0

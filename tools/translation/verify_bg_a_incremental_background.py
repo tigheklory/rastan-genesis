@@ -63,6 +63,8 @@ def static_contract() -> None:
                      "/* Build 0350/0415:")
     fg_dma = section(source, "vdp_commit_fg_columns_if_dirty:",
                      "vdp_commit_fg_narrow_strips:")
+    pan_up = section(source, "genesistan_plane_a_pan_publish_entering_rows_up:",
+                     ".Lplane_a_pan_up_done:")
 
     require(source, (".equ BG_LOGICAL_SPAN,                    64",
                      ".macro MAP_GET_NAME_A", ".macro MAP_GET_NAME_B",
@@ -107,6 +109,11 @@ def static_contract() -> None:
                     ".Lplane_a_sel12_residency_recorded:"), "selector-1/2")
     if "bsr     .Lplane_b_publish_logical_row_native" in sel12:
         fail("Plane-A selector-1/2 edge repair writes independently owned Plane B")
+    require(pan_up, ("addi.w  #27, %d0", "addi.w  #31, %d0",
+                     "bsr     .Lplane_a_publish_logical_row_native"),
+            "no-publication increasing-top edge repair")
+    if pan_up.index("addi.w  #27, %d0") > pan_up.index("addi.w  #31, %d0"):
+        fail("visible bottom must be validated before the offscreen prefetch edge")
     if "MAP_GET_COLLISION" in sel12 or "MAP_GET_NAME_COLLISION_A" in sel12:
         fail("selector-1/2 reintroduces generic coordinate discovery below rebuilt A3 pointers")
     if "MAP_GET_NAME_COLLISION_A" in sel0:
@@ -628,6 +635,124 @@ def verify_selector12_visible_edge_and_prefetch_margin() -> None:
                     )
 
 
+def verify_no_publication_downward_visible_history() -> None:
+    """Reproduce the Build-0538 stale-bottom history, not merely its formula.
+
+    The runtime helper named ``pan_up`` is the $055790 no-publication arm.  Its
+    scroll subtraction increases visible_top, which is the player-visible
+    downward traversal reported by Tighe: the entering display row is the new
+    bottom at top+27.  The historical helper validated only top+31.
+    """
+    current, completed, selector, front = 17, 16, 1, 52
+    native = NATIVE_MAPS.read_bytes()
+    pan = PAN_ROWS.read_bytes()
+    native_table_bytes = 46 * 12
+
+    def native_row(record: int, logical: int) -> bytes:
+        entry = record * 12
+        offset = int.from_bytes(native[entry:entry + 4], "big")
+        start = native_table_bytes + offset + logical * 128
+        result = native[start:start + 128]
+        if len(result) != 128:
+            fail(f"short native row record={record} row={logical}")
+        return result
+
+    def pan_row(record: int, logical: int) -> bytes:
+        entry = record * 4
+        offset = int.from_bytes(pan[entry:entry + 4], "big")
+        if offset == 0xFFFFFFFF:
+            fail(f"record {record} has no selector pan-row asset")
+        start = offset + logical * 128
+        result = pan[start:start + 128]
+        if len(result) != 128:
+            fail(f"short pan row record={record} row={logical}")
+        return result
+
+    def materialization_record(logical: int) -> int:
+        if selector == 1 and front > 0 and logical >= 64 - front:
+            return current
+        if selector == 2 and logical < front:
+            return current
+        return completed
+
+    def row(record: int, logical: int) -> bytes:
+        return (pan_row(record, logical) if record == current
+                else native_row(record, logical))
+
+    def materialize(tags: list[int | None], words: list[bytes | None],
+                    logical: int) -> None:
+        physical = logical & 31
+        if tags[physical] == logical:
+            return
+        record = materialization_record(logical)
+        tags[physical] = logical
+        words[physical] = row(record, logical)
+
+    # Ordered runtime history at the record-16/17 boundary:
+    # 1. top 13's prefetch edge correctly materializes current-record L44/P12;
+    # 2. ordinary selector-1 publication later authors L12 into the same P12;
+    # 3. downward traversal advances top 13->17.  L44 is the new visible
+    #    bottom only at the final crossing, while the old +31-only helper
+    #    validates L45..L48 and never revisits P12.
+    tags: list[int | None] = [None] * PHYSICAL_H
+    words: list[bytes | None] = [None] * PHYSICAL_H
+    materialize(tags, words, 44)
+    physical = 44 & 31
+    if tags[physical] != 44:
+        fail("0087 history failed to prefetch record-17 logical row 44")
+    tags[physical] = 12
+    words[physical] = row(current, 12)
+    if words[physical] == row(current, 44):
+        fail("0087 record-17 N/N+32 oracle is not content-discriminating")
+
+    legacy_tags = tags.copy()
+    legacy_words = words.copy()
+    for new_top in range(14, 18):
+        materialize(legacy_tags, legacy_words, (new_top + 31) & 63)
+    expected = 44
+    if legacy_tags[physical] != expected - 32:
+        fail("Build-0538 model no longer retains the proven N-32 stale owner")
+    if legacy_words[physical] != row(current, expected - 32):
+        fail("Build-0538 model stale contents no longer match logical row 12")
+
+    # Corrected slow traversal: each single-row crossing validates the visible
+    # bottom and the independent prefetch edge.  The last crossing repairs P12.
+    slow_tags = tags.copy()
+    slow_words = words.copy()
+    for new_top in range(14, 18):
+        materialize(slow_tags, slow_words, (new_top + 27) & 63)
+        materialize(slow_tags, slow_words, (new_top + 31) & 63)
+    if slow_tags[physical] != expected or slow_words[physical] != row(current, expected):
+        fail("slow downward visible-bottom crossing retained stale N-32 owner")
+
+    # Corrected fast traversal executes the same ordered crossings in one
+    # helper invocation.  It must converge to the identical ownership state.
+    fast_tags = tags.copy()
+    fast_words = words.copy()
+    old_top, new_top = 13, 17
+    cursor = old_top
+    while cursor != new_top:
+        cursor = (cursor + 1) & 63
+        materialize(fast_tags, fast_words, (cursor + 27) & 63)
+        materialize(fast_tags, fast_words, (cursor + 31) & 63)
+    if (fast_tags, fast_words) != (slow_tags, slow_words):
+        fail("fast and slow downward histories produce different residency")
+
+    # Opposite-direction entry remains the newly visible top itself.  This is
+    # the accepted upward path and must not be shifted to either +27 or +31.
+    reversal_tags = fast_tags.copy()
+    reversal_words = fast_words.copy()
+    materialize(reversal_tags, reversal_words, 16)
+    if reversal_tags[16] != 16 or reversal_words[16] != row(current, 16):
+        fail("upward/top-edge non-regression lost exact logical ownership")
+
+    # The four rows after the 28-row display remain valid prefetch owners.
+    for logical in range(45, 49):
+        physical = logical & 31
+        if fast_tags[physical] != logical:
+            fail(f"prefetch ownership lost for logical row {logical}")
+
+
 def verify_plane_b_independent_context() -> None:
     cases = ((4, 7), (5, 7), (5, 8))
     for a_context, b_context in cases:
@@ -859,6 +984,7 @@ def main() -> None:
     verify_source_rebase_and_trailing_retention()
     verify_no_publication_predecessor_selection()
     verify_selector12_visible_edge_and_prefetch_margin()
+    verify_no_publication_downward_visible_history()
     verify_plane_b_independent_context()
     verify_vertical_row_hoist_equivalence()
     verify_selector0_residency_hoist_equivalence()
