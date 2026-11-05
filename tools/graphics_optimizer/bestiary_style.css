@@ -113,4 +113,11 @@ ul.checks .ck.pend .ckm{color:var(--pend)}
 .pframe{background:repeating-conic-gradient(#0d0f13 0 25%,#191c23 0 50%) 50%/14px 14px;min-height:96px;display:flex;align-items:center;justify-content:center;padding:8px}
 .pframe img{max-height:120px;image-rendering:pixelated}
 .pmeta{padding:6px 8px;font-size:11px;color:var(--dim)}.pmeta b{color:var(--ink);font-family:Oxanium}
+.itemcat .dims{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0 7px}
+.dim{font-size:9.5px;font-family:var(--mono);padding:2px 6px;border-radius:4px;background:rgba(255,255,255,.04);border:1px solid var(--line);white-space:nowrap}
+.dim b{font-family:Oxanium;font-weight:700;letter-spacing:.02em;margin-right:3px;opacity:.72}
+.dim.ok{background:rgba(95,191,122,.14);color:var(--ok)}
+.dim.part{background:rgba(224,168,60,.14);color:var(--part)}
+.dim.pend{background:rgba(208,106,90,.16);color:var(--pend)}
+.dim.na{color:var(--mut);opacity:.6}
 </style>

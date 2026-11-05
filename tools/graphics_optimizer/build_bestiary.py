@@ -242,7 +242,7 @@ gal_field=gallery("Field / Sub-Round-1 Actor Gallery", f"({len(field)} field-sch
 gal_mat=gallery("Materialized / Marker-Driven Actor Gallery",
                 f"({len(materialized)} H5/H6 materialized + {len(controllers)} controller)",
                 sorted(materialized,key=lambda a:a['base_graphics'])+controllers,
-                intro="Actors the marker/hunter system (0x41180 → 0x41362 → 0x40BAA state handlers) materializes in the later / sub-round-2 part of a round. <b>H10 assembled legal arcade frames</b> for all 12 via the proven render dispatch (0x3D054 → 0x3C902). <b>H14 executed the real Phase-2 marker chains</b> (H13 record-accurate map): four bases are now round-pinned by an exact +0x1E write — 0x0224 (R2,R4), 0x00F4 (R4,R5,R6), 0x09EA (R5), 0x0179 (R6) — with the exact family-2 palette instance (0x45684 → 0x456EC → 0x3BA88 → 0x4FD02); the other eight are <b>PROVEN ABSENT</b> from Phase-2 (no marker occurrence satisfies their base-write branch). Human identity + exact legal frame remain PENDING. 0x033E is the hidden controller (not a sprite Rastan fights).")
+                intro="Actors the marker/hunter system (0x41180 → 0x41362 → 0x40BAA state handlers) materializes in the later / sub-round-2 part of a round. <b>H10 assembled legal arcade frames</b> for all 12 via the proven render dispatch (0x3D054 → 0x3C902). <b>H14 executed the real Phase-2 marker chains</b> (H13 record-accurate map): four bases are now round-pinned by an exact +0x1E write — 0x0224 (R2,R4), 0x00F4 (R4,R5,R6), 0x09EA (R5), 0x0179 (R6) — with the exact family-2 palette instance (0x45684 → 0x456EC → 0x3BA88 → 0x4FD02); the other eight are <b>PROVEN ABSENT</b> from Phase-2 (no marker occurrence satisfies their base-write branch). <b>PROMPT-0086:</b> 0x0224 = <b>pit flame</b> and 0x09EA = <b>spike/spear/stalagmite</b> now carry PROVEN HUMAN IDENTITY (Tighe); 0x0179 = cave block (H17); 0x00F4 human identity still PENDING. Exact legal frame / state / collision for 0x0224 and 0x09EA remain source-PENDING. 0x033E is the hidden controller (not a sprite Rastan fights).")
 gal_scripted=gallery("Scripted / Special Actor Gallery", f"({len(scripted_actors)} scripted-encounter actors)",
                      scripted_actors)
 hazards=[a for a in actors if a['category']=='HAZARD_INTERACTIVE']
@@ -307,7 +307,12 @@ def phase_section(r):
          'pit lava, animated pit flames. The scene-wide Plane-A corpus is authoring evidence only; it does NOT '
          'label which codes belong to which hazard. Resolve each via one original-arcade owner/world-cell/write '
          'capture (<span class="mono">tools/mame/run_arcade_marker_capture_wsl.sh</span>). Warrior hammer/axe and '
-         'Flame Sword remain UNRESOLVED (no positive source path); no silhouette relabeling.</div>')
+         'Flame Sword remain UNRESOLVED (no positive source path); no silhouette relabeling. '
+         '<b>PROMPT-0086 update:</b> the animated pit flame (base <span class="mono">0x0224</span>) and the '
+         'spike/spear family (base <span class="mono">0x09EA</span>) now have PROVEN HUMAN IDENTITY (Tighe) and '
+         'proven marker-chain creation — but only in <b>R2/R4</b> (0x0224) and <b>R5</b> (0x09EA); their '
+         '<b>R1-S2 reachability is NOT in the proven H14 chain</b> and still needs the capture. See the Hazard '
+         'census dashboard for the independent per-dimension confidence.</div>')
     cas=(f'<span class="ok"><b>Schedule (0x4A104) content — STATIC:</b> family-2 spawners {sp_html}'
          f' &nbsp;<i>(base 0x033E route mechanism, anim 0x93)</i>; direct hostile bases {dh_html}.</span>'
          f'<div class="ok" style="margin-top:4px">Char-spawned identities (0x41180 <span class="mono">+0x03≠0</span>, target char <span class="mono">+0x0D</span> ∈ 0x45–0x7b): per-scene map-marker rosters PROVEN (H13) and Phase-2 marker chains executed to exact +0x1E base writes (H14).</div>'
@@ -475,14 +480,32 @@ def build_content_census_section():
     catlbl={'ENEMY_FIELD':'Field enemies','BOSS':'Bosses','EFFECT':'Effects / projectiles',
             'HAZARD':'Hazards (actor)','MATERIALIZED':'Materialized cast','PLAYER':'Player'}
     catbody="".join(catrow(catlbl.get(k,k),v[0],v[1]) for k,v in sorted(cats.items(),key=lambda x:-x[1][0]))
-    # hazards
+    # hazards — multi-dimensional confidence (PROMPT-0086 Section 23): HUMAN IDENTITY is shown
+    # INDEPENDENTLY from the engineering dimensions, so a Tighe-proven appearance never implies
+    # proven machine behavior and vice-versa.
+    def _dimchip(label,val):
+        v=(val or 'PENDING').strip()
+        key=v.split('(')[0].strip()
+        cls={'PROVEN':'ok','PARTIAL':'part','N/A':'na'}.get(key,'pend')
+        return (f'<span class="dim {cls}" title="{v}"><b>{label}</b> {key}</span>')
     hbody=""
     if haz.exists():
         for h in _csv.DictReader(open(haz),delimiter='\t'):
             st=h.get('identity_status','')
             cls={'PROVEN':'ok','PARTIAL':'part'}.get(st,'pend')
-            hbody+=(f'<div class="itemcat {cls}"><div class="itk">{h["hazard"].replace("_"," ")}</div>'
-                    f'<div class="its">{st}</div><p>{h.get("candidate_mechanism","")}<br>'
+            base=h.get('base','') or ''
+            dims=("".join([
+                _dimchip('identity',h.get('human_identity','')),
+                _dimchip('creation',h.get('creation_status','')),
+                _dimchip('state',h.get('behavior_status','')),
+                _dimchip('frame',h.get('graphics_status','')),
+                _dimchip('collision',h.get('collision_status','')),
+                _dimchip('palette',h.get('palette_status','')),
+            ]))
+            basehtml=f'<span class="mono small">{base}</span> ' if base and base not in ('-','?') else ''
+            hbody+=(f'<div class="itemcat {cls}"><div class="itk">{basehtml}{h["hazard"].replace("_"," ")}</div>'
+                    f'<div class="its">{st}</div><div class="dims">{dims}</div>'
+                    f'<p>{h.get("candidate_mechanism","")}<br>'
                     f'<span class="mono small">{h.get("proven_route_or_owner","")}</span></p></div>')
     # player frames: a slot is CELL-DECODED only when its cell_codes column is not PENDING (H22 honesty fix)
     pf_total=pf_decoded=0
@@ -506,7 +529,15 @@ def build_content_census_section():
             f'<b>game content</b> (player animation, enemies, hazards, bosses) is identified and behavior-proven, '
             f'not how many code bytes are decompiled.</p>{pfnote}'
             f'<div class="cvchart">{catbody}</div>{centaur_note}'
-            f'<h3 class="grp">Hazard census</h3><div class="itemgrid">{hbody}</div>'
+            f'<h3 class="grp">Hazard census</h3>'
+            f'<div class="statusbox ok"><b>Two bases carry a PROVEN HUMAN IDENTITY from Tighe\'s direct visual '
+            f'identification (PROMPT-0086):</b> <span class="mono">0x0224</span> = animated <b>pit flame</b>, '
+            f'<span class="mono">0x09EA</span> = <b>spike / spear / stalagmite</b> family. Each card shows the six '
+            f'confidence dimensions <i>independently</i>: a proven appearance does NOT imply proven machine behavior. '
+            f'0x0224 is a marker-chain transform product (never schedule-spawned); 0x09EA is a single transform base '
+            f'whose floor-spear / wall-spear / stalagmite FORM is marker+band+compositor selected. State, frame, '
+            f'collision and palette for both remain source-PENDING and are being decompiled statically, not traced.</div>'
+            f'<div class="itemgrid">{hbody}</div>'
             f'<p class="cvnote">Data: <span class="mono">h21_gameplay_object_census.tsv</span>, '
             f'<span class="mono">h21_hazard_census.tsv</span>, <span class="mono">h21_player_frame_inventory.tsv</span>. '
             f'Statuses are honest: PENDING/PARTIAL hazards are named as work-to-do, never fabricated.</p></section>')

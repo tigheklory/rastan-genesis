@@ -29,7 +29,7 @@ arcade_pc,raw_file,semantic_file,status,provenance,original_export_present,confi
 00043636,raw/00043636.c,rastan_actor_behavior.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,H5 state 0x22
 0004396a,raw/0004396a.c,rastan_actor_behavior.c,PARTIAL,RECONSTRUCTED_FROM_68000,NO,STATIC,H5 state 0x19 jumper (arc tail summarized)
 00043b32,raw/00043b32.c,rastan_actor_behavior.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"H14: full 0x13e-band x char matrix (0x43B32..0x43E8C) decoded; writes {0x01FC,0x0224,0x0236,0x0266,0x09EA,0x0546,0x00F4} per band; state != identity"
-0004415a,raw/0004415a.c,rastan_actor_behavior.c,PARTIAL,RECONSTRUCTED_FROM_68000,NO,STATIC,H5 states 0x1D/0x21 (char matrix summarized)
+0004415a,raw/0004415a.c,rastan_actor_behavior.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"PROMPT-0086: full (marker+0x0D x band 0x13E) transform matrix 0x441A2..0x442B8 decoded; sole R2 scene-0x2c writer of pit-flame base 0x0224 (also 0x0266/0x00F4; retire 0x4092E; tail 0x43D44); low-band writes 0x0224 next 0x4C/0x52"
 000473b8,raw/000473b8.c,rastan_actor_behavior.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"RG-007: airborne engine COMPLETE — init(0x41CFA config+family-seeded flap+0x4734A); core 0x3CEB0; states 1/2 active pursuit (0x4205C + turn-around toggling +0x05^3/+0x02^1) vs states 0D/0E passive; shared landing 0x4736A + per-family 8-way anim (bat family 0x0A -> anim 0x2D+dir, 2 modes via +0x2E)"
 00041180,raw/00041180.c,rastan_actor_materialization.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,H6: full state-0 scan + 28-route char materialization dispatch; +0x0E=cell addr
 00040c08,raw/00040c08.c,rastan_actor_behavior.c,PARTIAL,RECONSTRUCTED_FROM_68000,NO,STATIC,state 0x10 anim setup

@@ -55132,3 +55132,44 @@ TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0069
 - Report: docs/design/Andy_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0084_corrected_r1s2_palette_domain.md.
 
 `TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0084`
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0086 — Dependency-ordered arcade 68000 → durable C (Andy, 2026-11-05)
+
+- Resumes the core RE objective: decompile the original Rastan arcade 68000 program to durable,
+  entry-matched C. Baseline branch `rastan-direct-proposal`, pushed baseline `c6aaddd1` ("Build 538");
+  working tree clean at start (no concurrent Cody work to preserve). No ROM build, no build-counter
+  change, no Cody production source touched, no GitHub push.
+- INVENTORY RECONCILIATION: the committed game-wide census (gamewide_coverage_summary.json, Sep 27)
+  was STALE vs the tracker (function_coverage.csv, Oct 29). Verified by regenerating with
+  tools/analysis/build_gamewide_coverage.py: COMPLETE 65->74, STUB 1->0, NOT_DECOMPILED 265->257,
+  OVERALL union fully 21.6%->23.8% / touched 29.6%->31.2%. The 65->74 is reconciliation of prior work
+  never re-censused, not new decompilation; reported as such. Root cause of low PC090OJ/behavior %
+  (Section 14): census credits only EXACT Ghidra-entry-PC matches, so dispatch-table behavior handlers
+  (reached via 0x40BC2) are under-credited by design.
+- $0224 PIT FLAME (Tighe visual identity, PROVEN): not in any base template (never schedule-spawned);
+  marker-chain TRANSFORM product written to +0x1E by 0x4415A (state 0x1C, R2 scene 0x2C), 0x44082
+  (state 0x18, R4 scene 0x5A), and 0x43B32 (state 0x1A band). Round reachability R2+R4 (latent). State/
+  frame/collision/damage/palette source-PENDING (NOT fabricated).
+- $09EA SPIKE/SPEAR/STALAGMITE (Tighe visual identity, PROVEN): rec-type 0x1B template
+  {0x09EA,0x9F,0xFC,..} (0x45592) + marker-chain writers 0x43840 (state 0x15, R5 scene 0x6E, anim 0x27
+  comp2) and 0x40EDE (state 0x20 torch-retarget, R5 scene 0x70). Single transform base; floor-spear /
+  wall-spear / stalagmite FORM is marker+band+compositor selected; form-branch + per-form anim/collision
+  source-PENDING (NOT fabricated).
+- DURABLE C: raw/0004415a.c PARTIAL->COMPLETE (full (marker +0x0D x band 0x13E) matrix 0x441A2..0x442B8
+  decoded; sole R2 0x0224 writer). New semantic explainer rastan_hazard_actors.c (data + chain facts,
+  references existing COMPLETE handlers, no reimplementation). raw_common.h +2 externs. gcc -fsyntax-only:
+  changed/new files pass; 2 PRE-EXISTING isolated-compile failures in untouched files (raw/0005607c.c,
+  rastan_actor_behavior.c) recorded, not introduced.
+- Did NOT complete census PARTIAL 0x0446BC (hurtbox selector): honest blocker — embedded tables 0x44778/
+  0x44796 must be disassembly-bounded before enumeration (values abut live code at ~0x447A6). Left PARTIAL
+  with the exact next action, not fabricated.
+- BESTIARY (data-first): h21_hazard_census.tsv rewritten to 6-dimension schema (HUMAN IDENTITY / CREATION
+  / STATE / FRAME / COLLISION / PALETTE) + base column; added pit_flame (0x0224) and
+  spike_spear_stalagmite (0x09EA); reconciled floor_spears/stalagmites as 0x09EA forms; flagged
+  flame_blocks as possible 0x0224 mislabel (not merged). build_bestiary.py renders the 6 dims
+  independently; Phase-2 + R1-S2 statusboxes note the new identities AND that R1-S2 reachability is NOT
+  in the proven chain. rastan_actor_bestiary.html regenerated (consistency_check PASS, 728 KB, actors=38).
+- Manual Tighe trace required: NO (both chains advanced statically; remaining work statically reachable).
+- Report: docs/design/Andy_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0086_arcade_68000_dependency_ordered_decompilation.md.
+
+`TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0086`

@@ -17,6 +17,8 @@ extern uint16_t g_iter214;    /* A5+0x214 */
 extern int  arc_40e74(uint8_t *r);   /* marker recheck -> d1 */
 extern void arc_4103a(uint8_t *r);   /* marker consume/advance */
 extern void arc_4092e(uint8_t *r);   /* generic step / retire */
+extern void arc_anim_tail_442ba(uint8_t *r); /* shared H5 anim-countdown tail @0x442BA */
+extern void arc_43d44(uint8_t *r);   /* 0x1A-band continuation tail (in 0x43B32 family) */
 extern void arc_41bee(uint8_t *r);
 extern void arc_4382e(uint8_t *r);
 extern void arc_41f9c_arc(uint8_t *r);
