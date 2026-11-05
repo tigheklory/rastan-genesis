@@ -55173,3 +55173,37 @@ TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0069
 - Report: docs/design/Andy_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0086_arcade_68000_dependency_ordered_decompilation.md.
 
 `TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0086`
+
+### MAME Exit Summary (2026-11-05 12:31:37)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0087 — R1-S2 downward visible-edge residency fix (Cody, 2026-11-05)
+
+- Replaced historical 0082; started from pushed HEAD `07965e45`, preserved Build-0538 generated commit
+  `c6aaddd1` and all later Andy 0086 analysis.
+- Root cause: player-visible downward traversal uses original `$055790` / native
+  `genesistan_plane_a_pan_publish_entering_rows_up`, which increments visible top. Build 0538 validated
+  only the 32-row prefetch edge `top+31`, not the entering 28-row display bottom `top+27`. After ordinary
+  selector authoring/reversal reused a slot, a valid N-32 row could become visible before revalidation.
+- Correction: validate Plane A `top+27` first, retain Plane A/Plane B `top+31` prefetch publication.
+  Existing exact-owner provenance makes valid prefetch a no-op. No shadow/backing map, PC080SN device,
+  duplicate graphics buffer, input/weapon/jump/coordinate hack, or Palette Composer change.
+- Ordered exact-asset regression covers record 16/17, selector 1/front 52, logical 44 vs stale 12 in
+  physical 12, single/multi-row slow/fast descent, reversal, current/predecessor choice, upward
+  non-regression, and four prefetch rows. Source/test commit `b6ab9d94`.
+- At Tighe's request restored only accidentally-cleared shared/base R1-S1 Line 3 in the updated Test
+  profile; retained new R1-S3 context and weapon mappings. Profile SHA `e03dd2aa24f30adb...`; profile
+  commit `a3dcdbad`. Palette Composer source unchanged.
+- Build 0539 PASS: canonical, gameplay-entry, six Round-1 epoch/package cases, 30-second Genesis NTSC
+  trace, normal+invincible R1-S2 functional starts, natural `$25,$1B` / `$25,$1C`, direct `$27,$1B`,
+  palette family, green-knight 31 checks, reindex 109/109 exact. Warrior domain 29 programs/109 codes;
+  `$97-$9C` + `$A1-$A6` included, `$74` excluded, sword `26B-274` covered.
+- Generated-output/counter commit: `86c0d680` (`Build 539`).
+- Required ROMs (3,841,720 bytes each): normal `9ef1bc1a...`; invincible `2e273e34...`; S1-2
+  `e8035dc4...`; invincible S1-2 `9d33e719...`. Final-segment pipe row remains OPEN pending gameplay.
+- Report: `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0087_r1s2_downward_scrolling_stale_rows.md`.
+- No GitHub push. Build 0539 remains a candidate until Tighe's slow/fast downward gameplay test.
+
+`TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0087`
