@@ -55058,3 +55058,19 @@ TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0069
 - Report: `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0079_resume_natural_round1_transitions.md`. No GitHub push was performed.
 
 `TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0079`
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0078 — R1 green sword warrior complete pose palette domain (Andy, 2026-11-04)
+
+- Palette-tooling/graphics-semantic task. No ROM build, no build-counter change, no Test.json change, no Cody files touched, no GitHub push.
+- Proven identity (unchanged): R1-S2 field schedule 0x4A104 spawns family-2 base $033E (f2/v0/c0); +$3E is written only at spawn (0x4A08A, byte e[1]=2) and ->0x0C on death-explode (0x40D4C) and is NEVER 8. Decision PAL-PC090OJ-R1S2-GREEN-SWORD-KNIGHT-001 preserved.
+- Completed the warrior's COMPLETE same-actor base-$033E animation domain (17 programs) from the state dispatcher 0x40BAA: NORMAL $93-$96 (engines 0x47140 + 0x4684E); CROUCH/reaction $71-$73 (state-0x0F alt 0x40E0E, +$03!=0, sfx 0x17, base-preserving — Cody's 0079 runtime block); AIRBORNE/low $20-$23 (engine 0x473B8 states 0D/0E); ROPE $4D,$56-$5A (0x4684E +$3E==8 / family 8 over the SHARED $033E sheet). All inherit the single authored R1 mapping.
+- Corrected Cody's 0079 handoff: of "$71-$74", the knight owns $71-$73; **$74 is the state-0x20 torch (0x40F82 base 0x0DAB), NOT the warrior** — excluded to avoid recoloring a torch.
+- Corrected provenance: the rope block is a family-8 behavior over the shared $033E sheet, NOT the warrior's own +$3E==8 (+$3E is never 8). Build 0534 grouping kept intact; comment-only correction.
+- AIRBORNE $20-$23 added the previously-missing reindex codes 0x366-0x37E (25, all knight-exclusive — no unrelated recoloring). CROUCH $71-$73 codes (0x342-0x34D) were already covered via shared walk/rope codes.
+- Files: tools/graphics_editor/server.py (green_knight_usages complete domain + per-frame anim_state), gen_reindexed_pc090oj.py (GREEN_KNIGHT_ANIMS -> 17 programs), verify_reindexed_pc090oj.py + verify_green_knight.py (complete-domain regression; explicit crouch/airborne/rope assertions; torch-$74 exclusion; exact source->destination index-transform check from live Test.json — no color-only PASS).
+- Verification: verify_green_knight 23/23 PASS; verify_r1s2_castle_browser 15/15 PASS; gen_reindexed_pc090oj (live Test.json -> scratch) + verify_reindexed_pc090oj VERIFY PASS (knight domain expected 77 covered 77 exact=True; Rastan 344/0 mismatched; cross-bank divergent 75 all-distinct; stray writes 0). Committed .inc/region bins left for Cody's integration build.
+- Test.json SHA unchanged: 24914ababc7fab52aac8258dd1f9f7b3d5df230b81421c03d9ce68d1526135ae.
+- Remaining dynamic question handed back for a short ORIGINAL ARCADE MAME capture: whether CROUCH $71-$73 or AIRBORNE $20-$23 is the pose Tighe calls "crouch/duck" (both covered now; capture only sharpens the UI label).
+- Report: docs/design/Andy_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0078_r1_green_warrior_complete_pose_palette_domain.md.
+
+`TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0078`

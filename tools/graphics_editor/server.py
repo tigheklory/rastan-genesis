@@ -315,11 +315,27 @@ def green_knight_usages():
     if _KNIGHT_USAGES_CACHE is not None:
         return _KNIGHT_USAGES_CACHE
     frames, total = _castle_frames(0x033E)
-    # Original arcade $04684E: normal mode selects $93-$96; rope mode
-    # (actor+$3E == 8) selects $4D/$56-$5A.  Show the exact live domain, not
-    # the former eight-frame visual rank that admitted unrelated programs and
-    # omitted the rope artwork.
-    knight_anim_domain = {0x93, 0x94, 0x95, 0x96, 0x4D, 0x56, 0x57, 0x58, 0x59, 0x5A}
+    # COMPLETE same-actor base-$033E animation domain, resolved from the actor state machine (PROMPT-ID-0078),
+    # NOT a visual rank. The field schedule (0x4A104) spawns the knight as family-2 (+$3E == 2, byte e[1]);
+    # +$3E is written only at spawn (0x4A08A) and ->0x0C on death-explode (0x40D4C) and is NEVER 8. The
+    # engines reached through the state dispatcher (0x40BAA) render, from the warrior's own $033E sheet:
+    #   * NORMAL   walk/idle $93-$96 : ground engine 0x47140 (states 3-0C,12) fam2 -> $93+{0,1,3};
+    #              state-0x11 engine 0x4684E (+$3E==2) -> $93+{1,2,3}.
+    #   * CROUCH   low pose  $71-$73 : state-0x0F alt path 0x40E0E (+$03!=0, sfx 0x17, BASE-PRESERVING) ->
+    #              $70+n; short ~24px-tall poses. Cody's runtime-observed crouch/reaction block (0079 handoff).
+    #              NOTE $74 is EXCLUDED: state-0x20 0x40F82 sets base 0x0DAB (torch), not the knight.
+    #   * AIRBORNE jump/low  $20-$23 : airborne engine 0x473B8 (states 0D/0E, fam2) -> $20+tbl[0x47562];
+    #              compact ~32x48 figure (states<0x0D give the walk set). State-machine, not runtime-confirmed.
+    #   * ROPE     climb     $4D,$56-$5A : state-0x11 engine 0x4684E rope branch, reached via +$3E==8 (family
+    #              8) rendering from the SHARED $033E sheet -- the same visual warrior climbing. Preserved +
+    #              re-verified per PROMPT-ID-0078 (not family-2's own +$3E; see report).
+    # Every pose is one semantic actor and inherits the SINGLE authored mapping (same object_id per round).
+    KNIGHT_ANIM_STATE = dict(
+        [(a, "normal") for a in (0x93, 0x94, 0x95, 0x96)]
+        + [(a, "crouch") for a in (0x71, 0x72, 0x73)]
+        + [(a, "airborne") for a in (0x20, 0x21, 0x22, 0x23)]
+        + [(a, "rope") for a in (0x4D, 0x56, 0x57, 0x58, 0x59, 0x5A)])
+    knight_anim_domain = set(KNIGHT_ANIM_STATE)
     knight_frames = [frame for frame in frames if frame[0] in knight_anim_domain]
     if {frame[0] for frame in knight_frames} != knight_anim_domain:
         raise RuntimeError("Green Sword Knight arcade animation domain is incomplete")
@@ -362,6 +378,7 @@ def green_knight_usages():
                     "object_id": "object:castle.green_sword_knight.r%d.n%x" % (rnd, nib),
                     "map_key": "object:castle.green_sword_knight.r%d.n%x" % (rnd, nib),
                     "frame_category": vlabel, "frame_label": "anim 0x%02X" % anim, "frame_order": order,
+                    "anim_state": KNIGHT_ANIM_STATE[anim],
                     "player_counts": None, "weapon_counts": None,
                     "display_name": "Green Sword Knight", "variant_label": vlabel,
                     "sprite_bank": "0x3%X" % nib, "sprite_banks": ["0x3%X" % nib], "multi_bank": False,

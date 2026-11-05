@@ -66,12 +66,19 @@ BASE_PRIORITY = [0x36, 0x35, 0x32, 0x3E, 0x34, 0x3A, 0x33, 0x3C, 0x30]
 BURST_BASE = 0x0275
 BURST_ANIMS = (0x9E, 0x9F, 0xA0)
 
-# Original arcade $04684E owns the family-2 actor's displayed animation.
-# mode actor+$3E == 2 selects $93 + {1,2,3}, with $93 retained from creation;
-# rope mode actor+$3E == 8 selects $4D plus table {0,$09,$0A,$0B,$0C,$0D}.
-# This is the complete source-selected domain for the approved R1 knight usage,
-# not a visual/ranking heuristic over unrelated programs sharing base $033E.
-GREEN_KNIGHT_ANIMS = (0x93, 0x94, 0x95, 0x96, 0x4D, 0x56, 0x57, 0x58, 0x59, 0x5A)
+# COMPLETE same-actor base-$033E animation domain from the actor state machine (PROMPT-ID-0078), so EVERY
+# displayed warrior pose is reindexed by the one authored R1 mapping and none falls back to the raw palette.
+# The state dispatcher (0x40BAA) renders, from the warrior's own $033E sheet:
+#   NORMAL   $93-$96 : ground engine 0x47140 (states 3-0C,12) + state-0x11 engine 0x4684E (+$3E==2).
+#   CROUCH   $71-$73 : state-0x0F alt path 0x40E0E (+$03!=0, sfx 0x17, BASE-PRESERVING); short low poses.
+#                      Cody's runtime-observed crouch/reaction (0079 handoff) -- the frames Tighe saw fall
+#                      back to the raw palette. $74 is EXCLUDED (state-0x20 torch base 0x0DAB, not the knight).
+#   AIRBORNE $20-$23 : airborne engine 0x473B8 (states 0D/0E, fam2) -- a compact low/tucked pose.
+#   ROPE     $4D,$56-$5A : state-0x11 engine 0x4684E rope branch (reached via +$3E==8 / family 8) rendering
+#                      from the SHARED $033E sheet -- the same visual warrior climbing. Preserved + re-verified.
+# Not a visual/ranking heuristic over unrelated programs sharing base $033E.
+GREEN_KNIGHT_ANIMS = (0x93, 0x94, 0x95, 0x96, 0x71, 0x72, 0x73,
+                      0x20, 0x21, 0x22, 0x23, 0x4D, 0x56, 0x57, 0x58, 0x59, 0x5A)
 
 
 def _imap(profile, uid):

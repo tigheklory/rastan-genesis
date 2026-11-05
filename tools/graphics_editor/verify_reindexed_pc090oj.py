@@ -99,14 +99,16 @@ def main():
     r_mismatch = [c for c in rastan if ("base", c) in set(mismatch)]
     knight = [c for c in base if base[c][0] == "green_sword_knight.r1.n3"]
     knight_mismatch = [c for c in knight if ("base", c) in set(mismatch)]
-    # Independently re-derive the exact $04684E normal+rope animation domain;
-    # this rejects the former rank-based eight-frame subset even if generator
-    # and output agree with each other.
+    # Independently re-derive the COMPLETE same-actor base-$033E animation domain (PROMPT-ID-0078): NORMAL
+    # $93-$96, CROUCH $71-$73 (state-0x0F alt 0x40E0E, base-preserving), AIRBORNE $20-$23 (engine 0x473B8
+    # states 0D/0E), ROPE $4D,$56-$5A. ($74 is the state-0x20 torch, base 0x0DAB, correctly excluded.) This
+    # rejects any rank-based subset AND fails if a refactor silently drops the crouch, airborne, or rope block.
     vm_path = os.path.join(ROOT, "tools/graphics_optimizer")
     if vm_path not in sys.path:
         sys.path.insert(0, vm_path)
     from compositor_vm import ActorRenderState, visible_pieces
-    knight_anims = (0x93, 0x94, 0x95, 0x96, 0x4D, 0x56, 0x57, 0x58, 0x59, 0x5A)
+    knight_anims = (0x93, 0x94, 0x95, 0x96, 0x71, 0x72, 0x73,
+                    0x20, 0x21, 0x22, 0x23, 0x4D, 0x56, 0x57, 0x58, 0x59, 0x5A)
     knight_expected = {
         piece.tile & 0x1FFF
         for anim in knight_anims
