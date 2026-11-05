@@ -55074,3 +55074,25 @@ TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0069
 - Report: docs/design/Andy_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0078_r1_green_warrior_complete_pose_palette_domain.md.
 
 `TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0078`
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0080 — R1-S2 palette/bestiary source handoff for Andy (Cody, 2026-11-04)
+
+- Research/documentation only; no Palette Editor/Composer/generator, `Test.json`, palette registry,
+  production source, ROM, build counter, trace, or push.
+- Corrects the 0078 completeness claim using the preserved ORIGINAL ARCADE R1 castle sweep: state `$1F`
+  visibly adds programs `$97-$9C,$A1-$A6` from `$42FD4/$42FBC`. The complete known `$033E` domain is
+  29 programs / 109 codes; the current 17-program tool domain omits 32 codes (`26D-274,389-3A0`).
+- Proves the embedded sword is part of the warrior compositor. Program defaults split sword/body
+  (`$33/$37`), but the preserved R1 sweep proves actor attributes `$44/$41` override every piece to
+  effective `$34/$31`; the existing registry's `$33` runtime claim therefore remains an explicit conflict,
+  not something this report silently changes. `$71-$73` is a source-proven short reaction/effect but not
+  proven to mean crouch; `$74` remains excluded. Hammer/axe source selection and Flame Sword eligibility
+  are not proven; Flame Sword must remain excluded.
+- The existing Bestiary does not yet prove the R1-S2 floor spikes, moving wooden gate, moving spiked
+  traps, falling-water trap, or animated pit flames. The report keeps them separate, rejects visual-only
+  identities, distinguishes the unrelated proven R1-S1 waterfall cycle, and specifies the smallest
+  combined original-arcade owner/write capture needed.
+- Report:
+  `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0080_r1s2_palette_bestiary_handoff_for_andy.md`.
+
+`TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0080`
