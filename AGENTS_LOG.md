@@ -55207,3 +55207,43 @@ TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0069
 - No GitHub push. Build 0539 remains a candidate until Tighe's slow/fast downward gameplay test.
 
 `TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0087`
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0090 — Build-0539 R1-S2/R1-S3 runtime-asset and Composer audit (Cody, 2026-11-05)
+
+- Analysis/handoff only. Build 0539 is **NOT accepted**: Tighe's GENESIS/BlastEm gameplay proves
+  Plane-A stale rows remain. No ROM, build, trace, production source, Palette Composer, Bestiary,
+  Test profile, generated asset, or build-counter change; no GitHub push.
+- Baseline: HEAD `658fa468d68a4cd44eb8cfd0fea39343757fde35`, counter 539, Test SHA-256
+  `e03dd2aa24f30adb3fd0566af0b917914b49d8cd1533441431be485dd2d6b730`. Unrelated modified runtime
+  outputs `build/mame/home/rastanmon/rastan_monitor.log` and `tools/mame/cheat/output.json` were preserved
+  and excluded from staging.
+- R1-S3 Layer A: Test context `PAL-R1-S3-PLANEA-BOSS` and generated 96-byte asset are correct
+  (`de710ff...`), but the production compiler/assembly owns only S1/S2 assets. Stage selector byte 22 is
+  zero and the pointer table has two entries, so the asset is absent from ROM packaging and never
+  installed. No later overwrite occurs because installation never happens.
+- Backdrop: VDP register 7 correctly selects Line-0/index-0 (`vdp_comm.s:115-117`), but per-scene assets
+  begin `0x0888`; `vdp_install_test_lines` copies that word to staged CRAM (`vdp_comm.s:429-444`). Required
+  production target is BLACK (`0x0000`). **CODY PRODUCTION BUG — FIX REQUIRED.**
+- Plane B: record-22 generated fill is nonblank (4096 bytes at offset 8376, SHA `85ecebe6...`), copied at
+  scene entry and row-published during pan. Complete visual non-use is only PARTIAL; Line 2 reclamation is
+  CONDITIONAL with no safe interval proven. No global policy follows.
+- Green Knight re-audit: base `$033E` owns 23 programs/97 codes (`$20-$23,$71-$73,$93-$9C,$A1-$A6`).
+  `$4D/$56-$5A` do not belong to it. Family-8/base-`$0241` selects `$56,$59,$5A`; `$4D` is created with
+  base `$0234`; `$57/$58` with `$01FC`; direct `$59/$5A` also occur with `$0546`. Current 29/109 generator
+  builds synthetic composites and misses the real rope-climber tiles, explaining palette reversion but
+  not moved/broken pieces. Geometry root cause remains OPEN pending first-bad expected->queue->shadow
+  SAT->VDP SAT/residency comparison.
+- Rewards: all 17 are exact base `$0A5A`, compositor 2, anim `$13-$23`; kinds 1-13 use embedded line 0,
+  14-17 line 3. Current `$30/$31/$37` Composer split is wrong, and `gen_reindexed_pc090oj.py` omits rewards,
+  so Test reward maps do not reach generated pixels/runtime routing. Exact kind/code/identity/value handoff
+  is in the report.
+- R1-S2 traps: `$0224` is R2/R4 and `$09EA` is R5; neither is an R1-S2 answer. Current evidence places the
+  visible R1-S2 hazards in Plane-A/mixed scene graphics, but exact tile/bank subsets remain PENDING. Andy
+  must expose honest scene-local semantic candidates; Tighe chooses colors; Cody integrates proven maps.
+- Remaining Plane-A target: first visible wrong Build-0539 8px row, especially record-21/final-segment
+  transition, capturing camera crossings, record/selector/front, logical/physical owner, chosen source,
+  staged words/dirty bit, and post-VBlank VRAM. Build-0539's `top+27` regression covered only one N-32
+  history.
+- Report: `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0090_r1s2_r1s3_asset_palette_ui_handoff.md`.
+
+`TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0090`
