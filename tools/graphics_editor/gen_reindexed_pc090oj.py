@@ -68,23 +68,25 @@ BURST_ANIMS = (0x9E, 0x9F, 0xA0)
 
 # COMPLETE same-actor base-$033E animation domain from the actor state machine, so EVERY displayed warrior
 # pose is reindexed by the one authored R1 mapping and none falls back to the raw palette. CORRECTED under
-# PROMPT-ID-0084 from Cody's ORIGINAL ARCADE R1 castle sweep (PROMPT-ID-0080): the earlier 17-program set
-# (PROMPT-ID-0078) was SUPERSEDED -- the sweep (1,286 $033E observations) displays 12 additional state-$1F
-# programs ($97-$9C and $A1-$A6). The corrected proven union is 29 PROGRAMS / 109 CODES (was 17 / 77); the
-# 12 added programs contribute 32 new codes (26D-274 and 389-3A0), including the complete moving-weapon sword
-# artwork 26B-274. The state dispatcher (0x40BAA) renders, from the warrior's own $033E sheet:
+# PROMPT-ID-0091 from Cody PROMPT-ID-0090's independent $4D/$56-$5A re-audit: the claimed "29 programs /
+# 109 codes" domain (PROMPT-ID-0084) COMBINED SEVERAL UNRELATED (base,program) IDENTITIES and is REMOVED.
+# Cody source-proved that $4D->base $0234, $56->base $0241 (family 8), $57/$58->base $01FC, and $59/$5A are
+# base $0241 (family 8) or base $0546 depending on the writer -- NONE of them is the family-2 base-$033E
+# Green Sword Knight. The $4684E family-8 branch selects $56,$59,$5A for the LIVE ACTOR BASE $0241 (the rope
+# climber), never rendering them from the $033E sheet. A selector number is not a global sprite identity.
+# The corrected proven base-$033E domain is 23 PROGRAMS / 97 CODES. The state dispatcher (0x40BAA) renders,
+# from the warrior's own $033E sheet:
 #   NORMAL          $93-$96 : ground engine 0x47140 (states 3-0C,12) + state-0x11 0x4684E (+$3E==2).
 #   SHORT REACTION  $71-$73 : state-0x0F alt path 0x40E0E (+$03!=0, sfx 0x17, BASE-PRESERVING). NOT proven to
 #                     mean "crouch". $74 EXCLUDED (state-0x20 torch base 0x0DAB, not the knight).
 #   AIRBORNE        $20-$23 : airborne engine 0x473B8 (states 0D/0E, fam2).
 #   LOW/WEAPON A    $A1-$A6 : state-$1F engine 0x42EF8, family 2, actor+$21 bit2 == 0; table 0x42FBC.
 #   LOW/WEAPON B    $97-$9C : state-$1F engine 0x42EF8, family 2, actor+$21 bit2 != 0; table 0x42FD4.
-#   ROPE        $4D,$56-$5A : state-0x11 engine 0x4684E rope branch (reached via +$3E==8 / family 8) rendering
-#                     from the SHARED $033E sheet -- the same visual warrior climbing.
-# The embedded sword is an attached piece of these programs (zero code overlap with Rastan's player weapon
-# tables); covering the 29 programs covers the complete sword artwork 26B-274. Not a visual/ranking heuristic.
+# The family-8 rope climber ($56,$59,$5A on base $0241) is a SEPARATE object and its generated coverage is a
+# Cody production follow-up (NOT emitted here). The embedded sword is an attached piece of these 23 programs
+# (zero code overlap with Rastan's player weapon tables). Not a visual/ranking heuristic.
 GREEN_KNIGHT_ANIMS = (0x93, 0x94, 0x95, 0x96, 0x71, 0x72, 0x73,
-                      0x20, 0x21, 0x22, 0x23, 0x4D, 0x56, 0x57, 0x58, 0x59, 0x5A,
+                      0x20, 0x21, 0x22, 0x23,
                       0x97, 0x98, 0x99, 0x9A, 0x9B, 0x9C,
                       0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6)
 

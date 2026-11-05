@@ -1,20 +1,23 @@
 #!/usr/bin/env python3
-"""PROMPT-ID-0069 / 0078 / CORRECTED PROMPT-ID-0084 — Green Sword Knight in the Palette Composer.
+"""PROMPT-ID-0069 / 0078 / 0084 / CORRECTED PROMPT-ID-0091 — Green Sword Knight in the Palette Composer.
 
 Proves (static, no trace, no ROM): the knight (family-2 base 0x033E) is a scene-tagged browsable object in
 every castle section R1-S2..R6-S2 carrying its arcade palette reference; R1-S2 c0/c3 are green; no lizardman
-leaks into the knight object; and (CORRECTED under PROMPT-ID-0084 from Cody's ORIGINAL ARCADE sweep,
-PROMPT-ID-0080) the knight exposes the COMPLETE 29-PROGRAM / 109-CODE family-2 animation domain -- NORMAL
-$93-$96, SHORT REACTION $71-$73, AIRBORNE $20-$23, LOW/WEAPON ACTION A $A1-$A6 and B $97-$9C (state-$1F),
-ROPE $4D,$56-$5A -- as ONE semantic object whose authored Test.json index transform is applied EXACTLY
-(not a color-only check). The old 17-program/77-code claim can NO LONGER pass as complete. Also proves:
-$71-$73 is NOT labeled a proven "crouch"; $74 stays excluded; the complete sword artwork 26B-274 is covered;
-and both palette-provenance layers (embedded defaults + actor +$27 override) are surfaced. Asserts
-Test.json unchanged.
+leaks into the knight object; and (CORRECTED under PROMPT-ID-0091 from Cody PROMPT-ID-0090's independent
+$4D/$56-$5A re-audit) the knight exposes the COMPLETE 23-PROGRAM / 97-CODE family-2 base-$033E animation
+domain -- NORMAL $93-$96, SHORT REACTION $71-$73, AIRBORNE $20-$23, LOW/WEAPON ACTION A $A1-$A6 and B
+$97-$9C (state-$1F) -- as ONE semantic object whose authored Test.json index transform is applied EXACTLY
+(not a color-only check). The old "29-program / 109-code" claim is DISPROVEN: it combined unrelated
+(base,program) identities. This verifier REQUIRES that $4D,$56,$57,$58,$59,$5A do NOT contaminate the
+$033E domain (Cody proved $4D->base $0234, $56/$59/$5A->base $0241 family-8 rope climber, $57/$58->base
+$01FC). Also proves: $71-$73 is NOT labeled a proven "crouch"; $74 stays excluded; the complete sword
+artwork 26B-274 is covered; and both palette-provenance layers (embedded defaults + actor +$27 override)
+are surfaced. Asserts Test.json unchanged.
 
 TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0069
 TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0078
 TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0084
+TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0091
 """
 from __future__ import annotations
 import importlib.util, json, threading, time, urllib.request, urllib.parse, struct, zlib, hashlib
@@ -89,34 +92,36 @@ def main() -> int:
     ck("11. variant carries knight frames (pieces)", bool(one.get("pieces")) and one.get("n_pieces", 0) >= 2)
     ck("12. preview uses the green-armor line (pool 0x0C)", one.get("preview_type", "").startswith("ARCADE GREEN-ARMOR"))
 
-    # CORRECTED PROMPT-ID-0084 from Cody's ORIGINAL ARCADE sweep (PROMPT-ID-0080): the COMPLETE same-actor
-    # base-$033E animation domain is 29 PROGRAMS, re-stated here independently (NOT imported from the server/
-    # generator). The old 17-program set is now a FAILING subset. Dropping ANY block fails the regression.
+    # CORRECTED PROMPT-ID-0091 from Cody PROMPT-ID-0090's independent re-audit: the COMPLETE same-actor
+    # base-$033E domain is 23 PROGRAMS, re-stated here independently (NOT imported from the server/generator).
+    # The six foreign programs $4D,$56-$5A are PROVEN to belong to other bases and MUST NOT contaminate it.
     NORMAL = {0x93, 0x94, 0x95, 0x96}
     SHORT_REACTION = {0x71, 0x72, 0x73}                         # state-0x0F alt 0x40E0E (NOT a proven crouch)
     AIRBORNE = {0x20, 0x21, 0x22, 0x23}                         # engine 0x473B8 states 0D/0E
-    LOW_ACTION_A = {0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6}         # state-$1F table 0x42FBC (NEW: was omitted)
-    LOW_ACTION_B = {0x97, 0x98, 0x99, 0x9A, 0x9B, 0x9C}         # state-$1F table 0x42FD4 (NEW: was omitted)
-    ROPE = {0x4D, 0x56, 0x57, 0x58, 0x59, 0x5A}                 # shared-sheet family-8 climb
-    DOMAIN = NORMAL | SHORT_REACTION | AIRBORNE | LOW_ACTION_A | LOW_ACTION_B | ROPE
-    assert len(DOMAIN) == 29
-    OLD_17 = NORMAL | SHORT_REACTION | AIRBORNE | ROPE          # PROMPT-ID-0078's incomplete set
+    LOW_ACTION_A = {0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6}         # state-$1F table 0x42FBC
+    LOW_ACTION_B = {0x97, 0x98, 0x99, 0x9A, 0x9B, 0x9C}         # state-$1F table 0x42FD4
+    FOREIGN = {0x4D, 0x56, 0x57, 0x58, 0x59, 0x5A}              # $0234 / $0241(fam8) / $01FC / $0546 -- NOT $033E
+    DOMAIN = NORMAL | SHORT_REACTION | AIRBORNE | LOW_ACTION_A | LOW_ACTION_B
+    assert len(DOMAIN) == 23
+    OLD_29 = DOMAIN | FOREIGN                                   # PROMPT-ID-0084's over-broad (disproven) set
     r1 = [u for u in kn if u.get("round") == 1]
     r1_anims = {int(u["frame_label"].split()[-1], 16) for u in r1}
-    ck("13. R1 knight exposes the COMPLETE 29-program domain (normal+reaction+airborne+1F-A+1F-B+rope)",
-       r1_anims == DOMAIN and len(r1_anims) == 29, sorted("0x%02X" % a for a in (DOMAIN ^ r1_anims)))
-    ck("13b. the old 17-program set is NO LONGER complete (0084 regression)", r1_anims != OLD_17 and OLD_17 < r1_anims)
+    ck("13. R1 knight exposes EXACTLY the 23-program $033E domain (normal+reaction+airborne+1F-A+1F-B)",
+       r1_anims == DOMAIN and len(r1_anims) == 23, sorted("0x%02X" % a for a in (DOMAIN ^ r1_anims)))
+    ck("13b. the disproven 29-program set is NO LONGER present (0091 correction)",
+       r1_anims != OLD_29 and not (FOREIGN & r1_anims))
     ck("14. SHORT-REACTION block $71-$73 present", SHORT_REACTION <= r1_anims)
-    ck("15. ROPE block $4D,$56-$5A preserved + re-verified (not dropped by refactor)", ROPE <= r1_anims)
+    ck("15. FOREIGN programs $4D,$56,$57,$58,$59,$5A do NOT contaminate the $033E domain (0091)",
+       not (FOREIGN & r1_anims), sorted("0x%02X" % a for a in (FOREIGN & r1_anims)))
     ck("15b. AIRBORNE block $20-$23 present (states 0D/0E)", AIRBORNE <= r1_anims)
-    ck("15c. state-$1F LOW/WEAPON ACTION A $A1-$A6 present (Cody 0080 missing programs)", LOW_ACTION_A <= r1_anims)
-    ck("15d. state-$1F LOW/WEAPON ACTION B $97-$9C present (Cody 0080 missing programs)", LOW_ACTION_B <= r1_anims)
+    ck("15c. state-$1F LOW/WEAPON ACTION A $A1-$A6 present", LOW_ACTION_A <= r1_anims)
+    ck("15d. state-$1F LOW/WEAPON ACTION B $97-$9C present", LOW_ACTION_B <= r1_anims)
     ck("15e. torch $74 (base 0x0DAB) correctly NOT in the knight domain", 0x74 not in r1_anims)
     # anim_state tags each frame so the UI groups the one actor's poses -- labels must be HONEST: $71-$73 is a
-    # "short_reaction", NOT a proven "crouch"; state-$1F sequences are provisional "low_action_a/b".
+    # "short_reaction", NOT a proven "crouch"; state-$1F sequences are provisional "low_action_a/b". No 'rope'.
     states = {u.get("anim_state") for u in r1}
-    ck("16. anim_state tags are the 6 honest pose groups (no false 'crouch')",
-       states == {"normal", "short_reaction", "airborne", "low_action_a", "low_action_b", "rope"}, states)
+    ck("16. anim_state tags are the 5 honest pose groups (no false 'crouch', no $033E 'rope')",
+       states == {"normal", "short_reaction", "airborne", "low_action_a", "low_action_b"}, states)
     sr_labels = {u.get("pose_label", "") for u in r1 if u.get("anim_state") == "short_reaction"}
     ck("16b. NO frame is a proven 'crouch'; $71-$73 label keeps it pending (0084 honesty requirement)",
        not any(u.get("anim_state") == "crouch" for u in r1)
@@ -140,7 +145,7 @@ def main() -> int:
         for i in range(16))
     ck("19. authored index transform is EXACT for every source index (not just 'green')", bool(exact))
 
-    # 0084: the complete domain re-derives to 109 codes (independent compositor VM) and covers the complete
+    # 0091: the corrected domain re-derives to 97 codes (independent compositor VM) and covers the complete
     # moving-weapon sword artwork 26B-274. Re-derived here, NOT read from the generator's constant.
     import sys as _sys
     vm_path = str(ROOT / "tools/graphics_optimizer")
@@ -149,7 +154,7 @@ def main() -> int:
     from compositor_vm import ActorRenderState, visible_pieces
     domain_codes = {p.tile & 0x1FFF for a in DOMAIN for p in visible_pieces(ActorRenderState(0x033E, a, 0))
                     if (p.tile & 0x1FFF) < 0x1000}
-    ck("19b. complete domain re-derives to 109 distinct pattern codes", len(domain_codes) == 109, len(domain_codes))
+    ck("19b. corrected 23-program domain re-derives to 97 distinct pattern codes", len(domain_codes) == 97, len(domain_codes))
     sword = set(range(0x26B, 0x275))
     ck("19c. complete sword artwork 26B-274 is covered by the warrior domain",
        sword <= domain_codes, sorted("0x%03X" % c for c in (sword - domain_codes)))

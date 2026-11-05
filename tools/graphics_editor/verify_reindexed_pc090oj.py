@@ -100,11 +100,13 @@ def main():
     knight = [c for c in base if base[c][0] == "green_sword_knight.r1.n3"]
     knight_mismatch = [c for c in knight if ("base", c) in set(mismatch)]
     # Independently re-derive the COMPLETE same-actor base-$033E animation domain. CORRECTED under
-    # PROMPT-ID-0084 from Cody's ORIGINAL ARCADE sweep (PROMPT-ID-0080): 29 PROGRAMS / 109 CODES (the old
-    # 17/77 is now a FAILING subset). This tuple is an independent re-statement (NOT imported from the
-    # generator's GREEN_KNIGHT_ANIMS), the codes are re-derived via the compositor VM, and the result is
-    # compared to what the generator actually baked -- so a refactor that drops any block (including the
-    # new state-$1F sequences $97-$9C and $A1-$A6) fails. ($74 is the state-0x20 torch $0DAB, excluded.)
+    # PROMPT-ID-0091 from Cody PROMPT-ID-0090's $4D/$56-$5A re-audit: 23 PROGRAMS / 97 CODES. The six foreign
+    # programs $4D,$56-$5A are PROVEN to belong to other bases ($0234/$0241 fam8/$01FC/$0546) and are NO
+    # LONGER in the $033E domain. This tuple is an independent re-statement (NOT imported from the generator's
+    # GREEN_KNIGHT_ANIMS), the codes are re-derived via the compositor VM, and the result is compared to what
+    # the generator baked -- so contamination by the foreign programs fails. ($74 is the state-0x20 torch
+    # $0DAB, excluded.)  NOTE: pc090oj_editor.bin is an UNTRACKED build product; after the 0091 source
+    # correction this verifier passes once Cody regenerates it (Section 41 follow-up #4).
     vm_path = os.path.join(ROOT, "tools/graphics_optimizer")
     if vm_path not in sys.path:
         sys.path.insert(0, vm_path)
@@ -114,9 +116,10 @@ def main():
     AIRBORNE = (0x20, 0x21, 0x22, 0x23)
     LOW_ACTION_A = (0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6)   # state-$1F table 0x42FBC
     LOW_ACTION_B = (0x97, 0x98, 0x99, 0x9A, 0x9B, 0x9C)   # state-$1F table 0x42FD4
-    ROPE = (0x4D, 0x56, 0x57, 0x58, 0x59, 0x5A)
-    knight_anims = NORMAL + SHORT_REACTION + AIRBORNE + LOW_ACTION_A + LOW_ACTION_B + ROPE
-    assert len(knight_anims) == 29 and 0x74 not in knight_anims, "knight program expectation corrupt"
+    FOREIGN = (0x4D, 0x56, 0x57, 0x58, 0x59, 0x5A)        # $0234/$0241(fam8)/$01FC/$0546 -- NOT $033E (0091)
+    knight_anims = NORMAL + SHORT_REACTION + AIRBORNE + LOW_ACTION_A + LOW_ACTION_B
+    assert len(knight_anims) == 23 and not (set(knight_anims) & set(FOREIGN)) \
+        and 0x74 not in knight_anims, "knight program expectation corrupt"
     knight_expected = {
         piece.tile & 0x1FFF
         for anim in knight_anims
@@ -128,7 +131,7 @@ def main():
         code for (code, bank), (_usagebase, uid, _line, _imap) in cb_map.items()
         if bank == 0x33 and uid == "object:castle.green_sword_knight.r1.n3"
     }
-    knight_domain_bad = (knight_covered != knight_expected or len(knight_expected) != 109
+    knight_domain_bad = (knight_covered != knight_expected or len(knight_expected) != 97
                          or not (sword_codes <= knight_covered))
 
     total_req = sum(len(bs) for bs in code_banks.values())

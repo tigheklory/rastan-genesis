@@ -93,9 +93,14 @@ def main() -> int:
     # §10 scene-membership: field enemies tagged field_phase1, shared assets tagged shared; the membership
     # filter hides field enemies from the castle (mirror of the client rule).
     enemies = [u for u in us if u.get("object_id", "").startswith("object:enemy.")]
-    shared = [u for u in us if (u.get("object_id") or "").startswith(("object:player", "object:weapon", "object:effect", "object:hazard")) or "reward" in u.get("display_name", "").lower()]
+    # TRULY shared assets carry no scene_key. PROMPT-ID-0091 added scene-LOCAL objects (the R1-S2 hazard
+    # candidates, the family-8 rope climber, the R1-S3 boss) which are correctly membership="scene", so the
+    # "must be shared" assertion only covers scene-independent player/weapon/effect/reward assets.
+    shared = [u for u in us if (not u.get("scene_key")) and
+              ((u.get("object_id") or "").startswith(("object:player", "object:weapon", "object:effect", "object:hazard"))
+               or "reward" in u.get("display_name", "").lower())]
     ck("10. field enemies tagged membership=field_phase1", enemies and all(u.get("membership") == "field_phase1" for u in enemies), len(enemies))
-    ck("11. shared assets tagged membership=shared", shared and all(u.get("membership") == "shared" for u in shared), len(shared))
+    ck("11. shared (scene-independent) assets tagged membership=shared", shared and all(u.get("membership") == "shared" for u in shared), len(shared))
     def visible(active):
         isfield = (not active) or ("-S1-" in active) or active == "context:gameplay.r01.p01"
         out = []

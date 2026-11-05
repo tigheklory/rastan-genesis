@@ -134,24 +134,46 @@ function renderList(){const L=$('#list');L.innerHTML='';
   // only in field/S1 scenes, NOT the castle/S2 — so Lizardman/Chimera no longer appear in R1-S2 Castle;
   // SHARED assets (player/weapons/items/effects) always show. "All Assets" reveals everything (research).
   const isFieldScene=!ACTIVE_SCENE||/-S1-/.test(ACTIVE_SCENE)||ACTIVE_SCENE==='context:gameplay.r01.p01';
-  const tb=el('div','groupbar');const ck0=el('input');ck0.type='checkbox';ck0.checked=!!window._allAssets;
-  ck0.onchange=()=>{window._allAssets=ck0.checked;renderList();};const lab=el('label','dim');lab.appendChild(ck0);
-  lab.appendChild(el('span',null,' All Assets (research — show every sprite regardless of scene)'));tb.appendChild(lab);L.appendChild(tb);
+  // PROMPT-ID-0091 §24: AUTHORING vs RESEARCH view. AUTHORING = only scene-appropriate assets Tighe can
+  // palette-author; RESEARCH reveals unresolved producers/controllers + every scene. Hazard/palette-pending
+  // groups still appear in AUTHORING but DISABLED (SOURCE SUBSET PENDING) and can never author a mapping.
+  const research=!!window._research;
+  const tb=el('div','groupbar');tb.appendChild(el('span','dim','View: '));
+  const mkmode=(lbl,on,fn)=>{const b=el('button','mini'+(on?' on':''),lbl);b.onclick=fn;return b;};
+  tb.appendChild(mkmode('Authoring',!research,()=>{window._research=false;renderList();}));
+  tb.appendChild(mkmode('Research / Diagnostic',research,()=>{window._research=true;renderList();}));
+  if(research)tb.appendChild(el('span','dim',' — unresolved producers, controllers & all scenes shown'));
+  L.appendChild(tb);
+  // Legacy mapping banner (§40): preserve, don't delete, mappings whose key no longer matches any object.
+  const liveKeys=new Set();O.usages.forEach(u=>{liveKeys.add(MK(u));if(u.child_id)liveKeys.add(u.child_id);if(u.object_id)liveKeys.add(u.object_id);});
+  const legacy=Object.keys(POL.usage_palette_mappings||{}).filter(k=>!liveKeys.has(k));
+  if(legacy.length){const lb=el('div','warn');lb.style.cssText='border:1px solid #a86;background:#1c1710;color:#d9c9a0;padding:6px 8px;margin:4px 0;font-size:12px;border-radius:4px;';
+   lb.innerHTML='<b>LEGACY / NEEDS REVIEW:</b> '+legacy.length+' saved mapping(s) reference a disproven/renamed object — preserved, NOT applied: <span class="mono">'+legacy.join(', ')+'</span>';L.appendChild(lb);}
   const sceneUsages=O.usages.filter(u=>{
-    if(window._allAssets)return true;
-    if(u.scene_key)return u.scene_key===ACTIVE_SCENE;        // marker-chain actor: its subround only
+    if(research)return true;
+    if(u.view==='research')return false;                     // unresolved producers/controllers: research only
+    if(u.scene_key)return u.scene_key===ACTIVE_SCENE;        // scene-local actor/boss/hazard: its subround only
     if(u.membership==='field_phase1')return isFieldScene;    // field enemy: field/S1 scenes only
-    return true;                                             // shared (player/weapons/items/effects)
+    return true;                                             // truly shared (player/weapons/rewards/effects)
   });
   // group usages by object_id -> ONE palette-domain row (preview frames are representations, not consumers)
   const doms={};sceneUsages.forEach(u=>{(doms[u.object_id]=doms[u.object_id]||[]).push(u);});
+  let lastGroup=null;
   Object.entries(doms).forEach(([oid,reps])=>{const u0=reps[0];const dname=u0.display_name.split(' (')[0];
-   const r=el('div','row');const ck=el('input');ck.type='checkbox';
-   // group checkbox adds ONE representative per object (all frames share one palette mapping)
-   const inGroup=GROUP.has(u0.usage_id);ck.checked=inGroup;
-   ck.onclick=e=>{e.stopPropagation();if(ck.checked)GROUP.add(u0.usage_id);else GROUP.delete(u0.usage_id);renderList();};
-   r.appendChild(ck);r.appendChild(el('span',null,' '+dname+' '));r.appendChild(el('span','badge PROVEN',u0.n_used+'c'));
-   // accurate inventory badge (Rastan: categories; others: N frames)
+   if(u0.group_label&&u0.group_label!==lastGroup){lastGroup=u0.group_label;L.appendChild(el('div','grouphdr',u0.group_label));}
+   const disabled=u0.authorable===false;
+   const r=el('div','row'+(disabled?' disabled':''));
+   if(!disabled){const ck=el('input');ck.type='checkbox';   // group checkbox: ONE representative per object
+    ck.checked=GROUP.has(u0.usage_id);
+    ck.onclick=e=>{e.stopPropagation();if(ck.checked)GROUP.add(u0.usage_id);else GROUP.delete(u0.usage_id);renderList();};
+    r.appendChild(ck);}
+   r.appendChild(el('span',null,' '+dname+' '));
+   if(u0.n_used)r.appendChild(el('span','badge PROVEN',u0.n_used+'c'));
+   const hi=u0.human_identity_status;
+   if(hi)r.appendChild(el('span','badge '+(hi==='proven'?'PROVEN':hi==='partial'?'PARTIAL':'OTHER'),'id:'+hi));
+   if(u0.hazard_pending)r.appendChild(el('span','badge OTHER','SOURCE SUBSET PENDING'));
+   else if(disabled)r.appendChild(el('span','badge OTHER','PALETTE PENDING'));
+   if(u0.mapping_scope)r.appendChild(el('span','badge SCOPE',u0.mapping_scope));
    const pc=u0.player_counts;
    if(pc)r.appendChild(el('span','badge OTHER',pc.fullbody+' pairs · '+pc.torso+' torso · '+pc.legs+' legs'));
    else if(reps.length>1)r.appendChild(el('span','badge OTHER',reps.length+' frames'));
@@ -294,6 +316,12 @@ function renderMapTable(){const T=$('#maptable');T.innerHTML='';if(!U)return;con
 function renderTarget(){const G=$('#genlines');G.innerHTML='';if(!POL)return;
  // capacity banner: only editable lines count
  const ed=editableLines();const bn=el('div','vitem WARN');bn.innerHTML='AVAILABLE FOR LAYER A + SPRITES: Lines '+ed.join(', ')+' · <b>Line 2 = LAYER B (arcade controlled) PROTECTED</b> · capacity '+(ed.length*15)+' entries ('+ed.length+'×15)';G.appendChild(bn);
+ // PROMPT-ID-0091 §29: backdrop BLACK invariant (project-level production invariant, not a Tighe color).
+ const bi=(O&&O.backdrop_invariant)||{};const bd=el('div','vitem PASS');
+ bd.innerHTML='<b>'+(bi.label||'Backdrop: Line 0 / Index 0 — BLACK invariant')+'</b> ('+(bi.required_cram||'0x0000')+') · '+(bi.note||'project-level production invariant; Cody owns the scene-package fix');G.appendChild(bd);
+ // §30: R1-S3 Line 2 is CONDITIONAL (Plane B active; occlusion not proven) and stays locked — never freed here.
+ if(ACTIVE_SCENE==='PAL-R1-S3-PLANEA-BOSS'){const c2=el('div','vitem WARN');
+  c2.innerHTML='<b>R1-S3 LINE 2 — CONDITIONAL:</b> Plane B still has nonblank data + active publication; visual occlusion NOT proven, so Line 2 stays locked/protected. Only Cody evidence of a safe interval would show "FREE IN THIS SCENE ONLY". Global Line-2 protection is unchanged.';G.appendChild(c2);}
  for(let line=0;line<4;line++){const prot=isProtected(line);const row=el('div','line'+(line===ACTIVE&&!prot?' activeline':'')+(prot?' protline':''));
   const lb=el('span','lbl'+(line===ACTIVE&&!prot?' on':''),prot?('L'+line+' 🔒'):('LINE '+line+(line===ACTIVE?' ▸':'')));lb.style.cursor='pointer';
   lb.title=prot?'LINE '+line+' — LAYER B — ARCADE CONTROLLED — PROTECTED':'';
@@ -376,6 +404,18 @@ let ZOOM=(function(){try{return +localStorage.getItem('rz_zoom')||4;}catch(e){re
 let SHOWB=false;
 function setZoom(z){ZOOM=z;try{localStorage.setItem('rz_zoom',z);}catch(e){}renderPreviews();}
 async function renderPreviews(){const P=$('#previews');P.innerHTML='';if(!U)return;
+ // PROMPT-ID-0091: pending/disabled groups (R1-S2 hazard candidates, boss death) have no static composite —
+ // never fabricate art. Show what IS known + the hardware class + a clear "not authorable" note.
+ if(U.hazard_pending||!U.pieces||!U.pieces.length){
+  const b=el('div','warn');b.style.cssText='border:1px solid #a86;background:#1c1710;color:#d9c9a0;padding:8px;border-radius:4px;font-size:12px;';
+  b.innerHTML='<b>'+(U.preview_type||'PENDING')+'</b><br>'+(U.identity_note||'')
+    +'<br><br><b>Hardware:</b> '+(U.hardware_class||'—')+(U.subround?(' · <b>'+U.subround+'</b>'):'')
+    +(U.confidence?('<br><b>Confidence:</b> '+U.confidence):'')
+    +(U.authorable===false?'<br><i>Not authorable until the exact source is proven — no fabricated mapping is created against pending codes.</i>':'');
+  P.appendChild(b);return;}
+ // Boss (and other) groups whose source line is proven but exact RGB is pending: show the status banner.
+ if(U.palette_status){const ps=U.palette_status;const pb=el('div','warn');pb.style.cssText='border:1px solid #88a;background:#10131c;color:#a0b0d9;padding:6px 8px;margin:0 0 6px;font-size:12px;border-radius:4px;';
+  pb.innerHTML='<b>Source line '+ps.source_line+' — '+(ps.source_line_proven?'PROVEN':'?')+'</b> · RGB '+ps.rgb_status+'. '+(ps.note||'');P.appendChild(pb);}
  const uid=encodeURIComponent(U.usage_id),bw=U.bounds[0];
  // zoom bar
  const zb=el('div','zoombar');zb.appendChild(el('span','dim','zoom: '));
@@ -506,6 +546,19 @@ async function renderLayerA(L){
  if(!LA||LA_SCENE!==ACTIVE_SCENE){L.innerHTML='<div class="dim">Loading Layer-A corpus…</div>';LA=await j('/api/layera'+sceneQS('?'));LA_SCENE=ACTIVE_SCENE;}
  if(!POL.plane_usage_palette_mappings)POL.plane_usage_palette_mappings={};
  L.innerHTML='';const c=LA.counts;
+ // PROMPT-ID-0091 §28: palette-line ownership panel — the four Genesis CRAM lines for THIS scene with
+ // owner / editable|protected|conditional / backdrop role / animated indices (scene-aware from the server).
+ const lo=LA.line_owners||{};const op=el('div','lineown');
+ op.appendChild(el('div','lohdr','CRAM line ownership · '+(ACTIVE_SCENE||'R1/P1')));
+ for(let ln=0;ln<4;ln++){const o=lo[ln+'']||{};
+  const cond=o.scene_local_status==='CONDITIONAL';const prot=o.editable===false;
+  const row=el('div','lorow'+(prot?' prot':'')+(cond?' cond':''));
+  let state=prot?(cond?'CONDITIONAL — locked':'PROTECTED'):'EDITABLE';
+  let role=[];if(ln===0&&o.backdrop_invariant)role.push('backdrop BLACK invariant ('+o.backdrop_invariant.required_cram+')');
+  if(o.owner==='layer_b')role.push('Layer B');if(o.animated_indices&&o.animated_indices.length)role.push('animated idx '+o.animated_indices.join(','));
+  row.innerHTML='<b>Line '+ln+'</b> · '+state+(role.length?(' · '+role.join(' · ')):'');
+  if(o.note){row.title=o.note;}row.appendChild(el('div','lonote',o.note||''));op.appendChild(row);}
+ L.appendChild(op);
  // PROMPT-ID-0006 Req 1: honest per-round palette disclosure for R2+ scenes (no "verified" claim).
  const _m=(ACTIVE_SCENE||'').match(/^PAL-R(\d+)-/);
  if(_m&&(+_m[1])>=2){

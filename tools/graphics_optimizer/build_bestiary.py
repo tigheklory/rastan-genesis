@@ -285,22 +285,28 @@ def phase_section(r):
     conf=d.get('castle_confirmed_MAME')
     corro=('<div class="muted" style="margin-top:4px"><i>Corroboration (MAME, not authority):</i> '
            +", ".join(f'<span class="mono">{c}</span>' for c in conf)+'</div>') if conf else ''
-    # PROMPT-ID-0084 (corrects PROMPT-ID-0078 via Cody's ORIGINAL ARCADE sweep, PROMPT-ID-0080): the R1-S2
-    # green sword warrior's COMPLETE displayed base-0x033E pose domain is 29 programs / 109 codes (the old
-    # 17/77 claim is SUPERSEDED). Labels for state-$1F and $71-$73 stay provisional until runtime proof.
-    warrior=('<div class="statusbox ok" style="margin-top:4px"><b>R1-S2 Green Sword Warrior '
-         '(<span class="mono">object:castle.green_sword_knight</span>, family-2 base <span class="mono">0x033E</span>):</b> '
-         'COMPLETE displayed pose domain = <b>29 programs / 109 pattern codes</b> (CORRECTED under '
-         'PROMT-ID-0084 from Cody&#39;s original-arcade R1 sweep; the earlier 17/77 claim is superseded). '
+    # PROMPT-ID-0091 (corrects PROMPT-ID-0084 via Cody PROMPT-ID-0090's $4D/$56-$5A re-audit): the R1-S2
+    # green sword warrior's COMPLETE displayed base-0x033E pose domain is 23 programs / 97 codes. The six
+    # foreign programs $4D,$56-$5A were proven to belong to OTHER bases and are removed; the family-8 rope
+    # climber ($56,$59,$5A on base $0241) is a SEPARATE actor. State-$1F and $71-$73 labels stay provisional.
+    warrior=('<div class="statusbox ok" style="margin-top:4px"><b>R1-S2 Green Sword Knight '
+         '(<span class="mono">object:castle.green_sword_knight.r1.n3</span>, family-2 base <span class="mono">0x033E</span>):</b> '
+         'COMPLETE displayed pose domain = <b>23 programs / 97 pattern codes</b> (CORRECTED under '
+         'PROMT-ID-0091 from Cody&#39;s independent $4D/$56-$5A re-audit; the earlier 29/109 claim combined '
+         'unrelated (base,program) identities and is removed). '
          'NORMAL <span class="mono">$93-$96</span>; AIRBORNE <span class="mono">$20-$23</span>; '
          'short reaction/effect <span class="mono">$71-$73</span> (state-$0F; <i>crouch visual unproven</i>); '
-         'state-$1F low/weapon action A <span class="mono">$A1-$A6</span> and B <span class="mono">$97-$9C</span> '
-         '(newly proven displayed); rope-climb shared-sheet family-8 <span class="mono">$4D,$56-$5A</span>. '
-         'Embedded sword artwork <span class="mono">26B-274</span> is an attached piece of these same programs '
+         'state-$1F low/weapon action A <span class="mono">$A1-$A6</span> and B <span class="mono">$97-$9C</span>. '
+         'Embedded sword artwork <span class="mono">26B-274</span> is an attached piece of these 23 programs '
          '(zero overlap with Rastan&#39;s player weapon codes). <span class="mono">$74</span> is the torch '
-         '(base <span class="mono">0x0DAB</span>), NOT the warrior. Palette provenance is two-layer: embedded '
-         'bit-6-clear defaults (sword nibble 3/$33, body nibble 7/$37; airborne $37; reaction $3C; rope '
-         '$30/$34/$39) AND the preserved-sweep actor <span class="mono">+$27</span> override '
+         '(base <span class="mono">0x0DAB</span>), NOT the warrior. '
+         '<b>Split out (Cody PROMPT-ID-0090):</b> the family-8 <b>Rope Climber</b> is '
+         '<span class="mono">object:castle.rope_climber.family8.r1</span> (base <span class="mono">0x0241</span>, '
+         'state $11, programs <span class="mono">$56,$59,$5A</span>; human identity Tighe-visual/PARTIAL); '
+         '<span class="mono">$4D</span>→base $0234, <span class="mono">$57/$58</span>→base $01FC are research-only '
+         'producers — a program number is not a global sprite identity. Palette provenance is two-layer: embedded '
+         'bit-6-clear defaults (sword nibble 3/$33, body nibble 7/$37; airborne $37; reaction $3C) AND the '
+         'preserved-sweep actor <span class="mono">+$27</span> override '
          '(<span class="mono">$44/$41</span>, bit 6) forcing line 4/$34 or 1/$31 — NOT a flat $33.</div>')
     hazards=('<div class="statusbox pend" style="margin-top:4px"><b>R1-S2 hazards — UNRESOLVED, do not fabricate:</b> '
          'floor spikes, moving wooden gate, moving spiked traps, falling water (NOT the R1-S1 waterfall), static '
@@ -311,8 +317,13 @@ def phase_section(r):
          '<b>PROMPT-0086 update:</b> the animated pit flame (base <span class="mono">0x0224</span>) and the '
          'spike/spear family (base <span class="mono">0x09EA</span>) now have PROVEN HUMAN IDENTITY (Tighe) and '
          'proven marker-chain creation — but only in <b>R2/R4</b> (0x0224) and <b>R5</b> (0x09EA); their '
-         '<b>R1-S2 reachability is NOT in the proven H14 chain</b> and still needs the capture. See the Hazard '
-         'census dashboard for the independent per-dimension confidence.</div>')
+         '<b>R1-S2 reachability is NOT in the proven H14 chain</b> and still needs the capture. '
+         '<b>PROMPT-0091:</b> the Palette Composer now exposes the R1-S2 hazards (floor spikes, moving spike '
+         'trap, wooden gate, falling water, pit-flame animation, static lava, rope/chain terrain) as '
+         '<b>disabled Plane-A candidate groups (SOURCE SUBSET PENDING)</b> — explicitly NOT base '
+         '<span class="mono">0x0224</span>/<span class="mono">0x09EA</span> — so none can be authored against '
+         'fabricated source codes. See the Hazard census dashboard for the independent per-dimension '
+         'confidence.</div>')
     cas=(f'<span class="ok"><b>Schedule (0x4A104) content — STATIC:</b> family-2 spawners {sp_html}'
          f' &nbsp;<i>(base 0x033E route mechanism, anim 0x93)</i>; direct hostile bases {dh_html}.</span>'
          f'<div class="ok" style="margin-top:4px">Char-spawned identities (0x41180 <span class="mono">+0x03≠0</span>, target char <span class="mono">+0x0D</span> ∈ 0x45–0x7b): per-scene map-marker rosters PROVEN (H13) and Phase-2 marker chains executed to exact +0x1E base writes (H14).</div>'
@@ -805,16 +816,42 @@ def death_families_section():
       f'Ordinary field-enemy death is base <span class="mono">0x0A73</span> (comp 2, colored via the owning enemy '
       f'palette family). The <b>visible gameplay collectible / weapon power-up</b> is the in-place <b>family-12 reward '
       f'presentation</b> the dying enemy becomes (<span class="mono">0x40CCC→0x40D32</span>, base '
-      f'<span class="mono">0x0A5A</span>, gated +0x36): <b>17 reward kinds</b>, anim selector (kind-1)+0x13 = '
-      f'<span class="mono">0x13..0x23</span>, one static presentation per kind, in three palette-bank groups '
-      f'(<span class="mono">kinds 1-4 → 0x30, 5-13 → 0x31, 14-17 → 0x37</span>), per-round-pool colored; reward '
-      f'identity <span class="mono">0x40C2E</span>, score <span class="mono">0x40C40</span>. This is NOT a created '
-      f'rec_type-12 pickup actor (that path is vestigial) and NOT a separate marker/scripted sprite (those make '
-      f'enemies). The <b>generic burst</b> is base <span class="mono">0x0275</span> anim 0x9D-0xA0 (Flying Demon + '
-      f'selected boss death too); the <b>bat death</b> is base <span class="mono">0x0275</span> anim '
-      f'<span class="mono">0xA8</span> — ONE frame, Small+Large Bat shared. <b>Still PENDING (identity only):</b> '
-      f'the exact kind→human item name (via +0x29) and the 0x09DC rec_type-5 user identity.</div>'
-      f'<div class="itemgrid">{cards}</div></section>')
+      f'<span class="mono">0x0A5A</span>, gated +0x36): <b>17 reward kinds</b> modeled as ONE parent '
+      f'(<span class="mono">object:item.gameplay_rewards</span>) with 17 individual children '
+      f'(<span class="mono">object:item.reward.kind01</span>…<span class="mono">kind17</span>). '
+      f'CORRECTED under PROMPT-ID-0091 (Cody PROMPT-ID-0090): the false three-bank model '
+      f'(<span class="mono">1-4→0x30, 5-13→0x31, 14-17→0x37</span>) is <b>removed</b>. All 17 are '
+      f'<b>compositor 2</b>, anim selector (kind-1)+0x13 = <span class="mono">0x13..0x23</span>, codes '
+      f'<span class="mono">$A5A-$A71</span>, one authentic tile per kind; embedded palette line <b>0</b> '
+      f'(kinds 1-13) / line <b>3</b> (kinds 14-17); <span class="mono">+$27</span> override clear. reward '
+      f'identity <span class="mono">0x40C2E</span>, score <span class="mono">0x40C40</span>. The <b>generic burst</b> '
+      f'is base <span class="mono">0x0275</span> anim 0x9D-0xA0 (Flying Demon + selected boss death too); the '
+      f'<b>bat death</b> is base <span class="mono">0x0275</span> anim <span class="mono">0xA8</span> — ONE frame, '
+      f'Small+Large Bat shared. <b>Still PENDING (identity only):</b> the exact kind→human item name (no '
+      f'silhouette guessing). Production integration of the 17 reward variants into offline reindex/route is a '
+      f'Cody follow-up (SOURCE/TOOL READY ≠ PRODUCTION INTEGRATED).</div>'
+      f'<div class="itemgrid">{_reward_children_cards()}{cards}</div></section>')
+
+
+# PROMPT-ID-0091: the 17 reward children (Cody PROMPT-ID-0090 census) as compact Bestiary cards. Human item
+# names are PENDING (never guessed from silhouette).
+_REWARD_CHILDREN=[(1,0x13,0xA5A,0x17,0x0010,0),(2,0x14,0xA5B,0x18,0x0020,0),(3,0x15,0xA5C,0x19,0x0030,0),
+    (4,0x16,0xA5D,0x12,0x0100,0),(5,0x17,0xA5E,0x13,0x0200,0),(6,0x18,0xA5F,0x14,0x0010,0),
+    (7,0x19,0xA60,0x15,0x0020,0),(8,0x1A,0xA61,0x1D,0x0020,0),(9,0x1B,0xA62,0x1C,0x0020,0),
+    (10,0x1C,0xA63,0x16,0x0010,0),(11,0x1D,0xA65,0x1B,0x0010,0),(12,0x1E,0xA67,0x1A,0x0050,0),
+    (13,0x1F,0xA69,0x11,0x0030,0),(14,0x20,0xA6E,0x0D,0x0010,3),(15,0x21,0xA6F,0x0E,0x0015,3),
+    (16,0x22,0xA70,0x0F,0x0020,3),(17,0x23,0xA71,0x10,0x0025,3)]
+def _reward_children_cards():
+    out=''
+    for kind,anim,code,ident,value,line in _REWARD_CHILDREN:
+        out+=(f'<div class="itemcat part"><div class="itk">Reward Kind {kind}</div>'
+          f'<div class="its">source PROVEN · human name PENDING</div>'
+          f'<p><b>id</b> <span class="mono">object:item.reward.kind{kind:02d}</span><br>'
+          f'<b>base</b> <span class="mono">0x0A5A</span> · <b>comp</b> <span class="mono">2</span> · '
+          f'<b>anim</b> <span class="mono">0x{anim:02X}</span> · <b>code</b> <span class="mono">0x{code:03X}</span><br>'
+          f'<b>identity</b> <span class="mono">0x{ident:02X}</span> · <b>value</b> <span class="mono">0x{value:04X}</span> · '
+          f'<b>embedded line</b> <span class="mono">{line}</span></p></div>')
+    return out
 
 def consistency_check():
     """Fail generation if the manifest/report would contradict itself (integrity guard)."""

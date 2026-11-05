@@ -22,14 +22,43 @@ _SPR = None
 # ---- CRAM line ownership (Build-0313 capture evidence): Line 2 = accepted Layer-B time-of-day, PROTECTED ----
 RESERVED_LINES = [2]
 EDITABLE_LINES = [0, 1, 3]
+# PROMPT-ID-0091 (Cody PROMPT-ID-0090 §Black Backdrop): CRAM Line 0 / index 0 is the BLACK backdrop invariant
+# (VDP reg 7 selects it). It is a project-level production invariant (value 0x0000), NOT a Tighe color choice
+# needing reapproval. The Composer SHOWS it; it never rewrites Test.json to enforce it (that fix is Cody's).
+BACKDROP_INVARIANT = {"line": 0, "index": 0, "required_cram": "0x0000", "label": "Backdrop: Line 0 / Index 0 — BLACK invariant",
+                      "note": "Project-level production invariant (VDP reg 7). Cody owns the scene-package fix."}
 LINE_OWNERS = {
-    "0": {"owner": "editable", "control": "editor", "editable": True, "optimizer_available": True},
+    "0": {"owner": "editable", "control": "editor", "editable": True, "optimizer_available": True,
+          "backdrop_invariant": BACKDROP_INVARIANT},
     "1": {"owner": "editable", "control": "editor", "editable": True, "optimizer_available": True},
     "2": {"owner": "layer_b", "control": "arcade", "editable": False, "optimizer_available": False,
           "label": "LINE 2 — LAYER B — ARCADE CONTROLLED — PROTECTED",
           "animated_indices": [1],  # index 1 = time-of-day sky; verified animated across arcade frames 360/460/700/1000
           "note": "Owned by the accepted Layer-B time-of-day palette path in Build 0313; excluded from editor optimization. Colors are read-only but REUSABLE; index 1 is the animated sky — avoid."},
     "3": {"owner": "editable", "control": "editor", "editable": True, "optimizer_available": True}}
+
+
+def scene_line_ownership(scene=None):
+    """PROMPT-ID-0091 (§Palette line ownership panel / §R1-S3 conditional Line-2): per-scene CRAM line
+    ownership. Global LINE_OWNERS with the Line-0 BLACK backdrop invariant, plus the R1-S3 scene-local
+    Line-2 status: CONDITIONAL (Plane B still has nonblank data + active publication; visual occlusion not
+    proven). Line 2 stays locked/protected globally; this NEVER frees it globally, and only Cody evidence of
+    a safe interval would promote it to 'FREE IN THIS SCENE ONLY'."""
+    import copy
+    owners = copy.deepcopy(LINE_OWNERS)
+    if scene == "PAL-R1-S3-PLANEA-BOSS":
+        owners["2"] = dict(owners["2"])
+        owners["2"].update({
+            "owner": "layer_b", "control": "arcade", "editable": False, "optimizer_available": False,
+            "scene_local_status": "CONDITIONAL",
+            "label": "LINE 2 — LAYER B — CONDITIONAL (R1-S3): visual occlusion NOT proven — locked",
+            "note": ("R1-S3 Plane B still has nonblank scene data, active publication, and active scroll "
+                     "paths (Cody PROMPT-ID-0090). Tighe observed Layer B visually unused, but occlusion is "
+                     "NOT proven, so Line 2 stays locked/protected for R1-S3. If Cody later proves a safe "
+                     "scene-local interval the UI can show 'FREE IN THIS SCENE ONLY' with start/end ownership. "
+                     "Global Line-2 protection is never changed from this scene badge."),
+            "conditional": True, "free_in_scene": False})
+    return owners
 
 
 def loadj(p, d=None):
@@ -229,6 +258,11 @@ def r1s2_castle_usages():
          "state 0x1A/0x1D -> base 0x00F4; H14: present in R5"),
         (0x00F4, 6, "PAL-R6-S2-PLANEA-CASTLE", "Castle actor · base $00F4 (R6)",
          "state 0x21 -> base 0x00F4; H14: present in R6"),
+        # PROMPT-ID-0091 (Section 17): preserve $09EA spike/spear/stalagmite in its PROVEN R5 scene (NOT R1).
+        (0x09EA, 5, "PAL-R5-S2-PLANEA-CASTLE", "Castle hazard · base $09EA spike/spear/stalagmite (R5)",
+         "rec-type 0x1B template + marker-chain 0x43840 (state 0x15)/0x40EDE (state 0x20) -> base 0x09EA; "
+         "H14/H21: R5. Floor-spear/wall-spear/stalagmite FORM is marker+band+compositor selected. Tighe "
+         "HUMAN IDENTITY (PROMPT-ID-0086)."),
     ]
     out = []
     for base, rnd, scene, name, note in INSTANCES:
@@ -316,12 +350,13 @@ def green_knight_usages():
         return _KNIGHT_USAGES_CACHE
     frames, total = _castle_frames(0x033E)
     # COMPLETE same-actor base-$033E animation domain, resolved from the actor state machine, CORRECTED under
-    # PROMPT-ID-0084 using Cody's ORIGINAL ARCADE R1 castle sweep (PROMPT-ID-0080). The earlier 17-program
-    # claim (PROMPT-ID-0078) was SUPERSEDED: the preserved arcade sweep (1,286 $033E observations) displays 12
-    # additional state-$1F programs. The corrected proven union is 29 PROGRAMS / 109 CODES (not 17 / 77); the
-    # 12 added programs contribute 32 codes (26D-274 and 389-3A0). The field schedule (0x4A104) spawns the
-    # knight family-2 (+$3E == 2); +$3E is written only at spawn (0x4A08A) and ->0x0C on death (0x40D4C), NEVER
-    # 8. Engines reached via the state dispatcher (0x40BAA) render, from the warrior's own $033E sheet:
+    # PROMPT-ID-0091 from Cody PROMPT-ID-0090's independent $4D/$56-$5A re-audit. The "29 programs / 109 codes"
+    # claim (PROMPT-ID-0084) COMBINED UNRELATED (base,program) identities and is REMOVED: Cody source-proved
+    # $4D->base $0234, $56->base $0241 (family 8), $57/$58->base $01FC, $59/$5A->base $0241(fam8)/$0546. The
+    # $4684E family-8 branch selects $56,$59,$5A for the LIVE ACTOR BASE $0241 (the rope climber), never from
+    # the $033E sheet. The corrected proven base-$033E domain is 23 PROGRAMS / 97 CODES. The field schedule
+    # (0x4A104) spawns the knight family-2 (+$3E == 2). Engines reached via the state dispatcher (0x40BAA)
+    # render, from the warrior's own $033E sheet:
     #   * NORMAL      $93-$96 : ground engine 0x47140 (states 3-0C,12) + state-0x11 0x4684E (+$3E==2).
     #   * SHORT REACTION $71-$73 : state-0x0F alt path 0x40E0E (+$03!=0, sfx 0x17, BASE-PRESERVING); a short
     #              mode-driven reaction/effect. NOT proven to be the "crouch/duck" pose Tighe observed -- label
@@ -332,29 +367,28 @@ def green_knight_usages():
     #              -> $93,$A1-$A6 (+reflect). PROVEN DISPLAYED by the arcade sweep; exact human name unproven.
     #   * LOW/WEAPON ACTION B $97-$9C : state-$1F engine 0x42EF8, family 2, actor+$21 bit2 != 0 (writes +$37=$61);
     #              table 0x42FD4 -> $97-$9C (+reflect). PROVEN DISPLAYED by the arcade sweep; name unproven.
-    #   * ROPE        $4D,$56-$5A : state-0x11 engine 0x4684E rope branch, reached via +$3E==8 (family 8)
-    #              rendering from the SHARED $033E sheet -- the same visual warrior climbing. Preserved.
-    # The embedded sword is an attached piece of these same programs (upright $93 = 26B,26C; the state-$1F
-    # programs rotate the weapon through the complete sword artwork 26D-274). It is a warrior sub-context,
-    # NOT a separate actor; it has ZERO pattern-code overlap with Rastan's player weapon tables (never
-    # globally recolor the player sword/axe/hammer). Every pose is ONE semantic actor inheriting the SINGLE
-    # authored mapping (same object_id per round). See the PROMPT-ID-0084 report for palette provenance.
+    # The family-8 rope climber ($56,$59,$5A on base $0241) is the SEPARATE object:castle.rope_climber.family8.r1
+    # (rope_climber_usages); $4D/$57/$58 ($0234/$01FC) are research-view producers. The embedded sword is an
+    # attached piece of these 23 programs (upright $93 = 26B,26C; the state-$1F programs rotate the weapon
+    # through the sword artwork 26D-274). It is a warrior sub-context, NOT a separate actor; ZERO pattern-code
+    # overlap with Rastan's player weapon tables. Every pose is ONE semantic actor inheriting the SINGLE
+    # authored mapping (same object_id per round). See the PROMPT-ID-0091 report for palette provenance.
     KNIGHT_ANIM_STATE = dict(
         [(a, "normal") for a in (0x93, 0x94, 0x95, 0x96)]
         + [(a, "short_reaction") for a in (0x71, 0x72, 0x73)]
         + [(a, "airborne") for a in (0x20, 0x21, 0x22, 0x23)]
         + [(a, "low_action_a") for a in (0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6)]
-        + [(a, "low_action_b") for a in (0x97, 0x98, 0x99, 0x9A, 0x9B, 0x9C)]
-        + [(a, "rope") for a in (0x4D, 0x56, 0x57, 0x58, 0x59, 0x5A)])
-    # Honest, non-overclaiming UI pose-group headers (Cody 0080 requirements #3/#4): the state-$1F and
-    # short-reaction names stay provisional until a runtime capture proves the human gameplay meaning.
+        + [(a, "low_action_b") for a in (0x97, 0x98, 0x99, 0x9A, 0x9B, 0x9C)])
+    # Honest, non-overclaiming UI pose-group headers: the state-$1F and short-reaction names stay provisional
+    # until a runtime capture proves the human gameplay meaning. The family-8 "rope" programs $4D,$56-$5A are
+    # NOT in this domain (PROMPT-ID-0091): Cody proved they belong to other bases; the rope climber is the
+    # separate object:castle.rope_climber.family8.r1 (base $0241).
     POSE_LABEL = {
         "normal": "Normal walk/idle ($93-$96)",
         "short_reaction": "Short reaction/effect — crouch visual pending ($71-$73)",
         "airborne": "Airborne / low pose ($20-$23)",
         "low_action_a": "Low / weapon action A — state $1F ($A1-$A6)",
         "low_action_b": "Low / weapon action B — state $1F ($97-$9C)",
-        "rope": "Rope climb — shared-sheet family-8 ($4D,$56-$5A)",
     }
     # Sword sub-context (Cody 0080): attached-piece weapon artwork inside the warrior's own programs.
     SWORD_SUBCONTEXT = "object:castle.green_sword_knight.weapon.sword"
@@ -400,7 +434,6 @@ def green_knight_usages():
                     "normal_and_state_1F": {"sword_piece": "nibble 3 / bank 0x33", "body_piece": "nibble 7 / bank 0x37"},
                     "airborne_$20_$23": "nibble 7 / bank 0x37",
                     "short_reaction_$71_$73": "nibble C / bank 0x3C",
-                    "rope_shared_sheet": "nibble 0/4/9 / bank 0x30/0x34/0x39",
                 },
                 "actor_override": {
                     "note": "preserved R1 sweep: every $033E record has creation attr +$27 = 0x44 (960 obs) or "
@@ -1061,6 +1094,280 @@ def solve_group(usages, mode="delta_e", fit_entries=15, hue_limit=45.0, de_limit
                        else "perceptual ΔE00 clustering + best-legal CRAM") + "; BEST SOLUTION FOUND"}
 
 
+def _comp_pieces(base, anim, comp, minp=1):
+    """Compositor-VM pieces for a (base, anim, compositor_selector), anchored to (0,0), keeping each piece's
+    own palette nibble. Like _manifest_vm_pieces but with an explicit compositor selector and a configurable
+    minimum piece count (rewards are a single authentic tile). Empty if fewer than `minp` pieces."""
+    import sys
+    p = os.path.join(ROOT, "tools/graphics_optimizer")
+    if p not in sys.path:
+        sys.path.insert(0, p)
+    try:
+        from compositor_vm import ActorRenderState, visible_pieces
+        sat = visible_pieces(ActorRenderState(base, anim, comp))
+    except Exception:
+        return []
+    if len(sat) < minp:
+        return []
+    def s9(v):
+        v &= 0x1FF
+        return v - 0x200 if v & 0x100 else v
+    raw = [{"code": q.tile & 0x1FFF, "x": s9(q.x), "y": s9(q.y),
+            "fx": bool(q.hflip), "fy": bool(q.vflip), "palette": int(q.palette) & 0xF} for q in sat]
+    ox = min(q["x"] for q in raw); oy = min(q["y"] for q in raw)
+    return [{"code": q["code"], "x": q["x"] - ox, "y": q["y"] - oy, "fx": q["fx"], "fy": q["fy"],
+            "palette": q["palette"]} for q in raw]
+
+
+_ROPE_USAGES_CACHE = None
+def rope_climber_usages():
+    """PROMPT-ID-0091 (Cody PROMPT-ID-0090): the family-8 ROPE CLIMBER, split OUT of the Green Sword Knight.
+    Cody source-proved base $0241, family 8, state $11 (handler $4684E family-8 branch), programs $56,$59,$5A
+    (comp 0). This is a DISTINCT (base, program) identity -- NOT the $033E knight. Human visual label is only
+    Tighe-visual (PARTIAL); the technical actor identity is PROVEN. Its mapping is INDEPENDENT of the knight
+    (the current $033E-generated mapping does not apply). R1-S2 scene usage; per-piece arcade palettes."""
+    global _ROPE_USAGES_CACHE
+    if _ROPE_USAGES_CACHE is not None:
+        return _ROPE_USAGES_CACHE
+    out = []
+    obj = "object:castle.rope_climber.family8.r1"
+    note = ("base $0241, family 8, state $11; handler $4684E family-8 branch selects $56,$59,$5A for the LIVE "
+            "actor base $0241 (Cody PROMPT-ID-0090). SEPARATE from the $033E Green Sword Knight; a program "
+            "number is not a global sprite identity. Human identity 'Rope Climber' is Tighe-visual (PARTIAL).")
+    for order, anim in enumerate((0x56, 0x59, 0x5A)):
+        pcs = _comp_pieces(0x0241, anim, 0, minp=2)
+        if not pcs:
+            continue
+        xs = [p["x"] for p in pcs]; ys = [p["y"] for p in pcs]
+        nibs = sorted({p["palette"] for p in pcs})
+        out.append({
+            "usage_id": "usage:rope_climber_r1:anim0x%02X" % anim, "object_id": obj, "map_key": obj,
+            "frame_category": "Rope climb (family 8)", "frame_label": "program 0x%02X" % anim, "frame_order": order,
+            "player_counts": None, "weapon_counts": None,
+            "display_name": "Rope Climber", "variant_label": "family-8 base $0241 (R1-S2)",
+            "sprite_bank": "0x3%X" % nibs[0], "sprite_banks": ["0x3%X" % n for n in nibs], "multi_bank": len(nibs) > 1,
+            "scene_key": "PAL-R1-S2-PLANEA-CASTLE", "round": 1, "subround": "R1-S2", "base": "0x0241",
+            "family": 8, "provisional": True, "identity_note": note,
+            "view": "authoring", "authorable": True, "membership": "scene",
+            "hardware_class": "PC090OJ sprite", "human_identity_status": "partial",
+            "human_identity_label": "Rope Climber (Tighe visual)",
+            "mapping_scope": "scene", "confidence": "technical PROVEN · human PARTIAL",
+            "pieces": pcs, "n_pieces": len(pcs),
+            "bounds": [max(xs) - min(xs) + 16, max(ys) - min(ys) + 16],
+            "composite_proven": True, "preview_type": "ARCADE COMPOSITE (family-8 $0241)",
+            "used_colors": _castle_used_colors(pcs, 1), "mrd_pairs": [],
+            "n_used": len({(p["palette"], v) for p in pcs for v in cell_indices(p["code"]) if v}),
+        })
+    _ROPE_USAGES_CACHE = out
+    return out
+
+
+# Cody PROMPT-ID-0090 exact reward census: kind -> (anim, code, identity_byte, value, embedded_line).
+# All 17 are family-12 base $0A5A under compositor 2 (one authentic tile per kind); +$27 override is clear.
+# kinds 1-13 -> embedded palette line 0; kinds 14-17 -> embedded palette line 3. Exact human item names are
+# PENDING (do NOT guess axe/hammer/etc from silhouette). Reward identity table 0x40C2E, score table 0x40C40.
+_REWARD_TABLE = [
+    (1, 0x13, 0xA5A, 0x17, 0x0010, 0), (2, 0x14, 0xA5B, 0x18, 0x0020, 0), (3, 0x15, 0xA5C, 0x19, 0x0030, 0),
+    (4, 0x16, 0xA5D, 0x12, 0x0100, 0), (5, 0x17, 0xA5E, 0x13, 0x0200, 0), (6, 0x18, 0xA5F, 0x14, 0x0010, 0),
+    (7, 0x19, 0xA60, 0x15, 0x0020, 0), (8, 0x1A, 0xA61, 0x1D, 0x0020, 0), (9, 0x1B, 0xA62, 0x1C, 0x0020, 0),
+    (10, 0x1C, 0xA63, 0x16, 0x0010, 0), (11, 0x1D, 0xA65, 0x1B, 0x0010, 0), (12, 0x1E, 0xA67, 0x1A, 0x0050, 0),
+    (13, 0x1F, 0xA69, 0x11, 0x0030, 0), (14, 0x20, 0xA6E, 0x0D, 0x0010, 3), (15, 0x21, 0xA6F, 0x0E, 0x0015, 3),
+    (16, 0x22, 0xA70, 0x0F, 0x0020, 3), (17, 0x23, 0xA71, 0x10, 0x0025, 3),
+]
+_REWARD_USAGES_CACHE = None
+def gameplay_reward_usages():
+    """PROMPT-ID-0091 (Cody PROMPT-ID-0090): the 17 gameplay rewards as ONE parent object with 17 individual
+    children. The false three-bank model ($30/$31/$37) is removed. Source path: schedule +$36 ->
+    $40CCC/$40D32 -> family 12, base $0A5A -> compositor 2 -> anim $13-$23 -> embedded palette line 0 (kinds
+    1-13) or 3 (kinds 14-17). One reward child = ONE source record = ONE authentic tile. NOTHING is
+    auto-mapped to a Genesis line (Tighe authors targets)."""
+    global _REWARD_USAGES_CACHE
+    if _REWARD_USAGES_CACHE is not None:
+        return _REWARD_USAGES_CACHE
+    parent = "object:item.gameplay_rewards"
+    out = []
+    for kind, anim, code, ident, value, line in _REWARD_TABLE:
+        pcs = _comp_pieces(0x0A5A, anim, 2, minp=1)
+        # Fall back to the exact source tile code if the single-piece composite is empty.
+        if not pcs:
+            pcs = [{"code": code, "x": 0, "y": 0, "fx": False, "fy": False, "palette": line}]
+        pal = _arcade_round_palette(1, line)
+        used = {}
+        for p in pcs:
+            for v in cell_indices(p["code"]):
+                if v:
+                    used[v] = used.get(v, 0) + 1
+        used_colors = []
+        for idx in sorted(used):
+            rgb = pal[idx] if idx < len(pal) else [0, 0, 0]
+            disp, cram, _ = gen_quant(rgb)
+            used_colors.append({"src_index": idx, "arcade_rgb8": rgb, "hex": "#%02X%02X%02X" % tuple(rgb),
+                                "pixel_count": used[idx], "genesis_rgb8": disp, "genesis_cram": cram})
+        xs = [p["x"] for p in pcs]; ys = [p["y"] for p in pcs]
+        child = "object:item.reward.kind%02d" % kind
+        out.append({
+            "usage_id": "usage:reward_kind%02d:anim0x%02X" % (kind, anim),
+            "object_id": parent, "map_key": child, "child_id": child,
+            "group_label": "Gameplay Rewards",
+            "frame_category": ("Kinds 1-13 · embedded line 0" if line == 0 else "Kinds 14-17 · embedded line 3"),
+            "frame_label": "Kind %d · code $%03X" % (kind, code), "frame_order": kind,
+            "player_counts": None, "weapon_counts": None,
+            "display_name": "Gameplay Rewards", "variant_label": "Kind %d (identity $%02X)" % (kind, ident),
+            "sprite_bank": "0x3%X" % line, "sprite_banks": ["0x3%X" % line], "multi_bank": False,
+            "scene_key": None, "round": None, "subround": None, "base": "0x0A5A", "family": 12,
+            "provisional": True, "membership": "shared", "view": "authoring", "authorable": True,
+            "hardware_class": "PC090OJ sprite", "human_identity_status": "pending",
+            "human_identity_label": "Reward kind %d — item name PENDING" % kind,
+            "mapping_scope": "shared", "confidence": "source PROVEN · human name PENDING",
+            "reward_meta": {"kind": kind, "identity_byte": "0x%02X" % ident, "value": "0x%04X" % value,
+                            "anim": "0x%02X" % anim, "code": "0x%03X" % code, "compositor": 2,
+                            "embedded_line": line},
+            "identity_note": ("family-12 base $0A5A, compositor 2, anim $%02X, code $%03X; embedded palette "
+                              "line %d; +$27 override clear. Human item name PENDING (no silhouette guessing)."
+                              % (anim, code, line)),
+            "pieces": pcs, "n_pieces": len(pcs),
+            "bounds": [max(xs) - min(xs) + 16, max(ys) - min(ys) + 16],
+            "composite_proven": True, "preview_type": "ARCADE REWARD (comp 2 · line %d)" % line,
+            "used_colors": used_colors, "mrd_pairs": [], "n_used": len(used_colors),
+        })
+    _REWARD_USAGES_CACHE = out
+    return out
+
+
+_BOSS_USAGES_CACHE = None
+def r1_boss_usages():
+    """PROMPT-ID-0091 (Cody PROMPT-ID-0090): the Round 1 boss as a scene-local GROUP under R1-S3 / Sub-Round
+    3, NOT a field enemy. Body: base $061D, rec type $0E, slot A5+$0708, compositor 1, anim $00, program
+    $47908, embedded line F, +$27=0. Auxiliary (type-15): base $061D, rec type $0F, creator $457B2/$457D0,
+    compositor 1, anim $14, program $47E54, embedded line F, +$27=0 (role/count/lifetime PARTIAL). Death/
+    effect: PARTIAL until the phase inventory is complete. Palette: SOURCE LINE F is PROVEN; the exact staged
+    RGB content is PARTIAL -- do NOT apply ordinary family-2 field-palette logic or invent colors, so these
+    groups are NOT authorable yet."""
+    global _BOSS_USAGES_CACHE
+    if _BOSS_USAGES_CACHE is not None:
+        return _BOSS_USAGES_CACHE
+    scene = "PAL-R1-S3-PLANEA-BOSS"
+    # Line-F pool is shown only for SHAPE visibility; it is explicitly NOT the proven boss RGB.
+    palF = _arcade_round_palette(1, 0xF)
+    def _used(pcs):
+        used = {}
+        for p in pcs:
+            for v in cell_indices(p["code"]):
+                if v:
+                    used[v] = used.get(v, 0) + 1
+        uc = []
+        for idx in sorted(used):
+            rgb = palF[idx] if idx < len(palF) else [0, 0, 0]
+            disp, cram, _ = gen_quant(rgb)
+            uc.append({"src_index": idx, "arcade_rgb8": rgb, "hex": "#%02X%02X%02X" % tuple(rgb),
+                       "pixel_count": used[idx], "genesis_rgb8": disp, "genesis_cram": cram,
+                       "provisional": True})
+        return uc
+    SPECS = [
+        ("object:boss.r1.body", "Round 1 Boss — Body", 0x00, 0x47908, 0x0E,
+         "slot A5+$0708, rec type $0E, base $061D, comp 1, anim $00, program $47908, +$27=0; embedded line F.",
+         "proven", False),
+        ("object:boss.r1.aux.type15", "Round 1 Boss — Type-15 Auxiliary", 0x14, 0x47E54, 0x0F,
+         "rec type $0F via $457B2/$457D0, base $061D, comp 1, anim $14, program $47E54, +$27=0; embedded line "
+         "F. Role/count/lifetime PARTIAL.", "partial", False),
+    ]
+    out = []
+    for order, (obj, name, anim, prog, rectype, note, idstat, authorable) in enumerate(SPECS):
+        pcs = _comp_pieces(0x061D, anim, 1, minp=1)
+        if not pcs:
+            continue
+        xs = [p["x"] for p in pcs]; ys = [p["y"] for p in pcs]
+        out.append({
+            "usage_id": "usage:boss_r1_%s:anim0x%02X" % (obj.split(".")[-1], anim),
+            "object_id": obj, "map_key": obj, "group_label": "Round 1 Boss",
+            "frame_category": "Round 1 Boss", "frame_label": name, "frame_order": order,
+            "player_counts": None, "weapon_counts": None,
+            "display_name": name, "variant_label": "R1-S3 · program $%05X" % prog,
+            "sprite_bank": "0x3F", "sprite_banks": ["0x3F"], "multi_bank": False,
+            "scene_key": scene, "round": 1, "subround": "R1-S3", "base": "0x061D",
+            "record_type": "0x%02X" % rectype, "compositor": 1, "program": "0x%05X" % prog,
+            "provisional": True, "membership": "scene", "view": "authoring", "authorable": authorable,
+            "hardware_class": "PC090OJ sprite", "human_identity_status": idstat,
+            "human_identity_label": name,
+            "mapping_scope": "scene", "confidence": "source line F PROVEN · staged RGB PARTIAL",
+            "palette_status": {"source_line": "F", "source_line_proven": True,
+                               "rgb_status": "PARTIAL — exact staged source pending",
+                               "note": "NOT ordinary per-round field palette; colors not invented."},
+            "identity_note": note,
+            "pieces": pcs, "n_pieces": len(pcs),
+            "bounds": [max(xs) - min(xs) + 16, max(ys) - min(ys) + 16],
+            "composite_proven": True, "preview_type": "BOSS SHAPE (line F proven · RGB PENDING)",
+            "used_colors": _used(pcs), "mrd_pairs": [], "n_used": 0,
+        })
+    # Death / post-boss effect group: PARTIAL phase inventory, no fabricated art, not authorable.
+    out.append({
+        "usage_id": "usage:boss_r1_effect_death:info", "object_id": "object:boss.r1.effect.death",
+        "map_key": "object:boss.r1.effect.death", "group_label": "Round 1 Boss",
+        "frame_category": "Round 1 Boss", "frame_label": "Death / post-boss effect", "frame_order": 90,
+        "player_counts": None, "weapon_counts": None,
+        "display_name": "Round 1 Boss — Death / Effect", "variant_label": "R1-S3 · phase inventory PARTIAL",
+        "sprite_bank": "0x00", "sprite_banks": [], "multi_bank": False,
+        "scene_key": scene, "round": 1, "subround": "R1-S3", "base": "0x061D",
+        "provisional": True, "incomplete": True, "membership": "scene", "view": "authoring",
+        "authorable": False, "hardware_class": "PC090OJ sprite", "human_identity_status": "partial",
+        "human_identity_label": "Boss death/effect (phase inventory PARTIAL)",
+        "mapping_scope": "scene", "confidence": "PARTIAL — full phase sequence not enumerated",
+        "identity_note": ("boss behavior later activates death/effect records; the exact R1 phase sequence is "
+                          "NOT enumerated. No fabricated art; disabled for authoring until proven."),
+        "pieces": [], "n_pieces": 0, "bounds": [16, 16], "composite_proven": False,
+        "preview_type": "PARTIAL — phase inventory pending (no static composite)",
+        "used_colors": [], "mrd_pairs": [], "n_used": 0,
+    })
+    _BOSS_USAGES_CACHE = out
+    return out
+
+
+# PROMPT-ID-0091 (Cody PROMPT-ID-0090 §R1-S2 Trap/Hazard Audit): the visible R1-S2 hazards are PLANE-A (or
+# mixed tile/palette-animation) graphics whose exact source (tile,bank,flip) subset is PENDING. They are NOT
+# the PC090OJ actor bases $0224 (pit flame = R2/R4) or $09EA (spike/spear/stalagmite = R5). Each is shown as
+# a disabled candidate ("SOURCE SUBSET PENDING") so it can never be authored against fabricated source codes.
+_R1S2_HAZARD_CANDIDATES = [
+    ("floor_spikes", "Floor Spikes", "Plane A", "Static/animated floor spike tiles; not R1 $09EA."),
+    ("moving_spiked_trap", "Suspended / Moving Spike Trap", "Plane A / mixed",
+     "Separate object; never merge with floor spikes."),
+    ("moving_wood_gate", "Moving Wooden Gate", "Plane A / mixed",
+     "Not automatically the collision-$7E exit; separate gate art."),
+    ("falling_water", "Falling Water", "Plane A + palette animation (PARTIAL)",
+     "Likely tile + palette animation; not proven the R1-S1 $59AD4 mechanism."),
+    ("pit_flame_animation", "Pit Flame Animation", "Plane A / palette animation",
+     "NOT base $0224 ($0224 = R2/R4). Separate from static lava."),
+    ("static_lava", "Static Lava / Pit Field", "Plane A scene map",
+     "Scene-environment group; raw Layer-A tiles exist, semantic subset pending."),
+    ("rope_chain_terrain", "Rope / Chain Terrain", "Plane A + collision",
+     "Map/collision traversal; player-state owner, not a sprite."),
+]
+def r1s2_hazard_candidates():
+    """PROMPT-ID-0091: disabled R1-S2 Plane-A hazard candidate groups (SOURCE SUBSET PENDING). Human name +
+    round/sub-round + hardware class + what-is-known only; NO pieces, NO source codes, NOT authorable."""
+    out = []
+    for order, (key, name, hw, note) in enumerate(_R1S2_HAZARD_CANDIDATES):
+        obj = "object:hazard.r1s2.%s" % key
+        out.append({
+            "usage_id": "usage:hazard_r1s2_%s:info" % key, "object_id": obj, "map_key": obj,
+            "frame_category": "Hazards / Traps (Plane A — pending)", "frame_label": name, "frame_order": order,
+            "player_counts": None, "weapon_counts": None,
+            "display_name": name, "variant_label": "R1-S2 · SOURCE SUBSET PENDING",
+            "sprite_bank": "0x00", "sprite_banks": [], "multi_bank": False,
+            "scene_key": "PAL-R1-S2-PLANEA-CASTLE", "round": 1, "subround": "R1-S2", "base": None,
+            "provisional": True, "incomplete": True, "hazard_pending": True,
+            "membership": "scene", "view": "authoring", "authorable": False,
+            "hardware_class": hw, "human_identity_status": "partial",
+            "human_identity_label": "%s (Tighe visual)" % name,
+            "mapping_scope": "scene", "confidence": "hardware class known · source (tile,bank,flip) subset PENDING",
+            "identity_note": ("R1-S2 hazard, %s. %s Exact source (tile,bank,flip) subset is PENDING — not "
+                              "authorable against fabricated codes. $0224=R2/R4, $09EA=R5 are excluded." % (hw, note)),
+            "pieces": [], "n_pieces": 0, "bounds": [16, 16], "composite_proven": False,
+            "preview_type": "SOURCE SUBSET PENDING (Plane-A candidate)",
+            "used_colors": [], "mrd_pairs": [], "n_used": 0,
+        })
+    return out
+
+
 def build_usages(banks):
     """One usage per enemy/Rastan: REAL composite pieces (from the accepted trace) + used colors + pixel MRD."""
     BANK = {"LIZARDMAN": 0x36, "FOUR_ARMED_INSECT": 0x3A, "VALKYRIE": 0x32, "CHIMERA": 0x34,
@@ -1173,31 +1480,22 @@ def build_usages(banks):
         _player_meta[key] = {"category": cat, "order": order, "map_key": obj_id,
                              "frame_label": label, "object_id": obj_id}
         defs.append((key, label, 0x30, pieces, True))
-    # (d) DEATH / EFFECT + GAMEPLAY-REWARD families (H25 taxonomy; rastan_actor_behavior.c + raw/00040ccc
-    #     + raw/00042abc; palette nibbles from the compositor VM control byte, H15 rule). Effective bank =
-    #     0x30 | control-nibble; source palette = per-round pool _arcade_round_palette(round, nibble).
+    # (d) DEATH / EFFECT families (H25 taxonomy; rastan_actor_behavior.c + raw/00040ccc + raw/00042abc;
+    #     palette nibbles from the compositor VM control byte, H15 rule). Effective bank = 0x30 | control.
     #     - bat_death: base 0x0275 anim 0xA8 (0x42ABC A8 branch) = ONE frame, Small(0x0268)+Large(0x03F6)
     #       bats share it; distinct pattern cell from the burst 0x9D-0xA0; shares burst palette (bank 0x30).
-    #     - item_drop_death / GAMEPLAY REWARD PICKUP: base 0x0A5A (0x40CCC phase-10 transform to family-12),
-    #       the VISIBLE gameplay collectible/reward the dying enemy becomes when schedule +0x36 is set.
-    #       17 reward kinds, anim selector (kind-1)+0x13 (0x13..0x23), one static presentation per kind,
-    #       in THREE bank groups: kinds 1-4 -> nibble 0 (bank 0x30), kinds 5-13 -> nibble 1 (bank 0x31),
-    #       kinds 14-17 -> nibble 7 (bank 0x37). Exposed per bank-group with its REAL arcade palette (no
-    #       bank-0x30 backdrop); reward identity table 0x40C2E, score table 0x40C40. No color authored.
     #     - specialized_death_019d: base 0x019D (0x42ABC type<8), bank 0x34; reachable (actor 0x019D
     #       rec_type 0/3). specialized_death_09dc: base 0x09DC (0x42ABC type5, +0x3D bit7), bank 0x33.
+    #   GAMEPLAY REWARDS are NOT here any more: the false three-bank model (kinds 1-4 -> 0x30, 5-13 -> 0x31,
+    #   14-17 -> 0x37) is DISPROVEN (Cody PROMPT-ID-0090). All 17 reward kinds are one family-12 base $0A5A
+    #   actor under compositor 2; embedded palette line = 0 (kinds 1-13) / 3 (kinds 14-17); modeled below as
+    #   one parent object + 17 individual children (gameplay_reward_usages).
     banks.setdefault(0x31, _arcade_round_palette(1, 1))
     banks.setdefault(0x33, _arcade_round_palette(1, 3))
     banks.setdefault(0x34, _arcade_round_palette(1, 4))
     banks.setdefault(0x37, _arcade_round_palette(1, 7))
     _death_families = [
         ("bat_death", "Bat death (one-frame, Small+Large)", 0x0275, 0xA8, 0x30, "object:effect.bat_death", "death", 990),
-        ("item_drop_death", "Item-drop death / gameplay reward (kinds 1-4, weapon-bank 0x30)", 0x0A5A, 0x13, 0x30,
-         "object:effect.item_drop_death", "reward", 991),
-        ("gameplay_reward_b31", "Gameplay reward/pickup (kinds 5-13, bank 0x31)", 0x0A5A, 0x17, 0x31,
-         "object:item.gameplay_reward_b31", "reward", 992),
-        ("gameplay_reward_b37", "Gameplay reward/pickup (kinds 14-17, bank 0x37)", 0x0A5A, 0x20, 0x37,
-         "object:item.gameplay_reward_b37", "reward", 993),
         ("specialized_death_019d", "Specialized enemy death (base 0x019D, rec_type<8)", 0x019D, 0x2A, 0x34,
          "object:effect.specialized_death_019d", "death", 994),
         ("specialized_death_09dc", "Specialized enemy death (base 0x09DC, type5)", 0x09DC, 0xC2, 0x33,
@@ -1212,6 +1510,10 @@ def build_usages(banks):
 
     usages = list(green_knight_usages())  # PROMPT-ID-0069: Green Sword Knight, all castle sections (cached)
     usages += list(r1s2_castle_usages())  # PROMPT-ID-0029: scene-tagged R1-S2 castle actors (cached)
+    usages += list(rope_climber_usages())        # PROMPT-ID-0091: family-8 base $0241 rope climber (split)
+    usages += list(gameplay_reward_usages())     # PROMPT-ID-0091: 17 reward children (comp 2; lines 0/3)
+    usages += list(r1_boss_usages())             # PROMPT-ID-0091: R1-S3 boss body + type-15 aux + death
+    usages += list(r1s2_hazard_candidates())     # PROMPT-ID-0091: R1-S2 Plane-A hazard candidates (disabled)
     for key, name, bank, pieces, proven in defs:
         pal = banks.get(bank)
         if not pal or not pieces:
@@ -1863,6 +2165,54 @@ def render_tile8(code, pal, zoom=8):
     return png(W, H, rows)
 
 
+import re as _re
+_SCENE_RE = _re.compile(r"PAL-R(\d)-S(\d)-")
+def _normalize_usages(usages):
+    """PROMPT-ID-0091: give every usage the human-oriented UI fields (view/authorable/scope/identity/round/
+    sub-round/hardware) with safe defaults, without disturbing usages that already set them. This is the
+    single place that distinguishes AUTHORING assets from RESEARCH/diagnostic objects and controllers."""
+    for u in usages:
+        oid = u.get("object_id") or ""
+        sk = u.get("scene_key")
+        if sk and (u.get("round") is None or not u.get("subround")):
+            m = _SCENE_RE.search(sk)
+            if m:
+                u.setdefault("round", int(m.group(1)))
+                u["subround"] = u.get("subround") or ("R%s-S%s" % (m.group(1), m.group(2)))
+        is_controller = oid.startswith("controller:")
+        is_research_producer = oid.startswith("usage:") and ":" in oid  # raw producer keys, not object:*
+        u.setdefault("hardware_class", "controller" if is_controller else "PC090OJ sprite")
+        if "view" not in u:
+            u["view"] = "research" if (is_controller or is_research_producer) else "authoring"
+        if "authorable" not in u:
+            u["authorable"] = not (is_controller or u.get("hazard_pending") or u.get("incomplete"))
+        u.setdefault("human_identity_status", "proven")
+        u.setdefault("human_identity_label", u.get("display_name"))
+        u.setdefault("mapping_scope", "scene" if sk else "shared")
+        u.setdefault("group_label", None)
+        u.setdefault("confidence", None)
+    return usages
+
+
+def _round_nav(usages):
+    """Round -> Sub-Round navigation derived from the subround map + the scene-tagged usages, so the UI can
+    present Round 1 -> {Sub-Round 1, Sub-Round 2, Sub-Round 3 / Boss} instead of a flat environment list."""
+    smap = loadj(os.path.join(ROOT, "specs/palette_subround_map.json"), {"subrounds": []})
+    nav = {}
+    for sr in smap.get("subrounds", []):
+        key = sr.get("key", "")
+        m = _re.match(r"R(\d)-S(\d)", key)
+        if not m:
+            continue
+        rnd = int(m.group(1))
+        envs = [{"scene_key": e.get("scene_key"), "env": e.get("env"), "family": e.get("family")}
+                for e in sr.get("environments", [])]
+        boss = key in ("R1-S3",) or any("BOSS" in (e.get("scene_key") or "") for e in sr.get("environments", []))
+        nav.setdefault(rnd, []).append({"subround": key, "label": key + (" / Boss" if boss else ""),
+                                        "boss": boss, "environments": envs})
+    return [{"round": r, "subrounds": nav[r]} for r in sorted(nav)]
+
+
 def build_oracle():
     banks = sprite_bank_colors()
     plane = loadj(os.path.join(CORP, "plane_palette_banks.json"), {"banks": {}})
@@ -1890,7 +2240,7 @@ def build_oracle():
     contexts["contexts"] = contexts.get("contexts", []) + added
     objects = loadj(os.path.join(ORACLE, "objects.json"), {"objects": []})
     coex = loadj(os.path.join(ORACLE, "coexistence.json"), {})
-    usages = build_usages(banks)
+    usages = _normalize_usages(build_usages(banks))
     # palette resources (sprite banks + plane banks) with content hashes
     palettes = []
     groups = {}
@@ -1916,6 +2266,10 @@ def build_oracle():
             continue
         add_pal("palette:plane.bank_%s" % bid, bid, "plane", [e["arcade_rgb8"] for e in bb["entries"]], bb.get("source"))
     return {"meta": {"authority": "ORIGINAL ARCADE (read-only)", "editor": "v0.2 palette composer"},
+            "round_nav": _round_nav(usages), "backdrop_invariant": BACKDROP_INVARIANT,
+            "scene_group_order": ["Scene/ownership summary", "Layer A", "Layer B", "Player", "Player Weapons",
+                                  "Scene Enemies", "Boss", "Hazards / Traps", "Rewards / Pickups",
+                                  "Projectiles", "Effects / Deaths", "HUD / Truly Shared"],
             "contexts": contexts.get("contexts", []), "context_types": contexts.get("context_types", []),
             "objects": objects.get("objects", []), "usages": usages, "palettes": palettes,
             "exact_duplicate_palette_groups": {h: g for h, g in groups.items() if len(g) > 1},
@@ -1988,7 +2342,8 @@ class Hd(BaseHTTPRequestHandler):
             return self._s(200, json.dumps({
                 "counts": la["counts"], "bank_ids": la["bank_ids"], "banks": la["banks"],
                 "reserved_lines": RESERVED_LINES, "editable_lines": EDITABLE_LINES,
-                "line_owners": LINE_OWNERS, "patterns": la["patterns"], "scene": scene}).encode())
+                "line_owners": scene_line_ownership(scene), "backdrop_invariant": BACKDROP_INVARIANT,
+                "patterns": la["patterns"], "scene": scene}).encode())
         if u.path == "/api/layera_pattern":
             scene = (q.get("scene", [""])[0] or None)
             d = layera_pattern_detail(q.get("pid", [""])[0], scene)

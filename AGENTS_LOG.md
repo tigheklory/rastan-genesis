@@ -55247,3 +55247,43 @@ TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0069
 - Report: `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0090_r1s2_r1s3_asset_palette_ui_handoff.md`.
 
 `TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0090`
+
+---
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0091 — Andy: Palette Composer / Bestiary implementation of Cody 0090
+
+Implemented Cody PROMPT-ID-0090's findings in the Palette Composer + Bestiary. Source-model + tooling + UI
+only: no Genesis production code, no ROM, no build-counter change, no `specs/palette_decisions.json` change,
+`Test.json` byte-for-byte unchanged (`e03dd2aa…d2d6b730`). HEAD `686767ff` (Cody 0090 handoff), not moved.
+No GitHub push.
+
+- Green Sword Knight: base `$033E` corrected **29/109 → 23/97** (`$93-$96,$71-$73,$20-$23,$97-$9C,$A1-$A6`).
+  Foreign `$4D,$56-$5A` removed from the knight (`gen_reindexed_pc090oj.py::GREEN_KNIGHT_ANIMS`, server
+  `green_knight_usages`, verifiers). Sword artwork `26B-274` still covered. Canonical
+  `object:castle.green_sword_knight.r1.n3`.
+- Family-8 **Rope Climber** split out: `object:castle.rope_climber.family8.r1`, base `$0241`, programs
+  `$56,$59,$5A`, state `$11`, R1-S2, human identity PARTIAL/Tighe-visual, independent mapping.
+- `$4D/$56-$5A` reclassified by `(base,program)`: `$4D`→`$0234`, `$56/$59/$5A`→`$0241` fam8 (or `$0546`),
+  `$57/$58`→`$01FC`; `$4D/$57/$58` are research-view producers.
+- Rewards: false three-bank model removed; one parent `object:item.gameplay_rewards` + 17 children
+  `object:item.reward.kind01..17`, base `$0A5A`, **compositor 2**, anim `$13-$23`, codes `$A5A-$A71`,
+  embedded line 0 (kinds 1-13) / 3 (kinds 14-17); nothing auto-mapped.
+- R1-S2 hazards: 7 disabled Plane-A candidate groups (SOURCE SUBSET PENDING), explicitly not `$0224`/`$09EA`.
+  `$0224` preserved as R2/R4 actor, `$09EA` added as R5 actor (both Tighe HUMAN IDENTITY).
+- Round 1 boss: scene-local R1-S3 group — body `$061D`/type `$0E`/comp 1/anim `$00`/prog `$47908`; aux
+  type-15 `$061D`/type `$0F`/comp 1/anim `$14`/prog `$47E54`; death PARTIAL. Line F proven, RGB pending →
+  not authorable, no invented colors.
+- UI: oracle `round_nav` + `scene_group_order`; Authoring/Research toggle; mapping-scope + human-identity
+  badges; LEGACY/NEEDS REVIEW banner for orphaned Test mappings; per-scene CRAM line-ownership panel;
+  backdrop BLACK invariant (Line 0/idx 0 = `0x0000`); R1-S3 Line 2 CONDITIONAL (locked, not globally freed).
+- Verification: new `tools/graphics_editor/verify_0091_handoff.py` (25 PASS, independent re-derivation);
+  `verify_green_knight` 31 PASS, `verify_reindexed_pc090oj` 23/97, `verify_death_item_families` 15/15,
+  `verify_r1s2_castle_browser` 15, plus roster/scopes/per-piece/automap green. `verify_subround_palette_coverage`
+  check 7 is a pre-existing registry-migration-backup failure, independent of this task.
+- Production follow-ups remain Cody-owned (Section 41): regenerate `pc090oj_editor.bin` to 23/97 + family-8
+  coverage; reward reindex/route; R1-S3 package activation; black backdrop; Green-knight geometry; hazard
+  production maps after Tighe colors; Line-2 reclamation only after a composited-coverage proof.
+
+Report: `docs/design/Andy_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0091_palette_composer_bestiary_0090_handoff.md`.
+
+`TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0091`
