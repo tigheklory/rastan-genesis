@@ -9,8 +9,8 @@ arm: initial_pc=000000
 [frame 000000] live_write vdp_ports_live pc=07008e addr=c00004 data=8004 mask=ffff count=1
 [frame 000001] exec_enter pc=00034e range=other
 [frame 000007] exec_enter pc=03b0f6 range=startup_common@000200
-[frame 000014] exec_enter pc=073ba4 range=other
-[frame 000030] pc=071d9c exec=other
+[frame 000014] exec_enter pc=073bb4 range=other
+[frame 000030] pc=071daa exec=other
 [frame 000048] first_symbol_change dip1 addr=ff0005 0->1
 [frame 000050] symbol_change dip1 addr=ff0005 1->0
 [frame 000051] exec_enter pc=03b2c0 range=title_init_block@000000
@@ -87,7 +87,7 @@ arm: initial_pc=000000
 [frame 000240] window_change z80_ctrl
 [frame 000243] exec_enter pc=03b2c8 range=title_init_block@000000
 [frame 000258] exec_enter pc=07009a range=other
-[frame 000270] pc=071d50 exec=other
+[frame 000270] pc=071d5e exec=other
 [frame 000270] window_change wram_ff0000
 [frame 000270] window_change vdp_ports
 [frame 000270] window_change z80_ctrl
@@ -127,7 +127,7 @@ arm: initial_pc=000000
 [frame 000420] window_change wram_ff0000
 [frame 000420] window_change z80_ctrl
 [frame 000429] exec_enter pc=03a1aa range=frontend_core@000000
-[frame 000434] exec_enter pc=071c96 range=other
+[frame 000434] exec_enter pc=071ca4 range=other
 [frame 000444] symbol_change dip1 addr=ff0005 2->0
 [frame 000445] exec_enter pc=03b2c4 range=title_init_block@000000
 [frame 000448] reset_helper_hit pc=03a1a8 page0=0000 page2=0000 mode4=0000 credits=0000 stage=0000 dipA=1a dipB=a4
@@ -166,12 +166,12 @@ arm: initial_pc=000000
 [frame 000600] window_change z80_ctrl
 [frame 000601] exec_enter pc=03b2c8 range=title_init_block@000000
 [frame 000603] exec_enter pc=03a4e0 range=frontend_core@000000
-[frame 000604] exec_enter pc=071c78 range=other
+[frame 000604] exec_enter pc=071c86 range=other
 [frame 000612] symbol_change dip1 addr=ff0005 0->1
 [frame 000619] symbol_change dip1 addr=ff0005 1->0
 [frame 000620] exec_enter pc=03b2b4 range=title_init_block@000000
 [frame 000620] symbol_change dip1 addr=ff0005 0->6
-[frame 000621] exec_enter pc=072d14 range=other
+[frame 000621] exec_enter pc=072d22 range=other
 [frame 000624] exec_enter pc=03b2c0 range=title_init_block@000000
 [frame 000626] reset_helper_hit pc=03a1a8 page0=0000 page2=0000 mode4=0000 credits=0000 stage=0000 dipA=1a dipB=a4
 [frame 000626] exec_enter pc=03a1a8 range=frontend_core@000000
