@@ -81,8 +81,13 @@ rather than trusting the Markdown conclusions.
   0x43450/0x43458 signed component offsets; R5's five body-relative segments; R6 primary/anchor/tail
   relationships and mirrored phase tables; 0x3B9F8/0x3BA20/0x45D7C/0x45DC4/0x59AD4 palette layout.
   The decisive operand-order correction is that 0x45D7C/0x45DC4 publish `A5+0x1600 -> CLCS`.
-  PC090OJ nibble F with sprite control 0x60 selects physical bank 0x3F, populated from working line
-  15 and therefore from `0x3BA88[(round-1)*32+15] -> 0x4FD02`.
+  Ordinary PC090OJ nibble F with sprite control 0x60 selects physical bank 0x3F. Boss stages instead
+  select sprite control 0x80 at 0x452DA..0x4530C, so nibble F selects physical bank 0x4F. For R1-S3,
+  `rastan_r1_boss_palette_fade.c` proves that 0x47004 writes the boss-specific 0x4708C target directly
+  to physical line 0x4F; it is not the ordinary `0x3BA88[..][15] -> 0x4FD02` working line.
+- `rastan_r1_boss_palette_fade.c` — complete R1 boss entrance palette semantics: direct target table
+  0x4708C, component LUT 0x46F84, physical CLCS line 0x4F, eight states at eight-frame cadence, and
+  step-7 type-15 flying-dagger activation. Raw entry-matched C is `raw/00047004.c`.
 - `raw/` — close-to-machine reconstructions (per arcade PC, e.g. `raw/00043840.c`), for auditing.
 - `function_coverage.csv` — status/provenance index (guarded).
 

@@ -10,11 +10,12 @@
  *   the normal-body path); R6/R5 are the multi-record cases.
  *
  * PALETTE DIRECTION CORRECTION: 0x3A2D0 is `move.w (A0)+,(A1)+`.  Consequently 0x45D7C and
- * 0x45DC4 publish A5+0x1600 TO CLCS palette RAM, never the reverse.  With sprite_ctrl=0x60 the
- * PC090OJ combines compositor nibble F with bank base 0x30, selecting physical bank 0x3F.
- * 0x45DC4 maps working line 15 to that bank: 48+15=63.  Thus the six normal boss sources really
- * are 0x3BA88[round][15] -> 0x4FD02+pool*32 (pools 11,3,2,11,3,11).  The later staged-master
- * interpretation was based on the reversed copy and is superseded.
+ * 0x45DC4 publish A5+0x1600 TO CLCS palette RAM, never the reverse.  Ordinary stages use
+ * sprite_ctrl=0x60, so embedded nibble F resolves to physical bank 0x3F.  Boss stages are a
+ * distinct contract: 0x452DA..0x4530C selects sprite_ctrl=0x80 when the stage-within-round is
+ * >=16, so embedded nibble F resolves to physical bank 0x4F.  R1's boss-specific writer
+ * 0x47004 publishes 0x4708C directly to that line during the entrance fade.  Therefore the old
+ * claim that all normal boss colours come from working line 15 / 0x3BA88 is false for R1-S3.
  */
 #include "rastan_arcade_types.h"
 
