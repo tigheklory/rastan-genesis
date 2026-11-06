@@ -55394,3 +55394,45 @@ Report: `docs/design/Andy_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0
   Local commit only; documentation commit hash reported in the final response (self-hash cannot be embedded).
 
 `TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0098`
+
+---
+
+## 2026-11-06 — R1 boss palette: brightness + render fix, bestiary artifact consolidation (Andy, PROMT-ID-0098 follow-up)
+
+Tighe-reported defects on the 0098 integration, both CONFIRMED and fixed. No Genesis source/ROM/counter/
+CRAM/push; Test.json SHA e03dd2aa…d2d6b730 unchanged.
+
+- **Defect 1 (Composer rendered boss BLUE):** boss pieces carry embedded palette nibble 0xF, so
+  /api/render recolored every piece via `_arcade_round_palette(1,0xF)` (Round-1 field pool = blue),
+  bypassing the proven ROM table. Fix: boss usages carry `render_palette=palF`; handler renders the whole
+  composite with it and skips the per-piece field-pool branch. Measured: old path 243 warm / 656 blue px
+  (blue-dominant); fixed 1043 warm / 36 blue (red-dominant).
+- **Defect 2 (DIM / fade a step early):** boss table decoded with half-bright `_pal4(n)=(n<<3)|(n>>2)`
+  (0xF→0x7B). Switched to `_pal5` (nibble-doubling, the tool's universal convention; 0xF→0xF7), which
+  reproduces the arcade's actual full-illumination live CRAM 0x2009E0 (Cody final_live_words) EXACTLY,
+  16/16. White #7B7B7B→#F7F7F7, robe red #632110→#C64221. `_pal4` removed. Still 100% ROM-sourced.
+- **Verification:** verify_0098 39/39 PASS (R1 now vs live CRAM + full-brightness assert); verify_0091 25,
+  verify_0092 28. Files: tools/graphics_editor/server.py, tools/graphics_optimizer/build_bestiary.py,
+  verify_0098_r1_boss_green_knight.py, docs/design/rastan_actor_bestiary.html.
+- **Bestiary artifact consolidation:** two same-named "Rastan Bestiary" artifacts existed. CANONICAL (keep)
+  = 67b741cb (https://claude.ai/artifact/Dopg3mwMHdUMsZJSQgXDVR) — corrected build published here (v
+  1793994031-00e0). RETIRED (superseded, not deleted) = 5ba8edb9
+  (https://claude.ai/artifact/CKUcQJpzhCoMAZ8fKMnVNF). All future build_bestiary.py republishes target
+  67b741cb. Double-click shortcuts added: docs/design/Rastan Bestiary (live).url + OPEN_Rastan_Bestiary.html.
+- Report: docs/design/Andy_r1_boss_palette_brightness_and_render_fix.md.
+
+- **Follow-up (same session): Sprites "Derive Palette → Line N".** Tighe cleared Genesis Line 1 for the
+  R1-S3 boss but the Sprites view had no derive-onto-a-line action (Layer A has "Derive Scene Palette → Line
+  N"); Recommend Line also mis-reported "does not fit" against stale line colours. Added
+  `deriveSpritePalette(line)` + a **Derive Palette → Line {ACTIVE}** button in the Sprites source action bar
+  (app.js). It owns the chosen editable line for the selected object: clears entries 1-15, fills with the
+  object's proven arcade colours (nearest legal CRAM, MRD-distinct), maps every source index, one Undo.
+  Respects Line-2 protection/editableLines; disabled unless active line editable. R1 boss body = clean 1:1
+  fit (15 arcade colours -> 15 distinct CRAMs on Line 1, reds/golds preserved). Boss stays authorable:False
+  (no AUTO-assign); this is Tighe's manual derive. `node --check app.js` passes; refresh the composer to load.
+  - **Fix (first-use defects):** (1) derive wrote colours to the BASE target_palette_lines, but the editing
+    scope is a context (R1-S3 BOSS-ROOM) and "Clear Line" leaves null scope overrides that mask base →
+    swatches rendered empty/grey. Now writes at the active scope via tplSetAt(SCOPE,line,i,cram) (clears
+    1-15 to null first, then fills), matching the Layer-A derive; swatches + map-table target colours now
+    show. (2) Derive button label was stale on line change — added renderSource() on active-line change
+    (LINE label + swatch onclick, objects tab) so it tracks the selected line. node --check app.js passes.

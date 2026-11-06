@@ -26,17 +26,27 @@ def ck(n, c, extra=""):
 ROM = (ROOT / "build/regions/maincpu.bin").read_bytes()
 BOSS_ADDR = 0x4708C
 
-def _pal4(n): return (n << 3) | (n >> 2)             # boss target-table convention (pal5bit of nibble)
-def _pal5(n): v = n * 2; return (v << 3) | (v >> 2)  # field convention (nibble doubled)
+def _pal5(n): v = n * 2; return (v << 3) | (v >> 2)  # arcade 0RGB nibble -> 8-bit (nibble doubled)
+def _pal5bit(n): return (n << 3) | (n >> 2)          # 5-bit live CRAM channel -> 8-bit
 
 def rom_boss_decode(buf, addr=BOSS_ADDR, count=15):
+    # Boss 0RGB target table expanded with the SAME nibble-doubling convention as every other arcade
+    # palette (_pal5): entry 0xF -> 0xF7. This matches the arcade's full-illumination live CRAM exactly
+    # (see cody_live_cram below); the earlier pal5bit-of-nibble decode was ~half luminance (0xF -> 0x7B).
     cols = [(0, 0, 0)]
     for i in range(count):
         w = (buf[addr + 2 * i] << 8) | buf[addr + 2 * i + 1]
-        cols.append((_pal4((w >> 8) & 0xF), _pal4((w >> 4) & 0xF), _pal4(w & 0xF)))
+        cols.append((_pal5((w >> 8) & 0xF), _pal5((w >> 4) & 0xF), _pal5(w & 0xF)))
     while len(cols) < 16:
         cols.append((0, 0, 0))
     return cols
+
+def cody_live_cram(words):
+    # The arcade's actual displayed CRAM words (Cody final_live_words) are BGR555: decode to 8-bit RGB.
+    out = []
+    for h in words:
+        w = int(h, 16); out.append((_pal5bit(w & 0x1F), _pal5bit((w >> 5) & 0x1F), _pal5bit((w >> 10) & 0x1F)))
+    return out
 
 def rom_field_decode(buf, rnd, nibble):
     pidx = buf[0x3BA88 + (rnd - 1) * 32 + nibble]; b = 0x4FD02 + pidx * 32
@@ -65,10 +75,14 @@ def main() -> int:
 
     # ---------- (1) independent ROM decode vs Cody PROMT-ID-0095 fixture ----------
     cody = json.loads((ROOT / "analysis/actor_decompilation/r1_boss_palette_fade_dagger_semantics.json").read_text())
-    want = [tuple(int(h.lstrip("#")[i:i + 2], 16) for i in (0, 2, 4)) for h in cody["palette"]["rgb8"]]
+    # Ground truth is the arcade's ACTUAL full-illumination live CRAM (final_live_words), not the fixture's
+    # rgb8 field (which was a ~half-bright pal5bit-of-nibble rendering of the source table).
+    want = cody_live_cram(cody["palette"]["final_live_words"])
     got = rom_boss_decode(ROM)
-    ck("R1. independent ROM 0x4708C decode == Cody PROMT-ID-0095 captured rgb8 (16/16)", got == want,
-       [i for i in range(16) if got[i] != want[i]])
+    ck("R1. independent ROM 0x4708C decode == arcade full-illumination live CRAM (Cody final_live_words, 16/16)",
+       got == want, [i for i in range(16) if got[i] != want[i]])
+    ck("R1b. decode is full brightness, not the ~half-bright fade-early value (entry 3 is ~0xF7, not 0x7B)",
+       got[3][0] >= 0xF0)
     ck("R2. boss source is NOT the field pool (0x4708C decode != 0x3BA88[R1][F] pool)",
        got != rom_field_decode(ROM, 1, 0xF))
 

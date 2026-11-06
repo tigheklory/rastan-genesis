@@ -38,16 +38,17 @@ def rom_field_palette(rnd, nibble):
            pal5((int.from_bytes(mc[b+i*2:b+i*2+2],'big')>>4)&0xF),
            pal5(int.from_bytes(mc[b+i*2:b+i*2+2],'big')&0xF)) for i in range(16)]
     return cols, pidx
-def pal4(n): return (n<<3)|(n>>2)   # arcade 4-bit nibble -> 8-bit (boss target-table convention, pal5bit)
 def rom_boss_target_palette(addr, count=15):
     """Boss-specific ROM 0RGB target table (e.g. R1 0x4708C). The `count` source words become live
-    palette entries 1..count; index 0 is retained black. Arcade 0RGB nibble -> 8-bit via pal4 — this
-    reproduces the captured final CLCS line exactly (Cody PROMT-ID-0095). No RGB is stored in the tool;
-    it is decoded from maincpu.bin every run. Returns 16 (r,g,b) tuples."""
+    palette entries 1..count; index 0 is retained black. Each 0RGB nibble is expanded with pal5 — the
+    SAME nibble-doubling convention every other arcade palette here uses — so entry 0xF -> 0xF7, not
+    0x7B. This reproduces the arcade's actual full-illumination live CRAM (0x2009E0-0x2009FF, Cody
+    PROMT-ID-0095 final_live_words) exactly. The earlier pal5bit-of-nibble decode was ~half luminance
+    and rendered the boss a fade step early. No RGB is stored; decoded from maincpu.bin every run."""
     cols=[(0,0,0)]
     for i in range(count):
         w=(mc[addr+2*i]<<8)|mc[addr+2*i+1]
-        cols.append((pal4((w>>8)&0xF), pal4((w>>4)&0xF), pal4(w&0xF)))
+        cols.append((pal5((w>>8)&0xF), pal5((w>>4)&0xF), pal5(w&0xF)))
     while len(cols)<16: cols.append((0,0,0))
     return cols
 def composer_palette(key):

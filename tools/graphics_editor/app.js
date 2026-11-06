@@ -224,6 +224,13 @@ function renderSource(){const S=$('#srccolors');S.innerHTML='';if(!U){S.innerHTM
  // primary actions bar
  const bar=el('div','actbar');
  mkbtn(bar,'Auto-fill Object',()=>autoFill());mkbtn(bar,'Recommend Line',()=>recommendLine());
+ // Sprites-view analog of Layer A's "Derive Scene Palette → Line N": fill the selected editable line
+ // with THIS object's proven arcade colors and map every source index, one Undo. Targets the active
+ // Genesis line (click a LINE label at right to choose it, e.g. Line 1 for the R1-S3 boss).
+ const edl=editableLines().includes(ACTIVE);
+ const db=mkbtn(bar,'Derive Palette → Line '+ACTIVE,()=>deriveSpritePalette(ACTIVE));
+ db.disabled=!edl;
+ db.title=edl?('Fill Genesis Line '+ACTIVE+' with '+U.used_colors.length+' proven arcade colors from '+U.display_name+' and map every source index — one Undo. Replaces any existing colors on Line '+ACTIVE+'.'):'Select an editable Genesis line (click LINE 0/1/3 at right); Line 2 is arcade-protected.';
  mkbtn(bar,'Reset Mapping',()=>{pushUndo();delete POL.usage_palette_mappings[MK(U)];afterChange();});
  S.appendChild(bar);S.appendChild(el('div','dim','Drag a color onto a Genesis entry (right) — or click a color, then a target entry. Click two colors to Compare.'));
  const grid=el('div','apal');
@@ -257,6 +264,37 @@ function autoFill(line){if(POL.immutable)return alert('Create an editable profil
    if(ti==null||ti===false){ti=nextFree();if(ti<0){$('#status').textContent='line full';return;}L[ti]=cram;taken[cram]=ti;}
    m.index_map[c.src_index]=ti;});
  $('#status').textContent=`Auto-filled ${U.display_name} → Line ${line} (${Object.keys(m.index_map).length} colors, detail preserved)`;afterChange();}
+// Derive this sprite object's proven arcade palette onto a chosen editable line (Sprites analog of the
+// Layer-A "Derive Scene Palette"). Owns the whole line for this object: clears entries 1..15, fills them
+// with the object's used arcade colors (nearest legal CRAM, MRD-distinct), maps every source index, 1 Undo.
+function deriveSpritePalette(line){
+ if(POL.immutable)return alert('Create an editable profile first.');
+ if(!U||!U.used_colors||!U.used_colors.length)return alert('Select a sprite object with source colors first.');
+ if(line==null)line=ACTIVE;
+ if(guardProtected(line))return;
+ if(!editableLines().includes(line))return alert('Pick an editable Genesis line (0, 1 or 3) at right first.');
+ const n=U.used_colors.length;
+ if(n>15)return alert(U.display_name+' uses '+n+' colors — more than the 15 authorable entries on one line.');
+ // existing EFFECTIVE colors on this line at the active editing scope
+ let existing=0;for(let i=1;i<16;i++){if(tcram(line,i)!=null)existing++;}
+ if(!confirm('Derive '+U.display_name+' palette ('+n+' arcade colors) onto Genesis Line '+line+' in scope '+ctxName(SCOPE)+'.'
+   +(existing?('\n\nThis REPLACES the '+existing+' color(s) currently on Line '+line+' in this scope.'):'')
+   +'\n\nEvery source index is mapped; one Undo.'))return;
+ pushUndo();
+ // Own the line at the ACTIVE editing scope, like the Layer-A derive. Colors MUST be written as scope
+ // overrides (tplSetAt), not the base array: "Clear Line" leaves explicit null scope overrides that would
+ // otherwise mask base writes and render every swatch empty. Index 0 (backdrop/transparent) is left alone.
+ for(let i=1;i<16;i++)tplSetAt(SCOPE,line,i,null);
+ const m=POL.usage_palette_mappings[MK(U)]={line,index_map:{}};
+ const taken=new Set();let next=1;
+ U.used_colors.forEach(c=>{
+   let cram=bestCramFor(c.arcade_rgb8).cram;
+   if(taken.has(cram))cram=nudgeDistinct(c.arcade_rgb8,taken);   // detail-preserving distinct (MRD-safe)
+   tplSetAt(SCOPE,line,next,cram);taken.add(cram);m.index_map[c.src_index]=next;next++;
+ });
+ ACTIVE=line;
+ $('#status').textContent='Derived '+U.display_name+' → Line '+line+' ('+Object.keys(m.index_map).length+' colors; all source indices mapped) · scope '+ctxName(SCOPE);
+ afterChange();}
 function nudgeDistinct(rgb,taken){let best=null;for(let R=0;R<8;R++)for(let G=0;G<8;G++)for(let B=0;B<8;B++){const cram='0x'+(((B<<9)|(G<<5)|(R<<1))>>>0).toString(16).padStart(4,'0').toUpperCase();if(taken.has(cram))continue;const d=deltaE00(rgb,[LV[R],LV[G],LV[B]]);if(!best||d<best.d)best={cram,d};}return best?best.cram:bestCramFor(rgb).cram;}
 function findSimilar(c){const P=$('#props');P.innerHTML='';P.appendChild(txt('SIMILAR COLORS to '+c.hex+' ('+U.display_name+' i'+c.src_index+')'));
  const rows=[];O.usages.forEach(u=>{u.used_colors.forEach(o=>{if(u.usage_id===U.usage_id&&o.src_index===c.src_index)return;const de=deltaE00(c.arcade_rgb8,o.arcade_rgb8);rows.push({u,o,de,sameNat:o.genesis_cram===c.genesis_cram,exact:o.hex===c.hex,diffObj:u.usage_id!==U.usage_id});});});
@@ -325,7 +363,7 @@ function renderTarget(){const G=$('#genlines');G.innerHTML='';if(!POL)return;
  for(let line=0;line<4;line++){const prot=isProtected(line);const row=el('div','line'+(line===ACTIVE&&!prot?' activeline':'')+(prot?' protline':''));
   const lb=el('span','lbl'+(line===ACTIVE&&!prot?' on':''),prot?('L'+line+' 🔒'):('LINE '+line+(line===ACTIVE?' ▸':'')));lb.style.cursor='pointer';
   lb.title=prot?'LINE '+line+' — LAYER B — ARCADE CONTROLLED — PROTECTED':'';
-  lb.onclick=()=>{ACTIVE=line;renderTarget();if(TAB==='layera')renderLayerA($('#list'));if(prot)showProtected(line);else if(SRC)showColorProps(SRC);};row.appendChild(lb);
+  lb.onclick=()=>{ACTIVE=line;renderTarget();if(TAB==='layera')renderLayerA($('#list'));else if(TAB==='objects'&&U)renderSource();if(prot)showProtected(line);else if(SRC)showColorProps(SRC);};row.appendChild(lb);
   const clc=(SRC&&!prot)?closestInLine(SRC,line):null;
   // current object's existing target assignments on this line (for the "assigned to index" tags)
   const curMap=U?(POL.usage_palette_mappings[MK(U)]||{}):{};const curRev={};
@@ -350,7 +388,7 @@ function renderTarget(){const G=$('#genlines');G.innerHTML='';if(!POL)return;
    let dtip='';if(clc&&cram){const de=deltaE00(SRC.arcade_rgb8,cramToRGB(cram));dtip=' Δ'+de.toFixed(1);
      if(clc.absolute&&clc.absolute.index===i){s.classList.add((clc.legal&&clc.legal.index===i)?'nearestlegal':'nearestforbid');}
      else if(clc.legal&&clc.legal.index===i)s.classList.add('nearestlegal');}
-   s.title=`L${line}:${i} ${cram||'(empty)'}${eff.owner!=='default'?' ['+(eff.local?'LOCAL '+ctxName(SCOPE):'inherited '+ctxName(eff.owner))+']':''}${dtip}`;s.onclick=()=>{if(window._laMode&&LAUSAGE&&LASRC){laMapColor(line,i);return;}TGT={line,index:i};ACTIVE=line;renderTarget();showTarget();if(SRC&&U){mapWithAuto(line,i);}};
+   s.title=`L${line}:${i} ${cram||'(empty)'}${eff.owner!=='default'?' ['+(eff.local?'LOCAL '+ctxName(SCOPE):'inherited '+ctxName(eff.owner))+']':''}${dtip}`;s.onclick=()=>{if(window._laMode&&LAUSAGE&&LASRC){laMapColor(line,i);return;}TGT={line,index:i};ACTIVE=line;renderTarget();if(TAB==='objects'&&U)renderSource();showTarget();if(SRC&&U){mapWithAuto(line,i);}};
    s.ondragover=e=>{e.preventDefault();s.classList.add(cram?'dropshare':'dropok');};s.ondragleave=()=>{s.classList.remove('dropok','dropshare');};
    s.ondrop=e=>{e.preventDefault();s.classList.remove('dropok','dropshare');if(guardProtected(line))return;TGT={line,index:i};mapWithAuto(line,i);};row.appendChild(s);}
  G.appendChild(row);}}

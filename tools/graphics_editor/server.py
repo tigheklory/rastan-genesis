@@ -132,21 +132,18 @@ def _arcade_round_palette(rnd, nibble):
              _pal5(int.from_bytes(mc[b + i * 2:b + i * 2 + 2], "big") & 0xF)] for i in range(16)]
 
 
-def _pal4(n):
-    """Arcade 4-bit nibble -> 8-bit for a boss-specific target table (pal5bit of the raw nibble). This is
-    NOT the field convention (_pal5, which doubles the nibble); it reproduces the captured boss CLCS line."""
-    return (n << 3) | (n >> 2)
-
-
 def _rom_boss_target_palette(addr=0x4708C, count=15):
     """Boss-specific ROM 0RGB target table (R1 = 0x4708C). The `count` source words become live palette
     entries 1..count; index 0 is retained black. Decoded from maincpu.bin every call (no RGB stored in the
-    tool). Reproduces Cody PROMT-ID-0095's captured final palette (physical arcade line 0x4F)."""
+    tool). Each 0RGB nibble is expanded with _pal5 — the SAME nibble-doubling convention every other arcade
+    palette in this tool uses — so entry 0xF -> 0xF7, not 0x7B. This reproduces the arcade's actual
+    full-illumination live CRAM at 0x2009E0-0x2009FF (Cody PROMT-ID-0095 final_live_words) exactly. The
+    earlier pal5bit-of-nibble decode was ~half luminance and rendered the boss a fade step early."""
     mc = _maincpu()
     cols = [[0, 0, 0]]
     for i in range(count):
         w = int.from_bytes(mc[addr + i * 2:addr + i * 2 + 2], "big")
-        cols.append([_pal4((w >> 8) & 0xF), _pal4((w >> 4) & 0xF), _pal4(w & 0xF)])
+        cols.append([_pal5((w >> 8) & 0xF), _pal5((w >> 4) & 0xF), _pal5(w & 0xF)])
     while len(cols) < 16:
         cols.append([0, 0, 0])
     return cols
@@ -1338,6 +1335,10 @@ def r1_boss_usages():
             "bounds": [max(xs) - min(xs) + 16, max(ys) - min(ys) + 16],
             "composite_proven": True,
             "preview_type": "R1 BOSS — ROM $4708C palette PROVEN (physical line $4F)",
+            # Render the composite with the PROVEN ROM boss palette (palF), NOT the per-piece embedded
+            # nibble-F field pool (_arcade_round_palette(1,0xF), which is the blue the old path showed).
+            # The /api/render handler honors render_palette and skips the per-piece field-pool branch.
+            "render_palette": [list(c) for c in palF],
             "used_colors": _used(pcs, restrict), "mrd_pairs": [], "n_used": 0,
         })
     # Death / post-boss effect group: PARTIAL phase inventory, no fabricated art, not authorable.
@@ -2494,6 +2495,10 @@ class Hd(BaseHTTPRequestHandler):
                     si = c.get("src_index")
                     if isinstance(si, int) and 0 <= si < len(pal) and c.get("arcade_rgb8"):
                         pal[si] = list(c["arcade_rgb8"])
+                # A usage that owns a proven, non-field palette (e.g. the R1 boss ROM target table) renders
+                # the WHOLE composite with it, overriding the per-piece embedded-nibble field-pool path.
+                if usage.get("render_palette"):
+                    pal = [list(x) for x in usage["render_palette"]]
                 if "target" in q:
                     pal = json.loads(q["target"][0])
                 bnd = q.get("boundaries", ["0"])[0] == "1"
@@ -2504,7 +2509,8 @@ class Hd(BaseHTTPRequestHandler):
                 # PROMPT-ID-0029: R1-S2 castle actors are (possibly) multi-bank — render EACH piece with its
                 # own arcade palette (PROMPT-ID-0028). Authored Genesis mapping is PROMPT-ID-0030, so the
                 # unmapped target preview also shows the per-piece arcade source.
-                elif usage.get("round") is not None and any("palette" in p for p in pieces):
+                elif usage.get("round") is not None and any("palette" in p for p in pieces) \
+                        and not usage.get("render_palette"):
                     pp = attach_arcade_piece_palettes(pieces, usage["round"])
                     return self._s(200, render_composite(pp, [[0, 0, 0]] * 16, bnd), "image/png")
                 return self._s(200, render_composite(pieces, pal, bnd), "image/png")
