@@ -273,7 +273,13 @@ def decode_universal_general(data: bytes, compositor: int, anim: int,
         dx = s8(data[cursor + 2])
         cursor += 3
         code_delta = -delta if mode == 0x40 else delta
-        attr = 0x4000 if (mirrored or (not mirrored and mode == 0x80)) else 0
+        # Arcade 0x03C97E -> 0x03C9E8 publishes the mapping-program control
+        # byte as the piece attribute.  Its low nibble is the embedded palette
+        # selector; retaining only the orientation bit silently collapsed every
+        # universal embedded-palette frame to nibble zero (for example the R1
+        # boss's F became effective bank 0x40 instead of 0x4F).
+        attr = control | (0x4000 if (mirrored or
+                                    (not mirrored and mode == 0x80)) else 0)
         if mirrored:
             dx = -dx - 16
         flags = FLAG_DYNAMIC_BASE

@@ -136,7 +136,11 @@ def expected_universal(blob: bytes, compositor: int, anim: int, orientation: int
         x = signed_byte(blob[cursor + 2])
         cursor += 3
         code_delta = -delta if mode == 0x40 else delta
-        attr = 0x4000 if (orientation or (not orientation and mode == 0x80)) else 0
+        # Independently reproduce arcade 0x03C97E -> 0x03C9E8: the full
+        # control byte, including its embedded palette nibble, is the record
+        # attribute before the orientation bit is composed.
+        attr = control | (0x4000 if (orientation or
+                                    (not orientation and mode == 0x80)) else 0)
         flags = 8
         if orientation:
             x = -x - 16
