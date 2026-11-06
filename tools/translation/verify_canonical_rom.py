@@ -139,7 +139,9 @@ CANONICAL_OPCODE_REPLACE_COUNT = 228  # RG-003 moves frontend teardown 0x03AD4C 
 # alignment unit plus the following 0x1000 crash-region alignment, so the
 # canonical whole-ROM coverage grows by 0xC000 without changing maincpu
 # replacement coverage.
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x359EB8
+# PROMT-ID-0101: includes the third offline-authored descriptor-index context
+# for R1-S3; kept identical to postpatch_startup_rom.py.
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x379EB8
 
 # Build 0277: arcade_pc 0x051DF8 is a BRA.S to the semantic entry at
 # arcade_pc 0x051E00.  The target is also the start of a shrinking shift

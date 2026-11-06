@@ -129,7 +129,10 @@ CANONICAL_OPCODE_REPLACE_COUNT = 228  # RG-003 reclassifies frontend teardown 0x
 # Ending PSG routes which the stale generated Build-0534 outputs had omitted.
 # The Ending stream grows by 45,714 bytes; after the existing 0x8000 audio and
 # 0x1000 crash-section alignments, complete canonical coverage grows by 0xC000.
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x359EB8
+# PROMT-ID-0101: third offline-authored descriptor-index context (R1-S3)
+# adds exactly one 35584-entry x 4-byte index plane, rounded by the linked
+# Genesis-only layout to +0x20000 bytes.  No opcode-replace count change.
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x379EB8
 
 # DIAGNOSTIC_SYMBOLS — symbols allowed for bookmarks_v2 helper_symbol resolution.
 #
