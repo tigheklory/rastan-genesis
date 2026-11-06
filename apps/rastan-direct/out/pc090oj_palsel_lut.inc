@@ -5,8 +5,8 @@
  * format_version=2
  * dims: NUM_SCENES=4 (scene index masked 0x03), BANK_WIDTH=128 (bank masked 0x7f), element=1 byte, line range 0..3
  * index = (scene & 0x03) << 7 | (effective_bank & 0x7f)
- * route_table_sha1=08a4801408ac80e8
- * palette_tool_profile_sha256=e03dd2aa24f30adb3fd0566af0b917914b49d8cd1533441431be485dd2d6b730
+ * route_table_sha1=e085affceafe0ca1
+ * palette_tool_profile_sha256=23e95837d4085c18ac9c7b95a34ac23fe499ea91f9dedbfe4af2f1a9d9a27c2b
  * Palette Tool mappings: 0x30->0, 0x32->0, 0x33->0, 0x34->0, 0x35->1, 0x36->1, 0x3A->1, 0x3C->0, 0x3E->0
  * baked PC090OJ route rows:
  *   scene=0 bank=0x33 line=3
@@ -18,6 +18,7 @@
  *   scene=1 bank=0x36 line=1
  *   scene=1 bank=0x35 line=1
  *   scene=1 bank=0x3A line=1
+ *   scene=1 bank=0x4F line=1
  *   scene=1 bank=0x3C line=3
  */
     .equ PALSEL_LUT_NUM_SCENES, 4
@@ -51,7 +52,7 @@ pc090oj_palsel_lut_scene1:
     .byte 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
     .byte 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2
     .byte 0, 3, 0, 0, 0, 1, 1, 3, 3, 3, 1, 3, 0, 3, 0, 3
-    .byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    .byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1
     .byte 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
     .byte 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2
     .byte 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3
