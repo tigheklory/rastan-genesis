@@ -55294,6 +55294,8 @@ Report: `docs/design/Andy_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0
 
 `TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0092`
 
+---
+
 Narrow consistency-repair. The 0091 model fixes were right, but the generated Bestiary artifact
 (`docs/design/rastan_actor_bestiary.html`) still rendered stale prose contradicting Cody 0090 / Andy
 0091. Traced every CURRENT stale claim to its generator/data source and fixed it there (never
@@ -55320,3 +55322,36 @@ hand-editing only the HTML), then regenerated.
 Report: `docs/design/Andy_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0092_bestiary_stale_claim_repair.md`.
 
 `TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0092`
+
+---
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0095 Result
+
+`TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0095`
+
+- ORIGINAL ARCADE source/runtime semantics only. R1-S3 stage setup `$452DA-$4530C` selects
+  sprite control `$80`; boss body embedded line F therefore resolves to physical CLCS line `$4F`
+  (`$2009E0-$2009FF`), correcting the old ordinary-stage `$3F` assumption.
+- Live MAME trace: `$47004/$4703C/$47076`, store `$4706E`, directly fades the 15-word R1 target at
+  `$4708C` into entries 1-15. Final words:
+  `0000 01D0 3B18 7BDE 730E 61C0 3842 23DE 1118 0012 298C 290A 000A 4AD4 014E 0000`.
+  Master `$4EE16` candidate = REJECTED; field pool `$4FE62` = REJECTED for R1 boss.
+- Fade = 16x8 nibble LUT `$46F84[source][step]`, steps 0..7, boss actor `+$09` advances step every
+  8 updates. Trace first write frame 2715, final frame 2771 (56 intervals/57 inclusive writer
+  frames); step 7 is published then held. Durable raw+semantic C added.
+- The known five type-15 auxiliaries are the flying-dagger pool: `$457B2->$457D0`, type `$0F`,
+  base `$061D`, compositor 1, `+$27=$00`, anim `$14/$1A-$1F`, patterns `$67B/$67C/$683-$689`.
+  They share the body's exact physical line and use a subset of its indices. Minimum normal
+  body+dagger Genesis requirement = **one palette line**. Damage/death transient allocation PENDING.
+- Andy handoff: Composer should expose only the final fully illuminated source palette; fade states
+  are runtime behavior, not authored mappings. No Composer, Bestiary, Test.json, palette-decision,
+  Genesis source, ROM, audio, SAT, Plane A/B, or build-counter change. No push.
+- Machine evidence:
+  `analysis/actor_decompilation/r1_boss_palette_fade_dagger_semantics.json`. Report:
+  `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0095_r1_boss_palette_fade_dagger_semantics.md`.
+- Verification: independent ROM+trace state comparison PASS; task C syntax PASS; three new coverage
+  rows PASS. Repository-wide coverage guard retains six pre-existing missing-raw failures, none 0095.
+- Source/evidence local commit: `888245e10563d80effd96191d2b7e1b1d196ce12`; documentation commit
+  is reported in the final response (self-hash cannot be embedded).
+
+`TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0095`
