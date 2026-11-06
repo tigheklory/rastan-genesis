@@ -78,7 +78,7 @@
     }
   },
   "profile": "/home/tighe/projects/rastan-genesis/analysis/graphics_optimizer/editor_policy/Test.json",
-  "profile_sha256": "23e95837d4085c18ac9c7b95a34ac23fe499ea91f9dedbfe4af2f1a9d9a27c2b",
+  "profile_sha256": "35a742b32f3518ce3d7a16f56fb7db3879eb9d495e94a4c72656d12838794776",
   "schema": "rastan-test-palette-cram/v1",
   "transparent_entry_zero": "normalized to 0x0000; source index 0 is transparent",
   "words_per_line": 16

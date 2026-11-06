@@ -136,7 +136,7 @@ Disassembly of section .data:
      188:	2000           	movel %d0,%d0
      18a:	004a           	.short 0x004a
      18c:	2020           	movel %a0@-,%d0
-     18e:	9f64           	subw %d7,%a4@-
+     18e:	d7d1           	addal %a1@,%a3
      190:	2020           	movel %a0@-,%d0
      192:	2020           	movel %a0@-,%d0
      194:	2020           	movel %a0@-,%d0
@@ -305447,7 +305447,7 @@ Disassembly of section .data:
   10faf2:	0aaa 0442 0662 	eoril #71435874,%a2@(1632)
   10faf8:	0660 
   10fafa:	0888           	.short 0x0888
-  10fafc:	0000 0ccc      	orib #-52,%d0
+  10fafc:	0000 0eee      	orib #-18,%d0
   10fb00:	08ae 044a 0246 	bclr #74,%fp@(582)
   10fb06:	0008           	.short 0x0008
   10fb08:	0006 00ee      	orib #-18,%d6
@@ -310625,8 +310625,9 @@ Disassembly of section .data:
   119bea:	0202 0202      	andib #2,%d2
   119bee:	0202 0202      	andib #2,%d2
   119bf2:	0202 0202      	andib #2,%d2
-  119bf6:	0003 0000      	orib #0,%d3
-  119bfa:	0001 0103      	orib #3,%d1
+  119bf6:	0303           	btst %d1,%d3
+  119bf8:	0000 0001      	orib #1,%d0
+  119bfc:	0103           	btst %d0,%d3
   119bfe:	0303           	btst %d1,%d3
   119c00:	0103           	btst %d0,%d3
   119c02:	0003 0003      	orib #3,%d3
@@ -318401,141 +318402,136 @@ Disassembly of section .data:
   120db4:	8879 9000 8879 	orw 0x90008879,%d4
   120dba:	9000           	subb %d0,%d0
 	...
-  120dc8:	0000 0004      	orib #4,%d0
-  120dcc:	0000 0008      	orib #8,%d0
-  120dd0:	0000 0008      	orib #8,%d0
-  120dd4:	0000 0008      	orib #8,%d0
-  120dd8:	0000 0008      	orib #8,%d0
-  120ddc:	0000 0008      	orib #8,%d0
-  120de0:	0000 0008      	orib #8,%d0
-  120de4:	0000 0008      	orib #8,%d0
-  120de8:	0000 0008      	orib #8,%d0
-  120dec:	0000 0008      	orib #8,%d0
-  120df0:	0000 0008      	orib #8,%d0
-  120df4:	0000 0008      	orib #8,%d0
-  120df8:	0000 0008      	orib #8,%d0
+  120dc8:	0000 000c      	orib #12,%d0
+  120dcc:	0000 0002      	orib #2,%d0
+  120dd0:	0000 0002      	orib #2,%d0
+  120dd4:	0000 0002      	orib #2,%d0
+  120dd8:	0000 0002      	orib #2,%d0
+  120ddc:	0000 0002      	orib #2,%d0
+  120de0:	0000 0002      	orib #2,%d0
+  120de4:	0000 0002      	orib #2,%d0
+  120de8:	0000 0002      	orib #2,%d0
+  120dec:	0000 0002      	orib #2,%d0
+  120df0:	0000 0002      	orib #2,%d0
+  120df4:	0000 0002      	orib #2,%d0
+  120df8:	0000 0002      	orib #2,%d0
 	...
-  120e04:	8000           	orb %d0,%d0
-  120e06:	0000 8400      	orib #0,%d0
-  120e0a:	0000 8800      	orib #0,%d0
-  120e0e:	0000 8800      	orib #0,%d0
-  120e12:	0000 4800      	orib #0,%d0
-  120e16:	0000 4800      	orib #0,%d0
-  120e1a:	0000 5800      	orib #0,%d0
-  120e1e:	0000 5800      	orib #0,%d0
-  120e22:	0000 5800      	orib #0,%d0
-  120e26:	0000 5800      	orib #0,%d0
-  120e2a:	0000 5800      	orib #0,%d0
-  120e2e:	0000 5800      	orib #0,%d0
-  120e32:	0000 5800      	orib #0,%d0
-  120e36:	0000 5800      	orib #0,%d0
+  120e04:	2000           	movel %d0,%d0
+  120e06:	0000 2c00      	orib #0,%d0
+  120e0a:	0000 2200      	orib #0,%d0
+  120e0e:	0000 2200      	orib #0,%d0
+  120e12:	0000 c200      	orib #0,%d0
+  120e16:	0000 c200      	orib #0,%d0
+  120e1a:	0000 d200      	orib #0,%d0
+  120e1e:	0000 d200      	orib #0,%d0
+  120e22:	0000 d200      	orib #0,%d0
+  120e26:	0000 d200      	orib #0,%d0
+  120e2a:	0000 d200      	orib #0,%d0
+  120e2e:	0000 d200      	orib #0,%d0
+  120e32:	0000 d200      	orib #0,%d0
+  120e36:	0000 d200      	orib #0,%d0
   120e3a:	0000 0000      	orib #0,%d0
-  120e3e:	0008           	.short 0x0008
-  120e40:	0000 0008      	orib #8,%d0
-  120e44:	0000 0008      	orib #8,%d0
-  120e48:	0000 0084      	orib #-124,%d0
-  120e4c:	0000 0008      	orib #8,%d0
-  120e50:	0000 0008      	orib #8,%d0
-  120e54:	0000 0008      	orib #8,%d0
-  120e58:	0000 8808      	orib #8,%d0
-  120e5c:	0000 0588      	orib #-120,%d0
-  120e60:	0000 0055      	orib #85,%d0
+  120e3e:	0002 0000      	orib #0,%d2
+  120e42:	0002 0000      	orib #0,%d2
+  120e46:	0002 0000      	orib #0,%d2
+  120e4a:	002c 0000 0002 	orib #0,%a4@(2)
+  120e50:	0000 0002      	orib #2,%d0
+  120e54:	0000 0002      	orib #2,%d0
+  120e58:	0000 2202      	orib #2,%d0
+  120e5c:	0000 0d22      	orib #34,%d0
+  120e60:	0000 00dd      	orib #-35,%d0
 	...
-  120e7c:	5800           	addqb #4,%d0
-  120e7e:	0000 5800      	orib #0,%d0
-  120e82:	0000 5800      	orib #0,%d0
-  120e86:	0000 5480      	orib #-128,%d0
-  120e8a:	0000 5800      	orib #0,%d0
-  120e8e:	0000 5800      	orib #0,%d0
-  120e92:	0000 5800      	orib #0,%d0
-  120e96:	0000 5808      	orib #8,%d0
-  120e9a:	8000           	orb %d0,%d0
-  120e9c:	8887           	orl %d7,%d4
-  120e9e:	0000 5570      	orib #112,%d0
+  120e7c:	d200           	addb %d0,%d1
+  120e7e:	0000 d200      	orib #0,%d0
+  120e82:	0000 d200      	orib #0,%d0
+  120e86:	0000 dc20      	orib #32,%d0
+  120e8a:	0000 d200      	orib #0,%d0
+  120e8e:	0000 d200      	orib #0,%d0
+  120e92:	0000 d200      	orib #0,%d0
+  120e96:	0000 d202      	orib #2,%d0
+  120e9a:	2000           	movel %d0,%d0
+  120e9c:	2221           	movel %a1@-,%d1
+  120e9e:	0000 dd10      	orib #16,%d0
 	...
-  120ebe:	0800 0000      	btst #0,%d0
-  120ec2:	0888           	.short 0x0888
-  120ec4:	0000 0055      	orib #85,%d0
-  120ec8:	0000 0005      	orib #5,%d0
+  120ebe:	0200 0000      	andib #0,%d0
+  120ec2:	0222 0000      	andib #0,%a2@-
+  120ec6:	00dd           	.short 0x00dd
+  120ec8:	0000 000d      	orib #13,%d0
 	...
-  120efc:	8458           	orw %a0@+,%d2
-  120efe:	8000           	orb %d0,%d0
-  120f00:	5580           	subql #2,%d0
-  120f02:	0000 8800      	orib #0,%d0
-  120f06:	0000 5800      	orib #0,%d0
-  120f0a:	0000 0580      	orib #-128,%d0
+  120efc:	2cd2           	movel %a2@,%fp@+
+  120efe:	2000           	movel %d0,%d0
+  120f00:	dd20           	addb %d6,%a0@-
+  120f02:	0000 2200      	orib #0,%d0
+  120f06:	0000 d200      	orib #0,%d0
+  120f0a:	0000 0d20      	orib #32,%d0
 	...
-  120f66:	0008           	.short 0x0008
-  120f68:	0000 0085      	orib #-123,%d0
-  120f6c:	0000 0858      	orib #88,%d0
-  120f70:	0000 8580      	orib #-128,%d0
-  120f74:	0008           	.short 0x0008
-  120f76:	5800           	addqb #4,%d0
-  120f78:	0885 8000      	bclr #0,%d5
+  120f66:	0002 0000      	orib #0,%d2
+  120f6a:	002d 0000 02d2 	orib #0,%a5@(722)
+  120f70:	0000 2d20      	orib #32,%d0
+  120f74:	0002 d200      	orib #0,%d2
+  120f78:	022d 2000 0000 	andib #0,%a5@(0)
 	...
-  120f90:	0000 8800      	orib #0,%d0
-  120f94:	0008           	.short 0x0008
-  120f96:	8800           	orb %d0,%d4
-  120f98:	0084 8000 0848 	oril #-2147481528,%d4
-  120f9e:	0000 8580      	orib #-128,%d0
-  120fa2:	0000 5800      	orib #0,%d0
-  120fa6:	0000 8000      	orib #0,%d0
+  120f92:	2200           	movel %d0,%d1
+  120f94:	0002 2200      	orib #0,%d2
+  120f98:	002c 2000 02c2 	orib #0,%a4@(706)
+  120f9e:	0000 2d20      	orib #32,%d0
+  120fa2:	0000 d200      	orib #0,%d0
+  120fa6:	0000 2000      	orib #0,%d0
 	...
-  120fda:	0008           	.short 0x0008
-  120fdc:	0000 0084      	orib #-124,%d0
-  120fe0:	0000 0845      	orib #69,%d0
-  120fe4:	0000 0580      	orib #-128,%d0
+  120fda:	0002 0000      	orib #0,%d2
+  120fde:	002c 0000 02cd 	orib #0,%a4@(717)
+  120fe4:	0000 0d20      	orib #32,%d0
 	...
-  121010:	0880 0000      	bclr #0,%d0
-  121014:	8500           	sbcd %d0,%d2
-  121016:	0800 4888      	btst #-120,%d0
-  12101a:	8888           	.short 0x8888
-  12101c:	5558           	subqw #2,%a0@+
-  12101e:	4444           	negw %d4
-  121020:	0004 0000      	orib #0,%d4
+  121010:	0220 0000      	andib #0,%a0@-
+  121014:	2d00           	movel %d0,%fp@-
+  121016:	0200 c222      	andib #34,%d0
+  12101a:	2222           	movel %a2@-,%d1
+  12101c:	ddd2           	addal %a2@,%fp
+  12101e:	cccc           	.short 0xcccc
+  121020:	000c           	.short 0x000c
 	...
-  121058:	8888           	.short 0x8888
-  12105a:	8888           	.short 0x8888
-  12105c:	4444           	negw %d4
-  12105e:	4440           	negw %d0
+  121056:	0000 2222      	orib #34,%d0
+  12105a:	2222           	movel %a2@-,%d1
+  12105c:	cccc           	.short 0xcccc
+  12105e:	ccc0           	muluw %d0,%d6
 	...
-  1210cc:	0008           	.short 0x0008
-  1210ce:	8880           	orl %d0,%d4
-  1210d0:	0884 5800      	bclr #0,%d4
-  1210d4:	8808           	.short 0x8808
-  1210d6:	8588           	.short 0x8588
-  1210d8:	0000 0888      	orib #-120,%d0
+  1210cc:	0002 2220      	orib #32,%d2
+  1210d0:	022c d200 2202 	andib #0,%a4@(8706)
+  1210d6:	2d22           	movel %a2@-,%fp@-
+  1210d8:	0000 0222      	orib #34,%d0
 	...
-  121118:	8800           	orb %d0,%d4
+  121118:	2200           	movel %d0,%d1
 	...
-  12115a:	0008           	.short 0x0008
+  12115a:	0002 0000      	orib #0,%d2
 	...
-  121188:	0088           	.short 0x0088
-  12118a:	8000           	orb %d0,%d0
-  12118c:	0004 5880      	orib #-128,%d4
-  121190:	0848           	.short 0x0848
-  121192:	8580           	.short 0x8580
-  121194:	8488           	.short 0x8488
-  121196:	0050 8880      	oriw #-30592,%a0@
+  121186:	0000 0022      	orib #34,%d0
+  12118a:	2000           	movel %d0,%d0
+  12118c:	000c           	.short 0x000c
+  12118e:	d220           	addb %a0@-,%d1
+  121190:	02c2           	.short 0x02c2
+  121192:	2d20           	movel %a0@-,%fp@-
+  121194:	2c22           	movel %a2@-,%d6
+  121196:	00d0           	.short 0x00d0
+  121198:	2220           	movel %a0@-,%d1
 	...
-  121212:	0000 8888      	orib #-120,%d0
-  121216:	8888           	.short 0x8888
-  121218:	0044 4444      	oriw #17476,%d4
+  121212:	0000 2222      	orib #34,%d0
+  121216:	2222           	movel %a2@-,%d1
+  121218:	00cc           	.short 0x00cc
+  12121a:	cccc           	.short 0xcccc
 	...
-  121254:	8888           	.short 0x8888
-  121256:	8888           	.short 0x8888
-  121258:	4444           	negw %d4
-  12125a:	4448           	.short 0x4448
-  12125c:	0000 0005      	orib #5,%d0
+  121254:	2222           	movel %a2@-,%d1
+  121256:	2222           	movel %a2@-,%d1
+  121258:	cccc           	.short 0xcccc
+  12125a:	ccc2           	muluw %d2,%d6
+  12125c:	0000 000d      	orib #13,%d0
 	...
-  12128c:	0000 0084      	orib #-124,%d0
-  121290:	0800 0084      	btst #-124,%d0
-  121294:	8888           	.short 0x8888
-  121296:	8884           	orl %d4,%d4
-  121298:	5555           	subqw #2,%a5@
-  12129a:	5846           	addqw #4,%d6
-  12129c:	0000 0840      	orib #64,%d0
-  1212a0:	0000 8400      	orib #0,%d0
+  12128c:	0000 002c      	orib #44,%d0
+  121290:	0200 002c      	andib #44,%d0
+  121294:	2222           	movel %a2@-,%d1
+  121296:	222c dddd      	movel %a4@(-8739),%d1
+  12129a:	d2c6           	addaw %d6,%a1
+  12129c:	0000 02c0      	orib #-64,%d0
+  1212a0:	0000 2c00      	orib #0,%d0
 	...
   1214c4:	0000 0007      	orib #7,%d0
   1214c8:	0000 0007      	orib #7,%d0
@@ -343931,954 +343927,976 @@ Disassembly of section .data:
   13f59e:	b000 
   13f5a0:	b00b           	.short 0xb00b
 	...
-  13f5ce:	0008           	.short 0x0008
-  13f5d0:	0000 0008      	orib #8,%d0
-  13f5d4:	0000 0008      	orib #8,%d0
-  13f5d8:	0000 0008      	orib #8,%d0
-  13f5dc:	0000 0008      	orib #8,%d0
-  13f5e0:	0000 0008      	orib #8,%d0
-  13f5e4:	0000 0008      	orib #8,%d0
-  13f5e8:	0000 0008      	orib #8,%d0
-  13f5ec:	0000 0008      	orib #8,%d0
-  13f5f0:	0000 0008      	orib #8,%d0
-  13f5f4:	0000 0008      	orib #8,%d0
-  13f5f8:	0000 0008      	orib #8,%d0
+  13f5ca:	000c           	.short 0x000c
+  13f5cc:	0000 0002      	orib #2,%d0
+  13f5d0:	0000 0002      	orib #2,%d0
+  13f5d4:	0000 0002      	orib #2,%d0
+  13f5d8:	0000 0002      	orib #2,%d0
+  13f5dc:	0000 0002      	orib #2,%d0
+  13f5e0:	0000 0002      	orib #2,%d0
+  13f5e4:	0000 0002      	orib #2,%d0
+  13f5e8:	0000 0002      	orib #2,%d0
+  13f5ec:	0000 0002      	orib #2,%d0
+  13f5f0:	0000 0002      	orib #2,%d0
+  13f5f4:	0000 0002      	orib #2,%d0
+  13f5f8:	0000 0002      	orib #2,%d0
 	...
-  13f604:	8000           	orb %d0,%d0
-  13f606:	0000 8000      	orib #0,%d0
-  13f60a:	0000 8800      	orib #0,%d0
-  13f60e:	0000 8800      	orib #0,%d0
-  13f612:	0000 0800      	orib #0,%d0
-  13f616:	0000 0800      	orib #0,%d0
-  13f61a:	0000 5800      	orib #0,%d0
-  13f61e:	0000 5800      	orib #0,%d0
-  13f622:	0000 5800      	orib #0,%d0
-  13f626:	0000 5800      	orib #0,%d0
-  13f62a:	0000 5800      	orib #0,%d0
-  13f62e:	0000 5800      	orib #0,%d0
-  13f632:	0000 5800      	orib #0,%d0
-  13f636:	0000 5800      	orib #0,%d0
+  13f604:	2000           	movel %d0,%d0
+  13f606:	0000 2c00      	orib #0,%d0
+  13f60a:	0000 2200      	orib #0,%d0
+  13f60e:	0000 2200      	orib #0,%d0
+  13f612:	0000 c200      	orib #0,%d0
+  13f616:	0000 c200      	orib #0,%d0
+  13f61a:	0000 d200      	orib #0,%d0
+  13f61e:	0000 d200      	orib #0,%d0
+  13f622:	0000 d200      	orib #0,%d0
+  13f626:	0000 d200      	orib #0,%d0
+  13f62a:	0000 d200      	orib #0,%d0
+  13f62e:	0000 d200      	orib #0,%d0
+  13f632:	0000 d200      	orib #0,%d0
+  13f636:	0000 d200      	orib #0,%d0
   13f63a:	0000 0000      	orib #0,%d0
-  13f63e:	0008           	.short 0x0008
-  13f640:	0000 0008      	orib #8,%d0
-  13f644:	0000 0008      	orib #8,%d0
-  13f648:	0000 0080      	orib #-128,%d0
-  13f64c:	0000 0008      	orib #8,%d0
-  13f650:	0000 0008      	orib #8,%d0
-  13f654:	0000 0008      	orib #8,%d0
-  13f658:	0000 cc08      	orib #8,%d0
-  13f65c:	0000 01cc      	orib #-52,%d0
-  13f660:	0000 0011      	orib #17,%d0
+  13f63e:	0002 0000      	orib #0,%d2
+  13f642:	0002 0000      	orib #0,%d2
+  13f646:	0002 0000      	orib #0,%d2
+  13f64a:	002c 0000 0002 	orib #0,%a4@(2)
+  13f650:	0000 0002      	orib #2,%d0
+  13f654:	0000 0002      	orib #2,%d0
+  13f658:	0000 8802      	orib #2,%d0
+  13f65c:	0000 0988      	orib #-120,%d0
+  13f660:	0000 0099      	orib #-103,%d0
 	...
-  13f67c:	5800           	addqb #4,%d0
-  13f67e:	0000 5800      	orib #0,%d0
-  13f682:	0000 5800      	orib #0,%d0
-  13f686:	0000 5080      	orib #-128,%d0
-  13f68a:	0000 5800      	orib #0,%d0
-  13f68e:	0000 5800      	orib #0,%d0
-  13f692:	0000 5800      	orib #0,%d0
-  13f696:	0000 580c      	orib #12,%d0
-  13f69a:	c000           	andb %d0,%d0
-  13f69c:	ccc1           	muluw %d1,%d6
-  13f69e:	1000           	moveb %d0,%d0
-  13f6a0:	1110           	moveb %a0@,%a0@-
+  13f67c:	d200           	addb %d0,%d1
+  13f67e:	0000 d200      	orib #0,%d0
+  13f682:	0000 d200      	orib #0,%d0
+  13f686:	0000 dc20      	orib #32,%d0
+  13f68a:	0000 d200      	orib #0,%d0
+  13f68e:	0000 d200      	orib #0,%d0
+  13f692:	0000 d200      	orib #0,%d0
+  13f696:	0000 d208      	orib #8,%d0
+  13f69a:	8000           	orb %d0,%d0
+  13f69c:	8889           	.short 0x8889
+  13f69e:	9000           	subb %d0,%d0
+  13f6a0:	9990           	subl %d4,%a0@
 	...
-  13f6ce:	0008           	.short 0x0008
-  13f6d0:	0000 0008      	orib #8,%d0
-  13f6d4:	0000 0008      	orib #8,%d0
-  13f6d8:	0000 0008      	orib #8,%d0
-  13f6dc:	0000 0008      	orib #8,%d0
-  13f6e0:	0000 0008      	orib #8,%d0
-  13f6e4:	0000 0008      	orib #8,%d0
-  13f6e8:	0000 0008      	orib #8,%d0
-  13f6ec:	0000 0f08      	orib #8,%d0
+  13f6ca:	000c           	.short 0x000c
+  13f6cc:	0000 0002      	orib #2,%d0
+  13f6d0:	0000 0002      	orib #2,%d0
+  13f6d4:	0000 0002      	orib #2,%d0
+  13f6d8:	0000 0002      	orib #2,%d0
+  13f6dc:	0000 0002      	orib #2,%d0
+  13f6e0:	0000 0002      	orib #2,%d0
+  13f6e4:	0000 0002      	orib #2,%d0
+  13f6e8:	0000 0002      	orib #2,%d0
+  13f6ec:	0000 0f02      	orib #2,%d0
   13f6f0:	0f00           	btst %d7,%d0
-  13f6f2:	0f08 0010      	movepw %a0@(16),%d7
-  13f6f6:	f008           	.short 0xf008
-  13f6f8:	0010 f118      	orib #24,%a0@
+  13f6f2:	0f02           	btst %d7,%d2
+  13f6f4:	0090 f002 0090 	oril #-268304240,%a0@
+  13f6fa:	f992           	.short 0xf992
 	...
-  13f704:	8000           	orb %d0,%d0
-  13f706:	0000 8000      	orib #0,%d0
-  13f70a:	0000 8800      	orib #0,%d0
-  13f70e:	0000 8800      	orib #0,%d0
-  13f712:	0000 0800      	orib #0,%d0
-  13f716:	0000 0800      	orib #0,%d0
-  13f71a:	0000 5800      	orib #0,%d0
-  13f71e:	0000 5800      	orib #0,%d0
-  13f722:	0000 580f      	orib #15,%d0
-  13f726:	0000 5801      	orib #1,%d0
-  13f72a:	0000 5800      	orib #0,%d0
-  13f72e:	0000 5800      	orib #0,%d0
+  13f704:	2000           	movel %d0,%d0
+  13f706:	0000 2c00      	orib #0,%d0
+  13f70a:	0000 2200      	orib #0,%d0
+  13f70e:	0000 2200      	orib #0,%d0
+  13f712:	0000 c200      	orib #0,%d0
+  13f716:	0000 c200      	orib #0,%d0
+  13f71a:	0000 d200      	orib #0,%d0
+  13f71e:	0000 d200      	orib #0,%d0
+  13f722:	0000 d20f      	orib #15,%d0
+  13f726:	0000 d209      	orib #9,%d0
+  13f72a:	0000 d200      	orib #0,%d0
+  13f72e:	0000 d200      	orib #0,%d0
   13f732:	0f00           	btst %d7,%d0
-  13f734:	5801           	addqb #4,%d1
-  13f736:	0100           	btst %d0,%d0
-  13f738:	5801           	addqb #4,%d1
-  13f73a:	0100           	btst %d0,%d0
-  13f73c:	0000 1c18      	orib #24,%d0
-  13f740:	f100           	.short 0xf100
-  13f742:	01c8 0011      	movepl %d0,%a0@(17)
-  13f746:	01c8 00f1      	movepl %d0,%a0@(241)
-  13f74a:	0180           	bclr %d0,%d0
-  13f74c:	0011 1c88      	orib #-120,%a1@
-  13f750:	0011 cc88      	orib #-120,%a1@
-  13f754:	0001 1cc8      	orib #-56,%d1
-  13f758:	0000 cc18      	orib #24,%d0
-  13f75c:	0000 01cc      	orib #-52,%d0
-  13f760:	0000 0011      	orib #17,%d0
+  13f734:	d209           	.short 0xd209
+  13f736:	0900           	btst %d4,%d0
+  13f738:	d209           	.short 0xd209
+  13f73a:	0900           	btst %d4,%d0
+  13f73c:	0000 9892      	orib #-110,%d0
+  13f740:	f900           	.short 0xf900
+  13f742:	0982           	bclr %d4,%d2
+  13f744:	0099 0982 00f9 	oril #159514873,%a1@+
+  13f74a:	092c 0099      	btst %d4,%a4@(153)
+  13f74e:	9822           	subb %a2@-,%d4
+  13f750:	0099 8822 0009 	oril #-2011037687,%a1@+
+  13f756:	9882           	subl %d2,%d4
+  13f758:	0000 8892      	orib #-110,%d0
+  13f75c:	0000 0988      	orib #-120,%d0
+  13f760:	0000 0099      	orib #-103,%d0
 	...
-  13f77c:	5801           	addqb #4,%d1
-  13f77e:	1000           	moveb %d0,%d0
-  13f780:	5800           	addqb #4,%d0
-  13f782:	1000           	moveb %d0,%d0
-  13f784:	5801           	addqb #4,%d1
-  13f786:	11f0 5081 c100 	moveb %a0@(ffffffffffffff81,%d5:w),0xffffc100
-  13f78c:	588c           	addql #4,%a4
-  13f78e:	c000           	andb %d0,%d0
-  13f790:	588c           	addql #4,%a4
-  13f792:	1ff0           	.short 0x1ff0
-  13f794:	58c1           	svc %d1
-  13f796:	1100           	moveb %d0,%a0@-
-  13f798:	581c           	addqb #4,%a4@+
-  13f79a:	c000           	andb %d0,%d0
-  13f79c:	ccc1           	muluw %d1,%d6
-  13f79e:	1000           	moveb %d0,%d0
-  13f7a0:	1110           	moveb %a0@,%a0@-
+  13f77c:	d209           	.short 0xd209
+  13f77e:	9000           	subb %d0,%d0
+  13f780:	d200           	addb %d0,%d1
+  13f782:	9000           	subb %d0,%d0
+  13f784:	d209           	.short 0xd209
+  13f786:	99f0 dc29      	subal %a0@(29,%a5:l:4),%a4
+  13f78a:	8900           	sbcd %d0,%d4
+  13f78c:	d228 8000      	addb %a0@(-32768),%d1
+  13f790:	d228 9ff0      	addb %a0@(-24592),%d1
+  13f794:	d289           	addl %a1,%d1
+  13f796:	9900           	subxb %d0,%d4
+  13f798:	d298           	addl %a0@+,%d1
+  13f79a:	8000           	orb %d0,%d0
+  13f79c:	8889           	.short 0x8889
+  13f79e:	9000           	subb %d0,%d0
+  13f7a0:	9990           	subl %d4,%a0@
 	...
   13f7c6:	0000 000f      	orib #15,%d0
-  13f7ca:	0000 000f      	orib #15,%d0
-  13f7ce:	0008           	.short 0x0008
-  13f7d0:	0000 f008      	orib #8,%d0
-  13f7d4:	0001 f008      	orib #8,%d1
+  13f7ca:	000c           	.short 0x000c
+  13f7cc:	000f           	.short 0x000f
+  13f7ce:	0002 0000      	orib #0,%d2
+  13f7d2:	f002           	.short 0xf002
+  13f7d4:	0009           	.short 0x0009
+  13f7d6:	f002           	.short 0xf002
   13f7d8:	000f           	.short 0x000f
-  13f7da:	0008           	.short 0x0008
-  13f7dc:	f00f           	.short 0xf00f
-  13f7de:	0008           	.short 0x0008
-  13f7e0:	0f01           	btst %d7,%d1
-  13f7e2:	1008           	.short 0x1008
+  13f7da:	0002 f00f      	orib #15,%d2
+  13f7de:	0002 0f09      	orib #9,%d2
+  13f7e2:	9002           	subb %d2,%d0
   13f7e4:	0f00           	btst %d7,%d0
-  13f7e6:	1108           	.short 0x1108
-  13f7e8:	1101           	moveb %d1,%a0@-
-  13f7ea:	c118           	andb %d0,%a0@+
-  13f7ec:	1011           	moveb %a1@,%d0
-  13f7ee:	cc18           	andb %a0@+,%d6
-  13f7f0:	1011           	moveb %a1@,%d0
-  13f7f2:	1c18           	moveb %a0@+,%d6
-  13f7f4:	1c11           	moveb %a1@,%d6
-  13f7f6:	c8c8           	.short 0xc8c8
-  13f7f8:	01cc 8888      	movepl %d0,%a4@(-30584)
+  13f7e6:	9902           	subxb %d2,%d4
+  13f7e8:	9909           	subxb %a1@-,%a4@-
+  13f7ea:	8992           	orl %d4,%a2@
+  13f7ec:	9099           	subl %a1@+,%d0
+  13f7ee:	8892           	orl %a2@,%d4
+  13f7f0:	9099           	subl %a1@+,%d0
+  13f7f2:	9892           	subl %a2@,%d4
+  13f7f4:	9899           	subl %a1@+,%d4
+  13f7f6:	8282           	orl %d2,%d1
+  13f7f8:	0988 2222      	movepw %d4,%a0@(8738)
 	...
-  13f804:	8000           	orb %d0,%d0
-  13f806:	0000 80f0      	orib #-16,%d0
-  13f80a:	0000 88f0      	orib #-16,%d0
+  13f804:	2000           	movel %d0,%d0
+  13f806:	0000 2cf0      	orib #-16,%d0
+  13f80a:	0000 22f0      	orib #-16,%d0
   13f80e:	0f00           	btst %d7,%d0
-  13f810:	8810           	orb %a0@,%d4
+  13f810:	2290           	movel %a0@,%a1@
   13f812:	0f00           	btst %d7,%d0
-  13f814:	0801 0010      	btst #16,%d1
-  13f818:	0811 0010      	btst #16,%a1@
-  13f81c:	5810           	addqb #4,%a0@
-  13f81e:	011f           	btst %d0,%sp@+
-  13f820:	58c1           	svc %d1
-  13f822:	00cf           	.short 0x00cf
-  13f824:	58c1           	svc %d1
-  13f826:	1111           	moveb %a1@,%a0@-
-  13f828:	5881           	addql #4,%d1
-  13f82a:	cc00           	andb %d0,%d6
-  13f82c:	5881           	addql #4,%d1
-  13f82e:	c110           	andb %d0,%a0@
-  13f830:	588c           	addql #4,%a4
-  13f832:	8110           	orb %d0,%a0@
-  13f834:	5888           	addql #4,%a0
-  13f836:	cc10           	andb %a0@,%d6
-  13f838:	588c           	addql #4,%a4
-  13f83a:	c100           	abcd %d0,%d0
-  13f83c:	0011 c888      	orib #-120,%a1@
-  13f840:	0001 1cc8      	orib #-56,%d1
-  13f844:	0100           	btst %d0,%d0
-  13f846:	1118           	moveb %a0@+,%a0@-
-  13f848:	0000 0080      	orib #-128,%d0
-  13f84c:	0000 0008      	orib #8,%d0
-  13f850:	0000 0008      	orib #8,%d0
-  13f854:	0000 0008      	orib #8,%d0
-  13f858:	0000 cc08      	orib #8,%d0
-  13f85c:	0000 01cc      	orib #-52,%d0
-  13f860:	0000 0011      	orib #17,%d0
+  13f814:	c209           	.short 0xc209
+  13f816:	0090 c299 0090 	oril #-1030160240,%a0@
+  13f81c:	d290           	addl %a0@,%d1
+  13f81e:	099f           	bclr %d4,%sp@+
+  13f820:	d289           	addl %a1,%d1
+  13f822:	008f           	.short 0x008f
+  13f824:	d289           	addl %a1,%d1
+  13f826:	9999           	subl %d4,%a1@+
+  13f828:	d229 8800      	addb %a1@(-30720),%d1
+  13f82c:	d229 8990      	addb %a1@(-30320),%d1
+  13f830:	d228 2990      	addb %a0@(10640),%d1
+  13f834:	d222           	addb %a2@-,%d1
+  13f836:	8890           	orl %a0@,%d4
+  13f838:	d228 8900      	addb %a0@(-30464),%d1
+  13f83c:	0099 8222 0009 	oril #-2111700983,%a1@+
+  13f842:	9882           	subl %d2,%d4
+  13f844:	0900           	btst %d4,%d0
+  13f846:	9992           	subl %d4,%a2@
+  13f848:	0000 002c      	orib #44,%d0
+  13f84c:	0000 0002      	orib #2,%d0
+  13f850:	0000 0002      	orib #2,%d0
+  13f854:	0000 0002      	orib #2,%d0
+  13f858:	0000 8802      	orib #2,%d0
+  13f85c:	0000 0988      	orib #-120,%d0
+  13f860:	0000 0099      	orib #-103,%d0
 	...
-  13f87c:	58c1           	svc %d1
-  13f87e:	1101           	moveb %d1,%a0@-
-  13f880:	58c1           	svc %d1
-  13f882:	0010 5810      	orib #16,%a0@
-  13f886:	1000           	moveb %d0,%d0
-  13f888:	5080           	addql #8,%d0
-  13f88a:	0000 5800      	orib #0,%d0
-  13f88e:	0000 5800      	orib #0,%d0
-  13f892:	0000 5800      	orib #0,%d0
-  13f896:	0000 580c      	orib #12,%d0
-  13f89a:	c000           	andb %d0,%d0
-  13f89c:	ccc1           	muluw %d1,%d6
-  13f89e:	1000           	moveb %d0,%d0
-  13f8a0:	1110           	moveb %a0@,%a0@-
+  13f87c:	d289           	addl %a1,%d1
+  13f87e:	9909           	subxb %a1@-,%a4@-
+  13f880:	d289           	addl %a1,%d1
+  13f882:	0090 d290 9000 	oril #-762277888,%a0@
+  13f888:	dc20           	addb %a0@-,%d6
+  13f88a:	0000 d200      	orib #0,%d0
+  13f88e:	0000 d200      	orib #0,%d0
+  13f892:	0000 d200      	orib #0,%d0
+  13f896:	0000 d208      	orib #8,%d0
+  13f89a:	8000           	orb %d0,%d0
+  13f89c:	8889           	.short 0x8889
+  13f89e:	9000           	subb %d0,%d0
+  13f8a0:	9990           	subl %d4,%a0@
 	...
-  13f8c2:	1001           	moveb %d1,%d0
-  13f8c4:	0010 0011      	orib #17,%a0@
-  13f8c8:	0100           	btst %d0,%d0
-  13f8ca:	0010 01c0      	orib #-64,%a0@
-  13f8ce:	10c8           	.short 0x10c8
-  13f8d0:	00c1           	.short 0x00c1
-  13f8d2:	1188           	.short 0x1188
-  13f8d4:	001c 8188      	orib #-120,%a4@+
-  13f8d8:	0001 c888      	orib #-120,%d1
-  13f8dc:	0000 1cc8      	orib #-56,%d0
-  13f8e0:	0010 1118      	orib #24,%a0@
-  13f8e4:	0000 0118      	orib #24,%d0
-  13f8e8:	0000 0008      	orib #8,%d0
-  13f8ec:	0000 0008      	orib #8,%d0
-  13f8f0:	0000 0008      	orib #8,%d0
-  13f8f4:	0000 0008      	orib #8,%d0
-  13f8f8:	0000 0008      	orib #8,%d0
-  13f8fc:	1000           	moveb %d0,%d0
-  13f8fe:	0000 1001      	orib #1,%d0
-  13f902:	0000 8101      	orib #1,%d0
-  13f906:	0000 8000      	orib #0,%d0
-  13f90a:	1000           	moveb %d0,%d0
-  13f90c:	8800           	orb %d0,%d4
-  13f90e:	1000           	moveb %d0,%d0
-  13f910:	8810           	orb %a0@,%d4
-  13f912:	1000           	moveb %d0,%d0
-  13f914:	08c1 c000      	bset #0,%d1
-  13f918:	088c           	.short 0x088c
-  13f91a:	1000           	moveb %d0,%d0
-  13f91c:	58c1           	svc %d1
-  13f91e:	0000 5810      	orib #16,%d0
-  13f922:	0000 5800      	orib #0,%d0
-  13f926:	0000 5800      	orib #0,%d0
-  13f92a:	0000 5800      	orib #0,%d0
-  13f92e:	0000 5800      	orib #0,%d0
-  13f932:	0000 5800      	orib #0,%d0
-  13f936:	0000 5800      	orib #0,%d0
+  13f8c2:	9009           	.short 0x9009
+  13f8c4:	0090 0099 0900 	oril #10029312,%a0@
+  13f8ca:	009c 0980 9082 	oril #159420546,%a4@+
+  13f8d0:	0089           	.short 0x0089
+  13f8d2:	9922           	subb %d4,%a2@-
+  13f8d4:	0098 2922 0009 	oril #690094089,%a0@+
+  13f8da:	8222           	orb %a2@-,%d1
+  13f8dc:	0000 9882      	orib #-126,%d0
+  13f8e0:	0090 9992 0000 	oril #-1718484992,%a0@
+  13f8e6:	0992           	bclr %d4,%a2@
+  13f8e8:	0000 0002      	orib #2,%d0
+  13f8ec:	0000 0002      	orib #2,%d0
+  13f8f0:	0000 0002      	orib #2,%d0
+  13f8f4:	0000 0002      	orib #2,%d0
+  13f8f8:	0000 0002      	orib #2,%d0
+  13f8fc:	9000           	subb %d0,%d0
+  13f8fe:	0000 9009      	orib #9,%d0
+  13f902:	0000 2909      	orib #9,%d0
+  13f906:	0000 2c00      	orib #0,%d0
+  13f90a:	9000           	subb %d0,%d0
+  13f90c:	2200           	movel %d0,%d1
+  13f90e:	9000           	subb %d0,%d0
+  13f910:	2290           	movel %a0@,%a1@
+  13f912:	9000           	subb %d0,%d0
+  13f914:	c289           	.short 0xc289
+  13f916:	8000           	orb %d0,%d0
+  13f918:	c228 9000      	andb %a0@(-28672),%d1
+  13f91c:	d289           	addl %a1,%d1
+  13f91e:	0000 d290      	orib #-112,%d0
+  13f922:	0000 d200      	orib #0,%d0
+  13f926:	0000 d200      	orib #0,%d0
+  13f92a:	0000 d200      	orib #0,%d0
+  13f92e:	0000 d200      	orib #0,%d0
+  13f932:	0000 d200      	orib #0,%d0
+  13f936:	0000 d200      	orib #0,%d0
   13f93a:	0000 0000      	orib #0,%d0
-  13f93e:	0008           	.short 0x0008
-  13f940:	0000 0008      	orib #8,%d0
-  13f944:	0000 0008      	orib #8,%d0
-  13f948:	0000 0080      	orib #-128,%d0
-  13f94c:	0000 0008      	orib #8,%d0
-  13f950:	0000 0008      	orib #8,%d0
-  13f954:	0000 0008      	orib #8,%d0
-  13f958:	0000 cc08      	orib #8,%d0
-  13f95c:	0000 01cc      	orib #-52,%d0
-  13f960:	0000 0011      	orib #17,%d0
+  13f93e:	0002 0000      	orib #0,%d2
+  13f942:	0002 0000      	orib #0,%d2
+  13f946:	0002 0000      	orib #0,%d2
+  13f94a:	002c 0000 0002 	orib #0,%a4@(2)
+  13f950:	0000 0002      	orib #2,%d0
+  13f954:	0000 0002      	orib #2,%d0
+  13f958:	0000 8802      	orib #2,%d0
+  13f95c:	0000 0988      	orib #-120,%d0
+  13f960:	0000 0099      	orib #-103,%d0
 	...
-  13f97c:	5800           	addqb #4,%d0
-  13f97e:	0000 5800      	orib #0,%d0
-  13f982:	0000 5800      	orib #0,%d0
-  13f986:	0000 5080      	orib #-128,%d0
-  13f98a:	0000 5800      	orib #0,%d0
-  13f98e:	0000 5800      	orib #0,%d0
-  13f992:	0000 5800      	orib #0,%d0
-  13f996:	0000 580c      	orib #12,%d0
-  13f99a:	c000           	andb %d0,%d0
-  13f99c:	ccc1           	muluw %d1,%d6
-  13f99e:	1000           	moveb %d0,%d0
-  13f9a0:	1110           	moveb %a0@,%a0@-
+  13f97c:	d200           	addb %d0,%d1
+  13f97e:	0000 d200      	orib #0,%d0
+  13f982:	0000 d200      	orib #0,%d0
+  13f986:	0000 dc20      	orib #32,%d0
+  13f98a:	0000 d200      	orib #0,%d0
+  13f98e:	0000 d200      	orib #0,%d0
+  13f992:	0000 d200      	orib #0,%d0
+  13f996:	0000 d208      	orib #8,%d0
+  13f99a:	8000           	orb %d0,%d0
+  13f99c:	8889           	.short 0x8889
+  13f99e:	9000           	subb %d0,%d0
+  13f9a0:	9990           	subl %d4,%a0@
 	...
-  13f9be:	0c00 0000      	cmpib #0,%d0
-  13f9c2:	01cc 0000      	movepl %d0,%a4@(0)
-  13f9c6:	0011 0000      	orib #0,%a1@
-  13f9ca:	0001 0000      	orib #0,%d1
+  13f9be:	0800 0000      	btst #0,%d0
+  13f9c2:	0988 0000      	movepw %d4,%a0@(0)
+  13f9c6:	0099 0000 0009 	oril #9,%a1@+
 	...
-  13f9fa:	0000 8118      	orib #24,%d0
-  13f9fe:	8c10           	orb %a0@,%d6
-  13fa00:	5511           	subqb #2,%a1@
-  13fa02:	cc00           	andb %d0,%d6
-  13fa04:	c810           	andb %a0@,%d4
-  13fa06:	1100           	moveb %d0,%a0@-
-  13fa08:	1c00           	moveb %d0,%d6
-  13fa0a:	0000 01c0      	orib #-64,%d0
+  13f9fc:	2992 2890      	movel %a2@,%a4@(ffffffffffffff90,%d2:l)
+  13fa00:	dd99           	addl %d6,%a1@+
+  13fa02:	8800           	orb %d0,%d4
+  13fa04:	8290           	orl %a0@,%d1
+  13fa06:	9900           	subxb %d0,%d4
+  13fa08:	9800           	subb %d0,%d4
+  13fa0a:	0000 0980      	orib #-128,%d0
 	...
-  13fa3e:	001c 0000      	orib #0,%a4@+
+  13fa3e:	0098 0000 0000 	oril #0,%a0@+
 	...
-  13fa4e:	0100           	btst %d0,%d0
+  13fa4c:	0000 0900      	orib #0,%d0
   13fa50:	0000 0000      	orib #0,%d0
-  13fa54:	0000 0001      	orib #1,%d0
+  13fa54:	0000 0009      	orib #9,%d0
 	...
-  13fa60:	0100           	btst %d0,%d0
+  13fa60:	0900           	btst %d4,%d0
   13fa62:	0000 0000      	orib #0,%d0
-  13fa66:	1008           	.short 0x1008
-  13fa68:	0000 0c85      	orib #-123,%d0
-  13fa6c:	0000 0818      	orib #24,%d0
-  13fa70:	000c           	.short 0x000c
-  13fa72:	8581           	.short 0x8581
-  13fa74:	c008           	.short 0xc008
-  13fa76:	58c0           	svc %d0
-  13fa78:	0115           	btst %d0,%a5@
-  13fa7a:	8110           	orb %d0,%a0@
-  13fa7c:	0000 0000      	orib #0,%d0
-  13fa80:	11c0 0000      	moveb %d0,0x0
-  13fa84:	0111           	btst %d0,%a1@
-  13fa86:	0000 001c      	orib #28,%d0
-  13fa8a:	1c00           	moveb %d0,%d6
-  13fa8c:	00c1           	.short 0x00c1
-  13fa8e:	c100           	abcd %d0,%d0
-  13fa90:	1011           	moveb %a1@,%d0
-  13fa92:	88c0           	divuw %d0,%d4
-  13fa94:	c118           	andb %d0,%a0@+
-  13fa96:	1810           	moveb %a0@,%d4
-  13fa98:	0c80 8100 18c8 	cmpil #-2130700088,%d0
-  13fa9e:	0000 8581      	orib #-127,%d0
-  13faa2:	0000 58c1      	orib #-63,%d0
-  13faa6:	0000 8c10      	orib #16,%d0
+  13fa66:	9002           	subb %d2,%d0
+  13fa68:	0000 082d      	orib #45,%d0
+  13fa6c:	0000 0292      	orib #-110,%d0
+  13fa70:	0008           	.short 0x0008
+  13fa72:	2d29 8002      	movel %a1@(-32766),%fp@-
+  13fa76:	d280           	addl %d0,%d1
+  13fa78:	099d           	bclr %d4,%a5@+
+  13fa7a:	2990 0000      	movel %a0@,%a4@(0,%d0:w)
+  13fa7e:	0000 9980      	orib #-128,%d0
+  13fa82:	0000 0999      	orib #-103,%d0
+  13fa86:	0000 0098      	orib #-104,%d0
+  13fa8a:	9800           	subb %d0,%d4
+  13fa8c:	0089           	.short 0x0089
+  13fa8e:	8900           	sbcd %d0,%d4
+  13fa90:	9099           	subl %a1@+,%d0
+  13fa92:	2280           	movel %d0,%a1@
+  13fa94:	8992           	orl %d4,%a2@
+  13fa96:	9290           	subl %a0@,%d1
+  13fa98:	082c 2900 9282 	btst #0,%a4@(-28030)
+  13fa9e:	0000 2d29      	orib #41,%d0
+  13faa2:	0000 d289      	orib #-119,%d0
+  13faa6:	0000 2890      	orib #-112,%d0
 	...
-  13fada:	000c           	.short 0x000c
-  13fadc:	0000 00c0      	orib #-64,%d0
-  13fae0:	0000 0c05      	orib #5,%d0
-  13fae4:	0000 01c0      	orib #-64,%d0
+  13fada:	0008           	.short 0x0008
+  13fadc:	0000 008c      	orib #-116,%d0
+  13fae0:	0000 08cd      	orib #-51,%d0
+  13fae4:	0000 0980      	orib #-128,%d0
 	...
-  13fb0c:	0000 0100      	orib #0,%d0
-  13fb10:	0cc0           	.short 0x0cc0
-  13fb12:	1000           	moveb %d0,%d0
-  13fb14:	c50c           	abcd %a4@-,%a2@-
-  13fb16:	c801           	andb %d1,%d4
-  13fb18:	08c8           	.short 0x08c8
-  13fb1a:	8818           	orb %a0@+,%d4
-  13fb1c:	1158 0c1c      	moveb %a0@+,%a0@(3100)
-  13fb20:	0100           	btst %d0,%d0
-  13fb22:	0110           	btst %d0,%a0@
+  13fb0c:	0000 0900      	orib #0,%d0
+  13fb10:	0880 9000      	bclr #0,%d0
+  13fb14:	8d08           	sbcd %a0@-,%fp@-
+  13fb16:	8209           	.short 0x8209
+  13fb18:	c282           	andl %d2,%d1
+  13fb1a:	2292           	movel %a2@,%a1@
+  13fb1c:	99d2           	subal %a2@,%a4
+  13fb1e:	c898           	andl %a0@+,%d4
+  13fb20:	090c 0990      	movepw %a4@(2448),%d4
 	...
-  13fb44:	0000 0001      	orib #1,%d0
-  13fb48:	0000 0001      	orib #1,%d0
-  13fb4c:	0c00 0000      	cmpib #0,%d0
-  13fb50:	0100           	btst %d0,%d0
-  13fb52:	0100           	btst %d0,%d0
-  13fb54:	0001 0001      	orib #1,%d1
-  13fb58:	8818           	orb %a0@+,%d4
-  13fb5a:	881c           	orb %a4@+,%d4
-  13fb5c:	01cc 01c1      	movepl %d0,%a4@(449)
-  13fb60:	001c 0110      	orib #16,%a4@+
+  13fb44:	0000 0009      	orib #9,%d0
+  13fb48:	0000 0009      	orib #9,%d0
+  13fb4c:	0800 0000      	btst #0,%d0
+  13fb50:	0900           	btst %d4,%d0
+  13fb52:	0900           	btst %d4,%d0
+  13fb54:	0009           	.short 0x0009
+  13fb56:	0009           	.short 0x0009
+  13fb58:	2292           	movel %a2@,%a1@
+  13fb5a:	2298           	movel %a0@+,%a1@
+  13fb5c:	c988           	exg %d4,%a0
+  13fb5e:	c989           	exg %d4,%a1
+  13fb60:	0098 0990 0000 	oril #160432128,%a0@+
 	...
-  13fb7c:	00c0           	.short 0x00c0
-  13fb7e:	0000 0010      	orib #16,%d0
+  13fb7a:	0000 0080      	orib #-128,%d0
+  13fb7e:	0000 0090      	orib #-112,%d0
   13fb82:	0000 0000      	orib #0,%d0
-  13fb86:	0000 0100      	orib #0,%d0
-  13fb8a:	0000 0c00      	orib #0,%d0
-  13fb8e:	0000 1000      	orib #0,%d0
-  13fb92:	0000 c000      	orib #0,%d0
+  13fb86:	0000 0900      	orib #0,%d0
+  13fb8a:	0000 0800      	orib #0,%d0
+  13fb8e:	0000 9000      	orib #0,%d0
+  13fb92:	0000 8000      	orib #0,%d0
 	...
-  13fbca:	0000 000c      	orib #12,%d0
-  13fbce:	ccc0           	muluw %d0,%d6
-  13fbd0:	0cc0           	.short 0x0cc0
-  13fbd2:	1810           	moveb %a0@,%d4
-  13fbd4:	cc01           	andb %d1,%d6
-  13fbd6:	8588           	.short 0x8588
-  13fbd8:	0000 1888      	orib #-120,%d0
-  13fbdc:	0000 0001      	orib #1,%d0
+  13fbca:	0000 0008      	orib #8,%d0
+  13fbce:	8880           	orl %d0,%d4
+  13fbd0:	088c           	.short 0x088c
+  13fbd2:	9290           	subl %a0@,%d1
+  13fbd4:	8809           	.short 0x8809
+  13fbd6:	2d22           	movel %a2@-,%fp@-
+  13fbd8:	0000 9222      	orib #34,%d0
+  13fbdc:	0000 0009      	orib #9,%d0
 	...
-  13fc04:	000c           	.short 0x000c
-  13fc06:	0000 c000      	orib #0,%d0
-  13fc0a:	0000 0010      	orib #16,%d0
-  13fc0e:	0100           	btst %d0,%d0
-  13fc10:	0c00 0000      	cmpib #0,%d0
-  13fc14:	0001 1000      	orib #0,%d1
-  13fc18:	c8c1           	muluw %d1,%d4
-  13fc1a:	0000 cc00      	orib #0,%d0
+  13fc04:	0008           	.short 0x0008
+  13fc06:	0000 8000      	orib #0,%d0
+  13fc0a:	0000 0090      	orib #-112,%d0
+  13fc0e:	0900           	btst %d4,%d0
+  13fc10:	0800 0000      	btst #0,%d0
+  13fc14:	0009           	.short 0x0009
+  13fc16:	9000           	subb %d0,%d0
+  13fc18:	8289           	.short 0x8289
+  13fc1a:	0000 8800      	orib #0,%d0
 	...
-  13fc3e:	0000 0001      	orib #1,%d0
+  13fc3e:	0000 0009      	orib #9,%d0
   13fc42:	0000 0000      	orib #0,%d0
-  13fc46:	0000 0100      	orib #0,%d0
-  13fc4a:	00c0           	.short 0x00c0
-  13fc4c:	0010 0000      	orib #0,%a0@
-  13fc50:	0011 1000      	orib #0,%a1@
-  13fc54:	0000 1c11      	orib #17,%d0
-  13fc58:	0000 111c      	orib #28,%d0
-  13fc5c:	0000 0011      	orib #17,%d0
+  13fc46:	0000 0900      	orib #0,%d0
+  13fc4a:	0080 0090 0000 	oril #9437184,%d0
+  13fc50:	0099 9000 0000 	oril #-1879048192,%a1@+
+  13fc56:	9899           	subl %a1@+,%d4
+  13fc58:	0000 9998      	orib #-104,%d0
+  13fc5c:	0000 0099      	orib #-103,%d0
 	...
-  13fc80:	0000 0100      	orib #0,%d0
-  13fc84:	0000 0010      	orib #16,%d0
+  13fc80:	0000 0900      	orib #0,%d0
+  13fc84:	0000 0090      	orib #-112,%d0
   13fc88:	0000 0000      	orib #0,%d0
-  13fc8c:	0110           	btst %d0,%a0@
-  13fc8e:	0000 1111      	orib #17,%d0
-  13fc92:	1001           	moveb %d1,%d0
-  13fc94:	8888           	.short 0x8888
-  13fc96:	8818           	orb %a0@+,%d4
-  13fc98:	cc00           	andb %d0,%d6
-  13fc9a:	0001 1cc1      	orib #-63,%d1
-  13fc9e:	1000           	moveb %d0,%d0
-  13fca0:	0110           	btst %d0,%a0@
+  13fc8c:	0990           	bclr %d4,%a0@
+  13fc8e:	0000 9999      	orib #-103,%d0
+  13fc92:	9009           	.short 0x9009
+  13fc94:	2222           	movel %a2@-,%d1
+  13fc96:	2292           	movel %a2@,%a1@
+  13fc98:	88cc           	.short 0x88cc
+  13fc9a:	ccc9           	.short 0xccc9
+  13fc9c:	9889           	subl %a1,%d4
+  13fc9e:	9000           	subb %d0,%d0
+  13fca0:	0990           	bclr %d4,%a0@
 	...
-  13fcca:	0000 0100      	orib #0,%d0
-  13fcce:	0000 1cc0      	orib #-64,%d0
-  13fcd2:	0000 88c1      	orib #-63,%d0
-  13fcd6:	8888           	.short 0x8888
-  13fcd8:	0000 0008      	orib #8,%d0
-  13fcdc:	1100           	moveb %d0,%a0@-
-  13fcde:	00c5           	.short 0x00c5
+  13fcca:	0000 0900      	orib #0,%d0
+  13fcce:	0000 9880      	orib #-128,%d0
+  13fcd2:	0000 2289      	orib #-119,%d0
+  13fcd6:	2222           	movel %a2@-,%d1
+  13fcd8:	cccc           	.short 0xcccc
+  13fcda:	ccc2           	muluw %d2,%d6
+  13fcdc:	9900           	subxb %d0,%d4
+  13fcde:	008d           	.short 0x008d
 	...
-  13fd0c:	0000 00c1      	orib #-63,%d0
-  13fd10:	cc00           	andb %d0,%d6
-  13fd12:	00c1           	.short 0x00c1
-  13fd14:	88c8           	.short 0x88c8
-  13fd16:	88c1           	divuw %d1,%d4
-  13fd18:	5555           	subqw #2,%a5@
-  13fd1a:	5c16           	addqb #6,%fp@
-  13fd1c:	0000 0c10      	orib #16,%d0
-  13fd20:	0000 c100      	orib #0,%d0
+  13fd0c:	0000 0089      	orib #-119,%d0
+  13fd10:	8800           	orb %d0,%d4
+  13fd12:	0089           	.short 0x0089
+  13fd14:	2282           	movel %d2,%a1@
+  13fd16:	2289           	movel %a1,%a1@
+  13fd18:	dddd           	addal %a5@+,%fp
+  13fd1a:	d896           	addl %fp@,%d4
+  13fd1c:	0000 0890      	orib #-112,%d0
+  13fd20:	0000 8900      	orib #0,%d0
 	...
-  13fd94:	8888           	.short 0x8888
-  13fd96:	8888           	.short 0x8888
+  13fd94:	2222           	movel %a2@-,%d1
+  13fd96:	2222           	movel %a2@-,%d1
+  13fd98:	00cc           	.short 0x00cc
+  13fd9a:	cccc           	.short 0xcccc
 	...
-  13fdd4:	8888           	.short 0x8888
-  13fdd6:	8888           	.short 0x8888
-  13fdd8:	0000 0008      	orib #8,%d0
-  13fddc:	0000 0005      	orib #5,%d0
+  13fdd4:	2222           	movel %a2@-,%d1
+  13fdd6:	2222           	movel %a2@-,%d1
+  13fdd8:	cccc           	.short 0xcccc
+  13fdda:	ccc2           	muluw %d2,%d6
+  13fddc:	0000 000d      	orib #13,%d0
 	...
-  13fe0c:	0000 00c1      	orib #-63,%d0
-  13fe10:	0800 00c1      	btst #-63,%d0
-  13fe14:	8888           	.short 0x8888
-  13fe16:	88c1           	divuw %d1,%d4
-  13fe18:	5555           	subqw #2,%a5@
-  13fe1a:	5c16           	addqb #6,%fp@
-  13fe1c:	0000 0c10      	orib #16,%d0
-  13fe20:	0000 c100      	orib #0,%d0
+  13fe0c:	0000 0089      	orib #-119,%d0
+  13fe10:	0200 0089      	andib #-119,%d0
+  13fe14:	2222           	movel %a2@-,%d1
+  13fe16:	2289           	movel %a1,%a1@
+  13fe18:	dddd           	addal %a5@+,%fp
+  13fe1a:	d896           	addl %fp@,%d4
+  13fe1c:	0000 0890      	orib #-112,%d0
+  13fe20:	0000 8900      	orib #0,%d0
 	...
-  13fe94:	8888           	.short 0x8888
-  13fe96:	8888           	.short 0x8888
+  13fe94:	2222           	movel %a2@-,%d1
+  13fe96:	2222           	movel %a2@-,%d1
+  13fe98:	00cc           	.short 0x00cc
+  13fe9a:	cccc           	.short 0xcccc
 	...
-  13febc:	0000 0001      	orib #1,%d0
-  13fec0:	0000 0100      	orib #0,%d0
-  13fec4:	0000 0110      	orib #16,%d0
-  13fec8:	0000 0011      	orib #17,%d0
-  13fecc:	0000 1001      	orib #1,%d0
-  13fed0:	0000 001c      	orib #28,%d0
-  13fed4:	8888           	.short 0x8888
-  13fed6:	8888           	.short 0x8888
-  13fed8:	0000 0008      	orib #8,%d0
-  13fedc:	0000 0005      	orib #5,%d0
+  13febc:	0000 0009      	orib #9,%d0
+  13fec0:	0000 0900      	orib #0,%d0
+  13fec4:	0000 0990      	orib #-112,%d0
+  13fec8:	0000 0099      	orib #-103,%d0
+  13fecc:	0000 9009      	orib #9,%d0
+  13fed0:	0000 0098      	orib #-104,%d0
+  13fed4:	2222           	movel %a2@-,%d1
+  13fed6:	2222           	movel %a2@-,%d1
+  13fed8:	cccc           	.short 0xcccc
+  13feda:	ccc2           	muluw %d2,%d6
+  13fedc:	0000 000d      	orib #13,%d0
 	...
-  13ff00:	0100           	btst %d0,%d0
+  13ff00:	0900           	btst %d4,%d0
   13ff02:	0000 0000      	orib #0,%d0
-  13ff06:	0000 1110      	orib #16,%d0
-  13ff0a:	0000 cc11      	orib #17,%d0
-  13ff0e:	00c1           	.short 0x00c1
-  13ff10:	c8c1           	muluw %d1,%d4
-  13ff12:	00c1           	.short 0x00c1
-  13ff14:	8888           	.short 0x8888
-  13ff16:	88c1           	divuw %d1,%d4
-  13ff18:	5555           	subqw #2,%a5@
-  13ff1a:	5c16           	addqb #6,%fp@
-  13ff1c:	1cc1           	moveb %d1,%fp@+
-  13ff1e:	0c10 0110      	cmpib #16,%a0@
-  13ff22:	c100           	abcd %d0,%d0
+  13ff06:	0000 9990      	orib #-112,%d0
+  13ff0a:	0000 8899      	orib #-103,%d0
+  13ff0e:	0089           	.short 0x0089
+  13ff10:	8289           	.short 0x8289
+  13ff12:	0089           	.short 0x0089
+  13ff14:	2222           	movel %a2@-,%d1
+  13ff16:	2289           	movel %a1,%a1@
+  13ff18:	dddd           	addal %a5@+,%fp
+  13ff1a:	d896           	addl %fp@,%d4
+  13ff1c:	9889           	subl %a1,%d4
+  13ff1e:	0890 0990      	bclr #-112,%a0@
+  13ff22:	8900           	sbcd %d0,%d4
 	...
-  13ff7c:	0000 0100      	orib #0,%d0
-  13ff80:	0000 0100      	orib #0,%d0
-  13ff84:	0000 0111      	orib #17,%d0
-  13ff88:	0000 001c      	orib #28,%d0
-  13ff8c:	0000 0011      	orib #17,%d0
-  13ff90:	0000 0001      	orib #1,%d0
-  13ff94:	8888           	.short 0x8888
-  13ff96:	8888           	.short 0x8888
+  13ff7c:	0000 0900      	orib #0,%d0
+  13ff80:	0000 0900      	orib #0,%d0
+  13ff84:	0000 0999      	orib #-103,%d0
+  13ff88:	0000 0098      	orib #-104,%d0
+  13ff8c:	0000 0099      	orib #-103,%d0
+  13ff90:	0000 0009      	orib #9,%d0
+  13ff94:	2222           	movel %a2@-,%d1
+  13ff96:	2222           	movel %a2@-,%d1
+  13ff98:	00cc           	.short 0x00cc
+  13ff9a:	cccc           	.short 0xcccc
 	...
-  13ffbc:	1010           	moveb %a0@,%d0
-  13ffbe:	0000 0001      	orib #1,%d0
-  13ffc2:	1000           	moveb %d0,%d0
-  13ffc4:	0001 1110      	orib #16,%d1
-  13ffc8:	1011           	moveb %a1@,%d0
-  13ffca:	1c11           	moveb %a1@,%d6
-  13ffcc:	c11c           	andb %d0,%a4@+
-  13ffce:	cc11           	andb %a1@,%d6
-  13ffd0:	1c11           	moveb %a1@,%d6
-  13ffd2:	ccc1           	muluw %d1,%d6
-  13ffd4:	8188           	.short 0x8188
-  13ffd6:	8881           	orl %d1,%d4
-  13ffd8:	0011 0008      	orib #8,%a1@
-  13ffdc:	0111           	btst %d0,%a1@
-  13ffde:	1015           	moveb %a5@,%d0
-  13ffe0:	0001 0000      	orib #0,%d1
+  13ffbc:	9090           	subl %a0@,%d0
+  13ffbe:	0000 0009      	orib #9,%d0
+  13ffc2:	9000           	subb %d0,%d0
+  13ffc4:	0009           	.short 0x0009
+  13ffc6:	9990           	subl %d4,%a0@
+  13ffc8:	9099           	subl %a1@+,%d0
+  13ffca:	9899           	subl %a1@+,%d4
+  13ffcc:	8998           	orl %d4,%a0@+
+  13ffce:	8899           	orl %a1@+,%d4
+  13ffd0:	9899           	subl %a1@+,%d4
+  13ffd2:	8889           	.short 0x8889
+  13ffd4:	2922           	movel %a2@-,%a4@-
+  13ffd6:	2229 cc99      	movel %a1@(-13159),%d1
+  13ffda:	ccc2           	muluw %d2,%d6
+  13ffdc:	0999           	bclr %d4,%a1@+
+  13ffde:	909d           	subl %a5@+,%d0
+  13ffe0:	0009           	.short 0x0009
 	...
-  14000c:	0100           	btst %d0,%d0
-  14000e:	00c1           	.short 0x00c1
-  140010:	1810           	moveb %a0@,%d4
-  140012:	00c1           	.short 0x00c1
-  140014:	1888           	.short 0x1888
-  140016:	88c1           	divuw %d1,%d4
-  140018:	1555 5c16      	moveb %a5@,%a2@(23574)
-  14001c:	0100           	btst %d0,%d0
-  14001e:	0c10 0000      	cmpib #0,%a0@
-  140022:	c100           	abcd %d0,%d0
+  14000a:	0000 0900      	orib #0,%d0
+  14000e:	0089           	.short 0x0089
+  140010:	9290           	subl %a0@,%d1
+  140012:	0089           	.short 0x0089
+  140014:	9222           	subb %a2@-,%d1
+  140016:	2289           	movel %a1,%a1@
+  140018:	9ddd           	subal %a5@+,%fp
+  14001a:	d896           	addl %fp@,%d4
+  14001c:	0900           	btst %d4,%d0
+  14001e:	0890 0000      	bclr #0,%a0@
+  140022:	8900           	sbcd %d0,%d4
 	...
-  140040:	0001 0001      	orib #1,%d1
+  140040:	0009           	.short 0x0009
+  140042:	0009           	.short 0x0009
   140044:	0000 0000      	orib #0,%d0
-  140048:	0010 0010      	orib #16,%a0@
-  14004c:	0010 0000      	orib #0,%a0@
-  140050:	0001 1100      	orib #0,%d1
-  140054:	0000 1c11      	orib #17,%d0
-  140058:	0000 001c      	orib #28,%d0
-  14005c:	0000 0001      	orib #1,%d0
+  140048:	0090 0090 0090 	oril #9437328,%a0@
+  14004e:	0000 0009      	orib #9,%d0
+  140052:	9900           	subxb %d0,%d4
+  140054:	0000 9899      	orib #-103,%d0
+  140058:	0000 0098      	orib #-104,%d0
+  14005c:	0000 0009      	orib #9,%d0
 	...
-  140084:	1000           	moveb %d0,%d0
+  140084:	9000           	subb %d0,%d0
   140086:	0000 0000      	orib #0,%d0
-  14008a:	1000           	moveb %d0,%d0
-  14008c:	0110           	btst %d0,%a0@
-  14008e:	0000 1111      	orib #17,%d0
-  140092:	1001           	moveb %d1,%d0
-  140094:	8888           	.short 0x8888
-  140096:	881c           	orb %a4@+,%d4
-  140098:	cc00           	andb %d0,%d6
-  14009a:	0001 1cc1      	orib #-63,%d1
-  14009e:	1000           	moveb %d0,%d0
-  1400a0:	0110           	btst %d0,%a0@
+  14008a:	9000           	subb %d0,%d0
+  14008c:	0990           	bclr %d4,%a0@
+  14008e:	0000 9999      	orib #-103,%d0
+  140092:	9009           	.short 0x9009
+  140094:	2222           	movel %a2@-,%d1
+  140096:	2298           	movel %a0@+,%a1@
+  140098:	88cc           	.short 0x88cc
+  14009a:	ccc9           	.short 0xccc9
+  14009c:	9889           	subl %a1,%d4
+  14009e:	9000           	subb %d0,%d0
+  1400a0:	0990           	bclr %d4,%a0@
 	...
-  1400ce:	0000 c000      	orib #0,%d0
-  1400d2:	0000 8888      	orib #-120,%d0
-  1400d6:	8888           	.short 0x8888
-  1400d8:	c000           	andb %d0,%d0
-  1400da:	0008           	.short 0x0008
-  1400dc:	1100           	moveb %d0,%a0@-
-  1400de:	0005 0000      	orib #0,%d5
+  1400ce:	0000 8000      	orib #0,%d0
+  1400d2:	0000 2222      	orib #34,%d0
+  1400d6:	2222           	movel %a2@-,%d1
+  1400d8:	8ccc           	.short 0x8ccc
+  1400da:	ccc2           	muluw %d2,%d6
+  1400dc:	9900           	subxb %d0,%d4
+  1400de:	000d           	.short 0x000d
 	...
-  14010e:	00c1           	.short 0x00c1
-  140110:	0800 00c1      	btst #-63,%d0
-  140114:	8888           	.short 0x8888
-  140116:	88c1           	divuw %d1,%d4
-  140118:	5555           	subqw #2,%a5@
-  14011a:	5c16           	addqb #6,%fp@
-  14011c:	0000 1c10      	orib #16,%d0
-  140120:	0000 c100      	orib #0,%d0
+  14010c:	0000 0089      	orib #-119,%d0
+  140110:	0200 0089      	andib #-119,%d0
+  140114:	2222           	movel %a2@-,%d1
+  140116:	2289           	movel %a1,%a1@
+  140118:	dddd           	addal %a5@+,%fp
+  14011a:	d896           	addl %fp@,%d4
+  14011c:	0000 9890      	orib #-112,%d0
+  140120:	0000 8900      	orib #0,%d0
 	...
-  140144:	0000 8008      	orib #8,%d0
-  140148:	0008           	.short 0x0008
-  14014a:	0000 0008      	orib #8,%d0
-  14014e:	0500           	btst %d2,%d0
-  140150:	0080 5770 0080 	oril #1466957952,%d0
-  140156:	5770 0080      	subqw #3,%a0@(ffffffffffffff80,%d0:w)
-  14015a:	5770 0008      	subqw #3,%a0@(8,%d0:w)
-  14015e:	0500           	btst %d2,%d0
-  140160:	0008           	.short 0x0008
-  140162:	0000 0000      	orib #0,%d0
-  140166:	8000           	orb %d0,%d0
+  140144:	0000 2002      	orib #2,%d0
+  140148:	0002 c000      	orib #0,%d2
+  14014c:	0002 cd00      	orib #0,%d2
+  140150:	002c d11c 002c 	orib #28,%a4@(44)
+  140156:	d11c           	addb %d0,%a4@+
+  140158:	002c d11c 0002 	orib #28,%a4@(2)
+  14015e:	cd00           	abcd %d0,%d6
+  140160:	0002 c000      	orib #0,%d2
+  140164:	0000 2000      	orib #0,%d0
 	...
-  14017c:	8000           	orb %d0,%d0
-  14017e:	0000 8000      	orib #0,%d0
-  140182:	0000 8000      	orib #0,%d0
-  140186:	8000           	orb %d0,%d0
-  140188:	8000           	orb %d0,%d0
-  14018a:	0800 0005      	btst #5,%d0
-  14018e:	0800 7777      	btst #119,%d0
-  140192:	5080           	addql #8,%d0
-  140194:	7777           	.short 0x7777
-  140196:	5080           	addql #8,%d0
-  140198:	7777           	.short 0x7777
-  14019a:	5080           	addql #8,%d0
-  14019c:	b005           	cmpb %d5,%d0
-  14019e:	0800 b000      	btst #0,%d0
-  1401a2:	0800 d000      	btst #0,%d0
-  1401a6:	8000           	orb %d0,%d0
-  1401a8:	3dd0           	.short 0x3dd0
-  1401aa:	0000 30de      	orib #-34,%d0
-  1401ae:	d000           	addb %d0,%d0
-  1401b0:	300e           	movew %fp,%d0
-  1401b2:	0d00           	btst %d6,%d0
-  1401b4:	300d           	movew %a5,%d0
-  1401b6:	00d0           	.short 0x00d0
-  1401b8:	300d           	movew %a5,%d0
+  14017c:	2000           	movel %d0,%d0
+  14017e:	0000 2000      	orib #0,%d0
+  140182:	0000 2c00      	orib #0,%d0
+  140186:	2000           	movel %d0,%d0
+  140188:	2000           	movel %d0,%d0
+  14018a:	c200           	andb %d0,%d1
+  14018c:	c00d           	.short 0xc00d
+  14018e:	c200           	andb %d0,%d1
+  140190:	1111           	moveb %a1@,%a0@-
+  140192:	dc20           	addb %a0@-,%d6
+  140194:	1111           	moveb %a1@,%a0@-
+  140196:	dc20           	addb %a0@-,%d6
+  140198:	1111           	moveb %a1@,%a0@-
+  14019a:	dc20           	addb %a0@-,%d6
+  14019c:	600d           	bras 0x1401ab
+  14019e:	c200           	andb %d0,%d1
+  1401a0:	6000 c200      	braw 0x13c3a2
+  1401a4:	a000           	.short 0xa000
+  1401a6:	2000           	movel %d0,%d0
+  1401a8:	faa0           	.short 0xfaa0
+  1401aa:	0000 f0ae      	orib #-82,%d0
+  1401ae:	a000           	.short 0xa000
+  1401b0:	f00e           	.short 0xf00e
+  1401b2:	0a00 f00a      	eorib #10,%d0
+  1401b6:	00a0 f00a 0000 	oril #-267780096,%a0@-
 	...
-  1401fa:	0000 b000      	orib #0,%d0
-  1401fe:	0000 3000      	orib #0,%d0
-  140202:	0000 d000      	orib #0,%d0
-  140206:	0000 3000      	orib #0,%d0
-  14020a:	0000 3000      	orib #0,%d0
-  14020e:	0000 d000      	orib #0,%d0
-  140212:	0000 d000      	orib #0,%d0
-  140216:	0000 3000      	orib #0,%d0
-  14021a:	0000 d000      	orib #0,%d0
-  14021e:	0000 3000      	orib #0,%d0
+  1401fc:	6000 0000      	braw 0x1401fe
+  140200:	f000           	.short 0xf000
+  140202:	0000 a000      	orib #0,%d0
+  140206:	0000 f000      	orib #0,%d0
+  14020a:	0000 f000      	orib #0,%d0
+  14020e:	0000 a000      	orib #0,%d0
+  140212:	0000 a000      	orib #0,%d0
+  140216:	0000 f000      	orib #0,%d0
+  14021a:	0000 a000      	orib #0,%d0
+  14021e:	0000 f000      	orib #0,%d0
 	...
-  14024a:	0003 0000      	orib #0,%d3
+  14024a:	000f           	.short 0x000f
 	...
-  14027a:	0000 00d0      	orib #-48,%d0
-  14027e:	0000 0300      	orib #0,%d0
-  140282:	0000 d000      	orib #0,%d0
+  14027c:	00a0 0000 0f00 	oril #3840,%a0@-
+  140282:	0000 a000      	orib #0,%d0
 	...
-  1402ea:	000b           	.short 0x000b
-  1402ec:	0000 0030      	orib #48,%d0
-  1402f0:	0000 0d00      	orib #0,%d0
-  1402f4:	0000 3000      	orib #0,%d0
-  1402f8:	000d           	.short 0x000d
+  1402ea:	0006 0000      	orib #0,%d6
+  1402ee:	00f0           	.short 0x00f0
+  1402f0:	0000 0a00      	orib #0,%d0
+  1402f4:	0000 f000      	orib #0,%d0
+  1402f8:	000a           	.short 0x000a
 	...
-  140306:	0000 d000      	orib #0,%d0
-  14030a:	0000 0d00      	orib #0,%d0
-  14030e:	0000 d0d0      	orib #-48,%d0
-  140312:	0b00           	btst %d5,%d0
-  140314:	0dd0           	bset %d6,%a0@
-  140316:	b000           	cmpb %d0,%d0
-  140318:	000d           	.short 0x000d
-  14031a:	0000 0030      	orib #48,%d0
-  14031e:	0000 0300      	orib #0,%d0
-  140322:	0000 3000      	orib #0,%d0
+  140306:	0000 a000      	orib #0,%d0
+  14030a:	0000 0a00      	orib #0,%d0
+  14030e:	0000 a0a0      	orib #-96,%d0
+  140312:	0600 0aa0      	addib #-96,%d0
+  140316:	6000 000a      	braw 0x140322
+  14031a:	0000 00f0      	orib #-16,%d0
+  14031e:	0000 0f00      	orib #0,%d0
+  140322:	0000 f000      	orib #0,%d0
 	...
-  14035a:	0008           	.short 0x0008
-  14035c:	0000 0080      	orib #-128,%d0
-  140360:	0000 0807      	orib #7,%d0
-  140364:	0000 8077      	orib #119,%d0
-  140368:	0000 0070      	orib #112,%d0
-  14036c:	0008           	.short 0x0008
-  14036e:	0057 0008      	oriw #8,%sp@
+  14035a:	0002 0000      	orib #0,%d2
+  14035e:	002c 0000 02c1 	orib #0,%a4@(705)
+  140364:	0000 2c11      	orib #17,%d0
+  140368:	0000 c01c      	orib #28,%d0
+  14036c:	0002 c0d1      	orib #-47,%d2
+  140370:	0002 0000      	orib #0,%d2
+  140374:	0000 0000      	orib #0,%d0
+  140378:	0000 0002      	orib #2,%d0
 	...
-  14037a:	0008           	.short 0x0008
+  140390:	0000 0200      	orib #0,%d0
+  140394:	020c           	.short 0x020c
+  140396:	2000           	movel %d0,%d0
+  140398:	cdcc           	.short 0xcdcc
+  14039a:	2000           	movel %d0,%d0
+  14039c:	00cc           	.short 0x00cc
+  14039e:	0020 1d00      	orib #0,%a0@-
+  1403a2:	0c20 c11c      	cmpib #28,%a0@-
+  1403a6:	dc20           	addb %a0@-,%d6
+  1403a8:	111d           	moveb %a5@+,%a0@-
+  1403aa:	c200           	andb %d0,%d1
+  1403ac:	11dc 2200      	moveb %a4@+,0x2200
+  1403b0:	cdc2           	mulsw %d2,%d6
+  1403b2:	2000           	movel %d0,%d0
+  1403b4:	cc22           	andb %a2@-,%d6
+  1403b6:	0000 2200      	orib #0,%d0
 	...
-  140390:	0000 0800      	orib #0,%d0
-  140394:	0800 8000      	btst #0,%d0
-  140398:	0500           	btst %d2,%d0
-  14039a:	8000           	orb %d0,%d0
-  14039c:	0000 0080      	orib #-128,%d0
-  1403a0:	7500           	.short 0x7500
-  1403a2:	0080 0770 5080 	oril #124801152,%d0
-  1403a8:	7775           	.short 0x7775
-  1403aa:	0800 7750      	btst #80,%d0
-  1403ae:	8800           	orb %d0,%d4
-  1403b0:	0508 8000      	movepw %a0@(-32768),%d2
-  1403b4:	0088           	.short 0x0088
-  1403b6:	0000 8800      	orib #0,%d0
+  1403da:	000f           	.short 0x000f
 	...
-  1403da:	0003 0000      	orib #0,%d3
+  140418:	afaa           	.short 0xafaa
+  14041a:	faf6           	.short 0xfaf6
 	...
-  140416:	0000 d3dd      	orib #-35,%d0
-  14041a:	3d3b 0000      	movew %pc@(0x14041c,%d0:w),%fp@-
+  140458:	ffff           	.short 0xffff
+  14045a:	ffff           	.short 0xffff
 	...
-  140456:	0000 3333      	orib #51,%d0
-  14045a:	3333 0000      	movew %a3@(0,%d0:w),%a1@-
+  140490:	a0a0           	.short 0xa0a0
+  140492:	0000 aa00      	orib #0,%d0
+  140496:	0000 af66      	orib #102,%d0
 	...
-  14048e:	0000 d0d0      	orib #-48,%d0
-  140492:	0000 dd00      	orib #0,%d0
-  140496:	0000 d3bb      	orib #-69,%d0
+  1404d2:	0c22 000c      	cmpib #12,%a2@-
+  1404d6:	cdd1           	mulsw %a1@,%d6
+  1404d8:	0000 01cc      	orib #-52,%d0
+  1404dc:	0000 0111      	orib #17,%d0
+  1404e0:	002c dddd 0000 	orib #-35,%a4@(0)
+  1404e6:	2222           	movel %a2@-,%d1
 	...
-  1404d2:	0088           	.short 0x0088
-  1404d4:	0000 0557      	orib #87,%d0
-  1404d8:	0000 0700      	orib #0,%d0
-  1404dc:	0000 0777      	orib #119,%d0
-  1404e0:	0080 5555 0000 	oril #1431633920,%d0
-  1404e6:	8888           	.short 0x8888
+  140510:	222c 0000      	movel %a4@(0),%d1
+  140514:	11dc 2000      	moveb %a4@+,0x2000
+  140518:	cc12           	andb %a2@,%d6
+  14051a:	2220           	movel %a0@-,%d1
+  14051c:	1ddc           	.short 0x1ddc
+  14051e:	cc00           	andb %d0,%d6
+  140520:	ddcc           	addal %a4,%fp
+  140522:	2000           	movel %d0,%d0
+  140524:	2220           	movel %a0@-,%d1
 	...
-  140510:	8880           	orl %d0,%d4
-  140512:	0000 7750      	orib #80,%d0
-  140516:	8000           	orb %d0,%d0
-  140518:	0078 8880 7550 	oriw #-30592,0x7550
-  14051e:	0000 5500      	orib #0,%d0
-  140522:	8000           	orb %d0,%d0
-  140524:	8880           	orl %d0,%d4
+  14054e:	0000 000f      	orib #15,%d0
+  140552:	f000           	.short 0xf000
+  140554:	0000 0ef0      	orib #-16,%d0
+  140558:	0000 000f      	orib #15,%d0
+  14055c:	0000 00c1      	orib #-63,%d0
+  140560:	0000 02d1      	orib #-47,%d0
+  140564:	0000 2ddc      	orib #-36,%d0
+  140568:	0000 0222      	orib #34,%d0
 	...
-  14054e:	0000 0003      	orib #3,%d0
-  140552:	3000           	movew %d0,%d0
-  140554:	0000 0e30      	orib #48,%d0
-  140558:	0000 0003      	orib #3,%d0
-  14055c:	0000 0007      	orib #7,%d0
-  140560:	0000 0857      	orib #87,%d0
-  140564:	0000 8550      	orib #80,%d0
-  140568:	0000 0888      	orib #-120,%d0
+  140590:	00aa 0000 0a00 	oril #2560,%a2@(0)
+  140596:	0000 
+  140598:	6ccc           	bges 0x140566
+  14059a:	0000 1ccd      	orib #-51,%d0
+  14059e:	22c0           	movel %d0,%a1@+
+  1405a0:	111c           	moveb %a4@+,%a0@-
+  1405a2:	1c2c c101      	moveb %a4@(-16127),%d6
+  1405a6:	20c0           	movel %d0,%a0@+
+  1405a8:	c20d           	.short 0xc20d
+  1405aa:	c200           	andb %d0,%d1
+  1405ac:	0000 d020      	orib #32,%d0
 	...
-  140590:	00dd           	.short 0x00dd
-  140592:	0000 0d00      	orib #0,%d0
-  140596:	0000 b000      	orib #0,%d0
-  14059a:	0000 7005      	orib #5,%d0
-  14059e:	8800           	orb %d0,%d4
-  1405a0:	7770           	.short 0x7770
-  1405a2:	7080           	moveq #-128,%d0
-  1405a4:	0707           	btst %d3,%d7
-  1405a6:	8000           	orb %d0,%d0
-  1405a8:	0805 0800      	btst #0,%d5
-  1405ac:	0000 5080      	orib #-128,%d0
+  1405d8:	0000 cc06      	orib #6,%d0
+  1405dc:	0c22 dcc1      	cmpib #-63,%a2@-
+  1405e0:	c2c1           	muluw %d1,%d1
+  1405e2:	c111           	andb %d0,%a1@
+  1405e4:	0c02 101c      	cmpib #28,%d2
+  1405e8:	002c d02c 020d 	orib #44,%a4@(525)
 	...
-  1405d8:	0000 000b      	orib #11,%d0
-  1405dc:	0088           	.short 0x0088
-  1405de:	5007           	addqb #8,%d7
-  1405e0:	0807 0777      	btst #119,%d7
-  1405e4:	0008           	.short 0x0008
-  1405e6:	7070           	moveq #112,%d0
-  1405e8:	0080 5080 0805 	oril #1350567941,%d0
+  14060e:	f000           	.short 0xf000
+  140610:	000f           	.short 0x000f
+  140612:	0000 0fe0      	orib #-32,%d0
+  140616:	0000 fa00      	orib #0,%d0
+  14061a:	0000 1caa      	orib #-86,%d0
+  14061e:	a000           	.short 0xa000
+  140620:	1d20           	moveb %a0@-,%fp@-
+  140622:	0000 cdd2      	orib #-46,%d0
+  140626:	0000 2220      	orib #32,%d0
 	...
-  14060e:	3000           	movew %d0,%d0
-  140610:	0003 0000      	orib #0,%d3
-  140614:	03e0           	bset %d1,%a0@-
-  140616:	0000 3d00      	orib #0,%d0
-  14061a:	0000 70dd      	orib #-35,%d0
-  14061e:	d000           	addb %d0,%d0
-  140620:	7580           	.short 0x7580
-  140622:	0000 0558      	orib #88,%d0
-  140626:	0000 8880      	orib #-128,%d0
+  14064e:	c222           	andb %a2@-,%d1
+  140650:	00cc           	.short 0x00cc
+  140652:	dddd           	addal %a5@+,%fp
+  140654:	2222           	movel %a2@-,%d1
+  140656:	c111           	andb %d0,%a1@
+  140658:	0000 0ccc      	orib #-52,%d0
+  14065c:	0ccc           	.short 0x0ccc
+  14065e:	dddd           	addal %a5@+,%fp
+  140660:	00cc           	.short 0x00cc
+  140662:	22c2           	movel %d2,%a1@+
 	...
-  14064e:	0888           	.short 0x0888
-  140650:	0000 5555      	orib #85,%d0
-  140654:	8888           	.short 0x8888
-  140656:	0777 0000      	bchg %d3,%sp@(0,%d0:w)
-  14065a:	0000 0000      	orib #0,%d0
-  14065e:	5555           	subqw #2,%a5@
-  140660:	0000 8808      	orib #8,%d0
+  14068c:	c000           	andb %d0,%d0
+  14068e:	0000 dcc0      	orib #-64,%d0
+  140692:	0000 66af      	orib #-81,%d0
+  140696:	ffff           	.short 0xffff
+  140698:	000a           	.short 0x000a
+  14069a:	0000 dccc      	orib #-52,%d0
+  14069e:	aa00           	.short 0xaa00
+  1406a0:	cc00           	andb %d0,%d6
+  1406a2:	a0aa           	.short 0xa0aa
+  1406a4:	0000 0a00      	orib #0,%d0
+  1406a8:	0000 00a0      	orib #-96,%d0
+  1406ac:	0000 00a0      	orib #-96,%d0
+  1406b0:	0000 00a0      	orib #-96,%d0
 	...
-  140690:	5000           	addqb #8,%d0
-  140692:	0000 bbd3      	orib #-45,%d0
-  140696:	3333 000d      	movew %a3@(d,%d0:w),%a1@-
-  14069a:	0000 5000      	orib #0,%d0
-  14069e:	dd00           	addxb %d0,%d6
-  1406a0:	0000 d0dd      	orib #-35,%d0
-  1406a4:	0000 0d00      	orib #0,%d0
-  1406a8:	0000 00d0      	orib #-48,%d0
-  1406ac:	0000 00d0      	orib #-48,%d0
-  1406b0:	0000 00d0      	orib #-48,%d0
+  1406d4:	ffff           	.short 0xffff
+  1406d6:	7fef           	.short 0x7fef
 	...
-  1406d4:	3333 73e3 0000 	movew @(0)@(0),%a1@-
-  1406da:	0000 0000 
-  1406de:	0000 0000      	orib #0,%d0
-  1406e2:	0000 d000      	orib #0,%d0
-  1406e6:	0000 0d00      	orib #0,%d0
+  1406e4:	a000           	.short 0xa000
+  1406e6:	0000 0a00      	orib #0,%d0
 	...
-  140712:	0000 3ee3      	orib #-29,%d0
-  140716:	3e33 0000      	movew %a3@(0,%d0:w),%d7
-  14071a:	000b           	.short 0x000b
+  140712:	0000 feef      	orib #-17,%d0
+  140716:	feff           	.short 0xfeff
+  140718:	0000 0006      	orib #6,%d0
 	...
-  14076c:	0000 8077      	orib #119,%d0
-  140770:	0000 0755      	orib #85,%d0
-  140774:	0000 7559      	orib #89,%d0
-  140778:	0000 7598      	orib #-104,%d0
+  14076c:	0000 2011      	orib #17,%d0
+  140770:	0000 01dd      	orib #-35,%d0
+  140774:	0000 1ddc      	orib #-36,%d0
+  140778:	0000 1dc2      	orib #-62,%d0
 	...
-  1407a8:	8000           	orb %d0,%d0
-  1407aa:	0000 7770      	orib #112,%d0
-  1407ae:	8000           	orb %d0,%d0
-  1407b0:	5577 0000      	subqw #2,%sp@(0,%d0:w)
-  1407b4:	9557           	subw %d2,%sp@
-  1407b6:	7000           	moveq #0,%d0
-  1407b8:	8957           	orw %d4,%sp@
-  1407ba:	7000           	moveq #0,%d0
-  1407bc:	0008           	.short 0x0008
-  1407be:	7598           	.short 0x7598
-  1407c0:	0000 7559      	orib #89,%d0
-  1407c4:	0000 7755      	orib #85,%d0
-  1407c8:	0000 0777      	orib #119,%d0
-  1407cc:	0000 8077      	orib #119,%d0
+  1407a8:	2000           	movel %d0,%d0
+  1407aa:	0000 1110      	orib #16,%d0
+  1407ae:	2000           	movel %d0,%d0
+  1407b0:	dd11           	addb %d6,%a1@
+  1407b2:	0000 cdd1      	orib #-47,%d0
+  1407b6:	1000           	moveb %d0,%d0
+  1407b8:	2cd1           	movel %a1@,%fp@+
+  1407ba:	1000           	moveb %d0,%d0
+  1407bc:	0002 1dc2      	orib #-62,%d2
+  1407c0:	0000 1ddc      	orib #-36,%d0
+  1407c4:	0000 11dd      	orib #-35,%d0
+  1407c8:	0000 0111      	orib #17,%d0
+  1407cc:	0000 2011      	orib #17,%d0
 	...
-  1407fc:	8957           	orw %d4,%sp@
-  1407fe:	7900           	.short 0x7900
-  140800:	9557           	subw %d2,%sp@
-  140802:	7000           	moveq #0,%d0
-  140804:	5577 7000      	subqw #2,%sp@(0,%d7:w)
-  140808:	7777           	.short 0x7777
-  14080a:	0000 7770      	orib #112,%d0
-  14080e:	9000           	subb %d0,%d0
-  140810:	9000           	subb %d0,%d0
-  140812:	0000 9000      	orib #0,%d0
-  140816:	0000 6000      	orib #0,%d0
-  14081a:	0000 6000      	orib #0,%d0
-  14081e:	0000 6000      	orib #0,%d0
-  140822:	0000 2000      	orib #0,%d0
-  140826:	0000 6000      	orib #0,%d0
-  14082a:	0000 6000      	orib #0,%d0
-  14082e:	0000 6000      	orib #0,%d0
-  140832:	0000 6000      	orib #0,%d0
-  140836:	0000 6000      	orib #0,%d0
+  1407fc:	2cd1           	movel %a1@,%fp@+
+  1407fe:	1c00           	moveb %d0,%d6
+  140800:	cdd1           	mulsw %a1@,%d6
+  140802:	1000           	moveb %d0,%d0
+  140804:	dd11           	addb %d6,%a1@
+  140806:	1000           	moveb %d0,%d0
+  140808:	1111           	moveb %a1@,%a0@-
+  14080a:	0000 1110      	orib #16,%d0
+  14080e:	c000           	andb %d0,%d0
+  140810:	c000           	andb %d0,%d0
+  140812:	0000 c000      	orib #0,%d0
+  140816:	0000 f000      	orib #0,%d0
+  14081a:	0000 f000      	orib #0,%d0
+  14081e:	0000 f000      	orib #0,%d0
+  140822:	0000 6000      	orib #0,%d0
+  140826:	0000 f000      	orib #0,%d0
+  14082a:	0000 f000      	orib #0,%d0
+  14082e:	0000 f000      	orib #0,%d0
+  140832:	0000 f000      	orib #0,%d0
+  140836:	0000 f000      	orib #0,%d0
 	...
-  14087a:	0000 6000      	orib #0,%d0
-  14087e:	0000 6000      	orib #0,%d0
-  140882:	0000 2000      	orib #0,%d0
-  140886:	0000 6000      	orib #0,%d0
-  14088a:	0000 6000      	orib #0,%d0
-  14088e:	0000 2000      	orib #0,%d0
-  140892:	0000 2000      	orib #0,%d0
-  140896:	0000 6000      	orib #0,%d0
-  14089a:	0000 2000      	orib #0,%d0
-  14089e:	0000 6000      	orib #0,%d0
+  14087a:	0000 f000      	orib #0,%d0
+  14087e:	0000 f000      	orib #0,%d0
+  140882:	0000 6000      	orib #0,%d0
+  140886:	0000 f000      	orib #0,%d0
+  14088a:	0000 f000      	orib #0,%d0
+  14088e:	0000 6000      	orib #0,%d0
+  140892:	0000 6000      	orib #0,%d0
+  140896:	0000 f000      	orib #0,%d0
+  14089a:	0000 6000      	orib #0,%d0
+  14089e:	0000 f000      	orib #0,%d0
 	...
-  1408ca:	0006 0000      	orib #0,%d6
+  1408ca:	000f           	.short 0x000f
 	...
-  1408fa:	0000 0020      	orib #32,%d0
-  1408fe:	0000 0600      	orib #0,%d0
-  140902:	0000 2000      	orib #0,%d0
+  1408fc:	0060 0000      	oriw #0,%a0@-
+  140900:	0f00           	btst %d7,%d0
+  140902:	0000 6000      	orib #0,%d0
 	...
-  14094e:	0000 0009      	orib #9,%d0
-  140952:	7900           	.short 0x7900
-  140954:	0970 9000      	bchg %d4,%a0@(0,%a1:w)
-  140958:	5006           	addqb #8,%d6
-  14095a:	0000 0020      	orib #32,%d0
-  14095e:	0000 0600      	orib #0,%d0
-  140962:	0000 6000      	orib #0,%d0
+  14094e:	0000 000c      	orib #12,%d0
+  140952:	1c00           	moveb %d0,%d6
+  140954:	0c10 c000      	cmpib #0,%a0@
+  140958:	d00f           	.short 0xd00f
+  14095a:	0000 0060      	orib #96,%d0
+  14095e:	0000 0f00      	orib #0,%d0
+  140962:	0000 f000      	orib #0,%d0
 	...
-  1409d2:	0080 0080 7777 	oril #8419191,%d0
-  1409d8:	0007 5555      	orib #85,%d7
-  1409dc:	0075 5995 0075 	oriw #22933,%a5@(75,%d0:w)
-  1409e2:	9889           	subl %a1,%d4
-  1409e4:	0875 9889 0075 	bchg #-119,%a5@(75,%d0:w)
-  1409ea:	5995           	subql #4,%a5@
-  1409ec:	0077 5555 0007 	oriw #21845,%sp@(7,%d0:w)
-  1409f2:	7777           	.short 0x7777
-  1409f4:	0080 7777 0000 	oril #2004287488,%d0
-  1409fa:	0090 0000 0000 	oril #0,%a0@
+  1409d2:	0020 0020      	orib #32,%a0@-
+  1409d6:	1111           	moveb %a1@,%a0@-
+  1409d8:	0001 dddd      	orib #-35,%d1
+  1409dc:	001d dccd      	orib #-51,%a5@+
+  1409e0:	001d c22c      	orib #44,%a5@+
+  1409e4:	021d c22c      	andib #44,%a5@+
+  1409e8:	001d dccd      	orib #-51,%a5@+
+  1409ec:	0011 dddd      	orib #-35,%a1@
+  1409f0:	0001 1111      	orib #17,%d1
+  1409f4:	0020 1111      	orib #17,%a0@-
+  1409f8:	0000 00c0      	orib #-64,%d0
 	...
-  140a14:	7080           	moveq #-128,%d0
-  140a16:	0000 7700      	orib #0,%d0
-  140a1a:	0007 5770      	orib #112,%d7
-  140a1e:	0970 5770 7500 	bchg %d4,%a0@(75005779)
-  140a24:	5779 
-  140a26:	0000 5770      	orib #112,%d0
-  140a2a:	0006 7770      	orib #112,%d6
-  140a2e:	0060 7700      	oriw #30464,%a0@-
-  140a32:	0200 7090      	andib #-112,%d0
-  140a36:	6000 0002      	braw 0x140a3a
+  140a14:	1020           	moveb %a0@-,%d0
+  140a16:	0000 1100      	orib #0,%d0
+  140a1a:	0001 d110      	orib #16,%d1
+  140a1e:	0c10 d110      	cmpib #16,%a0@
+  140a22:	1d00           	moveb %d0,%fp@-
+  140a24:	d11c           	addb %d0,%a4@+
+  140a26:	0000 d110      	orib #16,%d0
+  140a2a:	000f           	.short 0x000f
+  140a2c:	1110           	moveb %a0@,%a0@-
+  140a2e:	00f0           	.short 0x00f0
+  140a30:	1100           	moveb %d0,%a0@-
+  140a32:	0600 10c0      	addib #-64,%d0
+  140a36:	f000           	.short 0xf000
+  140a38:	0006 0000      	orib #0,%d6
 	...
-  140a5e:	0002 0000      	orib #0,%d2
+  140a5c:	0000 0006      	orib #6,%d0
 	...
-  140a9a:	0000 6226      	orib #38,%d0
-  140a9e:	6266           	bhis 0x140b06
+  140a9c:	f66f           	.short 0xf66f
+  140a9e:	f6ff           	.short 0xf6ff
 	...
-  140adc:	6666           	bnes 0x140b44
-  140ade:	6266           	bhis 0x140b46
+  140adc:	ffff           	.short 0xffff
+  140ade:	f6ff           	.short 0xf6ff
 	...
-  140afc:	0000 7090      	orib #-112,%d0
-  140b00:	0000 0700      	orib #0,%d0
-  140b04:	0000 5000      	orib #0,%d0
-  140b08:	0007 0900      	orib #0,%d7
-  140b0c:	0000 7000      	orib #0,%d0
-  140b10:	0005 0000      	orib #0,%d5
-  140b14:	0070 9000 0007 	oriw #-28672,%a0@(7,%d0:w)
-  140b1a:	0000 6990      	orib #-112,%d0
+  140afc:	0000 10c0      	orib #-64,%d0
+  140b00:	0000 0100      	orib #0,%d0
+  140b04:	0000 d000      	orib #0,%d0
+  140b08:	0001 0c00      	orib #0,%d1
+  140b0c:	0000 1000      	orib #0,%d0
+  140b10:	000d           	.short 0x000d
+  140b12:	0000 0010      	orib #16,%d0
+  140b16:	c000           	andb %d0,%d0
+  140b18:	0001 0000      	orib #0,%d1
+  140b1c:	fcc0           	.short 0xfcc0
 	...
-  140b4e:	0080 0080 7777 	oril #8419191,%d0
-  140b54:	0007 5555      	orib #85,%d7
-  140b58:	0075 5995 0075 	oriw #22933,%a5@(75,%d0:w)
-  140b5e:	9889           	subl %a1,%d4
-  140b60:	0875 9889 0075 	bchg #-119,%a5@(75,%d0:w)
-  140b66:	5995           	subql #4,%a5@
-  140b68:	0077 5555 0007 	oriw #21845,%sp@(7,%d0:w)
-  140b6e:	7777           	.short 0x7777
-  140b70:	0089           	.short 0x0089
-  140b72:	7777           	.short 0x7777
-  140b74:	0000 0090      	orib #-112,%d0
-  140b78:	0000 0500      	orib #0,%d0
+  140b4e:	0020 0020      	orib #32,%a0@-
+  140b52:	1111           	moveb %a1@,%a0@-
+  140b54:	0001 dddd      	orib #-35,%d1
+  140b58:	001d dccd      	orib #-51,%a5@+
+  140b5c:	001d c22c      	orib #44,%a5@+
+  140b60:	021d c22c      	andib #44,%a5@+
+  140b64:	001d dccd      	orib #-51,%a5@+
+  140b68:	0011 dddd      	orib #-35,%a1@
+  140b6c:	0001 1111      	orib #17,%d1
+  140b70:	002c 1111 0000 	orib #17,%a4@(0)
+  140b76:	00c0           	.short 0x00c0
+  140b78:	0000 0d00      	orib #0,%d0
 	...
-  140b90:	7080           	moveq #-128,%d0
-  140b92:	0000 7700      	orib #0,%d0
-  140b96:	0000 5770      	orib #112,%d0
-  140b9a:	0000 5770      	orib #112,%d0
-  140b9e:	0000 5779      	orib #121,%d0
-  140ba2:	0000 5770      	orib #112,%d0
-  140ba6:	0000 7770      	orib #112,%d0
-  140baa:	0000 7700      	orib #0,%d0
-  140bae:	0000 7990      	orib #-112,%d0
+  140b90:	1020           	moveb %a0@-,%d0
+  140b92:	0000 1100      	orib #0,%d0
+  140b96:	0000 d110      	orib #16,%d0
+  140b9a:	0000 d110      	orib #16,%d0
+  140b9e:	0000 d11c      	orib #28,%d0
+  140ba2:	0000 d110      	orib #16,%d0
+  140ba6:	0000 1110      	orib #16,%d0
+  140baa:	0000 1100      	orib #0,%d0
+  140bae:	0000 1cc0      	orib #-64,%d0
 	...
-  140bce:	0000 0006      	orib #6,%d0
-  140bd2:	6000 0000      	braw 0x140bd4
-  140bd6:	0260 0000      	andiw #0,%a0@-
-  140bda:	0006 0000      	orib #0,%d6
+  140bce:	0000 000f      	orib #15,%d0
+  140bd2:	f000           	.short 0xf000
+  140bd4:	0000 06f0      	orib #-16,%d0
+  140bd8:	0000 000f      	orib #15,%d0
 	...
-  140c16:	0000 2000      	orib #0,%d0
-  140c1a:	0000 0660      	orib #96,%d0
-  140c1e:	0000 0009      	orib #9,%d0
-  140c22:	9000           	subb %d0,%d0
-  140c24:	0000 0797      	orib #-105,%d0
-  140c28:	0000 0007      	orib #7,%d0
+  140c18:	6000 0000      	braw 0x140c1a
+  140c1c:	0ff0 0000      	bset %d7,%a0@(0,%d0:w)
+  140c20:	000c           	.short 0x000c
+  140c22:	c000           	andb %d0,%d0
+  140c24:	0000 01c1      	orib #-63,%d0
+  140c28:	0000 0001      	orib #1,%d0
 	...
-  140c50:	0000 0080      	orib #-128,%d0
-  140c54:	0080 7777 0007 	oril #2004287495,%d0
-  140c5a:	5555           	subqw #2,%a5@
-  140c5c:	0075 5995 0075 	oriw #22933,%a5@(75,%d0:w)
-  140c62:	9889           	subl %a1,%d4
-  140c64:	0875 9889 0075 	bchg #-119,%a5@(75,%d0:w)
-  140c6a:	5995           	subql #4,%a5@
-  140c6c:	0077 5555 0007 	oriw #21845,%sp@(7,%d0:w)
-  140c72:	7777           	.short 0x7777
-  140c74:	0080 7777 0000 	oril #2004287488,%d0
-  140c7a:	0090 0000 0000 	oril #0,%a0@
+  140c50:	0000 0020      	orib #32,%d0
+  140c54:	0020 1111      	orib #17,%a0@-
+  140c58:	0001 dddd      	orib #-35,%d1
+  140c5c:	001d dccd      	orib #-51,%a5@+
+  140c60:	001d c22c      	orib #44,%a5@+
+  140c64:	021d c22c      	andib #44,%a5@+
+  140c68:	001d dccd      	orib #-51,%a5@+
+  140c6c:	0011 dddd      	orib #-35,%a1@
+  140c70:	0001 1111      	orib #17,%d1
+  140c74:	0020 1111      	orib #17,%a0@-
+  140c78:	0000 00c0      	orib #-64,%d0
 	...
-  140c94:	7080           	moveq #-128,%d0
-  140c96:	0000 7700      	orib #0,%d0
-  140c9a:	0000 5770      	orib #112,%d0
-  140c9e:	0000 5770      	orib #112,%d0
-  140ca2:	0000 5779      	orib #121,%d0
-  140ca6:	0000 5770      	orib #112,%d0
-  140caa:	0000 7770      	orib #112,%d0
-  140cae:	0000 7700      	orib #0,%d0
-  140cb2:	0000 7090      	orib #-112,%d0
+  140c94:	1020           	moveb %a0@-,%d0
+  140c96:	0000 1100      	orib #0,%d0
+  140c9a:	0000 d110      	orib #16,%d0
+  140c9e:	0000 d110      	orib #16,%d0
+  140ca2:	0000 d11c      	orib #28,%d0
+  140ca6:	0000 d110      	orib #16,%d0
+  140caa:	0000 1110      	orib #16,%d0
+  140cae:	0000 1100      	orib #0,%d0
+  140cb2:	0000 10c0      	orib #-64,%d0
 	...
-  140cda:	0006 0000      	orib #0,%d6
-  140cde:	0060 0000      	oriw #0,%a0@-
-  140ce2:	9500           	subxb %d0,%d2
+  140cda:	000f           	.short 0x000f
+  140cdc:	0000 00f0      	orib #-16,%d0
+  140ce0:	0000 cd00      	orib #0,%d0
 	...
-  140d0c:	0000 6000      	orib #0,%d0
-  140d10:	0026 0000      	orib #0,%fp@-
-  140d14:	0600 0000      	addib #0,%d0
-  140d18:	2000           	movel %d0,%d0
+  140d0c:	0000 f000      	orib #0,%d0
+  140d10:	006f 0000 0f00 	oriw #0,%sp@(3840)
+  140d16:	0000 6000      	orib #0,%d0
 	...
-  140d52:	0080 0080 7777 	oril #8419191,%d0
-  140d58:	0007 5555      	orib #85,%d7
-  140d5c:	0075 5995 0075 	oriw #22933,%a5@(75,%d0:w)
-  140d62:	9889           	subl %a1,%d4
-  140d64:	0875 9889 0075 	bchg #-119,%a5@(75,%d0:w)
-  140d6a:	5995           	subql #4,%a5@
-  140d6c:	0077 5555 0007 	oriw #21845,%sp@(7,%d0:w)
-  140d72:	7777           	.short 0x7777
-  140d74:	0080 7777 0000 	oril #2004287488,%d0
-  140d7a:	0090 0000 0000 	oril #0,%a0@
-  140d80:	0000 0000      	orib #0,%d0
-  140d84:	0005 0000      	orib #0,%d5
-  140d88:	0007 0000      	orib #0,%d7
-  140d8c:	0090 0000 0500 	oril #1280,%a0@
-  140d92:	0000 7080      	orib #-128,%d0
-  140d96:	0000 7700      	orib #0,%d0
-  140d9a:	0000 5770      	orib #112,%d0
-  140d9e:	0000 5770      	orib #112,%d0
-  140da2:	0000 5779      	orib #121,%d0
-  140da6:	0000 5770      	orib #112,%d0
-  140daa:	0000 7770      	orib #112,%d0
-  140dae:	0000 7700      	orib #0,%d0
-  140db2:	0000 7090      	orib #-112,%d0
+  140d52:	0020 0020      	orib #32,%a0@-
+  140d56:	1111           	moveb %a1@,%a0@-
+  140d58:	0001 dddd      	orib #-35,%d1
+  140d5c:	001d dccd      	orib #-51,%a5@+
+  140d60:	001d c22c      	orib #44,%a5@+
+  140d64:	021d c22c      	andib #44,%a5@+
+  140d68:	001d dccd      	orib #-51,%a5@+
+  140d6c:	0011 dddd      	orib #-35,%a1@
+  140d70:	0001 1111      	orib #17,%d1
+  140d74:	0020 1111      	orib #17,%a0@-
+  140d78:	0000 00c0      	orib #-64,%d0
 	...
-  140dc2:	0800 0807      	btst #7,%d0
-  140dc6:	7777           	.short 0x7777
-  140dc8:	0075 5557 0755 	oriw #21847,%a5@(0)@(0)
-  140dce:	9955           	subw %d4,%a5@
-  140dd0:	0759           	bchg %d3,%a1@+
-  140dd2:	8895           	orl %a5@,%d4
-  140dd4:	8759           	orw %d3,%a1@+
-  140dd6:	8895           	orl %a5@,%d4
-  140dd8:	0755           	bchg %d3,%a5@
-  140dda:	9955           	subw %d4,%a5@
-  140ddc:	0775 5557 0077 	bchg %d3,%a5@(0)@(777777)
-  140de2:	7777 
-  140de4:	0807 7777      	btst #119,%d7
-  140de8:	0000 0900      	orib #0,%d0
+  140d84:	000d           	.short 0x000d
+  140d86:	0000 0001      	orib #1,%d0
+  140d8a:	0000 00c0      	orib #-64,%d0
+  140d8e:	0000 0d00      	orib #0,%d0
+  140d92:	0000 1020      	orib #32,%d0
+  140d96:	0000 1100      	orib #0,%d0
+  140d9a:	0000 d110      	orib #16,%d0
+  140d9e:	0000 d110      	orib #16,%d0
+  140da2:	0000 d11c      	orib #28,%d0
+  140da6:	0000 d110      	orib #16,%d0
+  140daa:	0000 1110      	orib #16,%d0
+  140dae:	0000 1100      	orib #0,%d0
+  140db2:	0000 10c0      	orib #-64,%d0
 	...
-  140e04:	0800 0000      	btst #0,%d0
-  140e08:	7000           	moveq #0,%d0
-  140e0a:	0000 7700      	orib #0,%d0
-  140e0e:	0000 7770      	orib #112,%d0
-  140e12:	0900           	btst %d4,%d0
-  140e14:	7797           	.short 0x7797
-  140e16:	9075 7770 0700 	subw %a5@(7007700),%d0
-  140e1c:	7700 
-  140e1e:	0000 7000      	orib #0,%d0
-  140e22:	0000 0900      	orib #0,%d0
+  140dc2:	0200 0201      	andib #1,%d0
+  140dc6:	1111           	moveb %a1@,%a0@-
+  140dc8:	001d ddd1      	orib #-47,%a5@+
+  140dcc:	01dd           	bset %d0,%a5@+
+  140dce:	ccdd           	muluw %a5@+,%d6
+  140dd0:	01dc           	bset %d0,%a4@+
+  140dd2:	22cd           	movel %a5,%a1@+
+  140dd4:	21dc 22cd      	movel %a4@+,0x22cd
+  140dd8:	01dd           	bset %d0,%a5@+
+  140dda:	ccdd           	muluw %a5@+,%d6
+  140ddc:	011d           	btst %d0,%a5@+
+  140dde:	ddd1           	addal %a1@,%fp
+  140de0:	0011 1111      	orib #17,%a1@
+  140de4:	0201 1111      	andib #17,%d1
+  140de8:	0000 0c00      	orib #0,%d0
 	...
-  140e4e:	0000 9009      	orib #9,%d0
-  140e52:	0090 0750 7507 	oril #122713351,%a0@
-  140e58:	7007           	moveq #7,%d0
-  140e5a:	0070 0000 0000 	oriw #0,%a0@(0,%d0:w)
+  140e04:	0200 0000      	andib #0,%d0
+  140e08:	1000           	moveb %d0,%d0
+  140e0a:	0000 1100      	orib #0,%d0
+  140e0e:	0000 1110      	orib #16,%d0
+  140e12:	0c00 11c1      	cmpib #-63,%d0
+  140e16:	c01d           	andb %a5@+,%d0
+  140e18:	1110           	moveb %a0@,%a0@-
+  140e1a:	0100           	btst %d0,%d0
+  140e1c:	1100           	moveb %d0,%a0@-
+  140e1e:	0000 1000      	orib #0,%d0
+  140e22:	0000 0c00      	orib #0,%d0
 	...
-  140e90:	0900           	btst %d4,%d0
-  140e92:	9009           	.short 0x9009
-  140e94:	5075 0750      	addqw #8,%a5@(0)
-  140e98:	0700           	btst %d3,%d0
-  140e9a:	7007           	moveq #7,%d0
+  140e4e:	0000 c00c      	orib #12,%d0
+  140e52:	00c0           	.short 0x00c0
+  140e54:	01d0           	bset %d0,%a0@
+  140e56:	1d01           	moveb %d1,%fp@-
+  140e58:	1001           	moveb %d1,%d0
+  140e5a:	0010 0000      	orib #0,%a0@
 	...
-  140ed0:	0090 0900 7507 	oril #151024903,%a0@
-  140ed6:	5075 0070      	addqw #8,%a5@(70,%d0:w)
-  140eda:	0700           	btst %d3,%d0
+  140e8e:	0000 0c00      	orib #0,%d0
+  140e92:	c00c           	.short 0xc00c
+  140e94:	d01d           	addb %a5@+,%d0
+  140e96:	01d0           	bset %d0,%a0@
+  140e98:	0100           	btst %d0,%d0
+  140e9a:	1001           	moveb %d1,%d0
 	...
-  140f10:	9000           	subb %d0,%d0
-  140f12:	0000 0799      	orib #-103,%d0
-  140f16:	6666           	bnes 0x140f7e
-  140f18:	7000           	moveq #0,%d0
+  140ed0:	00c0           	.short 0x00c0
+  140ed2:	0c00 1d01      	cmpib #1,%d0
+  140ed6:	d01d           	addb %a5@+,%d0
+  140ed8:	0010 0100      	orib #0,%a0@
 	...
-  140f52:	0000 6666      	orib #102,%d0
-  140f56:	2626           	movel %fp@-,%d3
+  140f10:	c000           	andb %d0,%d0
+  140f12:	0000 01cc      	orib #-52,%d0
+  140f16:	ffff           	.short 0xffff
+  140f18:	1000           	moveb %d0,%d0
 	...
-  140f94:	6226           	bhis 0x140fbc
-  140f96:	6266           	bhis 0x140ffe
-  140f98:	0000 0002      	orib #2,%d0
+  140f52:	0000 ffff      	orib #-1,%d0
+  140f56:	6f6f           	bles 0x140fc7
+	...
+  140f94:	f66f           	.short 0xf66f
+  140f96:	f6ff           	.short 0xf6ff
+  140f98:	0000 0006      	orib #6,%d0
 	...
   140fe4:	0077 1710 0711 	oriw #5904,%sp@(0,%d0:w:8)@(0)
   140fea:	7111           	.short 0x7111
@@ -360345,27 +360363,24 @@ Disassembly of section .data:
   152e92:	dddd           	addal %a5@+,%fp
   152e94:	baaa aaaa      	cmpl %a2@(-21846),%d5
 	...
-  152ed4:	0000 000c      	orib #12,%d0
-  152ed8:	0000 0008      	orib #8,%d0
-  152edc:	0000 00c1      	orib #-63,%d0
-  152ee0:	0000 000c      	orib #12,%d0
+  152ed4:	0000 0008      	orib #8,%d0
+  152ed8:	0000 0002      	orib #2,%d0
+  152edc:	0000 0089      	orib #-119,%d0
+  152ee0:	0000 0008      	orib #8,%d0
 	...
-  152f08:	00cc           	.short 0x00cc
-  152f0a:	c000           	andb %d0,%d0
-  152f0c:	cc01           	andb %d1,%d6
-  152f0e:	1cc0           	moveb %d0,%fp@+
-  152f10:	1c18           	moveb %a0@+,%d6
-  152f12:	81c0           	divsw %d0,%d0
-  152f14:	818c           	.short 0x818c
-  152f16:	1010           	moveb %a0@,%d0
-  152f18:	188c           	.short 0x188c
-  152f1a:	0001 0cc0      	orib #-64,%d1
-  152f1e:	1c00           	moveb %d0,%d6
+  152f08:	0088           	.short 0x0088
+  152f0a:	8000           	orb %d0,%d0
+  152f0c:	8809           	.short 0x8809
+  152f0e:	9880           	subl %d0,%d4
+  152f10:	9892           	subl %a2@,%d4
+  152f12:	2980 2928 9090 	movel %d0,%a4@(ffffffffffff9090,%d2:l)
+  152f18:	9228 0009      	subb %a0@(9),%d1
+  152f1c:	0880 9800      	bclr #0,%d0
   152f20:	0000 0000      	orib #0,%d0
-  152f24:	0c00 00c0      	cmpib #-64,%d0
-  152f28:	0001 0000      	orib #0,%d1
+  152f24:	0800 0080      	btst #-128,%d0
+  152f28:	0009           	.short 0x0009
 	...
-  152f4c:	0000 1111      	orib #17,%d0
+  152f4e:	1111           	moveb %a1@,%a0@-
   152f50:	0000 1000      	orib #0,%d0
   152f54:	0000 1000      	orib #0,%d0
   152f58:	0000 1000      	orib #0,%d0
@@ -445140,633 +445155,604 @@ Disassembly of section .data:
   19beb8:	ffff           	.short 0xffff
   19beba:	ffff           	.short 0xffff
 	...
-  19bee0:	000b           	.short 0x000b
-  19bee2:	6000 0000      	braw 0x19bee4
-  19bee6:	1000           	moveb %d0,%d0
+  19bee0:	0003 9000      	orib #0,%d3
+  19bee4:	0000 4000      	orib #0,%d0
 	...
-  19bef0:	0000 0110      	orib #16,%d0
-  19bef4:	0000 0b11      	orib #17,%d0
-  19bef8:	0000 0b11      	orib #17,%d0
+  19bef0:	0000 0440      	orib #64,%d0
+  19bef4:	0000 0344      	orib #68,%d0
+  19bef8:	0000 0344      	orib #68,%d0
 	...
-  19bf1c:	0000 0b60      	orib #96,%d0
-  19bf20:	0000 11b6      	orib #-74,%d0
-  19bf24:	0000 11b6      	orib #-74,%d0
-  19bf28:	0000 01b0      	orib #-80,%d0
-  19bf2c:	0000 0b60      	orib #96,%d0
-  19bf30:	0000 0b60      	orib #96,%d0
-  19bf34:	0000 0100      	orib #0,%d0
-  19bf38:	0000 0100      	orib #0,%d0
+  19bf1c:	0000 0390      	orib #-112,%d0
+  19bf20:	0000 4439      	orib #57,%d0
+  19bf24:	0000 4439      	orib #57,%d0
+  19bf28:	0000 0430      	orib #48,%d0
+  19bf2c:	0000 0390      	orib #-112,%d0
+  19bf30:	0000 0390      	orib #-112,%d0
+  19bf34:	0000 0400      	orib #0,%d0
+  19bf38:	0000 0400      	orib #0,%d0
 	...
-  19bf48:	0000 0001      	orib #1,%d0
-  19bf4c:	0000 0001      	orib #1,%d0
-  19bf50:	0000 0011      	orib #17,%d0
-  19bf54:	0000 0011      	orib #17,%d0
-  19bf58:	0000 001b      	orib #27,%d0
-  19bf5c:	0000 011b      	orib #27,%d0
-  19bf60:	0000 111b      	orib #27,%d0
-  19bf64:	0001 1b10      	orib #16,%d1
-  19bf68:	0011 bb60      	orib #96,%a1@
-  19bf6c:	0011 b110      	orib #16,%a1@
-  19bf70:	001b b600      	orib #0,%a3@+
-  19bf74:	011b           	btst %d0,%a3@+
-  19bf76:	1000           	moveb %d0,%d0
-  19bf78:	01b1 0000      	bclr %d0,%a1@(0,%d0:w)
-  19bf7c:	0000 0000      	orib #0,%d0
-  19bf80:	0001 6000      	orib #0,%d1
-  19bf84:	1111           	moveb %a1@,%a0@-
-  19bf86:	6000 11bb      	braw 0x19d143
-  19bf8a:	0000 11b6      	orib #-74,%d0
-  19bf8e:	0000 1b61      	orib #97,%d0
-  19bf92:	0000 b600      	orib #0,%d0
-  19bf96:	0000 b000      	orib #0,%d0
+  19bf48:	0000 0004      	orib #4,%d0
+  19bf4c:	0000 0004      	orib #4,%d0
+  19bf50:	0000 0044      	orib #68,%d0
+  19bf54:	0000 0044      	orib #68,%d0
+  19bf58:	0000 0043      	orib #67,%d0
+  19bf5c:	0000 0443      	orib #67,%d0
+  19bf60:	0000 4443      	orib #67,%d0
+  19bf64:	0004 4340      	orib #64,%d4
+  19bf68:	0044 3390      	oriw #13200,%d4
+  19bf6c:	0044 3440      	oriw #13376,%d4
+  19bf70:	0043 3900      	oriw #14592,%d3
+  19bf74:	0443 4000      	subiw #16384,%d3
+  19bf78:	0434 0000 0000 	subib #0,%a4@(0,%d0:w)
+  19bf7e:	0000 0004      	orib #4,%d0
+  19bf82:	9000           	subb %d0,%d0
+  19bf84:	4444           	negw %d4
+  19bf86:	9000           	subb %d0,%d0
+  19bf88:	4433 0000      	negb %a3@(0,%d0:w)
+  19bf8c:	4439 0000 4394 	negb 0x4394
+  19bf92:	0000 3900      	orib #0,%d0
+  19bf96:	0000 3000      	orib #0,%d0
 	...
-  19bfa2:	0000 0060      	orib #96,%d0
-  19bfa6:	0000 01b0      	orib #-80,%d0
-  19bfaa:	0000 1b00      	orib #0,%d0
-  19bfae:	0000 1000      	orib #0,%d0
+  19bfa2:	0000 0090      	orib #-112,%d0
+  19bfa6:	0000 0430      	orib #48,%d0
+  19bfaa:	0000 4300      	orib #0,%d0
+  19bfae:	0000 4000      	orib #0,%d0
 	...
-  19bfba:	0000 000b      	orib #11,%d0
-  19bfbe:	1000           	moveb %d0,%d0
-  19bfc0:	0000 0011      	orib #17,%d0
-  19bfc4:	0000 001b      	orib #27,%d0
-  19bfc8:	0000 000b      	orib #11,%d0
-  19bfcc:	0000 0001      	orib #1,%d0
+  19bfba:	0000 0003      	orib #3,%d0
+  19bfbe:	4000           	negxb %d0
+  19bfc0:	0000 0044      	orib #68,%d0
+  19bfc4:	0000 0043      	orib #67,%d0
+  19bfc8:	0000 0003      	orib #3,%d0
+  19bfcc:	0000 0004      	orib #4,%d0
 	...
-  19c000:	1000           	moveb %d0,%d0
-  19c002:	0000 b160      	orib #96,%d0
-  19c006:	0000 b110      	orib #16,%d0
-  19c00a:	0000 b116      	orib #22,%d0
-  19c00e:	0000 1b11      	orib #17,%d0
-  19c012:	6000 01b1      	braw 0x19c1c5
-  19c016:	1100           	moveb %d0,%a0@-
-  19c018:	001b b100      	orib #0,%a3@+
-  19c01c:	0001 b160      	orib #96,%d1
-  19c020:	0000 1b10      	orib #16,%d0
-  19c024:	0000 01b1      	orib #-79,%d0
-  19c028:	0000 00b1      	orib #-79,%d0
-  19c02c:	0000 001b      	orib #27,%d0
-  19c030:	0000 0001      	orib #1,%d0
-  19c034:	0000 0001      	orib #1,%d0
+  19c000:	4000           	negxb %d0
+  19c002:	0000 3490      	orib #-112,%d0
+  19c006:	0000 3440      	orib #64,%d0
+  19c00a:	0000 3449      	orib #73,%d0
+  19c00e:	0000 4344      	orib #68,%d0
+  19c012:	9000           	subb %d0,%d0
+  19c014:	0434 4400 0043 	subib #0,%a4@(43,%d0:w)
+  19c01a:	3400           	movew %d0,%d2
+  19c01c:	0004 3490      	orib #-112,%d4
+  19c020:	0000 4340      	orib #64,%d0
+  19c024:	0000 0434      	orib #52,%d0
+  19c028:	0000 0034      	orib #52,%d0
+  19c02c:	0000 0043      	orib #67,%d0
+  19c030:	0000 0004      	orib #4,%d0
+  19c034:	0000 0004      	orib #4,%d0
   19c038:	0000 0000      	orib #0,%d0
-  19c03c:	0000 001b      	orib #27,%d0
-  19c040:	01b0 0001      	bclr %d0,%a0@(1,%d0:w)
-  19c044:	001b 0001      	orib #1,%a3@+
-  19c048:	001b 000b      	orib #11,%a3@+
-  19c04c:	0001 100b      	orib #11,%d1
-  19c050:	0000 0001      	orib #1,%d0
+  19c03c:	0000 0043      	orib #67,%d0
+  19c040:	0430 0004 0043 	subib #4,%a0@(43,%d0:w)
+  19c046:	0004 0043      	orib #67,%d4
+  19c04a:	0003 0004      	orib #4,%d3
+  19c04e:	4003           	negxb %d3
+  19c050:	0000 0004      	orib #4,%d0
 	...
-  19c068:	1000           	moveb %d0,%d0
-  19c06a:	0000 1000      	orib #0,%d0
-  19c06e:	0010 1000      	orib #0,%a0@
-  19c072:	0010 1000      	orib #0,%a0@
-  19c076:	0001 0000      	orib #0,%d1
-  19c07a:	0001 6100      	orib #0,%d1
-  19c07e:	0010 1100      	orib #0,%a0@
-  19c082:	00b0 b100 0010 	oril #-1325400048,%a0@(0,%a3:w)
-  19c088:	b100 
-  19c08a:	0001 b100      	orib #0,%d1
-  19c08e:	0001 b110      	orib #16,%d1
-  19c092:	0001 1b11      	orib #17,%d1
-  19c096:	0000 0010      	orib #16,%d0
-  19c09a:	0010 0010      	orib #16,%a0@
-  19c09e:	0010 1011      	orib #17,%a0@
-  19c0a2:	0001 1001      	orib #1,%d1
-  19c0a6:	0000 1b00      	orib #0,%d0
-  19c0aa:	0600 0160      	addib #96,%d0
-  19c0ae:	b000           	cmpb %d0,%d0
-  19c0b0:	0116           	btst %d0,%fp@
-  19c0b2:	b000           	cmpb %d0,%d0
-  19c0b4:	00b1 1600 101b 	oril #369102875,%a1@(0)
-  19c0ba:	1b60 0000 
-  19c0be:	0011 0000      	orib #0,%a1@
-  19c0c2:	0010 0000      	orib #0,%a0@
-  19c0c6:	0110           	btst %d0,%a0@
-  19c0c8:	0000 0110      	orib #16,%d0
+  19c068:	4000           	negxb %d0
+  19c06a:	0000 4000      	orib #0,%d0
+  19c06e:	0040 4000      	oriw #16384,%d0
+  19c072:	0040 4000      	oriw #16384,%d0
+  19c076:	0004 0000      	orib #0,%d4
+  19c07a:	0004 9400      	orib #0,%d4
+  19c07e:	0040 4400      	oriw #17408,%d0
+  19c082:	0030 3400 0040 	orib #0,%a0@(40,%d0:w)
+  19c088:	3400           	movew %d0,%d2
+  19c08a:	0004 3400      	orib #0,%d4
+  19c08e:	0004 3440      	orib #64,%d4
+  19c092:	0004 4344      	orib #68,%d4
+  19c096:	0000 0040      	orib #64,%d0
+  19c09a:	0040 0040      	oriw #64,%d0
+  19c09e:	0040 4044      	oriw #16452,%d0
+  19c0a2:	0004 4004      	orib #4,%d4
+  19c0a6:	0000 4300      	orib #0,%d0
+  19c0aa:	0900           	btst %d4,%d0
+  19c0ac:	0490 3000 0449 	subil #805307465,%a0@
+  19c0b2:	3000           	movew %d0,%d0
+  19c0b4:	0034 4900 4043 	orib #0,%a4@(43,%d4:w)
+  19c0ba:	4390           	chkw %a0@,%d1
+  19c0bc:	0000 0044      	orib #68,%d0
+  19c0c0:	0000 0040      	orib #64,%d0
+  19c0c4:	0000 0440      	orib #64,%d0
+  19c0c8:	0000 0440      	orib #64,%d0
   19c0cc:	0000 0000      	orib #0,%d0
-  19c0d0:	0000 0100      	orib #0,%d0
+  19c0d0:	0000 0400      	orib #0,%d0
 	...
-  19c0dc:	0000 b600      	orib #0,%d0
-  19c0e0:	0001 1b60      	orib #96,%d1
-  19c0e4:	0011 b600      	orib #0,%a1@
-  19c0e8:	0011 6000      	orib #0,%a1@
-  19c0ec:	011b           	btst %d0,%a3@+
-  19c0ee:	6000 111b      	braw 0x19d20b
-  19c0f2:	0000 11b1      	orib #-79,%d0
-  19c0f6:	0000 01b0      	orib #-80,%d0
+  19c0dc:	0000 3900      	orib #0,%d0
+  19c0e0:	0004 4390      	orib #-112,%d4
+  19c0e4:	0044 3900      	oriw #14592,%d4
+  19c0e8:	0044 9000      	oriw #-28672,%d4
+  19c0ec:	0443 9000      	subiw #-28672,%d3
+  19c0f0:	4443           	negw %d3
+  19c0f2:	0000 4434      	orib #52,%d0
+  19c0f6:	0000 0430      	orib #48,%d0
 	...
-  19c102:	11b6 0001 1b1b 	moveb %fp@(1,%d0:w),%a0@(0,%d1:l:2)@(1b000)
-  19c108:	0001 b000 
-  19c10c:	001b b000      	orib #0,%a3@+
-  19c110:	0010 0000      	orib #0,%a0@
-  19c114:	01b0 0000      	bclr %d0,%a0@(0,%d0:w)
-  19c118:	0100           	btst %d0,%d0
+  19c102:	4439 0004 4343 	negb 0x44343
+  19c108:	0004 3000      	orib #0,%d4
+  19c10c:	0043 3000      	oriw #12288,%d3
+  19c110:	0040 0000      	oriw #0,%d0
+  19c114:	0430 0000 0400 	subib #0,%a0@(0,%d0:w:4)
 	...
-  19c132:	0066 0000      	oriw #0,%fp@-
-  19c136:	0bb1 0000      	bclr %d5,%a1@(0,%d0:w)
-  19c13a:	6b10           	bmis 0x19c14c
+  19c132:	0099 0000 0334 	oril #820,%a1@+
+  19c138:	0000 9340      	orib #64,%d0
 	...
-  19c180:	000b           	.short 0x000b
-  19c182:	6000 000b      	braw 0x19c18f
-  19c186:	b600           	cmpb %d0,%d3
-  19c188:	0001 1b10      	orib #16,%d1
-  19c18c:	0000 11b1      	orib #-79,%d0
-  19c190:	0000 00b1      	orib #-79,%d0
-  19c194:	0000 000b      	orib #11,%d0
+  19c180:	0003 9000      	orib #0,%d3
+  19c184:	0003 3900      	orib #0,%d3
+  19c188:	0004 4340      	orib #64,%d4
+  19c18c:	0000 4434      	orib #52,%d0
+  19c190:	0000 0034      	orib #52,%d0
+  19c194:	0000 0003      	orib #3,%d0
 	...
-  19c1bc:	0001 6600      	orib #0,%d1
-  19c1c0:	0001 b100      	orib #0,%d1
-  19c1c4:	0001 b160      	orib #96,%d1
-  19c1c8:	0000 bbb1      	orib #-79,%d0
-  19c1cc:	0000 1b1b      	orib #27,%d0
-  19c1d0:	0000 1b11      	orib #17,%d0
-  19c1d4:	1000           	moveb %d0,%d0
-  19c1d6:	01b1 1000      	bclr %d0,%a1@(0,%d1:w)
-  19c1da:	0011 0100      	orib #0,%a1@
-  19c1de:	0000 0100      	orib #0,%d0
-  19c1e2:	00bb           	.short 0x00bb
-  19c1e4:	0000 00bb      	orib #-69,%d0
+  19c1bc:	0004 9900      	orib #0,%d4
+  19c1c0:	0004 3400      	orib #0,%d4
+  19c1c4:	0004 3490      	orib #-112,%d4
+  19c1c8:	0000 3334      	orib #52,%d0
+  19c1cc:	0000 4343      	orib #67,%d0
+  19c1d0:	0000 4344      	orib #68,%d0
+  19c1d4:	4000           	negxb %d0
+  19c1d6:	0434 4000 0044 	subib #0,%a4@(44,%d0:w)
+  19c1dc:	0400 0000      	subib #0,%d0
+  19c1e0:	0400 0033      	subib #51,%d0
+  19c1e4:	0000 0033      	orib #51,%d0
 	...
-  19c1fc:	010b b160      	movepw %a3@(-20128),%d0
-  19c200:	011b           	btst %d0,%a3@+
-  19c202:	b160           	eorw %d0,%a0@-
-  19c204:	011b           	btst %d0,%a3@+
-  19c206:	1110           	moveb %a0@,%a0@-
-  19c208:	001b 1110      	orib #16,%a3@+
-  19c20c:	1011           	moveb %a1@,%d0
-  19c20e:	b160           	eorw %d0,%a0@-
-  19c210:	b01b           	cmpb %a3@+,%d0
-  19c212:	1b00           	moveb %d0,%a5@-
-  19c214:	101b           	moveb %a3@+,%d0
-  19c216:	1bb0 01bb 1110 	moveb @(11100111,%d0:w)@(1b01b6),%a5@(1b,%d0:w)
-  19c21c:	0111 001b 01b6 
-  19c222:	001b 
-  19c224:	01b1 6001      	bclr %d0,%a1@(1,%d6:w)
-  19c228:	b01b           	cmpb %a3@+,%d0
-  19c22a:	1000           	moveb %d0,%d0
-  19c22c:	0b01           	btst %d5,%d1
-  19c22e:	1100           	moveb %d0,%a0@-
-  19c230:	00b0 bb00 0000 	oril #-1157627904,@(b,%d0:w)@(0)
-  19c236:	01b1 0000 000b 
-  19c23c:	0011 b100      	orib #0,%a1@
-  19c240:	011b           	btst %d0,%a3@+
-  19c242:	1000           	moveb %d0,%d0
-  19c244:	11bb b000 11bb 	moveb %pc@(0x19c246,%a3:w),@(100001bb,%d1:w)@(100001b1)
-  19c24a:	1000 01bb 1000 
-  19c250:	01b1 
-  19c252:	0000 01b0      	orib #-80,%d0
-  19c256:	0000 0110      	orib #16,%d0
-  19c25a:	0001 bb10      	orib #16,%d1
-  19c25e:	0011 b100      	orib #0,%a1@
-  19c262:	0116           	btst %d0,%fp@
-  19c264:	1b00           	moveb %d0,%a5@-
-  19c266:	01b0 11b0 11b0 	bclr %d0,@(11b011bb,%d1:w)
-  19c26c:	11bb 
-  19c26e:	1b00           	moveb %d0,%a5@-
-  19c270:	011b           	btst %d0,%a3@+
-  19c272:	1000           	moveb %d0,%d0
-  19c274:	0bb1 0000      	bclr %d5,%a1@(0,%d0:w)
-  19c278:	b000           	cmpb %d0,%d0
+  19c1fc:	0403 3490      	subib #-112,%d3
+  19c200:	0443 3490      	subiw #13456,%d3
+  19c204:	0443 4440      	subiw #17472,%d3
+  19c208:	0043 4440      	oriw #17472,%d3
+  19c20c:	4044           	negxw %d4
+  19c20e:	3490           	movew %a0@,%a2@
+  19c210:	3043           	moveaw %d3,%a0
+  19c212:	4300           	.short 0x4300
+  19c214:	4043           	negxw %d3
+  19c216:	4330           	.short 0x4330
+  19c218:	0433 4440 0444 	subib #64,%a3@(44,%d0:w:4)
+  19c21e:	0043 0439      	oriw #1081,%d3
+  19c222:	0043 0434      	oriw #1076,%d3
+  19c226:	9004           	subb %d4,%d0
+  19c228:	3043           	moveaw %d3,%a0
+  19c22a:	4000           	negxb %d0
+  19c22c:	0304           	btst %d1,%d4
+  19c22e:	4400           	negb %d0
+  19c230:	0030 3300 0000 	orib #0,%a0@(0,%d0:w)
+  19c236:	0434 0000 0003 	subib #0,%a4@(3,%d0:w)
+  19c23c:	0044 3400      	oriw #13312,%d4
+  19c240:	0443 4000      	subiw #16384,%d3
+  19c244:	4433 3000      	negb %a3@(0,%d3:w)
+  19c248:	4433 4000      	negb %a3@(0,%d4:w)
+  19c24c:	0433 4000 0434 	subib #0,%a3@(34,%d0:w:4)
+  19c252:	0000 0430      	orib #48,%d0
+  19c256:	0000 0440      	orib #64,%d0
+  19c25a:	0004 3340      	orib #64,%d4
+  19c25e:	0044 3400      	oriw #13312,%d4
+  19c262:	0449           	.short 0x0449
+  19c264:	4300           	.short 0x4300
+  19c266:	0430 4430 4430 	subib #48,%a0@(30,%d4:w:4)
+  19c26c:	4433 4300      	negb %a3@(0,%d4:w:2)
+  19c270:	0443 4000      	subiw #16384,%d3
+  19c274:	0334 0000      	btst %d1,%a4@(0,%d0:w)
+  19c278:	3000           	movew %d0,%d0
   19c27a:	0000 0000      	orib #0,%d0
-  19c27e:	001b 0000      	orib #0,%a3@+
-  19c282:	01b0 0000      	bclr %d0,%a0@(0,%d0:w)
-  19c286:	1100           	moveb %d0,%a0@-
-  19c288:	0000 1000      	orib #0,%d0
+  19c27e:	0043 0000      	oriw #0,%d3
+  19c282:	0430 0000 4400 	subib #0,%a0@(0,%d4:w:4)
+  19c288:	0000 4000      	orib #0,%d0
   19c28c:	0000 0000      	orib #0,%d0
-  19c290:	0010 0000      	orib #0,%a0@
-  19c294:	01b0 0000      	bclr %d0,%a0@(0,%d0:w)
-  19c298:	1b00           	moveb %d0,%a5@-
-  19c29a:	0000 6000      	orib #0,%d0
+  19c290:	0040 0000      	oriw #0,%d0
+  19c294:	0430 0000 4300 	subib #0,%a0@(0,%d4:w:2)
+  19c29a:	0000 9000      	orib #0,%d0
 	...
-  19c2e2:	0000 00b0      	orib #-80,%d0
-  19c2e6:	0000 000b      	orib #11,%d0
-  19c2ea:	6000 0000      	braw 0x19c2ec
-  19c2ee:	b000           	cmpb %d0,%d0
-  19c2f0:	0000 0110      	orib #16,%d0
-  19c2f4:	0000 0011      	orib #17,%d0
-  19c2f8:	0000 000b      	orib #11,%d0
+  19c2e2:	0000 0030      	orib #48,%d0
+  19c2e6:	0000 0003      	orib #3,%d0
+  19c2ea:	9000           	subb %d0,%d0
+  19c2ec:	0000 3000      	orib #0,%d0
+  19c2f0:	0000 0440      	orib #64,%d0
+  19c2f4:	0000 0044      	orib #68,%d0
+  19c2f8:	0000 0003      	orib #3,%d0
 	...
-  19c338:	6000 0000      	braw 0x19c33a
+  19c338:	9000           	subb %d0,%d0
 	...
-  19c34c:	1600           	moveb %d0,%d3
-  19c34e:	0000 1100      	orib #0,%d0
-  19c352:	0000 0b10      	orib #16,%d0
-  19c356:	0000 0b10      	orib #16,%d0
-  19c35a:	0000 01b1      	orib #-79,%d0
-  19c35e:	0000 00b1      	orib #-79,%d0
-  19c362:	0000 00b6      	orib #-74,%d0
-  19c366:	1000           	moveb %d0,%d0
-  19c368:	001b 1000      	orib #0,%a3@+
-  19c36c:	0001 b000      	orib #0,%d1
-  19c370:	0001 b100      	orib #0,%d1
-  19c374:	0000 1110      	orib #16,%d0
-  19c378:	0000 1b10      	orib #16,%d0
+  19c34a:	0000 4900      	orib #0,%d0
+  19c34e:	0000 4400      	orib #0,%d0
+  19c352:	0000 0340      	orib #64,%d0
+  19c356:	0000 0340      	orib #64,%d0
+  19c35a:	0000 0434      	orib #52,%d0
+  19c35e:	0000 0034      	orib #52,%d0
+  19c362:	0000 0039      	orib #57,%d0
+  19c366:	4000           	negxb %d0
+  19c368:	0043 4000      	oriw #16384,%d3
+  19c36c:	0004 3000      	orib #0,%d4
+  19c370:	0004 3400      	orib #0,%d4
+  19c374:	0000 4440      	orib #64,%d0
+  19c378:	0000 4340      	orib #64,%d0
 	...
-  19c384:	0000 b000      	orib #0,%d0
-  19c388:	000b           	.short 0x000b
-  19c38a:	b600           	cmpb %d0,%d3
-  19c38c:	000b           	.short 0x000b
-  19c38e:	1b00           	moveb %d0,%a5@-
-  19c390:	0000 1b00      	orib #0,%d0
-  19c394:	0000 1100      	orib #0,%d0
-  19c398:	0000 1000      	orib #0,%d0
-  19c39c:	0000 1000      	orib #0,%d0
-  19c3a0:	0000 1000      	orib #0,%d0
-  19c3a4:	0000 1000      	orib #0,%d0
-  19c3a8:	0000 1000      	orib #0,%d0
+  19c384:	0000 3000      	orib #0,%d0
+  19c388:	0003 3900      	orib #0,%d3
+  19c38c:	0003 4300      	orib #0,%d3
+  19c390:	0000 4300      	orib #0,%d0
+  19c394:	0000 4400      	orib #0,%d0
+  19c398:	0000 4000      	orib #0,%d0
+  19c39c:	0000 4000      	orib #0,%d0
+  19c3a0:	0000 4000      	orib #0,%d0
+  19c3a4:	0000 4000      	orib #0,%d0
+  19c3a8:	0000 4000      	orib #0,%d0
   19c3ac:	0000 0000      	orib #0,%d0
-  19c3b0:	0000 1000      	orib #0,%d0
-  19c3b4:	0000 1000      	orib #0,%d0
-  19c3b8:	0000 0100      	orib #0,%d0
+  19c3b0:	0000 4000      	orib #0,%d0
+  19c3b4:	0000 4000      	orib #0,%d0
+  19c3b8:	0000 0400      	orib #0,%d0
 	...
-  19c3d8:	0000 0001      	orib #1,%d0
-  19c3dc:	0000 001b      	orib #27,%d0
-  19c3e0:	0000 011b      	orib #27,%d0
-  19c3e4:	0000 01b0      	orib #-80,%d0
-  19c3e8:	0000 1100      	orib #0,%d0
-  19c3ec:	0001 1000      	orib #0,%d1
-  19c3f0:	0011 1000      	orib #0,%a1@
-  19c3f4:	001b 0000      	orib #0,%a3@+
-  19c3f8:	0110           	btst %d0,%a0@
+  19c3d8:	0000 0004      	orib #4,%d0
+  19c3dc:	0000 0043      	orib #67,%d0
+  19c3e0:	0000 0443      	orib #67,%d0
+  19c3e4:	0000 0430      	orib #48,%d0
+  19c3e8:	0000 4400      	orib #0,%d0
+  19c3ec:	0004 4000      	orib #0,%d4
+  19c3f0:	0044 4000      	oriw #16384,%d4
+  19c3f4:	0043 0000      	oriw #0,%d3
+  19c3f8:	0440 0000      	subiw #0,%d0
 	...
-  19c406:	1000           	moveb %d0,%d0
-  19c408:	001b 0000      	orib #0,%a3@+
-  19c40c:	0016 0000      	orib #0,%fp@
-  19c410:	01b0 0000      	bclr %d0,%a0@(0,%d0:w)
-  19c414:	1600           	moveb %d0,%d3
-  19c416:	0000 b000      	orib #0,%d0
+  19c404:	0000 4000      	orib #0,%d0
+  19c408:	0043 0000      	oriw #0,%d3
+  19c40c:	0049           	.short 0x0049
+  19c40e:	0000 0430      	orib #48,%d0
+  19c412:	0000 4900      	orib #0,%d0
+  19c416:	0000 3000      	orib #0,%d0
 	...
-  19c422:	0000 0010      	orib #16,%d0
-  19c426:	0000 0110      	orib #16,%d0
-  19c42a:	0000 1100      	orib #0,%d0
-  19c42e:	0000 1000      	orib #0,%d0
+  19c422:	0000 0040      	orib #64,%d0
+  19c426:	0000 0440      	orib #64,%d0
+  19c42a:	0000 4400      	orib #0,%d0
+  19c42e:	0000 4000      	orib #0,%d0
 	...
-  19c43a:	0000 0b10      	orib #16,%d0
-  19c43e:	0000 1b10      	orib #16,%d0
-  19c442:	0000 1b16      	orib #22,%d0
-  19c446:	0000 0bb1      	orib #-79,%d0
-  19c44a:	0000 00b1      	orib #-79,%d0
-  19c44e:	1000           	moveb %d0,%d0
-  19c450:	000b           	.short 0x000b
-  19c452:	1100           	moveb %d0,%a0@-
-  19c454:	0000 b100      	orib #0,%d0
+  19c43a:	0000 0340      	orib #64,%d0
+  19c43e:	0000 4340      	orib #64,%d0
+  19c442:	0000 4349      	orib #73,%d0
+  19c446:	0000 0334      	orib #52,%d0
+  19c44a:	0000 0034      	orib #52,%d0
+  19c44e:	4000           	negxb %d0
+  19c450:	0003 4400      	orib #0,%d3
+  19c454:	0000 3400      	orib #0,%d0
   19c458:	0000 0000      	orib #0,%d0
-  19c45c:	0000 00b0      	orib #-80,%d0
-  19c460:	0001 0001      	orib #1,%d1
-  19c464:	0000 1001      	orib #1,%d0
-  19c468:	0000 0100      	orib #0,%d0
-  19c46c:	0000 0010      	orib #16,%d0
+  19c45c:	0000 0030      	orib #48,%d0
+  19c460:	0004 0004      	orib #4,%d4
+  19c464:	0000 4004      	orib #4,%d0
+  19c468:	0000 0400      	orib #0,%d0
+  19c46c:	0000 0040      	orib #64,%d0
 	...
-  19c480:	000b           	.short 0x000b
-  19c482:	1000           	moveb %d0,%d0
-  19c484:	0000 1100      	orib #0,%d0
-  19c488:	0000 1100      	orib #0,%d0
-  19c48c:	0000 0110      	orib #16,%d0
+  19c480:	0003 4000      	orib #0,%d3
+  19c484:	0000 4400      	orib #0,%d0
+  19c488:	0000 4400      	orib #0,%d0
+  19c48c:	0000 0440      	orib #64,%d0
 	...
-  19c4a4:	1000           	moveb %d0,%d0
-  19c4a6:	00b6 1000 00bb 	oril #268435643,%fp@(0,%d0:w)
-  19c4ac:	0100 
-  19c4ae:	00b1 0100 0011 	oril #16777233,%a1@(10,%d0:w)
-  19c4b4:	0010 
-  19c4b6:	0000 0000      	orib #0,%d0
-  19c4ba:	1100           	moveb %d0,%a0@-
-  19c4bc:	1111           	moveb %a1@,%a0@-
-  19c4be:	0000 01b1      	orib #-79,%d0
-  19c4c2:	0000 0111      	orib #17,%d0
-  19c4c6:	0000 0011      	orib #17,%d0
-  19c4ca:	0000 0011      	orib #17,%d0
-  19c4ce:	0000 0001      	orib #1,%d0
-  19c4d2:	1000           	moveb %d0,%d0
-  19c4d4:	0000 1000      	orib #0,%d0
-  19c4d8:	0000 1001      	orib #1,%d0
-  19c4dc:	0000 1001      	orib #1,%d0
-  19c4e0:	0110           	btst %d0,%a0@
-  19c4e2:	1101           	moveb %d1,%a0@-
-  19c4e4:	0110           	btst %d0,%a0@
-  19c4e6:	0101           	btst %d0,%d1
-  19c4e8:	0011 0001      	orib #1,%a1@
-  19c4ec:	b001           	cmpb %d1,%d0
-  19c4ee:	0000 b000      	orib #0,%d0
-  19c4f2:	1001           	moveb %d1,%d0
-  19c4f4:	1b01           	moveb %d1,%a5@-
-  19c4f6:	1000           	moveb %d0,%d0
-  19c4f8:	1111           	moveb %a1@,%a0@-
-  19c4fa:	1000           	moveb %d0,%d0
+  19c4a4:	4000           	negxb %d0
+  19c4a6:	0039 4000 0033 	orib #0,0x330400
+  19c4ac:	0400 
+  19c4ae:	0034 0400 0044 	orib #0,%a4@(44,%d0:w)
+  19c4b4:	0040 0000      	oriw #0,%d0
+  19c4b8:	0000 4400      	orib #0,%d0
+  19c4bc:	4444           	negw %d4
+  19c4be:	0000 0434      	orib #52,%d0
+  19c4c2:	0000 0444      	orib #68,%d0
+  19c4c6:	0000 0044      	orib #68,%d0
+  19c4ca:	0000 0044      	orib #68,%d0
+  19c4ce:	0000 0004      	orib #4,%d0
+  19c4d2:	4000           	negxb %d0
+  19c4d4:	0000 4000      	orib #0,%d0
+  19c4d8:	0000 4004      	orib #4,%d0
+  19c4dc:	0000 4004      	orib #4,%d0
+  19c4e0:	0440 4404      	subiw #17412,%d0
+  19c4e4:	0440 0404      	subiw #1028,%d0
+  19c4e8:	0044 0004      	oriw #4,%d4
+  19c4ec:	3004           	movew %d4,%d0
+  19c4ee:	0000 3000      	orib #0,%d0
+  19c4f2:	4004           	negxb %d4
+  19c4f4:	4304           	.short 0x4304
+  19c4f6:	4000           	negxb %d0
+  19c4f8:	4444           	negw %d4
+  19c4fa:	4000           	negxb %d0
   19c4fc:	0000 0000      	orib #0,%d0
-  19c500:	0100           	btst %d0,%d0
-  19c502:	0000 0000      	orib #0,%d0
-  19c506:	0000 0100      	orib #0,%d0
+  19c500:	0400 0000      	subib #0,%d0
+  19c504:	0000 0000      	orib #0,%d0
+  19c508:	0400 0000      	subib #0,%d0
 	...
-  19c512:	0000 6000      	orib #0,%d0
-  19c516:	0000 b000      	orib #0,%d0
-  19c51a:	0000 1000      	orib #0,%d0
+  19c514:	9000           	subb %d0,%d0
+  19c516:	0000 3000      	orib #0,%d0
+  19c51a:	0000 4000      	orib #0,%d0
   19c51e:	0000 0000      	orib #0,%d0
-  19c522:	0001 0000      	orib #0,%d1
-  19c526:	0061 0000      	oriw #0,%a1@-
-  19c52a:	bb11           	eorb %d5,%a1@
-  19c52c:	1001           	moveb %d1,%d0
-  19c52e:	b11b           	eorb %d0,%a3@+
-  19c530:	000b           	.short 0x000b
-  19c532:	111b           	moveb %a3@+,%a0@-
-  19c534:	0001 1110      	orib #16,%d1
-  19c538:	0000 1110      	orib #16,%d0
-  19c53c:	001b 0000      	orib #0,%a3@+
-  19c540:	0010 0000      	orib #0,%a0@
-  19c544:	0110           	btst %d0,%a0@
-  19c546:	0001 0110      	orib #16,%d1
-  19c54a:	0001 0000      	orib #0,%d1
-  19c54e:	0011 0100      	orib #0,%a1@
-  19c552:	0010 0000      	orib #0,%a0@
-  19c556:	0110           	btst %d0,%a0@
-  19c558:	0001 0100      	orib #0,%d1
-  19c55c:	1116           	moveb %fp@,%a0@-
-  19c55e:	0000 11b0      	orib #-80,%d0
-  19c562:	0000 1100      	orib #0,%d0
-  19c566:	0000 b000      	orib #0,%d0
-  19c56a:	0000 6000      	orib #0,%d0
-  19c56e:	0000 0001      	orib #1,%d0
-  19c572:	6000 0011      	braw 0x19c585
-  19c576:	b000           	cmpb %d0,%d0
-  19c578:	011b           	btst %d0,%a3@+
-  19c57a:	0000 0000      	orib #0,%d0
-  19c57e:	0000 1116      	orib #22,%d0
-  19c582:	0000 11bb      	orib #-69,%d0
-  19c586:	0000 1000      	orib #0,%d0
-  19c58a:	0000 1000      	orib #0,%d0
+  19c522:	0004 0000      	orib #0,%d4
+  19c526:	0094 0000 3344 	oril #13124,%a4@
+  19c52c:	4004           	negxb %d4
+  19c52e:	3443           	moveaw %d3,%a2
+  19c530:	0003 4443      	orib #67,%d3
+  19c534:	0004 4440      	orib #64,%d4
+  19c538:	0000 4440      	orib #64,%d0
+  19c53c:	0043 0000      	oriw #0,%d3
+  19c540:	0040 0000      	oriw #0,%d0
+  19c544:	0440 0004      	subiw #4,%d0
+  19c548:	0440 0004      	subiw #4,%d0
+  19c54c:	0000 0044      	orib #68,%d0
+  19c550:	0400 0040      	subib #64,%d0
+  19c554:	0000 0440      	orib #64,%d0
+  19c558:	0004 0400      	orib #0,%d4
+  19c55c:	4449           	.short 0x4449
+  19c55e:	0000 4430      	orib #48,%d0
+  19c562:	0000 4400      	orib #0,%d0
+  19c566:	0000 3000      	orib #0,%d0
+  19c56a:	0000 9000      	orib #0,%d0
+  19c56e:	0000 0004      	orib #4,%d0
+  19c572:	9000           	subb %d0,%d0
+  19c574:	0044 3000      	oriw #12288,%d4
+  19c578:	0443 0000      	subiw #0,%d3
+  19c57c:	0000 0000      	orib #0,%d0
+  19c580:	4449           	.short 0x4449
+  19c582:	0000 4433      	orib #51,%d0
+  19c586:	0000 4000      	orib #0,%d0
+  19c58a:	0000 4000      	orib #0,%d0
 	...
-  19c59a:	0016 0000      	orib #0,%fp@
-  19c59e:	01b0 0000      	bclr %d0,%a0@(0,%d0:w)
-  19c5a2:	11b0 0000 1100 	moveb %a0@(0,%d0:w),%a0@(0,%d1:w)
-  19c5a8:	0000 1100      	orib #0,%d0
-  19c5ac:	0000 1100      	orib #0,%d0
-  19c5b0:	0011 0000      	orib #0,%a1@
-  19c5b4:	0011 0000      	orib #0,%a1@
+  19c59a:	0049           	.short 0x0049
+  19c59c:	0000 0430      	orib #48,%d0
+  19c5a0:	0000 4430      	orib #48,%d0
+  19c5a4:	0000 4400      	orib #0,%d0
+  19c5a8:	0000 4400      	orib #0,%d0
+  19c5ac:	0000 4400      	orib #0,%d0
+  19c5b0:	0044 0000      	oriw #0,%d4
+  19c5b4:	0044 0000      	oriw #0,%d4
 	...
-  19c5c0:	b600           	cmpb %d0,%d3
-  19c5c2:	0100           	btst %d0,%d0
-  19c5c4:	b1b0 00b1      	eorl %d0,%a0@(ffffffffffffffb1,%d0:w)
-  19c5c8:	b111           	eorb %d0,%a1@
-  19c5ca:	000b           	.short 0x000b
-  19c5cc:	0111           	btst %d0,%a1@
-  19c5ce:	1000           	moveb %d0,%d0
-  19c5d0:	0001 1000      	orib #0,%d1
-  19c5d4:	0000 1100      	orib #0,%d0
-  19c5d8:	0000 0100      	orib #0,%d0
-  19c5dc:	0000 0010      	orib #16,%d0
-  19c5e0:	0000 0010      	orib #16,%d0
+  19c5c0:	3900           	movew %d0,%a4@-
+  19c5c2:	0400 3430      	subib #48,%d0
+  19c5c6:	0034 3444 0003 	orib #68,%a4@(3,%d0:w)
+  19c5cc:	0444 4000      	subiw #16384,%d4
+  19c5d0:	0004 4000      	orib #0,%d4
+  19c5d4:	0000 4400      	orib #0,%d0
+  19c5d8:	0000 0400      	orib #0,%d0
+  19c5dc:	0000 0040      	orib #64,%d0
+  19c5e0:	0000 0040      	orib #64,%d0
 	...
-  19c5fc:	b160           	eorw %d0,%a0@-
-  19c5fe:	0010 0bb0      	orib #-80,%a0@
-  19c602:	0011 00b1      	orib #-79,%a1@
-  19c606:	0011 100b      	orib #11,%a1@
-  19c60a:	1001           	moveb %d1,%d0
-  19c60c:	1101           	moveb %d1,%a0@-
-  19c60e:	1100           	moveb %d0,%a0@-
-  19c610:	0111           	btst %d0,%a1@
-  19c612:	1101           	moveb %d1,%a0@-
-  19c614:	0011 1101      	orib #1,%a1@
-  19c618:	0001 1016      	orib #22,%d1
-  19c61c:	0000 00bb      	orib #-69,%d0
-  19c620:	0b61           	bchg %d5,%a1@-
-  19c622:	10b1 01b1 10b1 	moveb @(10b1000b,%d0:w)@(0),%a0@
-  19c628:	000b 
-  19c62a:	110b           	.short 0x110b
-  19c62c:	0000 0010      	orib #16,%d0
-  19c630:	0000 0001      	orib #1,%d0
+  19c5fc:	3490           	movew %a0@,%a2@
+  19c5fe:	0040 0330      	oriw #816,%d0
+  19c602:	0044 0034      	oriw #52,%d4
+  19c606:	0044 4003      	oriw #16387,%d4
+  19c60a:	4004           	negxb %d4
+  19c60c:	4404           	negb %d4
+  19c60e:	4400           	negb %d0
+  19c610:	0444 4404      	subiw #17412,%d4
+  19c614:	0044 4404      	oriw #17412,%d4
+  19c618:	0004 4049      	orib #73,%d4
+  19c61c:	0000 0033      	orib #51,%d0
+  19c620:	0394           	bclr %d1,%a4@
+  19c622:	4034 0434      	negxb %a4@(34,%d0:w:4)
+  19c626:	4034 0003      	negxb %a4@(3,%d0:w)
+  19c62a:	4403           	negb %d3
+  19c62c:	0000 0040      	orib #64,%d0
+  19c630:	0000 0004      	orib #4,%d0
 	...
-  19c63c:	1000           	moveb %d0,%d0
+  19c63c:	4000           	negxb %d0
   19c63e:	0000 0000      	orib #0,%d0
-  19c642:	0000 1000      	orib #0,%d0
-  19c646:	1001           	moveb %d1,%d0
-  19c648:	1000           	moveb %d0,%d0
-  19c64a:	1001           	moveb %d1,%d0
-  19c64c:	1001           	moveb %d1,%d0
-  19c64e:	1000           	moveb %d0,%d0
-  19c650:	1000           	moveb %d0,%d0
-  19c652:	b000           	cmpb %d0,%d0
-  19c654:	0001 b600      	orib #0,%d1
-  19c658:	0001 1b00      	orib #0,%d1
-  19c65c:	1001           	moveb %d1,%d0
-  19c65e:	1b00           	moveb %d0,%a5@-
-  19c660:	1001           	moveb %d1,%d0
-  19c662:	1000           	moveb %d0,%d0
-  19c664:	1100           	moveb %d0,%a0@-
-  19c666:	1000           	moveb %d0,%d0
-  19c668:	1100           	moveb %d0,%a0@-
-  19c66a:	1000           	moveb %d0,%d0
-  19c66c:	1110           	moveb %a0@,%a0@-
+  19c642:	0000 4000      	orib #0,%d0
+  19c646:	4004           	negxb %d4
+  19c648:	4000           	negxb %d0
+  19c64a:	4004           	negxb %d4
+  19c64c:	4004           	negxb %d4
+  19c64e:	4000           	negxb %d0
+  19c650:	4000           	negxb %d0
+  19c652:	3000           	movew %d0,%d0
+  19c654:	0004 3900      	orib #0,%d4
+  19c658:	0004 4300      	orib #0,%d4
+  19c65c:	4004           	negxb %d4
+  19c65e:	4300           	.short 0x4300
+  19c660:	4004           	negxb %d4
+  19c662:	4000           	negxb %d0
+  19c664:	4400           	negb %d0
+  19c666:	4000           	negxb %d0
+  19c668:	4400           	negb %d0
+  19c66a:	4000           	negxb %d0
+  19c66c:	4440           	negw %d0
   19c66e:	0000 0000      	orib #0,%d0
-  19c672:	0010 0011      	orib #17,%a0@
-  19c676:	0011 0001      	orib #1,%a1@
-  19c67a:	0011 1100      	orib #0,%a1@
-  19c67e:	0100           	btst %d0,%d0
-  19c680:	1100           	moveb %d0,%a0@-
-  19c682:	1100           	moveb %d0,%a0@-
-  19c684:	1000           	moveb %d0,%d0
-  19c686:	0000 0010      	orib #16,%d0
-  19c68a:	0000 1100      	orib #0,%d0
-  19c68e:	0000 1000      	orib #0,%d0
+  19c672:	0040 0044      	oriw #68,%d0
+  19c676:	0044 0004      	oriw #4,%d4
+  19c67a:	0044 4400      	oriw #17408,%d4
+  19c67e:	0400 4400      	subib #0,%d0
+  19c682:	4400           	negb %d0
+  19c684:	4000           	negxb %d0
+  19c686:	0000 0040      	orib #64,%d0
+  19c68a:	0000 4400      	orib #0,%d0
+  19c68e:	0000 4000      	orib #0,%d0
 	...
-  19c69a:	0000 0001      	orib #1,%d0
-  19c69e:	0000 001b      	orib #27,%d0
-  19c6a2:	0000 0116      	orib #22,%d0
-  19c6a6:	0000 01b0      	orib #-80,%d0
-  19c6aa:	0000 1110      	orib #16,%d0
-  19c6ae:	0000 1100      	orib #0,%d0
+  19c69a:	0000 0004      	orib #4,%d0
+  19c69e:	0000 0043      	orib #67,%d0
+  19c6a2:	0000 0449      	orib #73,%d0
+  19c6a6:	0000 0430      	orib #48,%d0
+  19c6aa:	0000 4440      	orib #64,%d0
+  19c6ae:	0000 4400      	orib #0,%d0
 	...
-  19c6c2:	0116           	btst %d0,%fp@
-  19c6c4:	0001 1111      	orib #17,%d1
-  19c6c8:	0011 111b      	orib #27,%a1@
-  19c6cc:	0110           	btst %d0,%a0@
+  19c6c2:	0449           	.short 0x0449
+  19c6c4:	0004 4444      	orib #68,%d4
+  19c6c8:	0044 4443      	oriw #17475,%d4
+  19c6cc:	0440 0000      	subiw #0,%d0
 	...
-  19c702:	0000 6000      	orib #0,%d0
+  19c704:	9000           	subb %d0,%d0
 	...
-  19c76e:	0b00           	btst %d5,%d0
-  19c770:	0000 0111      	orib #17,%d0
-  19c774:	0000 0001      	orib #1,%d0
+  19c76e:	0300           	btst %d1,%d0
+  19c770:	0000 0444      	orib #68,%d0
+  19c774:	0000 0004      	orib #4,%d0
   19c778:	0000 0000      	orib #0,%d0
-  19c77c:	6000 0000      	braw 0x19c77e
-  19c780:	b100           	eorb %d0,%d0
-  19c782:	0000 0b00      	orib #0,%d0
-  19c786:	0000 00b0      	orib #-80,%d0
-  19c78a:	0000 0001      	orib #1,%d0
-  19c78e:	0000 000b      	orib #11,%d0
-  19c792:	1000           	moveb %d0,%d0
-  19c794:	0000 1000      	orib #0,%d0
-  19c798:	0000 b000      	orib #0,%d0
-  19c79c:	0000 1100      	orib #0,%d0
-  19c7a0:	0000 0100      	orib #0,%d0
-  19c7a4:	0000 0110      	orib #16,%d0
-  19c7a8:	0000 0110      	orib #16,%d0
-  19c7ac:	0000 0010      	orib #16,%d0
-  19c7b0:	0000 0010      	orib #16,%d0
-  19c7b4:	0000 0001      	orib #1,%d0
+  19c77c:	9000           	subb %d0,%d0
+  19c77e:	0000 3400      	orib #0,%d0
+  19c782:	0000 0300      	orib #0,%d0
+  19c786:	0000 0030      	orib #48,%d0
+  19c78a:	0000 0004      	orib #4,%d0
+  19c78e:	0000 0003      	orib #3,%d0
+  19c792:	4000           	negxb %d0
+  19c794:	0000 4000      	orib #0,%d0
+  19c798:	0000 3000      	orib #0,%d0
+  19c79c:	0000 4400      	orib #0,%d0
+  19c7a0:	0000 0400      	orib #0,%d0
+  19c7a4:	0000 0440      	orib #64,%d0
+  19c7a8:	0000 0440      	orib #64,%d0
+  19c7ac:	0000 0040      	orib #64,%d0
+  19c7b0:	0000 0040      	orib #64,%d0
+  19c7b4:	0000 0004      	orib #4,%d0
 	...
-  19c7fc:	1000           	moveb %d0,%d0
-  19c7fe:	0000 0600      	orib #0,%d0
-  19c802:	0000 0b00      	orib #0,%d0
-  19c806:	0000 0100      	orib #0,%d0
+  19c7fc:	4000           	negxb %d0
+  19c7fe:	0000 0900      	orib #0,%d0
+  19c802:	0000 0300      	orib #0,%d0
+  19c806:	0000 0400      	orib #0,%d0
   19c80a:	0000 0000      	orib #0,%d0
-  19c80e:	0000 0100      	orib #0,%d0
-  19c812:	0000 0100      	orib #0,%d0
+  19c80e:	0000 0400      	orib #0,%d0
+  19c812:	0000 0400      	orib #0,%d0
 	...
-  19c81e:	0000 0100      	orib #0,%d0
+  19c81e:	0000 0400      	orib #0,%d0
   19c822:	0000 0000      	orib #0,%d0
-  19c826:	0000 0100      	orib #0,%d0
+  19c826:	0000 0400      	orib #0,%d0
 	...
-  19c832:	0000 b000      	orib #0,%d0
+  19c832:	0000 3000      	orib #0,%d0
 	...
-  19c852:	0001 0000      	orib #0,%d1
-  19c856:	0011 0000      	orib #0,%a1@
-  19c85a:	0110           	btst %d0,%a0@
-  19c85c:	0000 1100      	orib #0,%d0
-  19c860:	0000 1100      	orib #0,%d0
-  19c864:	0001 1000      	orib #0,%d1
-  19c868:	0001 0000      	orib #0,%d1
-  19c86c:	0011 0000      	orib #0,%a1@
-  19c870:	0010 0000      	orib #0,%a0@
+  19c852:	0004 0000      	orib #0,%d4
+  19c856:	0044 0000      	oriw #0,%d4
+  19c85a:	0440 0000      	subiw #0,%d0
+  19c85e:	4400           	negb %d0
+  19c860:	0000 4400      	orib #0,%d0
+  19c864:	0004 4000      	orib #0,%d4
+  19c868:	0004 0000      	orib #0,%d4
+  19c86c:	0044 0000      	oriw #0,%d4
+  19c870:	0040 0000      	oriw #0,%d0
 	...
-  19c880:	0000 1600      	orib #0,%d0
-  19c884:	0011 0000      	orib #0,%a1@
-  19c888:	111b           	moveb %a3@+,%a0@-
-  19c88a:	0000 1600      	orib #0,%d0
-  19c88e:	0000 b000      	orib #0,%d0
+  19c880:	0000 4900      	orib #0,%d0
+  19c884:	0044 0000      	oriw #0,%d4
+  19c888:	4443           	negw %d3
+  19c88a:	0000 4900      	orib #0,%d0
+  19c88e:	0000 3000      	orib #0,%d0
   19c892:	0000 0000      	orib #0,%d0
-  19c896:	00b6 0000 1000 	oril #4096,%fp@(1,%d0:w)
-  19c89c:	0001 
+  19c896:	0039 0000 4000 	orib #0,0x40000004
+  19c89c:	0004 
 	...
-  19c8b6:	0000 0001      	orib #1,%d0
-  19c8ba:	1110           	moveb %a0@,%a0@-
+  19c8b6:	0000 0004      	orib #4,%d0
+  19c8ba:	4440           	negw %d0
 	...
-  19c8cc:	0001 6b00      	orib #0,%d1
-  19c8d0:	0000 0011      	orib #17,%d0
+  19c8cc:	0004 9300      	orib #0,%d4
+  19c8d0:	0000 0044      	orib #68,%d0
 	...
-  19c914:	bb10           	eorb %d5,%a0@
-  19c916:	0000 0001      	orib #1,%d0
-  19c91a:	6000 0000      	braw 0x19c91c
-  19c91e:	b100           	eorb %d0,%d0
-  19c920:	0010 0110      	orib #16,%a0@
-  19c924:	0001 0010      	orib #16,%d1
-  19c928:	0000 1001      	orib #1,%d0
-  19c92c:	0000 0101      	orib #1,%d0
+  19c914:	3340 0000      	movew %d0,%a1@(0)
+  19c918:	0004 9000      	orib #0,%d4
+  19c91c:	0000 3400      	orib #0,%d0
+  19c920:	0040 0440      	oriw #1088,%d0
+  19c924:	0004 0040      	orib #64,%d4
+  19c928:	0000 4004      	orib #4,%d0
+  19c92c:	0000 0404      	orib #4,%d0
 	...
-  19c940:	0011 0000      	orib #0,%a1@
-  19c944:	0001 1000      	orib #0,%d1
-  19c948:	0001 1000      	orib #0,%d1
-  19c94c:	0000 1100      	orib #0,%d0
+  19c940:	0044 0000      	oriw #0,%d4
+  19c944:	0004 4000      	orib #0,%d4
+  19c948:	0004 4000      	orib #0,%d4
+  19c94c:	0000 4400      	orib #0,%d0
   19c950:	0000 0000      	orib #0,%d0
-  19c954:	b000           	cmpb %d0,%d0
-  19c956:	0000 0100      	orib #0,%d0
-  19c95a:	0001 0000      	orib #0,%d1
-  19c95e:	0001 00b0      	orib #-80,%d1
-  19c962:	0000 000b      	orib #11,%d0
-  19c966:	0000 1000      	orib #0,%d0
-  19c96a:	0000 1000      	orib #0,%d0
-  19c96e:	0001 1100      	orib #0,%d1
-  19c972:	0006 1100      	orib #0,%d6
-  19c976:	0000 0001      	orib #1,%d0
+  19c954:	3000           	movew %d0,%d0
+  19c956:	0000 0400      	orib #0,%d0
+  19c95a:	0004 0000      	orib #0,%d4
+  19c95e:	0004 0030      	orib #48,%d4
+  19c962:	0000 0003      	orib #3,%d0
+  19c966:	0000 4000      	orib #0,%d0
+  19c96a:	0000 4000      	orib #0,%d0
+  19c96e:	0004 4400      	orib #0,%d4
+  19c972:	0009           	.short 0x0009
+  19c974:	4400           	negb %d0
+  19c976:	0000 0004      	orib #4,%d0
   19c97a:	0000 0000      	orib #0,%d0
-  19c97e:	0001 1000      	orib #0,%d1
-  19c982:	0001 1000      	orib #0,%d1
+  19c97e:	0004 4000      	orib #0,%d4
+  19c982:	0004 4000      	orib #0,%d4
 	...
-  19c98e:	0001 0000      	orib #0,%d1
+  19c98e:	0004 0000      	orib #0,%d4
 	...
-  19c99a:	0000 0001      	orib #1,%d0
-  19c99e:	0000 1001      	orib #1,%d0
-  19c9a2:	0000 1000      	orib #0,%d0
-  19c9a6:	1000           	moveb %d0,%d0
-  19c9a8:	1000           	moveb %d0,%d0
-  19c9aa:	1000           	moveb %d0,%d0
-  19c9ac:	0000 0100      	orib #0,%d0
-  19c9b0:	0000 0100      	orib #0,%d0
-  19c9b4:	1000           	moveb %d0,%d0
-  19c9b6:	0000 1100      	orib #0,%d0
+  19c99a:	0000 0004      	orib #4,%d0
+  19c99e:	0000 4004      	orib #4,%d0
+  19c9a2:	0000 4000      	orib #0,%d0
+  19c9a6:	4000           	negxb %d0
+  19c9a8:	4000           	negxb %d0
+  19c9aa:	4000           	negxb %d0
+  19c9ac:	0000 0400      	orib #0,%d0
+  19c9b0:	0000 0400      	orib #0,%d0
+  19c9b4:	4000           	negxb %d0
+  19c9b6:	0000 4400      	orib #0,%d0
 	...
-  19c9f6:	0600 0000      	addib #0,%d0
-  19c9fa:	0b00           	btst %d5,%d0
+  19c9f6:	0900           	btst %d4,%d0
+  19c9f8:	0000 0300      	orib #0,%d0
   19c9fc:	0000 0000      	orib #0,%d0
-  19ca00:	0000 0060      	orib #96,%d0
-  19ca04:	0000 1b11      	orib #17,%d0
-  19ca08:	000b           	.short 0x000b
-  19ca0a:	b110           	eorb %d0,%a0@
-  19ca0c:	000b           	.short 0x000b
-  19ca0e:	1000           	moveb %d0,%d0
-  19ca10:	0001 1000      	orib #0,%d1
-  19ca14:	0011 0000      	orib #0,%a1@
-  19ca18:	0110           	btst %d0,%a0@
-  19ca1a:	0000 0100      	orib #0,%d0
-  19ca1e:	0000 1100      	orib #0,%d0
-  19ca22:	0000 1000      	orib #0,%d0
+  19ca00:	0000 0090      	orib #-112,%d0
+  19ca04:	0000 4344      	orib #68,%d0
+  19ca08:	0003 3440      	orib #64,%d3
+  19ca0c:	0003 4000      	orib #0,%d3
+  19ca10:	0004 4000      	orib #0,%d4
+  19ca14:	0044 0000      	oriw #0,%d4
+  19ca18:	0440 0000      	subiw #0,%d0
+  19ca1c:	0400 0000      	subib #0,%d0
+  19ca20:	4400           	negb %d0
+  19ca22:	0000 4000      	orib #0,%d0
   19ca26:	0000 0000      	orib #0,%d0
-  19ca2a:	0001 0000      	orib #0,%d1
+  19ca2a:	0004 0000      	orib #0,%d4
   19ca2e:	0000 0000      	orib #0,%d0
-  19ca32:	0100           	btst %d0,%d0
-  19ca34:	0000 1000      	orib #0,%d0
+  19ca32:	0400 0000      	subib #0,%d0
+  19ca36:	4000           	negxb %d0
   19ca38:	0000 0000      	orib #0,%d0
-  19ca3c:	0001 1111      	orib #17,%d1
-  19ca40:	0001 1001      	orib #1,%d1
-  19ca44:	0011 0000      	orib #0,%a1@
-  19ca48:	0010 0000      	orib #0,%a0@
-  19ca4c:	0100           	btst %d0,%d0
+  19ca3c:	0004 4444      	orib #68,%d4
+  19ca40:	0004 4004      	orib #4,%d4
+  19ca44:	0044 0000      	oriw #0,%d4
+  19ca48:	0040 0000      	oriw #0,%d0
+  19ca4c:	0400 0000      	subib #0,%d0
 	...
-  19ca56:	0000 0016      	orib #22,%d0
-  19ca5a:	0000 011b      	orib #27,%d0
-  19ca5e:	0000 11b0      	orib #-80,%d0
-  19ca62:	0000 1100      	orib #0,%d0
-  19ca66:	0001 1000      	orib #0,%d1
-  19ca6a:	0011 0000      	orib #0,%a1@
-  19ca6e:	0010 0000      	orib #0,%a0@
-  19ca72:	0000 0001      	orib #1,%d0
-  19ca76:	1000           	moveb %d0,%d0
-  19ca78:	0001 0000      	orib #0,%d1
-  19ca7c:	1b00           	moveb %d0,%a5@-
-  19ca7e:	0000 b600      	orib #0,%d0
+  19ca58:	0049           	.short 0x0049
+  19ca5a:	0000 0443      	orib #67,%d0
+  19ca5e:	0000 4430      	orib #48,%d0
+  19ca62:	0000 4400      	orib #0,%d0
+  19ca66:	0004 4000      	orib #0,%d4
+  19ca6a:	0044 0000      	oriw #0,%d4
+  19ca6e:	0040 0000      	oriw #0,%d0
+  19ca72:	0000 0004      	orib #4,%d0
+  19ca76:	4000           	negxb %d0
+  19ca78:	0004 0000      	orib #0,%d4
+  19ca7c:	4300           	.short 0x4300
+  19ca7e:	0000 3900      	orib #0,%d0
 	...
-  19ca96:	0000 0001      	orib #1,%d0
-  19ca9a:	6000 0111      	braw 0x19cbad
-  19ca9e:	6000 111b      	braw 0x19dbbb
-  19caa2:	0000 1000      	orib #0,%d0
+  19ca96:	0000 0004      	orib #4,%d0
+  19ca9a:	9000           	subb %d0,%d0
+  19ca9c:	0444 9000      	subiw #-28672,%d4
+  19caa0:	4443           	negw %d3
+  19caa2:	0000 4000      	orib #0,%d0
 	...
-  19cafe:	bb00           	eorb %d5,%d0
-  19cb00:	0000 001b      	orib #27,%d0
-  19cb04:	6b00 0000      	bmiw 0x19cb06
-  19cb08:	b111           	eorb %d0,%a1@
-  19cb0a:	0000 0001      	orib #1,%d0
-  19cb0e:	1000           	moveb %d0,%d0
-  19cb10:	0000 1100      	orib #0,%d0
-  19cb14:	0000 0100      	orib #0,%d0
+  19cafe:	3300           	movew %d0,%a1@-
+  19cb00:	0000 0043      	orib #67,%d0
+  19cb04:	9300           	subxb %d0,%d1
+  19cb06:	0000 3444      	orib #68,%d0
+  19cb0a:	0000 0004      	orib #4,%d0
+  19cb0e:	4000           	negxb %d0
+  19cb10:	0000 4400      	orib #0,%d0
+  19cb14:	0000 0400      	orib #0,%d0
 	...
-  19cb3c:	0001 0000      	orib #0,%d1
-  19cb40:	1000           	moveb %d0,%d0
-  19cb42:	1000           	moveb %d0,%d0
-  19cb44:	0110           	btst %d0,%a0@
-  19cb46:	0000 0011      	orib #17,%d0
-  19cb4a:	0000 0001      	orib #1,%d0
-  19cb4e:	1000           	moveb %d0,%d0
-  19cb50:	0000 1000      	orib #0,%d0
-  19cb54:	0000 0100      	orib #0,%d0
-  19cb58:	0610 0000      	addib #0,%a0@
-  19cb5c:	b111           	eorb %d0,%a1@
-  19cb5e:	0000 0001      	orib #1,%d0
-  19cb62:	1000           	moveb %d0,%d0
-  19cb64:	0000 1000      	orib #0,%d0
+  19cb3c:	0004 0000      	orib #0,%d4
+  19cb40:	4000           	negxb %d0
+  19cb42:	4000           	negxb %d0
+  19cb44:	0440 0000      	subiw #0,%d0
+  19cb48:	0044 0000      	oriw #0,%d4
+  19cb4c:	0004 4000      	orib #0,%d4
+  19cb50:	0000 4000      	orib #0,%d0
+  19cb54:	0000 0400      	orib #0,%d0
+  19cb58:	0940           	bchg %d4,%d0
+  19cb5a:	0000 3444      	orib #68,%d0
+  19cb5e:	0000 0004      	orib #4,%d0
+  19cb62:	4000           	negxb %d0
+  19cb64:	0000 4000      	orib #0,%d0
 	...
-  19cb7c:	0100           	btst %d0,%d0
-  19cb7e:	0000 0110      	orib #16,%d0
-  19cb82:	0000 0100      	orib #0,%d0
+  19cb7c:	0400 0000      	subib #0,%d0
+  19cb80:	0440 0000      	subiw #0,%d0
+  19cb84:	0400 0000      	subib #0,%d0
 	...
-  19cbc2:	0b60           	bchg %d5,%a0@-
-  19cbc4:	0006 0000      	orib #0,%d6
-  19cbc8:	001b 0000      	orib #0,%a3@+
-  19cbcc:	0110           	btst %d0,%a0@
+  19cbc0:	0000 0390      	orib #-112,%d0
+  19cbc4:	0009           	.short 0x0009
+  19cbc6:	0000 0043      	orib #67,%d0
+  19cbca:	0000 0440      	orib #64,%d0
 	...
-  19cc0a:	0000 0111      	orib #17,%d0
-  19cc0e:	1000           	moveb %d0,%d0
-  19cc10:	0001 1110      	orib #16,%d1
-  19cc14:	1000           	moveb %d0,%d0
-  19cc16:	11b0 0000 016b 	moveb %a0@(0,%d0:w),%a0@(0)@(b00000)
-  19cc1c:	0000 00b0 0000 
+  19cc0a:	0000 0444      	orib #68,%d0
+  19cc0e:	4000           	negxb %d0
+  19cc10:	0004 4440      	orib #64,%d4
+  19cc14:	4000           	negxb %d0
+  19cc16:	4430 0000      	negb %a0@(0,%d0:w)
+  19cc1a:	0493 0000 0030 	subil #48,%a3@
 	...
-  19cc72:	000b           	.short 0x000b
+  19cc70:	0000 000b      	orib #11,%d0
   19cc74:	0000 000b      	orib #11,%d0
   19cc78:	0000 000b      	orib #11,%d0
 	...
@@ -523127,112 +523113,85 @@ Disassembly of section .data:
   1d9b6a:	0268 0268 0269 	andiw #616,%a0@(617)
   1d9b70:	0269 026a 026a 	andiw #618,%a1@(618)
 	...
-  1d9bb6:	0008           	.short 0x0008
-  1d9bb8:	8800           	orb %d0,%d4
-  1d9bba:	0080 0880 0880 	oril #142608512,%d0
-  1d9bc0:	0088           	.short 0x0088
-  1d9bc2:	0880 0088      	bclr #-120,%d0
-  1d9bc6:	0880 0088      	bclr #-120,%d0
-  1d9bca:	0088           	.short 0x0088
-  1d9bcc:	0080 0008 8800 	oril #559104,%d0
+  1d9bb6:	0002 2200      	orib #0,%d2
+  1d9bba:	0020 0220      	orib #32,%a0@-
+  1d9bbe:	0220 0022      	andib #34,%a0@-
+  1d9bc2:	0220 0022      	andib #34,%a0@-
+  1d9bc6:	0220 0022      	andib #34,%a0@-
+  1d9bca:	0022 0020      	orib #32,%a2@-
+  1d9bce:	0002 2200      	orib #0,%d2
 	...
-  1d9c36:	0000 8800      	orib #0,%d0
-  1d9c3a:	0008           	.short 0x0008
-  1d9c3c:	8800           	orb %d0,%d4
-  1d9c3e:	0000 8800      	orib #0,%d0
-  1d9c42:	0000 8800      	orib #0,%d0
-  1d9c46:	0000 8800      	orib #0,%d0
-  1d9c4a:	0000 8800      	orib #0,%d0
-  1d9c4e:	0088           	.short 0x0088
-  1d9c50:	8888           	.short 0x8888
+  1d9c36:	0000 2200      	orib #0,%d0
+  1d9c3a:	0002 2200      	orib #0,%d2
+  1d9c3e:	0000 2200      	orib #0,%d0
+  1d9c42:	0000 2200      	orib #0,%d0
+  1d9c46:	0000 2200      	orib #0,%d0
+  1d9c4a:	0000 2200      	orib #0,%d0
+  1d9c4e:	0022 2222      	orib #34,%a2@-
 	...
-  1d9cb6:	0088           	.short 0x0088
-  1d9cb8:	8880           	orl %d0,%d4
-  1d9cba:	0880 0088      	bclr #-120,%d0
-  1d9cbe:	0000 0888      	orib #-120,%d0
-  1d9cc2:	0008           	.short 0x0008
-  1d9cc4:	8880           	orl %d0,%d4
-  1d9cc6:	0088           	.short 0x0088
-  1d9cc8:	8800           	orb %d0,%d4
-  1d9cca:	0888           	.short 0x0888
-  1d9ccc:	0000 0888      	orib #-120,%d0
-  1d9cd0:	8888           	.short 0x8888
+  1d9cb6:	0022 2220      	orib #32,%a2@-
+  1d9cba:	0220 0022      	andib #34,%a0@-
+  1d9cbe:	0000 0222      	orib #34,%d0
+  1d9cc2:	0002 2220      	orib #32,%d2
+  1d9cc6:	0022 2200      	orib #0,%a2@-
+  1d9cca:	0222 0000      	andib #0,%a2@-
+  1d9cce:	0222 2222      	andib #34,%a2@-
 	...
-  1d9d36:	0088           	.short 0x0088
-  1d9d38:	8888           	.short 0x8888
-  1d9d3a:	0000 0880      	orib #-128,%d0
-  1d9d3e:	0000 8800      	orib #0,%d0
-  1d9d42:	0008           	.short 0x0008
-  1d9d44:	8880           	orl %d0,%d4
-  1d9d46:	0000 0088      	orib #-120,%d0
-  1d9d4a:	0880 0088      	bclr #-120,%d0
-  1d9d4e:	0088           	.short 0x0088
-  1d9d50:	8880           	orl %d0,%d4
+  1d9d36:	0022 2222      	orib #34,%a2@-
+  1d9d3a:	0000 0220      	orib #32,%d0
+  1d9d3e:	0000 2200      	orib #0,%d0
+  1d9d42:	0002 2220      	orib #32,%d2
+  1d9d46:	0000 0022      	orib #34,%d0
+  1d9d4a:	0220 0022      	andib #34,%a0@-
+  1d9d4e:	0022 2220      	orib #32,%a2@-
 	...
-  1d9db6:	0000 8880      	orib #-128,%d0
-  1d9dba:	0008           	.short 0x0008
-  1d9dbc:	8880           	orl %d0,%d4
-  1d9dbe:	0088           	.short 0x0088
-  1d9dc0:	0880 0880      	bclr #-128,%d0
-  1d9dc4:	0880 0888      	bclr #-120,%d0
-  1d9dc8:	8888           	.short 0x8888
-  1d9dca:	0000 0880      	orib #-128,%d0
-  1d9dce:	0000 0880      	orib #-128,%d0
+  1d9db6:	0000 2220      	orib #32,%d0
+  1d9dba:	0002 2220      	orib #32,%d2
+  1d9dbe:	0022 0220      	orib #32,%a2@-
+  1d9dc2:	0220 0220      	andib #32,%a0@-
+  1d9dc6:	0222 2222      	andib #34,%a2@-
+  1d9dca:	0000 0220      	orib #32,%d0
+  1d9dce:	0000 0220      	orib #32,%d0
 	...
-  1d9e36:	0888           	.short 0x0888
-  1d9e38:	8880           	orl %d0,%d4
-  1d9e3a:	0880 0000      	bclr #0,%d0
-  1d9e3e:	0888           	.short 0x0888
-  1d9e40:	8880           	orl %d0,%d4
-  1d9e42:	0000 0088      	orib #-120,%d0
-  1d9e46:	0000 0088      	orib #-120,%d0
-  1d9e4a:	0880 0088      	bclr #-120,%d0
-  1d9e4e:	0088           	.short 0x0088
-  1d9e50:	8880           	orl %d0,%d4
+  1d9e36:	0222 2220      	andib #32,%a2@-
+  1d9e3a:	0220 0000      	andib #0,%a0@-
+  1d9e3e:	0222 2220      	andib #32,%a2@-
+  1d9e42:	0000 0022      	orib #34,%d0
+  1d9e46:	0000 0022      	orib #34,%d0
+  1d9e4a:	0220 0022      	andib #34,%a0@-
+  1d9e4e:	0022 2220      	orib #32,%a2@-
 	...
-  1d9eb6:	0008           	.short 0x0008
-  1d9eb8:	8880           	orl %d0,%d4
-  1d9eba:	0088           	.short 0x0088
-  1d9ebc:	0000 0880      	orib #-128,%d0
-  1d9ec0:	0000 0888      	orib #-120,%d0
-  1d9ec4:	8880           	orl %d0,%d4
-  1d9ec6:	0880 0088      	bclr #-120,%d0
-  1d9eca:	0880 0088      	bclr #-120,%d0
-  1d9ece:	0088           	.short 0x0088
-  1d9ed0:	8880           	orl %d0,%d4
+  1d9eb6:	0002 2220      	orib #32,%d2
+  1d9eba:	0022 0000      	orib #0,%a2@-
+  1d9ebe:	0220 0000      	andib #0,%a0@-
+  1d9ec2:	0222 2220      	andib #32,%a2@-
+  1d9ec6:	0220 0022      	andib #34,%a0@-
+  1d9eca:	0220 0022      	andib #34,%a0@-
+  1d9ece:	0022 2220      	orib #32,%a2@-
 	...
-  1d9f36:	0888           	.short 0x0888
-  1d9f38:	8888           	.short 0x8888
-  1d9f3a:	0880 0088      	bclr #-120,%d0
-  1d9f3e:	0000 0880      	orib #-128,%d0
-  1d9f42:	0000 8800      	orib #0,%d0
-  1d9f46:	0008           	.short 0x0008
-  1d9f48:	8000           	orb %d0,%d0
-  1d9f4a:	0008           	.short 0x0008
-  1d9f4c:	8000           	orb %d0,%d0
-  1d9f4e:	0008           	.short 0x0008
-  1d9f50:	8000           	orb %d0,%d0
+  1d9f36:	0222 2222      	andib #34,%a2@-
+  1d9f3a:	0220 0022      	andib #34,%a0@-
+  1d9f3e:	0000 0220      	orib #32,%d0
+  1d9f42:	0000 2200      	orib #0,%d0
+  1d9f46:	0002 2000      	orib #0,%d2
+  1d9f4a:	0002 2000      	orib #0,%d2
+  1d9f4e:	0002 2000      	orib #0,%d2
 	...
-  1d9fb6:	0088           	.short 0x0088
-  1d9fb8:	8800           	orb %d0,%d4
-  1d9fba:	0880 0080      	bclr #-128,%d0
-  1d9fbe:	0888           	.short 0x0888
-  1d9fc0:	0080 0088 8800 	oril #8947712,%d0
-  1d9fc6:	0800 8888      	btst #-120,%d0
-  1d9fca:	0800 0088      	btst #-120,%d0
-  1d9fce:	0088           	.short 0x0088
-  1d9fd0:	8880           	orl %d0,%d4
+  1d9fb6:	0022 2200      	orib #0,%a2@-
+  1d9fba:	0220 0020      	andib #32,%a0@-
+  1d9fbe:	0222 0020      	andib #32,%a2@-
+  1d9fc2:	0022 2200      	orib #0,%a2@-
+  1d9fc6:	0200 2222      	andib #34,%d0
+  1d9fca:	0200 0022      	andib #34,%d0
+  1d9fce:	0022 2220      	orib #32,%a2@-
 	...
-  1da036:	0088           	.short 0x0088
-  1da038:	8880           	orl %d0,%d4
-  1da03a:	0880 0088      	bclr #-120,%d0
-  1da03e:	0880 0088      	bclr #-120,%d0
-  1da042:	0088           	.short 0x0088
-  1da044:	8888           	.short 0x8888
-  1da046:	0000 0088      	orib #-120,%d0
-  1da04a:	0000 0880      	orib #-128,%d0
-  1da04e:	0088           	.short 0x0088
-  1da050:	8800           	orb %d0,%d4
+  1da036:	0022 2220      	orib #32,%a2@-
+  1da03a:	0220 0022      	andib #34,%a0@-
+  1da03e:	0220 0022      	andib #34,%a0@-
+  1da042:	0022 2222      	orib #34,%a2@-
+  1da046:	0000 0022      	orib #34,%d0
+  1da04a:	0000 0220      	orib #32,%d0
+  1da04e:	0022 2200      	orib #0,%a2@-
 	...
   1da076:	0777 7770 0770 	bchg %d3,%sp@(7700077)
   1da07c:	0077 
@@ -523272,118 +523231,124 @@ Disassembly of section .data:
   1da18a:	0770 0770 0777 	bchg %d3,%a0@(7777700)
   1da190:	7700 
 	...
-  1da1f6:	0000 0777      	orib #119,%d0
-  1da1fa:	0000 7888      	orib #-120,%d0
-  1da1fe:	0007 8888      	orib #-120,%d7
-  1da202:	0078 8888 0788 	oriw #-30584,0x788
-  1da208:	8887           	orl %d7,%d4
-  1da20a:	7888           	moveq #-120,%d4
-  1da20c:	8870 7888      	orw %a0@(ffffffffffffff88,%d7:l),%d4
-  1da210:	8700           	sbcd %d0,%d3
-  1da212:	7888           	moveq #-120,%d4
-  1da214:	8700           	sbcd %d0,%d3
-  1da216:	7888           	moveq #-120,%d4
-  1da218:	8700           	sbcd %d0,%d3
-  1da21a:	7888           	moveq #-120,%d4
-  1da21c:	8700           	sbcd %d0,%d3
-  1da21e:	7888           	moveq #-120,%d4
-  1da220:	8870 0788      	orw @(0,%d0:w:8),%d4
-  1da224:	8887           	orl %d7,%d4
-  1da226:	0078 8888 0007 	oriw #-30584,0x7
-  1da22c:	8888           	.short 0x8888
-  1da22e:	0000 7888      	orib #-120,%d0
-  1da232:	0000 0777      	orib #119,%d0
-  1da236:	7777           	.short 0x7777
-  1da238:	7777           	.short 0x7777
-  1da23a:	8888           	.short 0x8888
-  1da23c:	8887           	orl %d7,%d4
-  1da23e:	8888           	.short 0x8888
-  1da240:	8887           	orl %d7,%d4
-  1da242:	7777           	.short 0x7777
-  1da244:	7777           	.short 0x7777
+  1da1f6:	0000 0111      	orib #17,%d0
+  1da1fa:	0000 1222      	orib #34,%d0
+  1da1fe:	0001 2222      	orib #34,%d1
+  1da202:	0012 2222      	orib #34,%a2@
+  1da206:	0122           	btst %d0,%a2@-
+  1da208:	2221           	movel %a1@-,%d1
+  1da20a:	1222           	moveb %a2@-,%d1
+  1da20c:	2210           	movel %a0@,%d1
+  1da20e:	1222           	moveb %a2@-,%d1
+  1da210:	2100           	movel %d0,%a0@-
+  1da212:	1222           	moveb %a2@-,%d1
+  1da214:	2100           	movel %d0,%a0@-
+  1da216:	1222           	moveb %a2@-,%d1
+  1da218:	2100           	movel %d0,%a0@-
+  1da21a:	1222           	moveb %a2@-,%d1
+  1da21c:	2100           	movel %d0,%a0@-
+  1da21e:	1222           	moveb %a2@-,%d1
+  1da220:	2210           	movel %a0@,%d1
+  1da222:	0122           	btst %d0,%a2@-
+  1da224:	2221           	movel %a1@-,%d1
+  1da226:	0012 2222      	orib #34,%a2@
+  1da22a:	0001 2222      	orib #34,%d1
+  1da22e:	0000 1222      	orib #34,%d0
+  1da232:	0000 0111      	orib #17,%d0
+  1da236:	1111           	moveb %a1@,%a0@-
+  1da238:	1111           	moveb %a1@,%a0@-
+  1da23a:	2222           	movel %a2@-,%d1
+  1da23c:	2221           	movel %a1@-,%d1
+  1da23e:	2222           	movel %a2@-,%d1
+  1da240:	2221           	movel %a1@-,%d1
+  1da242:	1111           	moveb %a1@,%a0@-
+  1da244:	1111           	moveb %a1@,%a0@-
 	...
-  1da24e:	7777           	.short 0x7777
-  1da250:	7777           	.short 0x7777
-  1da252:	7888           	moveq #-120,%d4
-  1da254:	8887           	orl %d7,%d4
-  1da256:	7888           	moveq #-120,%d4
-  1da258:	8887           	orl %d7,%d4
-  1da25a:	7778           	.short 0x7778
-  1da25c:	8887           	orl %d7,%d4
-  1da25e:	0078 8887 0078 	oriw #-30585,0x78
-  1da264:	8887           	orl %d7,%d4
-  1da266:	7778           	.short 0x7778
-  1da268:	8887           	orl %d7,%d4
-  1da26a:	8888           	.short 0x8888
-  1da26c:	8887           	orl %d7,%d4
-  1da26e:	8888           	.short 0x8888
-  1da270:	8887           	orl %d7,%d4
-  1da272:	7777           	.short 0x7777
-  1da274:	7777           	.short 0x7777
-  1da276:	0000 0777      	orib #119,%d0
-  1da27a:	0000 7888      	orib #-120,%d0
-  1da27e:	0007 8888      	orib #-120,%d7
-  1da282:	0078 8888 0788 	oriw #-30584,0x788
-  1da288:	8887           	orl %d7,%d4
-  1da28a:	7888           	moveq #-120,%d4
-  1da28c:	8870 7888      	orw %a0@(ffffffffffffff88,%d7:l),%d4
-  1da290:	8700           	sbcd %d0,%d3
-  1da292:	7888           	moveq #-120,%d4
-  1da294:	8700           	sbcd %d0,%d3
-  1da296:	7888           	moveq #-120,%d4
-  1da298:	8777 7888      	orw %d3,%sp@(ffffffffffffff88,%d7:l)
-  1da29c:	8888           	.short 0x8888
-  1da29e:	7888           	moveq #-120,%d4
-  1da2a0:	8888           	.short 0x8888
-  1da2a2:	7888           	moveq #-120,%d4
-  1da2a4:	8777 7888      	orw %d3,%sp@(ffffffffffffff88,%d7:l)
-  1da2a8:	8700           	sbcd %d0,%d3
-  1da2aa:	7888           	moveq #-120,%d4
-  1da2ac:	8700           	sbcd %d0,%d3
-  1da2ae:	7888           	moveq #-120,%d4
-  1da2b0:	8700           	sbcd %d0,%d3
-  1da2b2:	7777           	.short 0x7777
-  1da2b4:	7700           	.short 0x7700
-  1da2b6:	7770           	.short 0x7770
-  1da2b8:	0000 8887      	orib #-121,%d0
-  1da2bc:	0000 8888      	orib #-120,%d0
-  1da2c0:	7000           	moveq #0,%d0
-  1da2c2:	8888           	.short 0x8888
-  1da2c4:	8700           	sbcd %d0,%d3
-  1da2c6:	7888           	moveq #-120,%d4
-  1da2c8:	8870 0788      	orw @(0,%d0:w:8),%d4
-  1da2cc:	8887           	orl %d7,%d4
-  1da2ce:	0078 8887 0078 	oriw #-30585,0x78
-  1da2d4:	8887           	orl %d7,%d4
-  1da2d6:	7778           	.short 0x7778
-  1da2d8:	8887           	orl %d7,%d4
-  1da2da:	8888           	.short 0x8888
-  1da2dc:	8887           	orl %d7,%d4
-  1da2de:	8888           	.short 0x8888
-  1da2e0:	8887           	orl %d7,%d4
-  1da2e2:	7778           	.short 0x7778
-  1da2e4:	8887           	orl %d7,%d4
-  1da2e6:	0078 8887 0078 	oriw #-30585,0x78
-  1da2ec:	8887           	orl %d7,%d4
-  1da2ee:	0078 8887 0077 	oriw #-30585,0x77
-  1da2f4:	7777           	.short 0x7777
-  1da2f6:	0008           	.short 0x0008
-  1da2f8:	8800           	orb %d0,%d4
-  1da2fa:	0080 0880 0880 	oril #142608512,%d0
-  1da300:	0088           	.short 0x0088
-  1da302:	0880 0088      	bclr #-120,%d0
-  1da306:	0880 0088      	bclr #-120,%d0
-  1da30a:	0088           	.short 0x0088
-  1da30c:	0080 0008 8800 	oril #559104,%d0
+  1da24e:	1111           	moveb %a1@,%a0@-
+  1da250:	1111           	moveb %a1@,%a0@-
+  1da252:	1222           	moveb %a2@-,%d1
+  1da254:	2221           	movel %a1@-,%d1
+  1da256:	1222           	moveb %a2@-,%d1
+  1da258:	2221           	movel %a1@-,%d1
+  1da25a:	1112           	moveb %a2@,%a0@-
+  1da25c:	2221           	movel %a1@-,%d1
+  1da25e:	0012 2221      	orib #33,%a2@
+  1da262:	0012 2221      	orib #33,%a2@
+  1da266:	1112           	moveb %a2@,%a0@-
+  1da268:	2221           	movel %a1@-,%d1
+  1da26a:	2222           	movel %a2@-,%d1
+  1da26c:	2221           	movel %a1@-,%d1
+  1da26e:	2222           	movel %a2@-,%d1
+  1da270:	2221           	movel %a1@-,%d1
+  1da272:	1111           	moveb %a1@,%a0@-
+  1da274:	1111           	moveb %a1@,%a0@-
+  1da276:	0000 0111      	orib #17,%d0
+  1da27a:	0000 1222      	orib #34,%d0
+  1da27e:	0001 2222      	orib #34,%d1
+  1da282:	0012 2222      	orib #34,%a2@
+  1da286:	0122           	btst %d0,%a2@-
+  1da288:	2221           	movel %a1@-,%d1
+  1da28a:	1222           	moveb %a2@-,%d1
+  1da28c:	2210           	movel %a0@,%d1
+  1da28e:	1222           	moveb %a2@-,%d1
+  1da290:	2100           	movel %d0,%a0@-
+  1da292:	1222           	moveb %a2@-,%d1
+  1da294:	2100           	movel %d0,%a0@-
+  1da296:	1222           	moveb %a2@-,%d1
+  1da298:	2111           	movel %a1@,%a0@-
+  1da29a:	1222           	moveb %a2@-,%d1
+  1da29c:	2222           	movel %a2@-,%d1
+  1da29e:	1222           	moveb %a2@-,%d1
+  1da2a0:	2222           	movel %a2@-,%d1
+  1da2a2:	1222           	moveb %a2@-,%d1
+  1da2a4:	2111           	movel %a1@,%a0@-
+  1da2a6:	1222           	moveb %a2@-,%d1
+  1da2a8:	2100           	movel %d0,%a0@-
+  1da2aa:	1222           	moveb %a2@-,%d1
+  1da2ac:	2100           	movel %d0,%a0@-
+  1da2ae:	1222           	moveb %a2@-,%d1
+  1da2b0:	2100           	movel %d0,%a0@-
+  1da2b2:	1111           	moveb %a1@,%a0@-
+  1da2b4:	1100           	moveb %d0,%a0@-
+  1da2b6:	1110           	moveb %a0@,%a0@-
+  1da2b8:	0000 2221      	orib #33,%d0
+  1da2bc:	0000 2222      	orib #34,%d0
+  1da2c0:	1000           	moveb %d0,%d0
+  1da2c2:	2222           	movel %a2@-,%d1
+  1da2c4:	2100           	movel %d0,%a0@-
+  1da2c6:	1222           	moveb %a2@-,%d1
+  1da2c8:	2210           	movel %a0@,%d1
+  1da2ca:	0122           	btst %d0,%a2@-
+  1da2cc:	2221           	movel %a1@-,%d1
+  1da2ce:	0012 2221      	orib #33,%a2@
+  1da2d2:	0012 2221      	orib #33,%a2@
+  1da2d6:	1112           	moveb %a2@,%a0@-
+  1da2d8:	2221           	movel %a1@-,%d1
+  1da2da:	2222           	movel %a2@-,%d1
+  1da2dc:	2221           	movel %a1@-,%d1
+  1da2de:	2222           	movel %a2@-,%d1
+  1da2e0:	2221           	movel %a1@-,%d1
+  1da2e2:	1112           	moveb %a2@,%a0@-
+  1da2e4:	2221           	movel %a1@-,%d1
+  1da2e6:	0012 2221      	orib #33,%a2@
+  1da2ea:	0012 2221      	orib #33,%a2@
+  1da2ee:	0012 2221      	orib #33,%a2@
+  1da2f2:	0011 1111      	orib #17,%a1@
+  1da2f6:	0002 2200      	orib #0,%d2
+  1da2fa:	0020 0220      	orib #32,%a0@-
+  1da2fe:	0220 0022      	andib #34,%a0@-
+  1da302:	0220 0022      	andib #34,%a0@-
+  1da306:	0220 0022      	andib #34,%a0@-
+  1da30a:	0022 0020      	orib #32,%a2@-
+  1da30e:	0002 2200      	orib #0,%d2
 	...
-  1da336:	0008           	.short 0x0008
-  1da338:	8800           	orb %d0,%d4
-  1da33a:	0080 0880 0880 	oril #142608512,%d0
-  1da340:	0088           	.short 0x0088
-  1da342:	0880 0088      	bclr #-120,%d0
-  1da346:	0880 0088      	bclr #-120,%d0
-  1da34a:	0088           	.short 0x0088
-  1da34c:	0080 0008 8800 	oril #559104,%d0
+  1da336:	0002 2200      	orib #0,%d2
+  1da33a:	0020 0220      	orib #32,%a0@-
+  1da33e:	0220 0022      	andib #34,%a0@-
+  1da342:	0220 0022      	andib #34,%a0@-
+  1da346:	0220 0022      	andib #34,%a0@-
+  1da34a:	0022 0020      	orib #32,%a2@-
+  1da34e:	0002 2200      	orib #0,%d2
 	...
   1da396:	0330 0033      	btst %d1,%a0@(33,%d0:w)
   1da39a:	0330 0033      	btst %d1,%a0@(33,%d0:w)
@@ -523466,340 +523431,359 @@ Disassembly of section .data:
   1da5ea:	0077 0070 0007 	oriw #112,%sp@(7,%d0:w)
   1da5f0:	7700           	.short 0x7700
   1da5f2:	0000 0000      	orib #0,%d0
-  1da5f6:	7777           	.short 0x7777
-  1da5f8:	7000           	moveq #0,%d0
-  1da5fa:	7888           	moveq #-120,%d4
-  1da5fc:	8700           	sbcd %d0,%d3
-  1da5fe:	7888           	moveq #-120,%d4
-  1da600:	8870 7888      	orw %a0@(ffffffffffffff88,%d7:l),%d4
-  1da604:	8887           	orl %d7,%d4
-  1da606:	7888           	moveq #-120,%d4
-  1da608:	8888           	.short 0x8888
-  1da60a:	7888           	moveq #-120,%d4
-  1da60c:	8888           	.short 0x8888
-  1da60e:	7888           	moveq #-120,%d4
-  1da610:	8888           	.short 0x8888
-  1da612:	7888           	moveq #-120,%d4
-  1da614:	8888           	.short 0x8888
-  1da616:	7888           	moveq #-120,%d4
-  1da618:	8888           	.short 0x8888
-  1da61a:	7888           	moveq #-120,%d4
-  1da61c:	8788           	.short 0x8788
-  1da61e:	7888           	moveq #-120,%d4
-  1da620:	8778 7888      	orw %d3,0x7888
-  1da624:	8707           	sbcd %d7,%d3
-  1da626:	7888           	moveq #-120,%d4
-  1da628:	8700           	sbcd %d0,%d3
-  1da62a:	7888           	moveq #-120,%d4
-  1da62c:	8700           	sbcd %d0,%d3
-  1da62e:	7888           	moveq #-120,%d4
-  1da630:	8700           	sbcd %d0,%d3
-  1da632:	7777           	.short 0x7777
-  1da634:	7700           	.short 0x7700
-  1da636:	0007 7777      	orib #119,%d7
-  1da63a:	0078 8887 0788 	oriw #-30585,0x788
-  1da640:	8887           	orl %d7,%d4
-  1da642:	7888           	moveq #-120,%d4
-  1da644:	8887           	orl %d7,%d4
-  1da646:	8888           	.short 0x8888
-  1da648:	8887           	orl %d7,%d4
-  1da64a:	8888           	.short 0x8888
-  1da64c:	8887           	orl %d7,%d4
-  1da64e:	8888           	.short 0x8888
-  1da650:	8887           	orl %d7,%d4
-  1da652:	8888           	.short 0x8888
-  1da654:	8887           	orl %d7,%d4
-  1da656:	8888           	.short 0x8888
-  1da658:	8887           	orl %d7,%d4
-  1da65a:	8878 8887      	orw 0xffff8887,%d4
-  1da65e:	8778 8887      	orw %d3,0xffff8887
-  1da662:	7078           	moveq #120,%d0
-  1da664:	8887           	orl %d7,%d4
-  1da666:	0078 8887 0078 	oriw #-30585,0x78
-  1da66c:	8887           	orl %d7,%d4
-  1da66e:	0078 8887 0077 	oriw #-30585,0x77
-  1da674:	7777           	.short 0x7777
-  1da676:	7777           	.short 0x7777
-  1da678:	7777           	.short 0x7777
-  1da67a:	7888           	moveq #-120,%d4
-  1da67c:	8888           	.short 0x8888
-  1da67e:	7888           	moveq #-120,%d4
-  1da680:	8888           	.short 0x8888
-  1da682:	7888           	moveq #-120,%d4
-  1da684:	8777 7888      	orw %d3,%sp@(ffffffffffffff88,%d7:l)
-  1da688:	8700           	sbcd %d0,%d3
-  1da68a:	7888           	moveq #-120,%d4
-  1da68c:	8700           	sbcd %d0,%d3
-  1da68e:	7888           	moveq #-120,%d4
-  1da690:	8777 7888      	orw %d3,%sp@(ffffffffffffff88,%d7:l)
-  1da694:	8888           	.short 0x8888
-  1da696:	7888           	moveq #-120,%d4
-  1da698:	8888           	.short 0x8888
-  1da69a:	7888           	moveq #-120,%d4
-  1da69c:	8777 7888      	orw %d3,%sp@(ffffffffffffff88,%d7:l)
-  1da6a0:	8700           	sbcd %d0,%d3
-  1da6a2:	7888           	moveq #-120,%d4
-  1da6a4:	8700           	sbcd %d0,%d3
-  1da6a6:	7888           	moveq #-120,%d4
-  1da6a8:	8777 7888      	orw %d3,%sp@(ffffffffffffff88,%d7:l)
-  1da6ac:	8888           	.short 0x8888
-  1da6ae:	7888           	moveq #-120,%d4
-  1da6b0:	8888           	.short 0x8888
-  1da6b2:	7777           	.short 0x7777
-  1da6b4:	7777           	.short 0x7777
-  1da6b6:	7777           	.short 0x7777
-  1da6b8:	7777           	.short 0x7777
-  1da6ba:	8888           	.short 0x8888
-  1da6bc:	8887           	orl %d7,%d4
-  1da6be:	8888           	.short 0x8888
-  1da6c0:	8887           	orl %d7,%d4
-  1da6c2:	7777           	.short 0x7777
-  1da6c4:	7777           	.short 0x7777
+  1da5f6:	1111           	moveb %a1@,%a0@-
+  1da5f8:	1000           	moveb %d0,%d0
+  1da5fa:	1222           	moveb %a2@-,%d1
+  1da5fc:	2100           	movel %d0,%a0@-
+  1da5fe:	1222           	moveb %a2@-,%d1
+  1da600:	2210           	movel %a0@,%d1
+  1da602:	1222           	moveb %a2@-,%d1
+  1da604:	2221           	movel %a1@-,%d1
+  1da606:	1222           	moveb %a2@-,%d1
+  1da608:	2222           	movel %a2@-,%d1
+  1da60a:	1222           	moveb %a2@-,%d1
+  1da60c:	2222           	movel %a2@-,%d1
+  1da60e:	1222           	moveb %a2@-,%d1
+  1da610:	2222           	movel %a2@-,%d1
+  1da612:	1222           	moveb %a2@-,%d1
+  1da614:	2222           	movel %a2@-,%d1
+  1da616:	1222           	moveb %a2@-,%d1
+  1da618:	2222           	movel %a2@-,%d1
+  1da61a:	1222           	moveb %a2@-,%d1
+  1da61c:	2122           	movel %a2@-,%a0@-
+  1da61e:	1222           	moveb %a2@-,%d1
+  1da620:	2112           	movel %a2@,%a0@-
+  1da622:	1222           	moveb %a2@-,%d1
+  1da624:	2101           	movel %d1,%a0@-
+  1da626:	1222           	moveb %a2@-,%d1
+  1da628:	2100           	movel %d0,%a0@-
+  1da62a:	1222           	moveb %a2@-,%d1
+  1da62c:	2100           	movel %d0,%a0@-
+  1da62e:	1222           	moveb %a2@-,%d1
+  1da630:	2100           	movel %d0,%a0@-
+  1da632:	1111           	moveb %a1@,%a0@-
+  1da634:	1100           	moveb %d0,%a0@-
+  1da636:	0001 1111      	orib #17,%d1
+  1da63a:	0012 2221      	orib #33,%a2@
+  1da63e:	0122           	btst %d0,%a2@-
+  1da640:	2221           	movel %a1@-,%d1
+  1da642:	1222           	moveb %a2@-,%d1
+  1da644:	2221           	movel %a1@-,%d1
+  1da646:	2222           	movel %a2@-,%d1
+  1da648:	2221           	movel %a1@-,%d1
+  1da64a:	2222           	movel %a2@-,%d1
+  1da64c:	2221           	movel %a1@-,%d1
+  1da64e:	2222           	movel %a2@-,%d1
+  1da650:	2221           	movel %a1@-,%d1
+  1da652:	2222           	movel %a2@-,%d1
+  1da654:	2221           	movel %a1@-,%d1
+  1da656:	2222           	movel %a2@-,%d1
+  1da658:	2221           	movel %a1@-,%d1
+  1da65a:	2212           	movel %a2@,%d1
+  1da65c:	2221           	movel %a1@-,%d1
+  1da65e:	2112           	movel %a2@,%a0@-
+  1da660:	2221           	movel %a1@-,%d1
+  1da662:	1012           	moveb %a2@,%d0
+  1da664:	2221           	movel %a1@-,%d1
+  1da666:	0012 2221      	orib #33,%a2@
+  1da66a:	0012 2221      	orib #33,%a2@
+  1da66e:	0012 2221      	orib #33,%a2@
+  1da672:	0011 1111      	orib #17,%a1@
+  1da676:	1111           	moveb %a1@,%a0@-
+  1da678:	1111           	moveb %a1@,%a0@-
+  1da67a:	1222           	moveb %a2@-,%d1
+  1da67c:	2222           	movel %a2@-,%d1
+  1da67e:	1222           	moveb %a2@-,%d1
+  1da680:	2222           	movel %a2@-,%d1
+  1da682:	1222           	moveb %a2@-,%d1
+  1da684:	2111           	movel %a1@,%a0@-
+  1da686:	1222           	moveb %a2@-,%d1
+  1da688:	2100           	movel %d0,%a0@-
+  1da68a:	1222           	moveb %a2@-,%d1
+  1da68c:	2100           	movel %d0,%a0@-
+  1da68e:	1222           	moveb %a2@-,%d1
+  1da690:	2111           	movel %a1@,%a0@-
+  1da692:	1222           	moveb %a2@-,%d1
+  1da694:	2222           	movel %a2@-,%d1
+  1da696:	1222           	moveb %a2@-,%d1
+  1da698:	2222           	movel %a2@-,%d1
+  1da69a:	1222           	moveb %a2@-,%d1
+  1da69c:	2111           	movel %a1@,%a0@-
+  1da69e:	1222           	moveb %a2@-,%d1
+  1da6a0:	2100           	movel %d0,%a0@-
+  1da6a2:	1222           	moveb %a2@-,%d1
+  1da6a4:	2100           	movel %d0,%a0@-
+  1da6a6:	1222           	moveb %a2@-,%d1
+  1da6a8:	2111           	movel %a1@,%a0@-
+  1da6aa:	1222           	moveb %a2@-,%d1
+  1da6ac:	2222           	movel %a2@-,%d1
+  1da6ae:	1222           	moveb %a2@-,%d1
+  1da6b0:	2222           	movel %a2@-,%d1
+  1da6b2:	1111           	moveb %a1@,%a0@-
+  1da6b4:	1111           	moveb %a1@,%a0@-
+  1da6b6:	1111           	moveb %a1@,%a0@-
+  1da6b8:	1111           	moveb %a1@,%a0@-
+  1da6ba:	2222           	movel %a2@-,%d1
+  1da6bc:	2221           	movel %a1@-,%d1
+  1da6be:	2222           	movel %a2@-,%d1
+  1da6c0:	2221           	movel %a1@-,%d1
+  1da6c2:	1111           	moveb %a1@,%a0@-
+  1da6c4:	1111           	moveb %a1@,%a0@-
 	...
-  1da6ce:	7777           	.short 0x7777
-  1da6d0:	7700           	.short 0x7700
-  1da6d2:	8888           	.short 0x8888
-  1da6d4:	8700           	sbcd %d0,%d3
-  1da6d6:	8888           	.short 0x8888
-  1da6d8:	8700           	sbcd %d0,%d3
-  1da6da:	7777           	.short 0x7777
-  1da6dc:	7700           	.short 0x7700
+  1da6ce:	1111           	moveb %a1@,%a0@-
+  1da6d0:	1100           	moveb %d0,%a0@-
+  1da6d2:	2222           	movel %a2@-,%d1
+  1da6d4:	2100           	movel %d0,%a0@-
+  1da6d6:	2222           	movel %a2@-,%d1
+  1da6d8:	2100           	movel %d0,%a0@-
+  1da6da:	1111           	moveb %a1@,%a0@-
+  1da6dc:	1100           	moveb %d0,%a0@-
 	...
-  1da6e6:	7777           	.short 0x7777
-  1da6e8:	7777           	.short 0x7777
-  1da6ea:	8888           	.short 0x8888
-  1da6ec:	8887           	orl %d7,%d4
-  1da6ee:	8888           	.short 0x8888
-  1da6f0:	8887           	orl %d7,%d4
-  1da6f2:	7777           	.short 0x7777
-  1da6f4:	7777           	.short 0x7777
-  1da6f6:	0007 7777      	orib #119,%d7
-  1da6fa:	0078 8888 0788 	oriw #-30584,0x788
-  1da700:	8888           	.short 0x8888
-  1da702:	7888           	moveq #-120,%d4
-  1da704:	8877 7888      	orw %sp@(ffffffffffffff88,%d7:l),%d4
-  1da708:	8700           	sbcd %d0,%d3
-  1da70a:	7888           	moveq #-120,%d4
-  1da70c:	8700           	sbcd %d0,%d3
-  1da70e:	7888           	moveq #-120,%d4
-  1da710:	8700           	sbcd %d0,%d3
-  1da712:	7888           	moveq #-120,%d4
-  1da714:	8700           	sbcd %d0,%d3
-  1da716:	7888           	moveq #-120,%d4
-  1da718:	8700           	sbcd %d0,%d3
-  1da71a:	7888           	moveq #-120,%d4
-  1da71c:	8700           	sbcd %d0,%d3
-  1da71e:	7888           	moveq #-120,%d4
-  1da720:	8700           	sbcd %d0,%d3
-  1da722:	7888           	moveq #-120,%d4
-  1da724:	8700           	sbcd %d0,%d3
-  1da726:	7888           	moveq #-120,%d4
-  1da728:	8877 0788      	orw @(0,%d0:w:8),%d4
-  1da72c:	8888           	.short 0x8888
-  1da72e:	0078 8888 0007 	oriw #-30584,0x7
-  1da734:	7777           	.short 0x7777
-  1da736:	7777           	.short 0x7777
-  1da738:	7000           	moveq #0,%d0
-  1da73a:	8888           	.short 0x8888
-  1da73c:	8700           	sbcd %d0,%d3
-  1da73e:	8888           	.short 0x8888
-  1da740:	8870 7788      	orw @(0,%d7:w:8),%d4
-  1da744:	8887           	orl %d7,%d4
-  1da746:	0078 8887 0078 	oriw #-30585,0x78
-  1da74c:	8887           	orl %d7,%d4
-  1da74e:	0078 8887 0078 	oriw #-30585,0x78
-  1da754:	8887           	orl %d7,%d4
-  1da756:	0078 8887 0078 	oriw #-30585,0x78
-  1da75c:	8887           	orl %d7,%d4
-  1da75e:	0078 8887 0078 	oriw #-30585,0x78
-  1da764:	8887           	orl %d7,%d4
-  1da766:	7788           	.short 0x7788
-  1da768:	8887           	orl %d7,%d4
-  1da76a:	8888           	.short 0x8888
-  1da76c:	8870 8888      	orw %a0@(ffffffffffffff88,%a0:l),%d4
-  1da770:	8700           	sbcd %d0,%d3
-  1da772:	7777           	.short 0x7777
-  1da774:	7000           	moveq #0,%d0
-  1da776:	7777           	.short 0x7777
-  1da778:	7700           	.short 0x7700
-  1da77a:	7888           	moveq #-120,%d4
-  1da77c:	8700           	sbcd %d0,%d3
-  1da77e:	7888           	moveq #-120,%d4
-  1da780:	8700           	sbcd %d0,%d3
-  1da782:	7888           	moveq #-120,%d4
-  1da784:	8700           	sbcd %d0,%d3
-  1da786:	7888           	moveq #-120,%d4
-  1da788:	8700           	sbcd %d0,%d3
-  1da78a:	7888           	moveq #-120,%d4
-  1da78c:	8700           	sbcd %d0,%d3
-  1da78e:	7888           	moveq #-120,%d4
-  1da790:	8700           	sbcd %d0,%d3
-  1da792:	7888           	moveq #-120,%d4
-  1da794:	8870 7888      	orw %a0@(ffffffffffffff88,%d7:l),%d4
-  1da798:	8887           	orl %d7,%d4
-  1da79a:	0788 8888      	movepw %d3,%a0@(-30584)
-  1da79e:	0078 8888 0007 	oriw #-30584,0x7
-  1da7a4:	8888           	.short 0x8888
-  1da7a6:	0000 7888      	orib #-120,%d0
-  1da7aa:	0000 0788      	orib #-120,%d0
-  1da7ae:	0000 0078      	orib #120,%d0
-  1da7b2:	0000 0007      	orib #7,%d0
-  1da7b6:	0077 7777 0078 	oriw #30583,%sp@(78,%d0:w)
-  1da7bc:	8887           	orl %d7,%d4
-  1da7be:	0078 8887 0078 	oriw #-30585,0x78
-  1da7c4:	8887           	orl %d7,%d4
-  1da7c6:	0078 8887 0078 	oriw #-30585,0x78
-  1da7cc:	8887           	orl %d7,%d4
-  1da7ce:	0078 8887 0788 	oriw #-30585,0x788
-  1da7d4:	8887           	orl %d7,%d4
-  1da7d6:	7888           	moveq #-120,%d4
-  1da7d8:	8887           	orl %d7,%d4
-  1da7da:	8888           	.short 0x8888
-  1da7dc:	8870 8888      	orw %a0@(ffffffffffffff88,%a0:l),%d4
-  1da7e0:	8700           	sbcd %d0,%d3
-  1da7e2:	8888           	.short 0x8888
-  1da7e4:	7000           	moveq #0,%d0
-  1da7e6:	8887           	orl %d7,%d4
-  1da7e8:	0000 8870      	orib #112,%d0
-  1da7ec:	0000 8700      	orib #0,%d0
-  1da7f0:	0000 7000      	orib #0,%d0
-  1da7f4:	0000 7777      	orib #119,%d0
-  1da7f8:	7777           	.short 0x7777
-  1da7fa:	7888           	moveq #-120,%d4
-  1da7fc:	8888           	.short 0x8888
-  1da7fe:	7888           	moveq #-120,%d4
-  1da800:	8888           	.short 0x8888
-  1da802:	7888           	moveq #-120,%d4
-  1da804:	8777 7888      	orw %d3,%sp@(ffffffffffffff88,%d7:l)
-  1da808:	8700           	sbcd %d0,%d3
-  1da80a:	7888           	moveq #-120,%d4
-  1da80c:	8700           	sbcd %d0,%d3
-  1da80e:	7888           	moveq #-120,%d4
-  1da810:	8777 7888      	orw %d3,%sp@(ffffffffffffff88,%d7:l)
-  1da814:	8888           	.short 0x8888
-  1da816:	7888           	moveq #-120,%d4
-  1da818:	8888           	.short 0x8888
-  1da81a:	7888           	moveq #-120,%d4
-  1da81c:	8777 7888      	orw %d3,%sp@(ffffffffffffff88,%d7:l)
-  1da820:	8700           	sbcd %d0,%d3
-  1da822:	7888           	moveq #-120,%d4
-  1da824:	8700           	sbcd %d0,%d3
-  1da826:	7888           	moveq #-120,%d4
-  1da828:	8777 7888      	orw %d3,%sp@(ffffffffffffff88,%d7:l)
-  1da82c:	8888           	.short 0x8888
-  1da82e:	7888           	moveq #-120,%d4
-  1da830:	8888           	.short 0x8888
-  1da832:	7777           	.short 0x7777
-  1da834:	7777           	.short 0x7777
-  1da836:	7777           	.short 0x7777
-  1da838:	7777           	.short 0x7777
-  1da83a:	8888           	.short 0x8888
-  1da83c:	8887           	orl %d7,%d4
-  1da83e:	8888           	.short 0x8888
-  1da840:	8887           	orl %d7,%d4
-  1da842:	7777           	.short 0x7777
-  1da844:	7777           	.short 0x7777
+  1da6e6:	1111           	moveb %a1@,%a0@-
+  1da6e8:	1111           	moveb %a1@,%a0@-
+  1da6ea:	2222           	movel %a2@-,%d1
+  1da6ec:	2221           	movel %a1@-,%d1
+  1da6ee:	2222           	movel %a2@-,%d1
+  1da6f0:	2221           	movel %a1@-,%d1
+  1da6f2:	1111           	moveb %a1@,%a0@-
+  1da6f4:	1111           	moveb %a1@,%a0@-
+  1da6f6:	0001 1111      	orib #17,%d1
+  1da6fa:	0012 2222      	orib #34,%a2@
+  1da6fe:	0122           	btst %d0,%a2@-
+  1da700:	2222           	movel %a2@-,%d1
+  1da702:	1222           	moveb %a2@-,%d1
+  1da704:	2211           	movel %a1@,%d1
+  1da706:	1222           	moveb %a2@-,%d1
+  1da708:	2100           	movel %d0,%a0@-
+  1da70a:	1222           	moveb %a2@-,%d1
+  1da70c:	2100           	movel %d0,%a0@-
+  1da70e:	1222           	moveb %a2@-,%d1
+  1da710:	2100           	movel %d0,%a0@-
+  1da712:	1222           	moveb %a2@-,%d1
+  1da714:	2100           	movel %d0,%a0@-
+  1da716:	1222           	moveb %a2@-,%d1
+  1da718:	2100           	movel %d0,%a0@-
+  1da71a:	1222           	moveb %a2@-,%d1
+  1da71c:	2100           	movel %d0,%a0@-
+  1da71e:	1222           	moveb %a2@-,%d1
+  1da720:	2100           	movel %d0,%a0@-
+  1da722:	1222           	moveb %a2@-,%d1
+  1da724:	2100           	movel %d0,%a0@-
+  1da726:	1222           	moveb %a2@-,%d1
+  1da728:	2211           	movel %a1@,%d1
+  1da72a:	0122           	btst %d0,%a2@-
+  1da72c:	2222           	movel %a2@-,%d1
+  1da72e:	0012 2222      	orib #34,%a2@
+  1da732:	0001 1111      	orib #17,%d1
+  1da736:	1111           	moveb %a1@,%a0@-
+  1da738:	1000           	moveb %d0,%d0
+  1da73a:	2222           	movel %a2@-,%d1
+  1da73c:	2100           	movel %d0,%a0@-
+  1da73e:	2222           	movel %a2@-,%d1
+  1da740:	2210           	movel %a0@,%d1
+  1da742:	1122           	moveb %a2@-,%a0@-
+  1da744:	2221           	movel %a1@-,%d1
+  1da746:	0012 2221      	orib #33,%a2@
+  1da74a:	0012 2221      	orib #33,%a2@
+  1da74e:	0012 2221      	orib #33,%a2@
+  1da752:	0012 2221      	orib #33,%a2@
+  1da756:	0012 2221      	orib #33,%a2@
+  1da75a:	0012 2221      	orib #33,%a2@
+  1da75e:	0012 2221      	orib #33,%a2@
+  1da762:	0012 2221      	orib #33,%a2@
+  1da766:	1122           	moveb %a2@-,%a0@-
+  1da768:	2221           	movel %a1@-,%d1
+  1da76a:	2222           	movel %a2@-,%d1
+  1da76c:	2210           	movel %a0@,%d1
+  1da76e:	2222           	movel %a2@-,%d1
+  1da770:	2100           	movel %d0,%a0@-
+  1da772:	1111           	moveb %a1@,%a0@-
+  1da774:	1000           	moveb %d0,%d0
+  1da776:	1111           	moveb %a1@,%a0@-
+  1da778:	1100           	moveb %d0,%a0@-
+  1da77a:	1222           	moveb %a2@-,%d1
+  1da77c:	2100           	movel %d0,%a0@-
+  1da77e:	1222           	moveb %a2@-,%d1
+  1da780:	2100           	movel %d0,%a0@-
+  1da782:	1222           	moveb %a2@-,%d1
+  1da784:	2100           	movel %d0,%a0@-
+  1da786:	1222           	moveb %a2@-,%d1
+  1da788:	2100           	movel %d0,%a0@-
+  1da78a:	1222           	moveb %a2@-,%d1
+  1da78c:	2100           	movel %d0,%a0@-
+  1da78e:	1222           	moveb %a2@-,%d1
+  1da790:	2100           	movel %d0,%a0@-
+  1da792:	1222           	moveb %a2@-,%d1
+  1da794:	2210           	movel %a0@,%d1
+  1da796:	1222           	moveb %a2@-,%d1
+  1da798:	2221           	movel %a1@-,%d1
+  1da79a:	0122           	btst %d0,%a2@-
+  1da79c:	2222           	movel %a2@-,%d1
+  1da79e:	0012 2222      	orib #34,%a2@
+  1da7a2:	0001 2222      	orib #34,%d1
+  1da7a6:	0000 1222      	orib #34,%d0
+  1da7aa:	0000 0122      	orib #34,%d0
+  1da7ae:	0000 0012      	orib #18,%d0
+  1da7b2:	0000 0001      	orib #1,%d0
+  1da7b6:	0011 1111      	orib #17,%a1@
+  1da7ba:	0012 2221      	orib #33,%a2@
+  1da7be:	0012 2221      	orib #33,%a2@
+  1da7c2:	0012 2221      	orib #33,%a2@
+  1da7c6:	0012 2221      	orib #33,%a2@
+  1da7ca:	0012 2221      	orib #33,%a2@
+  1da7ce:	0012 2221      	orib #33,%a2@
+  1da7d2:	0122           	btst %d0,%a2@-
+  1da7d4:	2221           	movel %a1@-,%d1
+  1da7d6:	1222           	moveb %a2@-,%d1
+  1da7d8:	2221           	movel %a1@-,%d1
+  1da7da:	2222           	movel %a2@-,%d1
+  1da7dc:	2210           	movel %a0@,%d1
+  1da7de:	2222           	movel %a2@-,%d1
+  1da7e0:	2100           	movel %d0,%a0@-
+  1da7e2:	2222           	movel %a2@-,%d1
+  1da7e4:	1000           	moveb %d0,%d0
+  1da7e6:	2221           	movel %a1@-,%d1
+  1da7e8:	0000 2210      	orib #16,%d0
+  1da7ec:	0000 2100      	orib #0,%d0
+  1da7f0:	0000 1000      	orib #0,%d0
+  1da7f4:	0000 1111      	orib #17,%d0
+  1da7f8:	1111           	moveb %a1@,%a0@-
+  1da7fa:	1222           	moveb %a2@-,%d1
+  1da7fc:	2222           	movel %a2@-,%d1
+  1da7fe:	1222           	moveb %a2@-,%d1
+  1da800:	2222           	movel %a2@-,%d1
+  1da802:	1222           	moveb %a2@-,%d1
+  1da804:	2111           	movel %a1@,%a0@-
+  1da806:	1222           	moveb %a2@-,%d1
+  1da808:	2100           	movel %d0,%a0@-
+  1da80a:	1222           	moveb %a2@-,%d1
+  1da80c:	2100           	movel %d0,%a0@-
+  1da80e:	1222           	moveb %a2@-,%d1
+  1da810:	2111           	movel %a1@,%a0@-
+  1da812:	1222           	moveb %a2@-,%d1
+  1da814:	2222           	movel %a2@-,%d1
+  1da816:	1222           	moveb %a2@-,%d1
+  1da818:	2222           	movel %a2@-,%d1
+  1da81a:	1222           	moveb %a2@-,%d1
+  1da81c:	2111           	movel %a1@,%a0@-
+  1da81e:	1222           	moveb %a2@-,%d1
+  1da820:	2100           	movel %d0,%a0@-
+  1da822:	1222           	moveb %a2@-,%d1
+  1da824:	2100           	movel %d0,%a0@-
+  1da826:	1222           	moveb %a2@-,%d1
+  1da828:	2111           	movel %a1@,%a0@-
+  1da82a:	1222           	moveb %a2@-,%d1
+  1da82c:	2222           	movel %a2@-,%d1
+  1da82e:	1222           	moveb %a2@-,%d1
+  1da830:	2222           	movel %a2@-,%d1
+  1da832:	1111           	moveb %a1@,%a0@-
+  1da834:	1111           	moveb %a1@,%a0@-
+  1da836:	1111           	moveb %a1@,%a0@-
+  1da838:	1111           	moveb %a1@,%a0@-
+  1da83a:	2222           	movel %a2@-,%d1
+  1da83c:	2221           	movel %a1@-,%d1
+  1da83e:	2222           	movel %a2@-,%d1
+  1da840:	2221           	movel %a1@-,%d1
+  1da842:	1111           	moveb %a1@,%a0@-
+  1da844:	1111           	moveb %a1@,%a0@-
 	...
-  1da84e:	7777           	.short 0x7777
-  1da850:	7700           	.short 0x7700
-  1da852:	8888           	.short 0x8888
-  1da854:	8700           	sbcd %d0,%d3
-  1da856:	8888           	.short 0x8888
-  1da858:	8700           	sbcd %d0,%d3
-  1da85a:	7777           	.short 0x7777
-  1da85c:	7700           	.short 0x7700
+  1da84e:	1111           	moveb %a1@,%a0@-
+  1da850:	1100           	moveb %d0,%a0@-
+  1da852:	2222           	movel %a2@-,%d1
+  1da854:	2100           	movel %d0,%a0@-
+  1da856:	2222           	movel %a2@-,%d1
+  1da858:	2100           	movel %d0,%a0@-
+  1da85a:	1111           	moveb %a1@,%a0@-
+  1da85c:	1100           	moveb %d0,%a0@-
 	...
-  1da866:	7777           	.short 0x7777
-  1da868:	7777           	.short 0x7777
-  1da86a:	8888           	.short 0x8888
-  1da86c:	8887           	orl %d7,%d4
-  1da86e:	8888           	.short 0x8888
-  1da870:	8887           	orl %d7,%d4
-  1da872:	7777           	.short 0x7777
-  1da874:	7777           	.short 0x7777
-  1da876:	7777           	.short 0x7777
-  1da878:	7777           	.short 0x7777
-  1da87a:	7888           	moveq #-120,%d4
-  1da87c:	8888           	.short 0x8888
-  1da87e:	7888           	moveq #-120,%d4
-  1da880:	8888           	.short 0x8888
-  1da882:	7888           	moveq #-120,%d4
-  1da884:	8777 7888      	orw %d3,%sp@(ffffffffffffff88,%d7:l)
-  1da888:	8700           	sbcd %d0,%d3
-  1da88a:	7888           	moveq #-120,%d4
-  1da88c:	8700           	sbcd %d0,%d3
-  1da88e:	7888           	moveq #-120,%d4
-  1da890:	8700           	sbcd %d0,%d3
-  1da892:	7888           	moveq #-120,%d4
-  1da894:	8777 7888      	orw %d3,%sp@(ffffffffffffff88,%d7:l)
-  1da898:	8888           	.short 0x8888
-  1da89a:	7888           	moveq #-120,%d4
-  1da89c:	8888           	.short 0x8888
-  1da89e:	7888           	moveq #-120,%d4
-  1da8a0:	8778 7888      	orw %d3,0x7888
-  1da8a4:	8707           	sbcd %d7,%d3
-  1da8a6:	7888           	moveq #-120,%d4
-  1da8a8:	8700           	sbcd %d0,%d3
-  1da8aa:	7888           	moveq #-120,%d4
-  1da8ac:	8700           	sbcd %d0,%d3
-  1da8ae:	7888           	moveq #-120,%d4
-  1da8b0:	8700           	sbcd %d0,%d3
-  1da8b2:	7777           	.short 0x7777
-  1da8b4:	7700           	.short 0x7700
-  1da8b6:	7777           	.short 0x7777
-  1da8b8:	7000           	moveq #0,%d0
-  1da8ba:	8888           	.short 0x8888
-  1da8bc:	8700           	sbcd %d0,%d3
-  1da8be:	8888           	.short 0x8888
-  1da8c0:	8870 7788      	orw @(0,%d7:w:8),%d4
-  1da8c4:	8887           	orl %d7,%d4
-  1da8c6:	0078 8887 0078 	oriw #-30585,0x78
-  1da8cc:	8887           	orl %d7,%d4
-  1da8ce:	0078 8887 7788 	oriw #-30585,0x7788
-  1da8d4:	8887           	orl %d7,%d4
-  1da8d6:	8888           	.short 0x8888
-  1da8d8:	8870 8888      	orw %a0@(ffffffffffffff88,%a0:l),%d4
-  1da8dc:	8700           	sbcd %d0,%d3
-  1da8de:	8888           	.short 0x8888
-  1da8e0:	7000           	moveq #0,%d0
-  1da8e2:	8888           	.short 0x8888
-  1da8e4:	8700           	sbcd %d0,%d3
-  1da8e6:	7888           	moveq #-120,%d4
-  1da8e8:	8870 0788      	orw @(0,%d0:w:8),%d4
-  1da8ec:	8887           	orl %d7,%d4
-  1da8ee:	0078 8887 0007 	oriw #-30585,0x7
-  1da8f4:	7777           	.short 0x7777
+  1da866:	1111           	moveb %a1@,%a0@-
+  1da868:	1111           	moveb %a1@,%a0@-
+  1da86a:	2222           	movel %a2@-,%d1
+  1da86c:	2221           	movel %a1@-,%d1
+  1da86e:	2222           	movel %a2@-,%d1
+  1da870:	2221           	movel %a1@-,%d1
+  1da872:	1111           	moveb %a1@,%a0@-
+  1da874:	1111           	moveb %a1@,%a0@-
+  1da876:	1111           	moveb %a1@,%a0@-
+  1da878:	1111           	moveb %a1@,%a0@-
+  1da87a:	1222           	moveb %a2@-,%d1
+  1da87c:	2222           	movel %a2@-,%d1
+  1da87e:	1222           	moveb %a2@-,%d1
+  1da880:	2222           	movel %a2@-,%d1
+  1da882:	1222           	moveb %a2@-,%d1
+  1da884:	2111           	movel %a1@,%a0@-
+  1da886:	1222           	moveb %a2@-,%d1
+  1da888:	2100           	movel %d0,%a0@-
+  1da88a:	1222           	moveb %a2@-,%d1
+  1da88c:	2100           	movel %d0,%a0@-
+  1da88e:	1222           	moveb %a2@-,%d1
+  1da890:	2100           	movel %d0,%a0@-
+  1da892:	1222           	moveb %a2@-,%d1
+  1da894:	2111           	movel %a1@,%a0@-
+  1da896:	1222           	moveb %a2@-,%d1
+  1da898:	2222           	movel %a2@-,%d1
+  1da89a:	1222           	moveb %a2@-,%d1
+  1da89c:	2222           	movel %a2@-,%d1
+  1da89e:	1222           	moveb %a2@-,%d1
+  1da8a0:	2112           	movel %a2@,%a0@-
+  1da8a2:	1222           	moveb %a2@-,%d1
+  1da8a4:	2101           	movel %d1,%a0@-
+  1da8a6:	1222           	moveb %a2@-,%d1
+  1da8a8:	2100           	movel %d0,%a0@-
+  1da8aa:	1222           	moveb %a2@-,%d1
+  1da8ac:	2100           	movel %d0,%a0@-
+  1da8ae:	1222           	moveb %a2@-,%d1
+  1da8b0:	2100           	movel %d0,%a0@-
+  1da8b2:	1111           	moveb %a1@,%a0@-
+  1da8b4:	1100           	moveb %d0,%a0@-
+  1da8b6:	1111           	moveb %a1@,%a0@-
+  1da8b8:	1000           	moveb %d0,%d0
+  1da8ba:	2222           	movel %a2@-,%d1
+  1da8bc:	2100           	movel %d0,%a0@-
+  1da8be:	2222           	movel %a2@-,%d1
+  1da8c0:	2210           	movel %a0@,%d1
+  1da8c2:	1122           	moveb %a2@-,%a0@-
+  1da8c4:	2221           	movel %a1@-,%d1
+  1da8c6:	0012 2221      	orib #33,%a2@
+  1da8ca:	0012 2221      	orib #33,%a2@
+  1da8ce:	0012 2221      	orib #33,%a2@
+  1da8d2:	1122           	moveb %a2@-,%a0@-
+  1da8d4:	2221           	movel %a1@-,%d1
+  1da8d6:	2222           	movel %a2@-,%d1
+  1da8d8:	2210           	movel %a0@,%d1
+  1da8da:	2222           	movel %a2@-,%d1
+  1da8dc:	2100           	movel %d0,%a0@-
+  1da8de:	2222           	movel %a2@-,%d1
+  1da8e0:	1000           	moveb %d0,%d0
+  1da8e2:	2222           	movel %a2@-,%d1
+  1da8e4:	2100           	movel %d0,%a0@-
+  1da8e6:	1222           	moveb %a2@-,%d1
+  1da8e8:	2210           	movel %a0@,%d1
+  1da8ea:	0122           	btst %d0,%a2@-
+  1da8ec:	2221           	movel %a1@-,%d1
+  1da8ee:	0012 2221      	orib #33,%a2@
+  1da8f2:	0001 1111      	orib #17,%d1
 	...
-  1da996:	0cc0           	.short 0x0cc0
-  1da998:	00cc           	.short 0x00cc
-  1da99a:	0cc0           	.short 0x0cc0
-  1da99c:	00cc           	.short 0x00cc
-  1da99e:	0cc0           	.short 0x0cc0
-  1da9a0:	00cc           	.short 0x00cc
-  1da9a2:	0cc0           	.short 0x0cc0
-  1da9a4:	00cc           	.short 0x00cc
-  1da9a6:	0cc0           	.short 0x0cc0
-  1da9a8:	00cc           	.short 0x00cc
-  1da9aa:	0cc0           	.short 0x0cc0
-  1da9ac:	00cc           	.short 0x00cc
-  1da9ae:	00cc           	.short 0x00cc
-  1da9b0:	ccc0           	muluw %d0,%d6
+  1da996:	0880 0088      	bclr #-120,%d0
+  1da99a:	0880 0088      	bclr #-120,%d0
+  1da99e:	0880 0088      	bclr #-120,%d0
+  1da9a2:	0880 0088      	bclr #-120,%d0
+  1da9a6:	0880 0088      	bclr #-120,%d0
+  1da9aa:	0880 0088      	bclr #-120,%d0
+  1da9ae:	0088           	.short 0x0088
+  1da9b0:	8880           	orl %d0,%d4
 	...
-  1da9d6:	0ccc           	.short 0x0ccc
-  1da9d8:	ccc0           	muluw %d0,%d6
-  1da9da:	0cc0           	.short 0x0cc0
-  1da9dc:	00cc           	.short 0x00cc
-  1da9de:	0cc0           	.short 0x0cc0
-  1da9e0:	00cc           	.short 0x00cc
-  1da9e2:	0cc0           	.short 0x0cc0
-  1da9e4:	00cc           	.short 0x00cc
-  1da9e6:	0ccc           	.short 0x0ccc
-  1da9e8:	ccc0           	muluw %d0,%d6
-  1da9ea:	0cc0           	.short 0x0cc0
-  1da9ec:	0000 0cc0      	orib #-64,%d0
+  1da9d6:	0888           	.short 0x0888
+  1da9d8:	8880           	orl %d0,%d4
+  1da9da:	0880 0088      	bclr #-120,%d0
+  1da9de:	0880 0088      	bclr #-120,%d0
+  1da9e2:	0880 0088      	bclr #-120,%d0
+  1da9e6:	0888           	.short 0x0888
+  1da9e8:	8880           	orl %d0,%d4
+  1da9ea:	0880 0000      	bclr #0,%d0
+  1da9ee:	0880 0000      	bclr #0,%d0
 	...
-  1daa14:	0000 0bb0      	orib #-80,%d0
-  1daa18:	00bb           	.short 0x00bb
+  1daa16:	0bb0 00bb      	bclr %d5,%a0@(ffffffffffffffbb,%d0:w)
   1daa1a:	0bb0 00bb      	bclr %d5,%a0@(ffffffffffffffbb,%d0:w)
   1daa1e:	0bb0 00bb      	bclr %d5,%a0@(ffffffffffffffbb,%d0:w)
   1daa22:	0bb0 00bb      	bclr %d5,%a0@(ffffffffffffffbb,%d0:w)
@@ -523817,15 +523801,15 @@ Disassembly of section .data:
   1daa68:	bbb0 0bb0 0000 	eorl %d5,@(bb0,%d0:l:2)
   1daa6e:	0bb0 
 	...
-  1daad8:	cc00           	andb %d0,%d6
-  1daada:	000c           	.short 0x000c
-  1daadc:	cc00           	andb %d0,%d6
-  1daade:	0000 cc00      	orib #0,%d0
-  1daae2:	0000 cc00      	orib #0,%d0
-  1daae6:	0000 cc00      	orib #0,%d0
-  1daaea:	0000 cc00      	orib #0,%d0
-  1daaee:	00cc           	.short 0x00cc
-  1daaf0:	cccc           	.short 0xcccc
+  1daad8:	8800           	orb %d0,%d4
+  1daada:	0008           	.short 0x0008
+  1daadc:	8800           	orb %d0,%d4
+  1daade:	0000 8800      	orib #0,%d0
+  1daae2:	0000 8800      	orib #0,%d0
+  1daae6:	0000 8800      	orib #0,%d0
+  1daaea:	0000 8800      	orib #0,%d0
+  1daaee:	0088           	.short 0x0088
+  1daaf0:	8888           	.short 0x8888
   1daaf2:	0000 0000      	orib #0,%d0
   1daaf6:	2c2d 2e2f      	movel %a5@(11823),%d6
   1daafa:	3031 3233      	movew %a1@(33,%d3:w:2),%d0
@@ -1094259,7 +1094243,7 @@ Disassembly of section .data:
   3c98d0:	0042 5549      	oriw #21833,%d2
   3c98d4:	4c44           	.short 0x4c44
   3c98d6:	2000           	movel %d0,%d0
-  3c98d8:	3035 3431      	movew %a5@(31,%d3:w:4),%d0
+  3c98d8:	3035 3432      	movew %a5@(32,%d3:w:4),%d0
   3c98dc:	0056 4543      	oriw #17731,%fp@
   3c98e0:	544f           	addqw #2,%sp
   3c98e2:	5200           	addqb #1,%d0
