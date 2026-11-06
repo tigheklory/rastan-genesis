@@ -1556,31 +1556,34 @@
     1
    ],
    "phase_presence": "BOSS (round-tail)",
-   "description": "Round-1 boss BODY, base 0x061D (record type 14), compositor 1; components type-15 via 0x457D0. Body frame + compositor line-F selection Cody-verified (prog 0x47908); exact staged boss RGB PENDING (field pool 0x3BA88->0x4FD02 DISPROVEN as boss colours, not substituted).",
+   "description": "Round-1 boss BODY, base 0x061D (record type 14), compositor 1; components type-15 (the Flying Daggers) via 0x457D0. Body frame + compositor line-F selection Cody-verified (prog 0x47908). NORMAL-STATE PALETTE PROVEN (Cody PROMT-ID-0095): colours are the boss-specific ROM target table at 0x4708C (15 words -> live physical line 0x4F $2009E2-$2009FE; index 0 retained black), faded in by boss writer 0x47004. NOT the field pool 0x3BA88->0x4FD02. Generator decodes the RGB from the ROM; no RGB is stored here.",
    "frame_status": "COMPOSER_PROVEN",
    "frame_source": "none",
    "frame_provenance": "STATIC_DECOMPILED",
-   "palette_status": "PARTIAL",
-   "palette_source": "palette LINE F proven (0x3C9E8, +0x27=0 -> embedded compositor nibble). COLOUR source is NOT the field pool 0x3BA88->0x4FD02 (disproven: R3 field pool 2 = teal, arcade boss = purple). Real colours come via the master sprite-palette staging 0x4EAF6 -> 0x200000 -> A5+0x1600 (0x3B9FE/0x45D7C); exact line-F layout not yet resolved.",
-   "palette_provenance": "PARTIAL_line_proven_colours_pending",
-   "confidence": "route-proven only",
+   "palette_status": "PROVEN",
+   "palette_source": "NORMAL-STATE boss palette PROVEN (Cody PROMT-ID-0095): logical compositor line F (0x3C9E8, +0x27=0) resolves with R1-S3 sprite control 0x0080 to physical arcade line 0x4F (79); the 15 source 0RGB words at ROM 0x4708C-0x470A9 are faded into live line entries 1-15 ($2009E2-$2009FE) by boss writer 0x47004 (LUT 0x46F84), entry 0 retained black. REJECTED hypotheses (kept for history, NOT the source): field pool 0x3BA88->0x4FD02->0x4FE62 (field publisher, not this fade); master line 25 at 0x4EE16 (cold-start master, retained independently on line 25 while 0x4706E wrote line 79); A5+0x1600 staging (no dependency in 0x47004).",
+   "palette_provenance": "PROVEN_boss_target_rom_table_0x4708C",
+   "confidence": "body/line route-proven; normal-state palette ROM-source PROVEN (Cody PROMT-ID-0095)",
    "unresolved_reason": "",
-   "palette": {
-    "nibble": 4,
-    "pool_index": 18,
-    "rom_palette_addr": "0x4FF42",
-    "swatch": [
-     "#000000",
-     "#f76321",
-     "#b54221",
-     "#841010",
-     "#f7f700",
-     "#949400",
-     "#f7f7f7",
-     "#848484"
-    ],
-    "source": "0x456EC[var0/comp0]",
-    "status": "PROVISIONAL (line math only; body unresolved)"
+   "boss_palette_source": {
+    "kind": "boss_target_rom_table",
+    "rom": "maincpu",
+    "address": "0x4708C",
+    "count": 15,
+    "index0": "black",
+    "encoding": "arcade_0RGB",
+    "logical_line": "0xF",
+    "physical_line": "0x4F",
+    "live_range": "0x2009E0-0x2009FF",
+    "fade_writer": "0x47004",
+    "fade_lut": "0x46F84",
+    "status": "PROVEN",
+    "authority": "Cody PROMT-ID-0095 (r1_boss_palette_fade_dagger_semantics.json); value derived from ROM, not stored here"
+   },
+   "rejected_palette_hypotheses": {
+    "field_pool_0x4FE62": "REJECTED: ordinary working-palette publisher 0x3BA88[R1][F]->pool 11->0x4FE62 (not the boss fade)",
+    "master_line25_0x4EE16": "REJECTED: cold-start master line 25; retained independently on physical line 25 while the boss fade wrote line 79",
+    "staging_A5_0x1600": "REJECTED: boss writer 0x47004 bypasses A5+0x1600 and writes line 0x4F directly"
    },
    "creation": "2-slot paired actor A5+0x508/0x548 via 0x45342; variant A5+0xC5A(+0x06=8/9); base via 0x4543e",
    "anim_override": "",
@@ -1596,25 +1599,93 @@
     "anim": 0,
     "compositor_table": 1,
     "palette": {
-     "kind": "rom_field",
-     "nibble": 15
+     "kind": "boss_target_rom_table",
+     "address": "0x4708C",
+     "count": 15,
+     "physical_line": "0x4F"
     },
     "verified": true,
-    "note": "Cody-verified body frame + compositor line-F selection; exact staged boss RGB PENDING (field pool disproven as boss colours)"
+    "note": "Cody-verified body frame + compositor line-F selection; NORMAL-STATE palette PROVEN, decoded by the generator from the boss target ROM table 0x4708C (physical line 0x4F)."
    },
    "palette_instances": [
     {
      "round": 1,
      "palette_line": "0xF",
-     "source": "compositor control byte (0x3C9E8 no override)",
+     "physical_line": "0x4F",
+     "source": "boss target ROM table 0x4708C (fade writer 0x47004) -> live line 0x4F",
      "anim": "0x00",
      "program": "0x47908",
-     "lookup": "0x3ba97",
-     "pool": 11,
-     "status": "DISPROVEN as boss colours (field pool != boss palette); line F correct"
+     "status": "PROVEN (Cody PROMT-ID-0095; ROM 0x4708C, physical line 0x4F). Field pool 0x3BA88->0x4FD02 and master line 0x4EE16 both REJECTED as the boss source."
     }
    ],
-   "boss_structure": "single-record (normal state)"
+   "flying_daggers": {
+    "technical_id": "boss_round1_flying_daggers",
+    "object_id": "object:boss.r1.flying_daggers",
+    "human_name": "Flying Daggers",
+    "name_status": "PROVEN (Cody PROMT-ID-0095; live corroboration)",
+    "record_type": "0x0F",
+    "base": "0x061D",
+    "creator": "0x457B2 (loop) -> 0x457D0",
+    "compositor": 1,
+    "pal_attr_27": "0x00",
+    "initial_anim": "0x14",
+    "flight_anims": ["0x1A", "0x1B", "0x1C", "0x1D", "0x1E", "0x1F"],
+    "programs": ["0x47E54", "0x47E7A", "0x47E7F", "0x47E84", "0x47E8D", "0x47E92", "0x47E97"],
+    "pattern_codes": ["0x067B", "0x067C", "0x0683", "0x0684", "0x0685", "0x0686", "0x0687", "0x0688", "0x0689"],
+    "embedded_line": "0xF",
+    "physical_line": "0x4F",
+    "shares_boss_palette": true,
+    "used_source_indices": [0, 3, 4, 5, 6, 8, 10, 11, 13],
+    "note": "The five type-15 records are the Round-1 boss Flying Daggers (NOT a generic 'Type-15 Auxiliary'). Body and daggers share ONE source palette context (ROM 0x4708C, physical line 0x4F); daggers draw only the index subset above. One Genesis line required for the normal body+dagger presentation."
+   },
+   "boss_structure": "single-record body + 5 Flying Dagger type-15 records (normal state)"
+  },
+  {
+   "technical_id": "green_sword_knight_r1",
+   "object_id": "object:castle.green_sword_knight.r1.n3",
+   "semantic_name": "Green Sword Knight",
+   "name_status": "PROVEN",
+   "category": "ENEMY_CASTLE_SCENE",
+   "base_graphics": "0x033E",
+   "actor_family_3e": 2,
+   "scene": "R1-S2",
+   "round_presence": [1],
+   "phase_presence": "SUB-ROUND 2 (castle)",
+   "spawn_route": "field schedule 0x4A104 (family-2 +0x3E==2); the ONLY directly-scheduled R1-S2 enemy, NOT marker-transformed",
+   "description": "The green-armored sword-wielding warrior of the Round-1 castle (Sub-Round 2), family-2 base 0x033E. DIRECTLY SCHEDULED via 0x4A104, so its creation +0x27 palette line survives (0x45684 bit6). Distinct from the family-8 Rope Climber (base 0x0241) and the Valkyrie field enemy (base 0x0241). COMPLETE displayed pose domain = 23 programs / 97 pattern codes (CORRECTED under Cody PROMT-ID-0090 / Andy PROMT-ID-0091 from the earlier 29/109 claim, which combined unrelated (base,program) identities).",
+   "frame_status": "COMPOSER_PROVEN",
+   "frame_source": "compositor VM (0x3D054 -> 0x3C902), base 0x033E",
+   "frame_provenance": "STATIC_DECOMPILED",
+   "palette_status": "PROVEN",
+   "palette_source": "ROM-backed, TWO-LAYER (resolved by the generator from maincpu.bin, not stored here): (1) embedded bit-6-clear per-piece program control nibbles -> effective bank 0x30+nibble (sword piece nibble 3 / body piece nibble 7; airborne nibble 7; short reaction nibble C); (2) the preserved-sweep actor +0x27 override (0x44/0x41, bit6) which makes 0x3C9E8 force one line (effective 4/0x34 or 1/0x31). The authorable green-armor reference is line 3 -> 0x3BA88[R1][3] -> pool 0x0C -> 0x4FD02 (matches the arcade green).",
+   "palette_provenance": "PROVEN_rom_two_layer_line3_green_armor_reference",
+   "confidence": "domain + palette route PROVEN (static)",
+   "unresolved_reason": "",
+   "program_count": 23,
+   "pattern_code_count": 97,
+   "excluded_foreign_programs": ["0x4D", "0x56", "0x57", "0x58", "0x59", "0x5A"],
+   "excluded_note": "0x4D->base 0x0234; 0x56/0x59/0x5A->base 0x0241 (family-8 Rope Climber); 0x57/0x58->base 0x01FC. A program number is not a global sprite identity.",
+   "embedded_sword_codes": "0x26B-0x274 (attached weapon artwork of these 23 programs; zero overlap with Rastan's player weapon codes; NOT a separate actor)",
+   "distinct_from": {
+    "rope_climber": "object:castle.rope_climber.family8.r1 (base 0x0241, state 0x11, programs 0x56/0x59/0x5A)",
+    "valkyrie": "field enemy at base 0x0241"
+   },
+   "render": {
+    "method": "green_knight",
+    "base": 830,
+    "anim": 147,
+    "compositor_table": 0,
+    "palette": {"kind": "rom_field", "round": 1, "nibble": 3},
+    "note": "green-armor line 3 / pool 0x0C (same ROM-decoded reference the Palette Composer renders)"
+   },
+   "pose_gallery": [
+    {"state": "normal", "label": "Normal walk / idle", "anims": [147, 148, 149, 150]},
+    {"state": "airborne", "label": "Airborne / low pose", "anims": [32, 33, 34, 35]},
+    {"state": "short_reaction", "label": "Short reaction / effect (crouch visual pending)", "anims": [113, 114, 115]},
+    {"state": "low_action_a", "label": "Low / weapon action A (state 0x1F)", "anims": [161, 162, 163, 164, 165, 166]},
+    {"state": "low_action_b", "label": "Low / weapon action B (state 0x1F)", "anims": [151, 152, 153, 154, 155, 156]}
+   ],
+   "composer_object": "object:castle.green_sword_knight.r1.n3 (green_knight_usages), scene PAL-R1-S2-PLANEA-CASTLE"
   },
   {
    "technical_id": "boss_round2",
@@ -3134,13 +3205,18 @@
   ],
   [
    "Boss clean legal frames",
-   "bodies proven; R5/R6 multi-record structure + component positions decoded (Cody 0x43458 table 0x43484); boss compositor line-F selection proven; exact staged boss RGB PENDING (field pool 0x3BA88->0x4FD02 DISPROVEN as boss colours, not substituted)",
+   "bodies proven; R5/R6 multi-record structure + component positions decoded (Cody 0x43458 table 0x43484); boss compositor line-F selection proven. R1 boss NORMAL-STATE palette PROVEN: ROM 0x4708C target table, physical arcade line 0x4F (Cody PROMT-ID-0095), Flying Daggers share it. R2-R6 exact staged boss RGB still PENDING (field pool 0x3BA88->0x4FD02 DISPROVEN as boss colours, not substituted)",
    "part"
   ],
   [
    "Per-round palettes",
-   "PROVEN mechanism (0x3BA88->0x4FD02); field palette proven; boss compositor line-F selection proven, but exact staged boss RGB PENDING (field pool DISPROVEN as boss colours)",
+   "PROVEN mechanism (0x3BA88->0x4FD02); field palette proven. R1 boss normal-state palette PROVEN (ROM 0x4708C, physical line 0x4F; Cody PROMT-ID-0095). R2-R6 boss compositor line-F selection proven, exact staged boss RGB PENDING (field pool DISPROVEN as boss colours)",
    "part"
+  ],
+  [
+   "R1-S2 Green Sword Knight",
+   "FIRST-CLASS ACTOR (object:castle.green_sword_knight.r1.n3, base 0x033E, family 2): 23 programs / 97 pattern codes; ROM-backed two-layer palette (green-armor line 3). Distinct from the family-8 Rope Climber and the Valkyrie (both base 0x0241). Bestiary card + pose gallery under R1-S2; Composer scene object under R1-S2.",
+   "ok"
   ],
   [
    "Gameplay item / reward system",

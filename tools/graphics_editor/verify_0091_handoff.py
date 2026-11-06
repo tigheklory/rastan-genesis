@@ -91,18 +91,24 @@ def main() -> int:
 
     # ---------- Boss ----------
     body = by_obj.get("object:boss.r1.body", [])
-    aux = by_obj.get("object:boss.r1.aux.type15", [])
+    # PROMT-ID-0098: the type-15 auxiliary is now identified as the Flying Daggers (object id renamed).
+    aux = by_obj.get("object:boss.r1.flying_daggers", [])
     ck("BO1. boss body present, R1-S3 only, program $47908 comp1 anim $00",
        bool(body) and all(u.get("scene_key") == "PAL-R1-S3-PLANEA-BOSS" and u.get("program") == "0x47908"
                           and u.get("compositor") == 1 for u in body))
-    ck("BO2. boss aux type-15 present, program $47E54 comp1 anim $14",
+    ck("BO2. boss Flying Daggers present, program $47E54 comp1 anim $14",
        bool(aux) and all(u.get("program") == "0x47E54" and u.get("compositor") == 1 for u in aux))
-    ck("BO3. boss shows source line F PROVEN (not ordinary field palette, RGB PARTIAL)",
+    # PROMT-ID-0098 (Cody PROMT-ID-0095): R1 boss normal-state palette is now RGB PROVEN from the ROM
+    # target table 0x4708C (physical line 0x4F), shared by the daggers. Still line F; still ROM-sourced
+    # (not the field pool). This supersedes the earlier "RGB PARTIAL" acceptance.
+    ck("BO3. boss shows source line F + RGB PROVEN (ROM 0x4708C, physical 0x4F; not field pool)",
        all(u.get("palette_status", {}).get("source_line") == "F"
            and u.get("palette_status", {}).get("source_line_proven") is True
-           and "PARTIAL" in u.get("palette_status", {}).get("rgb_status", "") for u in body + aux))
-    ck("BO4. boss groups are NOT authorable until palette RGB proven (no invented colors)",
-       all(u.get("authorable") is False for u in body + aux))
+           and "PROVEN" in u.get("palette_status", {}).get("rgb_status", "")
+           and "4708C" in u.get("palette_status", {}).get("rom_source", "") for u in body + aux))
+    # Authoring still gated on Tighe's final Genesis line mapping (one shared context; no auto-assign).
+    ck("BO4. boss groups not auto-authorable; body+daggers share ONE palette context",
+       all(u.get("authorable") is False and u.get("shares_boss_palette") is True for u in body + aux))
     boss_rounds = {u.get("round") for u in (body + aux + by_obj.get("object:boss.r1.effect.death", []))}
     ck("BO5. boss correctly scoped to Round 1 only", boss_rounds == {1}, boss_rounds)
 

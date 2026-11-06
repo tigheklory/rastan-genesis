@@ -55355,3 +55355,42 @@ Report: `docs/design/Andy_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0
   is reported in the final response (self-hash cannot be embedded).
 
 `TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0095`
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0098 — R1 Boss ROM Palette + Flying Daggers + Green Sword Knight (Andy)
+
+- Integrated Cody PROMT-ID-0095. R1 boss normal-state palette is now RGB **PROVEN**, decoded live
+  from the boss target ROM table `maincpu.bin @ 0x4708C` (15 words -> physical arcade line `0x4F`,
+  index 0 retained black; fade writer `0x47004`, LUT `0x46F84`). Decode = `pal5bit(nibble)` of each
+  `0RGB` nibble; reproduces Cody's captured palette exactly (16/16). The field pool `0x4FE62` and
+  master line `0x4EE16` are kept as REJECTED hypotheses. No RGB is stored in any tool/manifest.
+- Replaces PROMT-ID-0097 (historical/consumed). Manifest is the authority: added structured
+  `boss_palette_source` + `flying_daggers` to the R1 boss record and a canonical Green Sword Knight
+  actor record; generator decodes RGB from the ROM.
+- Flying Daggers identified: `object:boss.r1.flying_daggers`, type `0x0F`, base `0x061D`, creator
+  `0x457B2->0x457D0`, comp 1, `+0x27=0`, anim `0x14`/`0x1A-0x1F`, programs
+  `0x47E54/0x47E7A/0x47E7F/0x47E84/0x47E8D/0x47E92/0x47E97`, patterns `0x67B/0x67C/0x683-0x689`.
+  Share the body's exact source palette (index subset `{0,3,4,5,6,8,10,11,13}`); 1 Genesis line for
+  normal body+dagger. No Composer "Type-15 Auxiliary" label remains.
+- Green Sword Knight is now a FIRST-CLASS manifest actor + Bestiary card + pose gallery (was
+  prose-only): `object:castle.green_sword_knight.r1.n3`, base `0x033E`, family 2, R1-S2, 23
+  programs / 97 pattern codes; foreign `$4D/$56/$57/$58/$59/$5A` excluded; distinct from the
+  family-8 Rope Climber (`0x0241`) and the Valkyrie (`0x0241`). ROM-backed two-layer palette
+  (green-armor line 3); no hard-coded RGB.
+- Composer: `r1_boss_usages()` colours body+daggers from ROM `0x4708C` (physical `0x4F`), PROVEN,
+  one shared context, not auto-authorable (Tighe assigns the final Genesis line; no intermediate
+  fade-state authoring palettes). `green_knight_usages()` already exposed the R1-S2 knight domain.
+- Verification: new `tools/graphics_editor/verify_0098_r1_boss_green_knight.py` (38/38 PASS) proves
+  ROM decode == Cody fixture == Composer == Bestiary swatch, ROM-mutation sensitivity (isolated
+  buffer; real `maincpu.bin` byte-unchanged), the Green Knight record/domain, and no hard-coded
+  palette in `server.py`/`build_bestiary.py`/manifest. Updated `verify_0091_handoff` (boss BO2/BO3/BO4)
+  and `verify_0092_bestiary_artifact` (per-boss-card badge) to the 0095-proven R1 state; both green.
+  `verify_subround_palette_coverage` has one pre-existing failure (palette-decisions migration backup,
+  unrelated; identical on a clean tree).
+- No Genesis production source, ROM, build counter, CRAM, Plane A/B, SAT, audio,
+  `specs/palette_decisions.json`, or `Test.json` change (SHA
+  `e03dd2aa24f30adb3fd0566af0b917914b49d8cd1533441431be485dd2d6b730`, unchanged). No push.
+- Report:
+  `docs/design/Andy_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0098_r1_boss_green_knight_bestiary_composer_integration.md`.
+  Local commit only; documentation commit hash reported in the final response (self-hash cannot be embedded).
+
+`TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0098`

@@ -38,6 +38,18 @@ def rom_field_palette(rnd, nibble):
            pal5((int.from_bytes(mc[b+i*2:b+i*2+2],'big')>>4)&0xF),
            pal5(int.from_bytes(mc[b+i*2:b+i*2+2],'big')&0xF)) for i in range(16)]
     return cols, pidx
+def pal4(n): return (n<<3)|(n>>2)   # arcade 4-bit nibble -> 8-bit (boss target-table convention, pal5bit)
+def rom_boss_target_palette(addr, count=15):
+    """Boss-specific ROM 0RGB target table (e.g. R1 0x4708C). The `count` source words become live
+    palette entries 1..count; index 0 is retained black. Arcade 0RGB nibble -> 8-bit via pal4 — this
+    reproduces the captured final CLCS line exactly (Cody PROMT-ID-0095). No RGB is stored in the tool;
+    it is decoded from maincpu.bin every run. Returns 16 (r,g,b) tuples."""
+    cols=[(0,0,0)]
+    for i in range(count):
+        w=(mc[addr+2*i]<<8)|mc[addr+2*i+1]
+        cols.append((pal4((w>>8)&0xF), pal4((w>>4)&0xF), pal4(w&0xF)))
+    while len(cols)<16: cols.append((0,0,0))
+    return cols
 def composer_palette(key):
     return [tuple(int(c.lstrip('#')[i:i+2],16) for i in (0,2,4)) for c in EP[key]['mame_display_rgb8']], EP[key]['effective_sprite_bank']
 GRAY=[(0,0,0)]+[(v,v,v) for v in (40,70,95,120,140,160,180,200,215,230,245,255,90,130,170)]
@@ -196,20 +208,51 @@ def card(a, rnd, extra_class=''):
 
 def boss_card(a):
     rn=a.get('render',{}); rnd=a['round_presence'][0]; ver=rn.get('verified')
+    bps=a.get('boss_palette_source')   # PROVEN ROM-sourced boss palette (R1, Cody PROMT-ID-0095)
+    rom_proven = bool(bps) and bps.get('kind')=='boss_target_rom_table' and bps.get('status')=='PROVEN'
     nib=rn.get('palette',{}).get('nibble',0xF)
-    pal,pidx=rom_field_palette(rnd, nib)
-    img=render_vm(rn['base'], rn['anim'], GRAY, rn.get('compositor_table',1)) if rn.get('method')=='vm' else None  # colours PENDING (field pool disproven)
-    if img:
-        tag='body frame + compositor line-F selection · Cody-verified (RGB staged-palette PENDING)' if ver else 'body frame = ROM init-anim · UNVERIFIED'
-        frame=f'<div class="frame"><div class="provtag">{tag}</div><img src="{img}"></div>'
-        sw=(f'<div class="palbank part">compositor line 0x{nib:X} selection PROVEN (0x3C9E8) · boss RGB is NOT the field pool 0x3BA88→0x4FD02 (DISPROVEN as boss colours; R3 field pool 2 = teal vs arcade purple) · exact staged boss RGB PENDING · rendered neutral/gray (no invented colours)</div>')
+    if rom_proven:
+        # Decode the boss palette from the ROM target table every build (no stored RGB). This is the
+        # proven normal-state line (physical 0x4F), shared by the body and the Flying Daggers.
+        addr=int(bps['address'],16); cnt=int(bps.get('count',15))
+        pal=rom_boss_target_palette(addr, cnt)
+        img=render_vm(rn['base'], rn['anim'], pal, rn.get('compositor_table',1)) if rn.get('method')=='vm' else None
+        fd=a.get('flying_daggers',{})
+        used=fd.get('used_source_indices') or list(range(16))
+        if img:
+            frame=(f'<div class="frame"><div class="provtag">body frame · compositor line-F · '
+                   f'ROM-sourced palette (Cody PROMT-ID-0095)</div><img src="{img}"></div>')
+            sw=(f'<div class="palbank ok">RGB PROVEN · ROM {bps["address"]} ({cnt} words → entries 1-{cnt}, '
+                f'index 0 black) · logical line 0x{nib:X} → physical line {bps["physical_line"]} · '
+                f'fade writer {bps.get("fade_writer","0x47004")} · live {bps.get("live_range","")}</div>')
+            sw+='<div class="sw">'+''.join(f'<i title="idx {i}" style="background:rgb({pal[i][0]},{pal[i][1]},{pal[i][2]})"></i>' for i in range(16))+'</div>'
+            # Flying Daggers share this exact source palette (subset of indices).
+            dimg=render_vm(rn['base'], 0x14, pal, 0)
+            dthumb=f'<img src="{dimg}">' if dimg else ''
+            sw+=(f'<div class="palbank ok" style="margin-top:4px">Flying Daggers ({fd.get("object_id","object:boss.r1.flying_daggers")}) '
+                 f'· type {fd.get("record_type","0x0F")} · creator {fd.get("creator","")} · SHARES R1 BOSS PALETTE '
+                 f'(index subset {{{",".join(str(i) for i in used)}}}) · R1 Boss + Flying Daggers: 1 palette line required</div>')
+            sw+=(f'<div class="sw">'+''.join(f'<i title="dagger idx {i}" style="background:rgb({pal[i][0]},{pal[i][1]},{pal[i][2]})"></i>' for i in used)+'</div>'+dthumb)
+        else:
+            frame=f'<div class="frame pend"><b>BODY FRAME PENDING</b><br><span>{a.get("unresolved_reason","")}</span></div>'; sw=''
+        bar=(f'<span class="b ok">BODY PROVEN</span><span class="b ok">ROUND PROVEN</span>'
+             f'<span class="b ok">TYPE 0x{a.get("boss_body_record_type",0):02X}</span>'
+             f'<span class="b ok">FRAME VERIFIED</span>'
+             f'<span class="b ok">RGB PROVEN · ROM {bps["address"]}</span>')
     else:
-        frame=f'<div class="frame pend"><b>BODY FRAME PENDING</b><br><span>{a.get("unresolved_reason","")}</span></div>'; sw=''
-    fb='ok' if ver else 'part'
-    bar=(f'<span class="b ok">BODY PROVEN</span><span class="b ok">ROUND PROVEN</span>'
-         f'<span class="b ok">TYPE 0x{a.get("boss_body_record_type",0):02X}</span>'
-         f'<span class="b {fb}">{"FRAME VERIFIED" if ver else "FRAME STATIC"}</span>'
-         f'<span class="b part">LINE-F SELECT PROVEN · RGB PENDING</span>')
+        pal,pidx=rom_field_palette(rnd, nib)
+        img=render_vm(rn['base'], rn['anim'], GRAY, rn.get('compositor_table',1)) if rn.get('method')=='vm' else None  # colours PENDING (field pool disproven)
+        if img:
+            tag='body frame + compositor line-F selection · Cody-verified (RGB staged-palette PENDING)' if ver else 'body frame = ROM init-anim · UNVERIFIED'
+            frame=f'<div class="frame"><div class="provtag">{tag}</div><img src="{img}"></div>'
+            sw=(f'<div class="palbank part">compositor line 0x{nib:X} selection PROVEN (0x3C9E8) · boss RGB is NOT the field pool 0x3BA88→0x4FD02 (DISPROVEN as boss colours; R3 field pool 2 = teal vs arcade purple) · exact staged boss RGB PENDING · rendered neutral/gray (no invented colours)</div>')
+        else:
+            frame=f'<div class="frame pend"><b>BODY FRAME PENDING</b><br><span>{a.get("unresolved_reason","")}</span></div>'; sw=''
+        fb='ok' if ver else 'part'
+        bar=(f'<span class="b ok">BODY PROVEN</span><span class="b ok">ROUND PROVEN</span>'
+             f'<span class="b ok">TYPE 0x{a.get("boss_body_record_type",0):02X}</span>'
+             f'<span class="b {fb}">{"FRAME VERIFIED" if ver else "FRAME STATIC"}</span>'
+             f'<span class="b part">LINE-F SELECT PROVEN · RGB PENDING</span>')
     return f'''<article class="card boss">{frame}
       <div class="body"><div class="bar">{bar}</div>
       <h4>{a['semantic_name']}</h4><p class="desc">{a['description']}</p>
@@ -219,6 +262,47 @@ def boss_card(a):
       <dt>Slot</dt><dd class="mono">{a.get("boss_body_slot")}</dd>
       <dt>Trigger</dt><dd class="mono">{a.get("boss_trigger")}</dd>
       <dt>Components</dt><dd>{a.get("boss_components")}</dd></dl>{sw}</div></article>'''
+
+def green_knight_card(a):
+    """R1-S2 Green Sword Knight — a first-class actor card + compact pose gallery, manifest-driven. The
+    green-armor palette (line 3) is ROM-decoded (no RGB stored); every pose renders through the same
+    compositor VM the Palette Composer uses, so the Bestiary and Composer agree."""
+    rn=a.get('render',{}); ps=rn.get('palette',{})
+    pal,pidx=rom_field_palette(ps.get('round',1), ps.get('nibble',3))
+    main=render_vm(rn['base'], rn['anim'], pal, rn.get('compositor_table',0))
+    frame=(f'<div class="frame"><div class="provtag">legal arcade frame · compositor VM · green-armor line 3</div><img src="{main}"></div>'
+           if main else '<div class="frame pend"><b>FRAME PENDING</b></div>')
+    swatch='<div class="sw">'+''.join(f'<i style="background:rgb({r},{g},{b})"></i>' for r,g,b in pal)+'</div>'
+    bar=('<span class="b ok">OBJECT PROVEN</span><span class="b ok">NAME PROVEN</span>'
+         '<span class="b ok">ROUND PROVEN</span><span class="b ok">FRAME LEGAL (VM)</span>'
+         '<span class="b ok">PALETTE PROVEN</span>')
+    galsub=''
+    for grp in a.get('pose_gallery',[]):
+        thumbs=''
+        for anim in grp['anims']:
+            im=render_vm(rn['base'], anim, pal, rn.get('compositor_table',0))
+            if im:
+                thumbs+=(f'<div class="pcard"><div class="pframe"><img src="{im}"></div>'
+                         f'<div class="pmeta"><span class="mono small">anim 0x{anim:02X}</span></div></div>')
+        if thumbs:
+            galsub+=f'<h5 class="grp">{grp["label"]} <span class="mono">(${grp["anims"][0]:02X}…)</span></h5><div class="pgallery">{thumbs}</div>'
+    gallery_html=(f'<details class="posegal"><summary>Pose gallery — {a["program_count"]} programs / '
+                  f'{a["pattern_code_count"]} pattern codes (normal · airborne · reaction · low-action A/B)</summary>'
+                  f'{galsub}</details>') if galsub else ''
+    palbank=(f'<div class="palbank ok">green-armor reference: line 3 → 0x3BA88[R1][3] → pool 0x{pidx:02X} → 0x4FD02 '
+             f'(ROM-decoded, no RGB hard-coded). Two-layer provenance: embedded bit-6-clear defaults (sword nibble 3 / '
+             f'body nibble 7; airborne 7; reaction C) AND the preserved-sweep actor +0x27 override (0x44/0x41 → '
+             f'effective line 4/0x34 or 1/0x31).</div>')
+    dfrom=a.get('distinct_from',{})
+    return (f'<article class="card">{frame}<div class="body"><div class="bar">{bar}</div>'
+            f'<h4>{a["semantic_name"]}</h4><p class="desc">{a["description"]}</p>'
+            f'<dl><dt>Object</dt><dd class="mono">{a["object_id"]}</dd>'
+            f'<dt>Base / family</dt><dd class="mono">{a["base_graphics"]} · family {a["actor_family_3e"]}</dd>'
+            f'<dt>Scene</dt><dd>{a["scene"]}</dd>'
+            f'<dt>Domain</dt><dd><b>{a["program_count"]} programs / {a["pattern_code_count"]} pattern codes</b></dd>'
+            f'<dt>Embedded sword</dt><dd class="mono">{a.get("embedded_sword_codes","")}</dd>'
+            f'<dt>Distinct from</dt><dd>{dfrom.get("rope_climber","")}; Valkyrie {dfrom.get("valkyrie","")}</dd>'
+            f'</dl>{palbank}{swatch}{gallery_html}</div></article>')
 
 # ---- assemble from manifest (actors[] is the SOLE semantic actor source of truth) ----
 actors=M['actors']; scripted=M.get('scripted_routes',[])
@@ -255,7 +339,7 @@ gal_effects=gallery("Transient Effect Gallery", f"({len(effects)} burst/impact e
                     intro="Short-lived, self-retiring EFFECTS (not enemies). <b>H16</b> proved the Round-1 marker-0x4D state-0x1B route (0x43ECC) is a burst CONTROLLER: it activates up to five shared-pool slots (A5+0x3C8..0x4C8) via 0x43F4E/0x43F52, and 0x447F0/0x448B2 convert each active-state slot to state 0x0F. The state-0x0F +0x39 child path (0x40DD8) assigns base 0x0275 (expanding impact/burst, self-retires in ~4 frames) — so the \"five children\" are transient effects, one per activated slot, NOT five enemy species and NOT a composite.") if effects else ""
 boss_gallery_cards="".join(boss_card(bosses[r]) for r in range(1,7) if r in bosses)
 gal_boss=(f'<section class="round"><h2>Bosses — Six Distinct Body Actors <span>(0x45330→0x4449E→0x444E0→0x45592)</span></h2>'
-          f'<div class="statusbox ok">Real per-round boss <b>bodies</b> (bases 0x061D/0x0753/0x082C/0x07BF/0x0988/0x0B35). The old 0x033E "boss composite" model is deprecated and quarantined in the manifest. R1 &amp; R5 frames/palettes are MAME-verified; R2/R3/R4/R6 show the static ROM init-anim frame (line-inferred palette).</div>'
+          f'<div class="statusbox ok">Real per-round boss <b>bodies</b> (bases 0x061D/0x0753/0x082C/0x07BF/0x0988/0x0B35). The old 0x033E "boss composite" model is deprecated and quarantined in the manifest. <b>R1 boss normal-state palette is PROVEN</b> — decoded from the boss target ROM table <span class="mono">0x4708C</span> (physical arcade line <span class="mono">0x4F</span>, Cody PROMT-ID-0095), shared by its <b>Flying Daggers</b>. R1 &amp; R5 body frames are Cody-verified; R2/R3/R4/R6 show the static ROM init-anim frame. For R2-R6 the boss compositor line-F selection is proven but the exact staged RGB is still PENDING (the field pool is NOT substituted).</div>'
           f'<div class="grid">{boss_gallery_cards}</div></section>')
 
 rounds_html=""
@@ -273,6 +357,8 @@ def bankrow(r):
             f'<span class="{cls}">{lbl}</span></div></div>')
 PP=M.get('phase_partition',{}).get('rounds',{})
 BASENAME={a['base_graphics']:a['semantic_name'] for a in actors}
+_GK=next((a for a in actors if a.get('technical_id')=='green_sword_knight_r1'),None)
+GK_CARD=green_knight_card(_GK) if _GK else ''
 def phase_section(r):
     d=PP.get(str(r))
     if not d: return ''
@@ -324,10 +410,12 @@ def phase_section(r):
          '<span class="mono">0x0224</span>/<span class="mono">0x09EA</span> — so none can be authored against '
          'fabricated source codes. See the Hazard census dashboard for the independent per-dimension '
          'confidence.</div>')
+    knight_block=(f'<div class="statusbox ok" style="margin-top:4px"><b>R1-S2 Scene Enemy — Green Sword Knight (first-class actor):</b></div>'
+                  f'<div class="grid">{GK_CARD}</div>') if (r==1 and GK_CARD) else ""
     cas=(f'<span class="ok"><b>Schedule (0x4A104) content — STATIC:</b> family-2 spawners {sp_html}'
          f' &nbsp;<i>(base 0x033E route mechanism, anim 0x93)</i>; direct hostile bases {dh_html}.</span>'
          f'<div class="ok" style="margin-top:4px">Char-spawned identities (0x41180 <span class="mono">+0x03≠0</span>, target char <span class="mono">+0x0D</span> ∈ 0x45–0x7b): per-scene map-marker rosters PROVEN (H13) and Phase-2 marker chains executed to exact +0x1E base writes (H14).</div>'
-         f'{warrior if r==1 else ""}{hazards if r==1 else ""}{corro}')
+         f'{knight_block}{warrior if r==1 else ""}{hazards if r==1 else ""}{corro}')
     return (f'<div class="phaserow">'
             f'<div class="pbox"><b>SUB-ROUND 1 · 0x13E {d["outdoor_13E"]}</b><span class="ok">0x4A104 field schedule: {lst(d["phase1_field"])}</span></div>'
             f'<div class="pbox"><b>SUB-ROUND 2 · 0x13E {s2win}</b>{cas}</div>'

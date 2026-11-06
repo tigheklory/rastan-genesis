@@ -132,6 +132,26 @@ def _arcade_round_palette(rnd, nibble):
              _pal5(int.from_bytes(mc[b + i * 2:b + i * 2 + 2], "big") & 0xF)] for i in range(16)]
 
 
+def _pal4(n):
+    """Arcade 4-bit nibble -> 8-bit for a boss-specific target table (pal5bit of the raw nibble). This is
+    NOT the field convention (_pal5, which doubles the nibble); it reproduces the captured boss CLCS line."""
+    return (n << 3) | (n >> 2)
+
+
+def _rom_boss_target_palette(addr=0x4708C, count=15):
+    """Boss-specific ROM 0RGB target table (R1 = 0x4708C). The `count` source words become live palette
+    entries 1..count; index 0 is retained black. Decoded from maincpu.bin every call (no RGB stored in the
+    tool). Reproduces Cody PROMT-ID-0095's captured final palette (physical arcade line 0x4F)."""
+    mc = _maincpu()
+    cols = [[0, 0, 0]]
+    for i in range(count):
+        w = int.from_bytes(mc[addr + i * 2:addr + i * 2 + 2], "big")
+        cols.append([_pal4((w >> 8) & 0xF), _pal4((w >> 4) & 0xF), _pal4(w & 0xF)])
+    while len(cols) < 16:
+        cols.append([0, 0, 0])
+    return cols
+
+
 def _manifest_vm_pieces(base, anim, table):
     """Compositor-VM (decompilation) pieces for a manifest render spec -> anchor-relative {code,x,y,fx,fy}.
     Uses the SAME 0x3D054 route the Bestiary renders with, so the Composer and Bestiary share one source of
@@ -1247,9 +1267,13 @@ def r1_boss_usages():
     if _BOSS_USAGES_CACHE is not None:
         return _BOSS_USAGES_CACHE
     scene = "PAL-R1-S3-PLANEA-BOSS"
-    # Line-F pool is shown only for SHAPE visibility; it is explicitly NOT the proven boss RGB.
-    palF = _arcade_round_palette(1, 0xF)
-    def _used(pcs):
+    # NORMAL-STATE boss palette is PROVEN (Cody PROMT-ID-0095): the boss-specific ROM target table at
+    # 0x4708C (15 words -> live physical line 0x4F) faded in by 0x47004. This is the body+dagger source
+    # palette and is decoded from the ROM here, NOT the field pool 0x3BA88->0x4FD02 (0x4FE62 is rejected).
+    BOSS_ROM_ADDR = 0x4708C
+    palF = _rom_boss_target_palette(BOSS_ROM_ADDR, 15)
+    DAGGER_INDICES = [0, 3, 4, 5, 6, 8, 10, 11, 13]   # dagger pixel-index subset (Cody PROMT-ID-0095)
+    def _used(pcs, restrict=None):
         used = {}
         for p in pcs:
             for v in cell_indices(p["code"]):
@@ -1257,47 +1281,64 @@ def r1_boss_usages():
                     used[v] = used.get(v, 0) + 1
         uc = []
         for idx in sorted(used):
+            if restrict is not None and idx not in restrict:
+                continue
             rgb = palF[idx] if idx < len(palF) else [0, 0, 0]
             disp, cram, _ = gen_quant(rgb)
             uc.append({"src_index": idx, "arcade_rgb8": rgb, "hex": "#%02X%02X%02X" % tuple(rgb),
                        "pixel_count": used[idx], "genesis_rgb8": disp, "genesis_cram": cram,
-                       "provisional": True})
+                       "arcade_palette_line": "0x4F", "rom_source": "0x%05X" % BOSS_ROM_ADDR})
         return uc
+    # Body uses the full source domain; the Flying Daggers share the SAME source palette (index subset).
     SPECS = [
         ("object:boss.r1.body", "Round 1 Boss — Body", 0x00, 0x47908, 0x0E,
-         "slot A5+$0708, rec type $0E, base $061D, comp 1, anim $00, program $47908, +$27=0; embedded line F.",
-         "proven", False),
-        ("object:boss.r1.aux.type15", "Round 1 Boss — Type-15 Auxiliary", 0x14, 0x47E54, 0x0F,
-         "rec type $0F via $457B2/$457D0, base $061D, comp 1, anim $14, program $47E54, +$27=0; embedded line "
-         "F. Role/count/lifetime PARTIAL.", "partial", False),
+         "slot A5+$0708, rec type $0E, base $061D, comp 1, anim $00, program $47908, +$27=0; embedded line F "
+         "-> physical line $4F; normal-state palette PROVEN (ROM $4708C, Cody PROMT-ID-0095).",
+         "proven", None),
+        ("object:boss.r1.flying_daggers", "Round 1 Boss — Flying Daggers", 0x14, 0x47E54, 0x0F,
+         "rec type $0F via $457B2/$457D0, base $061D, comp 1, anim $14 (flight $1A-$1F), programs "
+         "$47E54/$47E7A/$47E7F/$47E84/$47E8D/$47E92/$47E97, pattern $67B,$67C,$683-$689, +$27=0; embedded "
+         "line F -> physical line $4F. SHARES R1 BOSS PALETTE (Cody PROMT-ID-0095).", "proven", DAGGER_INDICES),
     ]
     out = []
-    for order, (obj, name, anim, prog, rectype, note, idstat, authorable) in enumerate(SPECS):
+    for order, (obj, name, anim, prog, rectype, note, idstat, restrict) in enumerate(SPECS):
         pcs = _comp_pieces(0x061D, anim, 1, minp=1)
         if not pcs:
             continue
         xs = [p["x"] for p in pcs]; ys = [p["y"] for p in pcs]
+        is_dagger = restrict is not None
         out.append({
             "usage_id": "usage:boss_r1_%s:anim0x%02X" % (obj.split(".")[-1], anim),
             "object_id": obj, "map_key": obj, "group_label": "Round 1 Boss",
             "frame_category": "Round 1 Boss", "frame_label": name, "frame_order": order,
             "player_counts": None, "weapon_counts": None,
-            "display_name": name, "variant_label": "R1-S3 · program $%05X" % prog,
+            "display_name": name, "variant_label": "R1-S3 · program $%05X · physical line $4F" % prog,
             "sprite_bank": "0x3F", "sprite_banks": ["0x3F"], "multi_bank": False,
             "scene_key": scene, "round": 1, "subround": "R1-S3", "base": "0x061D",
             "record_type": "0x%02X" % rectype, "compositor": 1, "program": "0x%05X" % prog,
-            "provisional": True, "membership": "scene", "view": "authoring", "authorable": authorable,
+            # Palette RGB is PROVEN (ROM-sourced). Authoring stays gated on Tighe's final Genesis line
+            # mapping (one shared context for body + daggers); the tool never auto-assigns a Genesis line.
+            "provisional": False, "membership": "scene", "view": "authoring", "authorable": False,
             "hardware_class": "PC090OJ sprite", "human_identity_status": idstat,
             "human_identity_label": name,
-            "mapping_scope": "scene", "confidence": "source line F PROVEN · staged RGB PARTIAL",
+            "flying_daggers": is_dagger,
+            "shares_boss_palette": True,
+            "shared_palette_context": "R1 Boss + Flying Daggers",
+            "palette_line_requirement": "1 line (normal body+dagger presentation)",
+            "mapping_scope": "scene", "confidence": "normal-state palette ROM-source PROVEN (Cody PROMT-ID-0095)",
             "palette_status": {"source_line": "F", "source_line_proven": True,
-                               "rgb_status": "PARTIAL — exact staged source pending",
-                               "note": "NOT ordinary per-round field palette; colors not invented."},
+                               "physical_line": "0x4F",
+                               "rgb_status": "PROVEN — ROM 0x4708C boss target table (Cody PROMT-ID-0095)",
+                               "rom_source": "0x4708C-0x470A9", "count": 15, "index0": "black",
+                               "fade_writer": "0x47004", "fade_lut": "0x46F84",
+                               "note": "Boss-specific ROM target faded to physical line 0x4F; NOT the field pool "
+                                       "0x3BA88->0x4FD02 (0x4FE62 and master line 0x4EE16 both rejected)."},
             "identity_note": note,
             "pieces": pcs, "n_pieces": len(pcs),
             "bounds": [max(xs) - min(xs) + 16, max(ys) - min(ys) + 16],
-            "composite_proven": True, "preview_type": "BOSS SHAPE (line F proven · RGB PENDING)",
-            "used_colors": _used(pcs), "mrd_pairs": [], "n_used": 0,
+            "composite_proven": True,
+            "preview_type": "R1 BOSS — ROM $4708C palette PROVEN (physical line $4F)",
+            "used_colors": _used(pcs, restrict), "mrd_pairs": [], "n_used": 0,
         })
     # Death / post-boss effect group: PARTIAL phase inventory, no fabricated art, not authorable.
     out.append({
