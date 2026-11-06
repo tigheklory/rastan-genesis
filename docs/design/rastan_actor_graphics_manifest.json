@@ -1556,7 +1556,7 @@
     1
    ],
    "phase_presence": "BOSS (round-tail)",
-   "description": "Round-1 boss BODY, base 0x061D (record type 14), compositor 1; components type-15 via 0x457D0. Render/palette Cody-verified (prog 0x47908, line 0xF pool 11).",
+   "description": "Round-1 boss BODY, base 0x061D (record type 14), compositor 1; components type-15 via 0x457D0. Body frame + compositor line-F selection Cody-verified (prog 0x47908); exact staged boss RGB PENDING (field pool 0x3BA88->0x4FD02 DISPROVEN as boss colours, not substituted).",
    "frame_status": "COMPOSER_PROVEN",
    "frame_source": "none",
    "frame_provenance": "STATIC_DECOMPILED",
@@ -1600,7 +1600,7 @@
      "nibble": 15
     },
     "verified": true,
-    "note": "Cody MAME-verified body frame+palette"
+    "note": "Cody-verified body frame + compositor line-F selection; exact staged boss RGB PENDING (field pool disproven as boss colours)"
    },
    "palette_instances": [
     {
@@ -1844,7 +1844,7 @@
     5
    ],
    "phase_presence": "BOSS (round-tail)",
-   "description": "Round-5 boss BODY, base 0x0988 (record type 16), compositor 1; 5 type-17 children via 0x423B2. Render/palette Cody-verified (prog 0x490DE, line 0xF pool 3).",
+   "description": "Round-5 boss BODY, base 0x0988 (record type 16), compositor 1; 5 type-17 children via 0x423B2. Body frame + compositor line-F selection Cody-verified (prog 0x490DE); exact staged boss RGB PENDING (field pool DISPROVEN as boss colours, not substituted).",
    "frame_status": "COMPOSER_PROVEN",
    "frame_source": "none",
    "frame_provenance": "STATIC_DECOMPILED",
@@ -1888,7 +1888,7 @@
      "nibble": 15
     },
     "verified": true,
-    "note": "Cody MAME-verified body frame+palette"
+    "note": "Cody-verified body frame + compositor line-F selection; exact staged boss RGB PENDING (field pool disproven as boss colours)"
    },
    "palette_instances": [
     {
@@ -2018,7 +2018,7 @@
      "status": "DISPROVEN as boss colours (field pool != boss palette); line F correct"
     }
    ],
-   "boss_component_palette": "type 0x17/0x18/0x19 line F; type 0x1A line 0 — R6 line 0 AND line F both resolve to pool 11, so all four structural records share the same ROM colours (0x4FE62).",
+   "boss_component_palette": "type 0x17/0x18/0x19 compositor line F; type 0x1A line 0 — in the FIELD table R6 line 0 and line F both index pool 11 (0x4FE62), shown only to prove the two component lines coincide there; that field-pool math is DISPROVEN as the boss RGB source, so exact staged component RGB remains PENDING.",
    "boss_structure": "MULTI-RECORD (body + structural components)",
    "boss_component_records": [
     {
@@ -3134,17 +3134,17 @@
   ],
   [
    "Boss clean legal frames",
-   "bodies proven; R5/R6 multi-record structure + component positions decoded (Cody 0x43458 table 0x43484); palette line F = 0x3BA88[round][15] (Cody-corrected copy direction), colours per pool",
+   "bodies proven; R5/R6 multi-record structure + component positions decoded (Cody 0x43458 table 0x43484); boss compositor line-F selection proven; exact staged boss RGB PENDING (field pool 0x3BA88->0x4FD02 DISPROVEN as boss colours, not substituted)",
    "part"
   ],
   [
    "Per-round palettes",
-   "PROVEN mechanism (0x3BA88->0x4FD02); field proven; boss line F = 0x3BA88[round][15] proven",
+   "PROVEN mechanism (0x3BA88->0x4FD02); field palette proven; boss compositor line-F selection proven, but exact staged boss RGB PENDING (field pool DISPROVEN as boss colours)",
    "part"
   ],
   [
    "Gameplay item / reward system",
-   "RESOLVED (graphics mechanism): the visible gameplay collectible / weapon power-up is the family-12 reward presentation the dying enemy transforms into (0x40CCC->0x40D32, base 0x0A5A, gated +0x36). 17 reward kinds, anim (kind-1)+0x13 = 0x13..0x23, one static presentation/kind, banks 0x30 (1-4) / 0x31 (5-13) / 0x37 (14-17), per-round-pool colored; identity table 0x40C2E, score 0x40C40. The rec_type-12 TIMED_WEAPON actor path is vestigial / never created and is NOT the visible mechanism.",
+   "RESOLVED (graphics mechanism): the visible gameplay collectible / weapon power-up is the family-12 reward presentation the dying enemy transforms into (0x40CCC->0x40D32, base 0x0A5A, gated +0x36). 17 reward kinds, anim (kind-1)+0x13 = 0x13..0x23, one authentic tile per kind, compositor selector 2, embedded palette line 0 (kinds 1-13) / line 3 (kinds 14-17), +0x27 override clear, codes $A5A-$A71; identity table 0x40C2E, score 0x40C40. SOURCE/TOOL READY (CORRECTED under PROMPT-ID-0091/0092; the false three-bank 0x30/0x31/0x37 model is removed); production reindex/scene routing of the 17 variants is a Cody follow-up (not yet PRODUCTION INTEGRATED). The rec_type-12 TIMED_WEAPON actor path is vestigial / never created and is NOT the visible mechanism.",
    "ok"
   ],
   [
@@ -3154,7 +3154,7 @@
   ],
   [
    "Gameplay reward kinds",
-   "17 reward kinds PROVEN (base 0x0A5A, anim 0x13..0x23, banks 0x30/0x31/0x37). Graphics + palette banks resolved; the exact per-kind human item name (via the +0x29 identity table 0x40C2E, cross-referenced to the accepted item-screen identities) remains PENDING.",
+   "17 reward kinds PROVEN (base 0x0A5A, compositor 2, anim 0x13..0x23, codes $A5A-$A71; embedded palette line 0 for kinds 1-13, line 3 for kinds 14-17). Graphics + embedded palette line resolved; the exact per-kind human item name (via the +0x29 identity table 0x40C2E, cross-referenced to the accepted item-screen identities) remains PENDING.",
    "part"
   ],
   [
@@ -4141,7 +4141,7 @@
  },
  "per_round_boss_body_map": {
   "_source": "Andy_per_round_boss_actor_map.md; trigger 0x45330->0x4449E; table 0x444E0=[0E,13,14,15,10,17]; base via 0x45592[(type-8)]",
-  "_note": "R1/R5 render+palette are Cody-verified (see Cody_actor_render_verified.json). R2/R3/R4/R6 bodies statically proven; frames/palettes/components PENDING a Cody-style capture.",
+  "_note": "R1/R5 render FRAME + compositor line-F selection are Cody-verified (see Cody_actor_render_verified.json); exact staged boss RGB PENDING (field pool disproven as boss colours). R2/R3/R4/R6 bodies statically proven; frames/palettes/components PENDING a Cody-style capture.",
   "rounds": {
    "1": {
     "body_record_type": 14,
@@ -4784,7 +4784,7 @@
   ],
   "still_open": [
    "Exact on-screen first-frame animation + human identity for materialized cast (round placement + display palettes already resolved H14/H15)",
-   "Gameplay reward/pickup identity: the visible gameplay collectible / weapon power-up is RESOLVED as the family-12 reward presentation (0x40CCC->0x40D32, base 0x0A5A, 17 kinds, anim 0x13..0x23, banks 0x30/0x31/0x37, per-round-pool colored; identity 0x40C2E, score 0x40C40). The rec_type-12 A5+0x12C8 event path is vestigial. REMAINING (identity only): exact kind 1..17 -> human item name via the +0x29 identity table.",
+   "Gameplay reward/pickup identity: the visible gameplay collectible / weapon power-up is RESOLVED as the family-12 reward presentation (0x40CCC->0x40D32, base 0x0A5A, 17 kinds, anim 0x13..0x23, compositor 2, embedded palette line 0 for kinds 1-13 / line 3 for kinds 14-17, codes $A5A-$A71; identity 0x40C2E, score 0x40C40). The rec_type-12 A5+0x12C8 event path is vestigial. REMAINING (identity only): exact kind 1..17 -> human item name via the +0x29 identity table.",
    "Remaining boss legal frames + palettes for R2/R3/R4/R6",
    "Exact per-round 0x7E door boundary (metatile-collision format blocked)"
   ]
@@ -4796,7 +4796,7 @@
    {
     "kind": "GAMEPLAY REWARD / PICKUP (family-12)",
     "status": "PROVEN",
-    "detail": "The dying enemy transforms in place into the reward presentation (0x40CCC->0x40D32, base 0x0A5A) when schedule +0x36 is set. 17 reward kinds, anim (kind-1)+0x13 = 0x13..0x23, one static presentation/kind, banks 0x30 (kinds 1-4) / 0x31 (5-13) / 0x37 (14-17), per-round-pool colored. Composer: object:effect.item_drop_death, object:item.gameplay_reward_b31, object:item.gameplay_reward_b37."
+    "detail": "The dying enemy transforms in place into the reward presentation (0x40CCC->0x40D32, base 0x0A5A) when schedule +0x36 is set. 17 reward kinds, anim (kind-1)+0x13 = 0x13..0x23, one authentic tile per kind, compositor selector 2, embedded palette line 0 (kinds 1-13) / line 3 (kinds 14-17), codes $A5A-$A71. Composer: object:item.gameplay_rewards parent with 17 children object:item.reward.kind01..kind17 (CORRECTED under PROMPT-ID-0091/0092; the false 0x30/0x31/0x37 three-bank objects are removed)."
    },
    {
     "kind": "REWARD IDENTITY / SCORE",

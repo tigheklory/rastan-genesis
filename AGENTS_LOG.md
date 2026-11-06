@@ -55287,3 +55287,36 @@ No GitHub push.
 Report: `docs/design/Andy_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0091_palette_composer_bestiary_0090_handoff.md`.
 
 `TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0091`
+
+---
+
+## PROMT-ID-0092 — Andy: Repair Generated Bestiary Contradictions Left After 0091
+
+`TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0092`
+
+Narrow consistency-repair. The 0091 model fixes were right, but the generated Bestiary artifact
+(`docs/design/rastan_actor_bestiary.html`) still rendered stale prose contradicting Cody 0090 / Andy
+0091. Traced every CURRENT stale claim to its generator/data source and fixed it there (never
+hand-editing only the HTML), then regenerated.
+
+- Reward three-bank `$30/$31/$37` model removed from the manifest dashboard/still-open/items detail
+  and the H25 `item_drop_death` TSV row; replaced with compositor 2 + embedded palette line 0
+  (kinds 1-13) / line 3 (kinds 14-17), parent `object:item.gameplay_rewards` + 17 children. Removed
+  Composer objects `object:effect.item_drop_death`/`gameplay_reward_b31`/`gameplay_reward_b37`
+  purged from CURRENT prose.
+- Boss palette honesty: dashboard, per-boss description/render.note, R6 component note, `_note`, and
+  `boss_card()` provtag/palbank/badge now state line-F **selection** PROVEN but exact staged boss
+  **RGB PENDING** (field pool `0x3BA88→0x4FD02` DISPROVEN as boss colours; boss image rendered
+  gray, no invented colours, no field-pool swatch). All 12 boss cards carry the honest badge.
+- Green Knight 23/97 and family-8 rope split (`0x0241`, `$56,$59,$5A`) confirmed present; no `$033E`
+  rope attribution; hazards still not `$0224/$09EA`; candidate groups `SOURCE SUBSET PENDING`.
+- New verifier `tools/graphics_editor/verify_0092_bestiary_artifact.py` reads the final HTML and
+  fails on prohibited CURRENT phrases + requires the positive replacements → PASS (28). Affected
+  0091 verifiers re-run green (25/31/15/15); `consistency_check: PASS`.
+- `Test.json` byte-unchanged (`e03dd2aa…d2d6b730`). No Genesis production source, no ROM build, no
+  build-counter change, no `palette_decisions.json` change, no GitHub push. Unrelated runtime-output
+  files left unstaged.
+
+Report: `docs/design/Andy_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0092_bestiary_stale_claim_repair.md`.
+
+`TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0092`

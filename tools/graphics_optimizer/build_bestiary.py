@@ -200,16 +200,16 @@ def boss_card(a):
     pal,pidx=rom_field_palette(rnd, nib)
     img=render_vm(rn['base'], rn['anim'], GRAY, rn.get('compositor_table',1)) if rn.get('method')=='vm' else None  # colours PENDING (field pool disproven)
     if img:
-        tag='body frame + palette · MAME-verified (Cody)' if ver else 'body frame = ROM init-anim · UNVERIFIED'
+        tag='body frame + compositor line-F selection · Cody-verified (RGB staged-palette PENDING)' if ver else 'body frame = ROM init-anim · UNVERIFIED'
         frame=f'<div class="frame"><div class="provtag">{tag}</div><img src="{img}"></div>'
-        sw=(f'<div class="palbank part">line 0x{nib:X} PROVEN (0x3C9E8) · boss line F source = 0x3BA88[round][15] → 0x4FD02 (Cody-corrected copy direction) · exact colours per pool</div>')
+        sw=(f'<div class="palbank part">compositor line 0x{nib:X} selection PROVEN (0x3C9E8) · boss RGB is NOT the field pool 0x3BA88→0x4FD02 (DISPROVEN as boss colours; R3 field pool 2 = teal vs arcade purple) · exact staged boss RGB PENDING · rendered neutral/gray (no invented colours)</div>')
     else:
         frame=f'<div class="frame pend"><b>BODY FRAME PENDING</b><br><span>{a.get("unresolved_reason","")}</span></div>'; sw=''
     fb='ok' if ver else 'part'
     bar=(f'<span class="b ok">BODY PROVEN</span><span class="b ok">ROUND PROVEN</span>'
          f'<span class="b ok">TYPE 0x{a.get("boss_body_record_type",0):02X}</span>'
          f'<span class="b {fb}">{"FRAME VERIFIED" if ver else "FRAME STATIC"}</span>'
-         f'<span class="b part">PALETTE line F = 0x3BA88[round][15] proven</span>')
+         f'<span class="b part">LINE-F SELECT PROVEN · RGB PENDING</span>')
     return f'''<article class="card boss">{frame}
       <div class="body"><div class="bar">{bar}</div>
       <h4>{a['semantic_name']}</h4><p class="desc">{a['description']}</p>
