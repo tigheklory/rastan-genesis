@@ -2671,7 +2671,7 @@
       "rom_bytes_written": "207C0005DAAEC0FC0018D0C04EB9000751164E75"
     }
   ],
-  "checksum": "0xE58B",
+  "checksum": "0x9F64",
   "relocation_map": "/home/tighe/projects/rastan-genesis/build/rastan-direct/startup_common_relocations.json",
   "goal": "Apply rastan-direct spec-driven ROM relocation and opcode patching using the existing postpatch pipeline.",
   "expectations": {
