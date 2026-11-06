@@ -65,12 +65,14 @@ AUTHORED_VISUAL_RECORD_BYTES = 16 * 4
 
 
 class AuthoredLayerA:
-    """Offline-only Palette Composer realization for the two authored R1 scenes."""
+    """Offline-only Palette Composer realization for the authored R1 scenes."""
     SCENES = (
         ("context:gameplay.r01.p01", range(0, 16),
          ROOT / "analysis/graphics_optimizer/round1_phase1/plane_a_uses.json"),
         ("PAL-R1-S2-PLANEA-CASTLE", range(16, 22),
          ROOT / "analysis/graphics_optimizer/subround_corpus/PAL-R1-S2-PLANEA-CASTLE/plane_a_uses.json"),
+        ("PAL-R1-S3-PLANEA-BOSS", range(22, 23),
+         ROOT / "analysis/graphics_optimizer/subround_corpus/PAL-R1-S3-PLANEA-BOSS/plane_a_uses.json"),
     )
 
     def __init__(self, profile_path: Path, raw_patterns: bytes):

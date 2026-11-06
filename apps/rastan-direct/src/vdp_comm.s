@@ -410,14 +410,17 @@ vdp_install_test_lines:
     moveq   #0, %d2
     move.w  0x1242(%a5), %d2
     cmpi.w  #(6 * 23), %d2
-    bhs.s   .Liti_done
+    bhs.w   .Liti_done
     lea     diagnostic_palette_scene_select, %a0
     move.b  0(%a0,%d2.w), %d2
     beq.s   .Liti_done
     move.w  %d2, diagnostic_palette_active_asset
     lea     genesistan_plane_a_authored_descriptor_visuals, %a1
     cmpi.w  #2, %d2
-    bne.s   .Liti_visual_index_ready
+    blo.s   .Liti_visual_index_ready
+    adda.l  #FG_AUTHORED_DESC_INDEX_BYTES, %a1
+    cmpi.w  #3, %d2
+    blo.s   .Liti_visual_index_ready
     adda.l  #FG_AUTHORED_DESC_INDEX_BYTES, %a1
 .Liti_visual_index_ready:
     move.l  %a1, diagnostic_palette_active_visual_index
@@ -441,6 +444,12 @@ vdp_install_test_lines:
 .Liti_l3:
     move.w  (%a0)+, (%a1)+
     dbra    %d2, .Liti_l3
+    /* R1-S3 established backdrop invariant.  The authored scene blob inherits
+     * an old global Line-0 entry zero; native boss-room publication owns black. */
+    cmpi.w  #3, diagnostic_palette_active_asset
+    bne.s   .Liti_publish
+    clr.w   staged_palette_words
+.Liti_publish:
     move.b  #1, palette_pending
 .endif
 .Liti_done:

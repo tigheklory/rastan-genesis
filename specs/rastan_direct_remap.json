@@ -208,6 +208,7 @@
   "genesistan_palette_hook_03ab00",
   "genesistan_palette_hook_45dae",
   "genesistan_palette_hook_3ba64",
+  "genesistan_palette_hook_47004",
   "genesistan_gameplay_hud_score_dirty",
   "genesistan_pc090oj_ctrl_set_1",
   "genesistan_pc090oj_ctrl_set_0",
@@ -280,6 +281,12 @@
   }
  ],
  "shift_replacements": [
+  {
+   "arcade_pc": "0x047004",
+   "original_bytes": "4A6D026E",
+   "replacement_bytes": "4EB9{symbol:genesistan_palette_hook_47004}4E75",
+   "note": "PROMT-ID-0101 R1 boss-palette semantic cut. The retained frame spine and boss actor continue to own A5+0x026E enable, A5+0x0270 step, the actor +0x09 eight-update cadence, and step-7 dagger activation. Replace the first instruction of the obsolete CLCS-specific 0x47004 -> 0x4703C -> 0x47076 hardware tail with one native Line-1 staging call and return. The helper consumes an offline ROM/LUT/Test.json-derived eight-state CRAM table; no arcade palette-RAM emulation, runtime conversion, generic fade, or second dagger palette. Proper 4-to-8-byte shift replacement."
+  },
   {
    "arcade_pc": "0x03F084",
    "original_bytes": "13FC0000003E000113C0003E0003E80813C0003E00034E75",

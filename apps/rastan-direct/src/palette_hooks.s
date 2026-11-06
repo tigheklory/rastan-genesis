@@ -4,6 +4,7 @@
     .global genesistan_palette_hook_03ab00
     .global genesistan_palette_hook_45dae
     .global genesistan_palette_hook_3ba64
+    .global genesistan_palette_hook_47004
     .global palette_route_lookup
 
     .include "pc090oj_config.inc"
@@ -73,6 +74,11 @@ palette_route_table:
     .word 1, PROUTE_OWNER_PC090OJ,    0x36, 1, 0
     .word 1, PROUTE_OWNER_PC090OJ,    0x35, 1, 0
     .word 1, PROUTE_OWNER_PC090OJ,    0x3A, 1, 0
+    /* PROMT-ID-0101: R1 boss body and its type-0x0F Flying Daggers both
+     * compose embedded palette nibble F under sprite control 0x80, yielding
+     * physical arcade bank 0x4F.  Their authored identity maps are unchanged,
+     * so both share the one native boss palette on Genesis Line 1. */
+    .word 1, PROUTE_OWNER_PC090OJ,    0x4F, 1, 0
     /* Build 0366: cave block bank 0x3C shares the resident Layer-A mud palette. Its four
      * cells are reindexed offline by the Palette Composer profile; no CRAM line is rewritten. */
     .word 1, PROUTE_OWNER_PC090OJ,    0x3C, 3, 0
@@ -488,6 +494,42 @@ genesistan_palette_hook_3ba64:
     movem.l (%sp)+, %d4-%d7/%a1
     rts
 
+/* PROMT-ID-0101: native semantic replacement for the R1 boss fade writer
+ * arcade 0x47004.  The retained boss actor owns the trigger and cadence:
+ * A5+0x026E enables publication, actor +0x09 advances A5+0x0270 after eight
+ * updates, and reaching step 7 creates the Flying Daggers.  This helper only
+ * realizes the current semantic step as final Genesis Line-1 CRAM words.
+ *
+ * Other rounds retain the original enable-completion side effect but do not
+ * consume the R1-specific table.  The superseded CLCS palette-RAM writer tail
+ * is not emulated. */
+genesistan_palette_hook_47004:
+    movem.l %d0-%d2/%a0-%a1, -(%sp)
+    tst.w   0x026E(%a5)
+    beq.s   .L47004_done
+
+    moveq   #0, %d0
+    move.w  0x0270(%a5), %d0
+    cmpi.w  #7, %d0
+    blo.s   .L47004_step_ready
+    moveq   #7, %d0
+    clr.w   0x026E(%a5)              /* original completion condition */
+.L47004_step_ready:
+    cmpi.w  #22, 0x1242(%a5)         /* R1-S3 authentic stage index */
+    bne.s   .L47004_done
+    lsl.w   #5, %d0                  /* 16 words * 2 bytes per state */
+    lea     r1_boss_fade_cram, %a0
+    adda.w  %d0, %a0
+    lea     staged_palette_words + 32, %a1
+    moveq   #(16 - 1), %d2
+.L47004_copy:
+    move.w  (%a0)+, (%a1)+
+    dbra    %d2, .L47004_copy
+    move.b  #1, palette_pending
+.L47004_done:
+    movem.l (%sp)+, %d0-%d2/%a0-%a1
+    rts
+
 
     .section .rodata
     .align 2
@@ -508,6 +550,10 @@ test_sprite_line0:
 test_sprite_line1:
     .incbin "../../build/rastan-direct/test_palette_line1.bin"
 
+    .global r1_boss_fade_cram
+r1_boss_fade_cram:
+    .incbin "../../build/rastan-direct/r1_boss_fade_cram.bin"
+
     /* Explicit diagnostic-profile scene assets. Layout is Lines 0,1,3, sixteen
      * big-endian Genesis CRAM words each. Line 2 is deliberately absent. */
     .global diagnostic_palette_r1s1
@@ -516,6 +562,9 @@ diagnostic_palette_r1s1:
     .global diagnostic_palette_r1s2
 diagnostic_palette_r1s2:
     .incbin "../../build/palette_export/cram/PAL-R1-S2-PLANEA-CASTLE.bin"
+    .global diagnostic_palette_r1s3
+diagnostic_palette_r1s3:
+    .incbin "../../build/palette_export/cram/PAL-R1-S3-PLANEA-BOSS.bin"
 
     .global diagnostic_palette_scene_select
 diagnostic_palette_scene_select:
@@ -525,3 +574,4 @@ diagnostic_palette_scene_select:
 diagnostic_palette_asset_ptrs:
     .long diagnostic_palette_r1s1
     .long diagnostic_palette_r1s2
+    .long diagnostic_palette_r1s3

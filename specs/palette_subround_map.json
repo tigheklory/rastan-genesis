@@ -51,7 +51,7 @@
       ] },
     { "key": "R1-S3", "round": 1, "subround": 3, "name": "Round 1 Boss", "stage_index": 22,
       "record_band": [22, 22], "native": "native_converted", "mode": null,
-      "palette": "provisional/missing (RG-022 priority; Cody RG-021 boss Plane A/B exist)",
+      "palette": "proven R1 boss + Flying Dagger Line-1 decision; authored boss-room Plane A; Plane B Line 2 protected",
       "environments": [
         { "env": "BOSS-ROOM", "family": "PLANEA", "records": [22, 22], "scene_key": "PAL-R1-S3-PLANEA-BOSS" },
         { "env": "SPRITES", "family": "PC090OJ", "records": [22, 22], "scene_key": "PAL-R1-S3-PC090OJ" }

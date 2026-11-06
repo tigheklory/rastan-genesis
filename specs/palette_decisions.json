@@ -1237,6 +1237,71 @@
     ],
     "cross_scene_candidate": false
    }
+  },
+  {
+   "id": "PAL-R1-S3-BOSS-DAGGER-LINE1-001",
+   "status": "proven",
+   "context": {
+    "scene": "R1-S3 boss room",
+    "stage": "stage index 22 / record 22",
+    "subsystem": "native Genesis R1 boss entrance palette and PC090OJ boss/dagger routing",
+    "actor_family": "Round-1 boss plus Flying Daggers",
+    "actor_classes": [
+     "object:boss.r1.body",
+     "object:boss.r1.flying_daggers"
+    ]
+   },
+   "arcade_semantics": {
+    "physical_palette_banks": [
+     "0x4F"
+    ],
+    "palette_sources": [
+     "maincpu 0x4708C-0x470A9"
+    ],
+    "palette_source": "15 ROM-backed 0RGB words for entries 1-15; entry 0 retained black; writer 0x47004 uses component LUT 0x46F84 across semantic states 0-7",
+    "dynamic_behavior": "A5+0x026E enables the fade; A5+0x0270 selects the state; boss actor +0x09 holds states 0-6 for eight updates each; state 7 is final/held and coincides with Flying Dagger activation",
+    "shared_palette": "boss body type 0x0E and Flying Daggers type 0x0F both compose source nibble F under sprite control 0x80 and therefore share physical line 0x4F"
+   },
+   "genesis_realization": {
+    "palette_lines": [
+     1
+    ],
+    "target_cram_words": [
+     "0x0000", "0x0066", "0x06AA", "0x0EEE", "0x0CA6", "0x0A60", "0x0600", "0x04EE",
+     "0x024A", "0x0008", "0x0466", "0x0646", "0x0004", "0x08A8", "0x0046", "0x0000"
+    ],
+    "route_kind": "scene-1 effective bank 0x4F routes boss body and Flying Daggers to the same Genesis Line 1; identity/subset pixel mappings are authored in Test.json",
+    "dynamic_behavior": "offline-generated eight-state CRAM table applies the original LUT progression for states 0-6 and the exact Tighe-authored Test.json endpoint for state 7; retained arcade state/cadence owns runtime selection",
+    "shared_line_ownership": "one Line 1 allocation for boss body plus Flying Daggers; no second dagger line",
+    "protected_lines": "Line 2 remains reserved for Plane B and is not written; R1-S3 scene activation forces Line 0 index 0 black"
+   },
+   "decision_basis": "Original arcade ROM 0x4708C plus physical line 0x4F and PROMT-ID-0095 live fade evidence establish source, sharing, eight-state timing, and full-brightness behavior. Tighe's current analysis/graphics_optimizer/editor_policy/Test.json is the Genesis target authority; PROMT-ID-0101 integrates that exact endpoint into production without nearest-neighbor substitution.",
+   "known_defects": [
+    "R1-S3 Layer-A package/activation and post-boss softlock remain separate except for the authored scene package consumed by this decision.",
+    "Boss damage/death transient palette behavior is not established by PROMT-ID-0095."
+   ],
+   "consumers_to_inspect": [
+    "tools/translation/gen_r1_boss_fade_cram.py",
+    "tools/translation/verify_r1_boss_palette_fade.py",
+    "tools/translation/compile_pc080sn_genesis.py AuthoredLayerA",
+    "apps/rastan-direct/src/palette_hooks.s genesistan_palette_hook_47004 and palette_route_table",
+    "apps/rastan-direct/src/vdp_comm.s vdp_install_test_lines",
+    "apps/rastan-direct/src/pc090oj_hooks.s generated palette-line LUT consumption",
+    "specs/rastan_direct_remap.json arcade 0x047004 shift replacement"
+   ],
+   "evidence": [
+    "analysis/actor_decompilation/r1_boss_palette_fade_dagger_semantics.json",
+    "docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0095_r1_boss_palette_fade_dagger_semantics.md",
+    "analysis/graphics_optimizer/editor_policy/Test.json",
+    "TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0101"
+   ],
+   "scene_applicability": {
+    "scene_keys": [
+     "PAL-R1-S3-PLANEA-BOSS",
+     "PAL-R1-S3-PC090OJ"
+    ],
+    "cross_scene_candidate": false
+   }
   }
  ],
  "subround_key_scheme": {
