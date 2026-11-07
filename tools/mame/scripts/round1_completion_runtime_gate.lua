@@ -23,8 +23,22 @@ end
 local s = parse_symbols(symbols_path)
 for _, name in ipairs({"genesistan_current_scene_id", "genesistan_current_pc080sn_tileset_id", "staged_fg_buffer",
   "staged_bg_buffer", "plane_a_resident_logical_rows",
-  "fg_boundary_active_record", "fg_boundary_active_package"}) do
+  "fg_boundary_active_record", "fg_boundary_active_package",
+  "genesistan_plane_a_scene_scroll_reseed_native", "genesistan_plane_a_scene_scroll_reseed_native_exit"}) do
   assert(s[name], "missing symbol " .. name)
+end
+
+local capture_reseed = os.getenv("R1C_CAPTURE_RESEED") == "1"
+if capture_reseed then
+  assert(machine.debugger and machine.debugger.consolelog,
+    "R1C_CAPTURE_RESEED requires -debug -debugger none")
+  local condition = "w@ff1242==16"
+  cpu.debug:bpset(s.genesistan_plane_a_scene_scroll_reseed_native, condition, string.format(
+    "save %s/staged_before.bin,%x,1000; save %s/reseed_workram_entry.bin,ff0000,1400; save %s/native_bss_entry.bin,ff4000,8700; save %s/active_lut_entry.bin,%x,5000; printf \"R1C_RESEED_ENTRY,%%d,%%X,%%X,%%X,%%X,%%X\\n\",frame,w@ff013e,d@ff1000,d@ff1004,w@ff10a8,w@ff10b0; g",
+    outdir, s.staged_fg_buffer, outdir, outdir, outdir, s.fg_boundary_active_lut))
+  cpu.debug:bpset(s.genesistan_plane_a_scene_scroll_reseed_native_exit, condition, string.format(
+    "save %s/staged_after.bin,%x,1000; save %s/reseed_workram_exit.bin,ff0000,1400; printf \"R1C_RESEED_EXIT,%%d,%%X,%%X,%%X,%%X,%%X\\n\",frame,w@ff013e,d@ff1000,d@ff1004,w@ff10a8,w@ff10b0; g",
+    outdir, s.staged_fg_buffer, outdir))
 end
 
 local fields = {}

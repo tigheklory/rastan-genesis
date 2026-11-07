@@ -137,6 +137,20 @@ def main() -> int:
     )
     if any(token not in tilemap for token in generation_contract):
         raise RuntimeError("scene replay lacks the proven owner/owner+64 descriptor-generation contract")
+    cache_source = args.tilemap_source.with_name("fg_tile_cache.s").read_text(encoding="utf-8")
+    vdp_source = args.tilemap_source.with_name("vdp_comm.s").read_text(encoding="utf-8")
+    if "move.b  #1, fg_scene_scroll_reseed_pending" not in cache_source:
+        raise RuntimeError("retained full-scene reseed no longer requests Plane-B reconstruction")
+    if "bsr     vdp_refresh_test_lines_if_scene_changed" not in cache_source:
+        raise RuntimeError("same-package transition no longer refreshes its authored stage context")
+    refresh_contract = (
+        "vdp_refresh_test_lines_if_scene_changed:",
+        "diagnostic_palette_scene_select",
+        "cmp.w   diagnostic_palette_active_asset, %d0",
+        "bsr     vdp_install_test_lines",
+    )
+    if any(token not in vdp_source for token in refresh_contract):
+        raise RuntimeError("authored stage-context refresh contract is incomplete")
     owner_body = scene.split("genesistan_gameplay_owner_reset:", 1)[1].split("rts", 1)[0]
     if "genesistan_scene_present_pending" in owner_body:
         raise RuntimeError("gameplay owner still arms the already-passed 0x050482 completion latch")

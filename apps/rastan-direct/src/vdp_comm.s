@@ -18,6 +18,7 @@
     .extern genesistan_current_scene_id
     .extern vdp_commit_palette             /* Build 0345: CRAM palette DMA now lives in dma.s */
     .global vdp_install_test_lines
+    .global vdp_refresh_test_lines_if_scene_changed
     .global diagnostic_palette_active_asset
     .global diagnostic_palette_active_visual_index
     .extern editor_layera_palette
@@ -454,6 +455,30 @@ vdp_install_test_lines:
 .endif
 .Liti_done:
     movem.l (%sp)+, %d2/%a0-%a1
+    rts
+
+/* A retained full-scene reseed can advance the stage while keeping the same
+ * compiled graphics package (R1 records 16 and 22 both select package 5).
+ * Package identity therefore cannot stand in for authored stage context.
+ * Compare the final arcade-owned stage against the generated stage->asset
+ * table and refresh only when that finite context actually changed.  This
+ * preserves boss fades and ordinary same-stage record advances. */
+vdp_refresh_test_lines_if_scene_changed:
+    movem.l %d0-%d2/%a0, -(%sp)
+    moveq   #0, %d0
+.if RASTAN_PALETTE_TEST_PROFILE
+    move.w  0x1242(%a5), %d1
+    cmpi.w  #(6 * 23), %d1
+    bhs.s   .Lrefresh_test_context_selected
+    lea     diagnostic_palette_scene_select, %a0
+    move.b  0(%a0,%d1.w), %d0
+.Lrefresh_test_context_selected:
+    cmp.w   diagnostic_palette_active_asset, %d0
+    beq.s   .Lrefresh_test_context_done
+    bsr     vdp_install_test_lines
+.endif
+.Lrefresh_test_context_done:
+    movem.l (%sp)+, %d0-%d2/%a0
     rts
 
 /* Build 0336: the dead PC080SN/PC090OJ palette carrier re-asserts (vdp_reassert_fg_bank3_line,

@@ -50,6 +50,7 @@
     .extern vdp_set_reg
     .extern vdp_dma_words_to_vram
     .extern vdp_install_test_lines
+    .extern vdp_refresh_test_lines_if_scene_changed
 
     .equ VDP_REG_MODE2,         1
     .equ VDP_MODE2_DISPLAY_OFF, 0x34
@@ -125,6 +126,11 @@ fg_boundary_install_post_reseed:
     tst.b   fg_boundary_reseed_pending
     beq.s   .Lpost_reseed_check_scene_entry
     clr.b   fg_boundary_reseed_pending
+    /* Records 15->16 and 21->22 are retained complete scene fills.  Their
+     * 0x050482 return proves Plane B has a new final product even when a
+     * direct-start-only presentation latch was not armed.  Request that
+     * product at the post-camera 0x050538 publication boundary. */
+    move.b  #1, fg_scene_scroll_reseed_pending
     bsr     fg_boundary_install
 .Lpost_reseed_check_scene_entry:
     tst.b   genesistan_scene_present_pending
@@ -308,6 +314,10 @@ fg_boundary_install:
      * perform no Genesis graphics operation until the record->epoch table selects a new package. */
     cmp.w   fg_boundary_active_package, %d2
     bne.s   .Linstall_epoch_change
+    /* Package identity is not stage-context identity: R1-S2 and R1-S3 share
+     * package 5 but use distinct authored palette/descriptor visual assets.
+     * Refresh only if the generated stage asset differs. */
+    bsr     vdp_refresh_test_lines_if_scene_changed
     move.w  fg_boundary_pending_record, fg_boundary_active_record
     move.w  fg_boundary_pending_variant, fg_boundary_active_variant
     bra     .Linstall_done

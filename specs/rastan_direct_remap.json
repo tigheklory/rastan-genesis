@@ -461,7 +461,7 @@
    "arcade_pc": "0x050482",
    "original_bytes": "4E75",
    "replacement_bytes": "4EB9{symbol:fg_boundary_install_post_reseed}4E75",
-   "note": "Build 0303 event/reseed timing: at the proven completion of the arcade 0x0503DC scene-fill, install a deferred boundary package only for records 16/22. Descriptor cursor, Plane-B Y, tm0, and all scene-fill state now exist before variant selection; ordinary records remain installed at their direct progression boundary. Proper 2-to-8-byte shift-table replacement preserves the original return."
+   "note": "Build 0303 / PROMT-ID-0106 event/reseed timing: at the proven completion of the arcade 0x0503DC scene-fill, install a deferred boundary package only for records 16/22. Descriptor cursor, Plane-B Y, tm0, and all scene-fill state now exist before variant selection; this retained complete-fill event itself requests the post-camera Plane-B reconstruction and does not depend on a direct-start presentation latch. If the compiled package remains unchanged (R1 records 16 and 22 both select package 5), refresh the generated authored stage context only when A5+0x1242 selects a different asset, because package identity does not own palette/descriptor-visual identity. Ordinary records remain installed at their direct progression boundary. Proper 2-to-8-byte shift-table replacement preserves the original return."
   },
   {
    "arcade_pc": "0x050538",
