@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Verify current-Test profile provenance and semantic production consumers."""
+"""Verify selected Palette Composer profile provenance and production consumers."""
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 import re
@@ -11,7 +12,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-PROFILE = ROOT / "analysis/graphics_optimizer/editor_policy/Test.json"
+DEFAULT_PROFILE = ROOT / "analysis/graphics_optimizer/editor_policy/Test.json"
 REGISTRY = ROOT / "specs/palette_decisions.json"
 LUT_INC = ROOT / "apps/rastan-direct/out/pc090oj_palsel_lut.inc"
 EDITOR_MANIFEST = ROOT / "build/regions/pc090oj_editor_manifest.json"
@@ -44,7 +45,11 @@ def fail(message: str) -> None:
 
 
 def main() -> int:
-    profile_bytes = PROFILE.read_bytes()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--profile", type=Path, default=DEFAULT_PROFILE)
+    args = parser.parse_args()
+    profile_path = args.profile.resolve()
+    profile_bytes = profile_path.read_bytes()
     profile_sha = hashlib.sha256(profile_bytes).hexdigest()
     profile = json.loads(profile_bytes)
     mappings = profile["usage_palette_mappings"]
@@ -65,12 +70,12 @@ def main() -> int:
     for name, value in sha_sources.items():
         found = value.group(1) if hasattr(value, "group") else value
         if found != profile_sha:
-            fail(f"{name} profile SHA {found!r} != current Test {profile_sha}")
+            fail(f"{name} profile SHA {found!r} != selected profile {profile_sha}")
 
     if "build0400/Test.snapshot.json" in makefile:
         fail("production Makefile still consumes stale Build-0400 Test snapshot")
-    if "analysis/graphics_optimizer/editor_policy/Test.json" not in makefile:
-        fail("production Makefile does not consume the live Test profile")
+    if "editor_policy/$(EDITOR_PALETTE_PROFILE_ID).json" not in makefile:
+        fail("production Makefile does not resolve the selected live editor profile")
     if 2 not in profile.get("reserved_lines", []):
         fail("current profile does not protect reserved CRAM line 2")
     if "2" in cram.get("lines", {}):

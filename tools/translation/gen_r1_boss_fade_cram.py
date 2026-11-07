@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Generate the native R1-boss eight-state Genesis CRAM fade.
 
-The arcade ROM remains the source/behavior authority.  Test.json remains the
-Genesis endpoint authority.  This script deliberately creates only a generated
-runtime representation; it is not a palette-decision registry.
+The arcade ROM remains the source/behavior authority.  The selected Palette
+Composer profile remains the Genesis endpoint authority.  This script
+deliberately creates only a generated runtime representation; it is not a
+palette-decision registry.
 """
 from __future__ import annotations
 
@@ -100,7 +101,7 @@ def main() -> int:
             if values != sorted(values):
                 raise SystemExit(f"non-monotonic fade at index {index}, channel {channel}: {values}")
     if states[7] != target:
-        raise SystemExit("fade state 7 differs from the authored Test.json endpoint")
+        raise SystemExit("fade state 7 differs from the selected authored profile endpoint")
 
     blob = b"".join(struct.pack(">H", word) for state in states for word in state)
     args.output.parent.mkdir(parents=True, exist_ok=True)
@@ -108,7 +109,7 @@ def main() -> int:
     args.output.write_bytes(blob)
     report = {
         "schema": "rastan-r1-boss-native-fade/v1",
-        "prompt_id": "TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0101",
+        "prompt_id": "TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0102",
         "source_authority": {
             "maincpu_sha256": sha256(args.maincpu),
             "source_address": "0x4708C-0x470A9",
@@ -133,7 +134,7 @@ def main() -> int:
             "all_legal_cram": True,
             "all_index0_black": True,
             "all_channels_monotonic": True,
-            "state7_exact_test_json": True,
+            "state7_exact_selected_profile": True,
             "body_line1": True,
             "daggers_line1": True,
             "second_dagger_line": False,

@@ -494,7 +494,7 @@ genesistan_palette_hook_3ba64:
     movem.l (%sp)+, %d4-%d7/%a1
     rts
 
-/* PROMT-ID-0101: native semantic replacement for the R1 boss fade writer
+/* PROMT-ID-0102: native semantic replacement for the R1 boss fade writer
  * arcade 0x47004.  The retained boss actor owns the trigger and cadence:
  * A5+0x026E enables publication, actor +0x09 advances A5+0x0270 after eight
  * updates, and reaching step 7 creates the Flying Daggers.  This helper only
@@ -535,11 +535,11 @@ genesistan_palette_hook_47004:
     .align 2
     .global editor_layera_palette
 editor_layera_palette:
-    /* Palette Composer Test line 3. Each symbol owns one complete generated
+    /* Selected Palette Composer profile Line 3. Each symbol owns one complete generated
      * artifact so canonical provenance hashes cover exactly the included bytes. */
     .incbin "../../build/rastan-direct/test_palette_line3.bin"
 
-/* Current Test-profile shared R1/P1 sprite palettes. Generated
+/* Current selected-profile shared R1/P1 sprite palettes. Generated
  * directly from target_palette_lines[0] and [1], then staged onto Genesis
  * Lines 0/1 at gameplay activation. The offline PC090OJ reindex remaps sprite
  * pixels into these exact target entries. */

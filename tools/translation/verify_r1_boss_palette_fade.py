@@ -25,7 +25,7 @@ def main() -> int:
     states = [words[i * 16:(i + 1) * 16] for i in range(8)]
     expected = [0] + [int(profile["context_policies"]["PAL-R1-S3-PLANEA-BOSS"]["tpl"]["1"][str(i)], 16) for i in range(1, 16)]
     if states[7] != expected:
-        raise SystemExit("state 7 does not equal current Test.json R1 boss Line 1")
+        raise SystemExit("state 7 does not equal the selected profile's R1 boss Line 1")
     if any(state[0] for state in states) or any(word & 0x1111 for state in states for word in state):
         raise SystemExit("illegal CRAM word or non-black index 0")
     if report["checks"]["semantic_state_count"] != 8 or not report["source_authority"]["matches_prompt_0095_raw_live_words"]:
@@ -39,7 +39,7 @@ def main() -> int:
     hooks = [r for r in spec["shift_replacements"] if r.get("arcade_pc") == "0x047004"]
     if len(hooks) != 1 or "genesistan_palette_hook_47004" not in hooks[0].get("replacement_bytes", ""):
         raise SystemExit("0x47004 is not cut through the required shift replacement")
-    print("R1_BOSS_FADE_VERIFY_PASS source=full-bright target=Test.json line=1 states=8 bank4F=line1 line2=untouched")
+    print(f"R1_BOSS_FADE_VERIFY_PASS source=full-bright target={args.profile.name} line=1 states=8 bank4F=line1 line2=untouched")
     return 0
 
 

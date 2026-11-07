@@ -115,7 +115,11 @@ PALETTE_FAMILY_VERIFY := $(ROOT)/tools/graphics_editor/verify_palette_families.p
 MAINCPU_REGION := $(ROOT)/build/regions/maincpu.bin
 PC080SN_REGION := $(ROOT)/build/regions/pc080sn.bin
 PC080SN_EDITOR_LAYERA := $(ROOT)/build/regions/pc080sn_editor_layera.bin
-EDITOR_PALETTE_PROFILE := $(ROOT)/analysis/graphics_optimizer/editor_policy/Test.json
+# Palette Composer profile selected for this build family. The default remains
+# Test; command-line builds may select another saved profile without copying it
+# over Test.json or mixing profile inputs across generated consumers.
+EDITOR_PALETTE_PROFILE_ID ?= Test
+EDITOR_PALETTE_PROFILE := $(ROOT)/analysis/graphics_optimizer/editor_policy/$(EDITOR_PALETTE_PROFILE_ID).json
 TEST_PALETTE_LINE0 := $(ROOT)/build/rastan-direct/test_palette_line0.bin
 TEST_PALETTE_LINE1 := $(ROOT)/build/rastan-direct/test_palette_line1.bin
 TEST_PALETTE_LINE3 := $(ROOT)/build/rastan-direct/test_palette_line3.bin
@@ -418,7 +422,7 @@ $(TEST_PALETTE_CRAM_LINES): $(TEST_PALETTE_CRAM_REPORT)
 	@test -f "$@"
 
 $(PALETTE_SCENE_MANIFEST): $(EDITOR_PALETTE_PROFILE) $(ROOT)/specs/palette_subround_map.json $(PALETTE_DECISIONS) $(PALETTE_SCENE_EXPORTER)
-	$(PYTHON) "$(PALETTE_SCENE_EXPORTER)" --profile Test
+	$(PYTHON) "$(PALETTE_SCENE_EXPORTER)" --profile "$(EDITOR_PALETTE_PROFILE_ID)"
 
 $(PALETTE_R1S1_CRAM) $(PALETTE_R1S2_CRAM) $(PALETTE_R1S3_CRAM): $(PALETTE_SCENE_MANIFEST)
 	@test -f "$@"
@@ -779,7 +783,7 @@ $(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(R1_SELECTOR_STREAM
 	$(PYTHON) "$(ATTRACT_PLANE_B_ENTRY_VERIFY)" \
 		--tilemap-source "$(SRC_DIR)/tilemap_hooks.s" \
 		--sprite-source "$(SRC_DIR)/pc090oj_hooks.s"
-	$(PYTHON) "$(PALETTE_FAMILY_VERIFY)"
+	$(PYTHON) "$(PALETTE_FAMILY_VERIFY)" --profile "$(EDITOR_PALETTE_PROFILE)"
 	$(PYTHON) "$(BEST5_TABLE_VERIFY)" --maincpu "$(MAINCPU_REGION)" --rom "$@" \
 		--address-map "$(ROOT)/build/rastan-direct/address_map.json" \
 		--symbols "$(SYMBOLS)" \
