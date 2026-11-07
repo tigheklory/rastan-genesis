@@ -55462,3 +55462,35 @@ CRAM/push; Test.json SHA e03dd2aa…d2d6b730 unchanged.
   Line 2 remains protected and Line0/index0 remains black. No hazard production palette, audio,
   Composer, Bestiary, Green Sword Knight tooling, or Andy hazard-tool change by Cody. No push.
 - Commits: `ba176405`, `9b5617dd`, `c62e66a5`; documentation commit reported in final response.
+
+---
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0105 Result (Cody)
+
+`TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0105`
+
+- Resumed consumed PROMT-ID-0104 without rebuilding or altering production commit `dbd5d5a1`.
+  Counter remains 545; normal SHA `5da23bd6...923291`, invincible SHA `40ac11fe...a12af`,
+  direct R1-S3 SHA `7bfb2f92...207dc6`, and invincible direct SHA `790b9607...0c6c45`.
+- Natural transition fix arms the existing full-scene publication latch at the shared `$056440`
+  gameplay handoff. Phase-3 torch publication now uses exact physical-row provenance. No shadow
+  tilemap, duplicate scene, palette change, or runtime graphics conversion.
+- USA/NTSC `genesis` direct R1-S3 gate PASS: converged stage-22 owner and 564 live torch-name
+  changes. Natural R1-S1 → R1-S2 → R1-S3 → boss → R2 gate PASS: two established pre-boss finish
+  requests, converged stage-22 owner, 2,271 live torch-name changes, input-driven boss defeat,
+  and Round 2 at frame 2,563. No forced death, timeout, or direct Round-2 jump.
+- Corrected the interrupted interpretation: arcade `$055F42` calls `$05725A/$057272` only when
+  the retained round selector equals 6. The large-Rastan / `THIS IS ONLY A PART...` sequence is
+  the final ending, not an R1 intermission. Build 0545 correctly advances directly from R1 to R2.
+  The native `$0575C4` PC080SN-tail clear remains a valid final-ending correction but is not
+  claimed as the cause of Tighe's separate R1 BlastEm `$C00A28` report.
+- Added ROM-aware verifier integration and a durable direct/natural runtime gate. The static
+  verifier passes 0545 and fails 0544 at the absent `$05727A` hook; it locks the natural latch,
+  4×6 torch table, 12 destinations, exact residency, Round-6 ending gate, 1,067-pair preload,
+  and exact ending text.
+- Test/Test 2.0, boss palette, Andy tooling, hazard production, and broader audio were not changed.
+  No GitHub push. Report:
+  `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0105_r1s3_transition_torches_postboss_resume.md`.
+- `REAL-HARDWARE ACCEPTANCE: PENDING TIGHE`
+
+`TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0105`
