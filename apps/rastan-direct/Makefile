@@ -123,6 +123,7 @@ EDITOR_PALETTE_PROFILE := $(ROOT)/analysis/graphics_optimizer/editor_policy/$(ED
 TEST_PALETTE_LINE0 := $(ROOT)/build/rastan-direct/test_palette_line0.bin
 TEST_PALETTE_LINE1 := $(ROOT)/build/rastan-direct/test_palette_line1.bin
 TEST_PALETTE_LINE3 := $(ROOT)/build/rastan-direct/test_palette_line3.bin
+TEST_PALETTE_CRAM_LINES := $(TEST_PALETTE_LINE0) $(TEST_PALETTE_LINE1) $(TEST_PALETTE_LINE3)
 TEST_PALETTE_CRAM_REPORT := $(ROOT)/build/rastan-direct/test_palette_cram_report.json
 TEST_PALETTE_CRAM_GEN := $(ROOT)/tools/graphics_editor/gen_test_palette_cram.py
 PALETTE_SCENE_EXPORTER := $(ROOT)/tools/graphics_editor/export_subround_palette_manifest.py
