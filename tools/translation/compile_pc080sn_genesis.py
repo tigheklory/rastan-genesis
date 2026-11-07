@@ -183,6 +183,30 @@ BOUNDARY_WORD_ALIGNMENT = 2
 # pattern is part of every legal Plane-A package rather than a runtime cache/fallback decision.
 PLANE_A_SURFACE_MARK_CODES = (0x25C7,)
 
+# Original 0x0596F4 Phase-3 foreground animation stream.  The retained
+# producer reads {phase_count=4, group_count=6}; each 16-byte group contains
+# two Layer-A destinations followed by four timed tile codes.  These patterns
+# are not present in the static record map, so record 22's legal residency must
+# explicitly include the producer-owned animation vocabulary.
+PHASE3_ANIM_HEADER = 0x059792
+PHASE3_ANIM_GROUPS = 0x059796
+PHASE3_ANIM_RECORD = 22
+
+
+def phase3_animation_codes(mc: bytes) -> set[int]:
+    phases = int.from_bytes(mc[PHASE3_ANIM_HEADER:PHASE3_ANIM_HEADER + 2], "big")
+    groups = int.from_bytes(mc[PHASE3_ANIM_HEADER + 2:PHASE3_ANIM_HEADER + 4], "big")
+    if (phases, groups) != (4, 6):
+        raise SystemExit(f"Phase-3 animation shape changed: phases={phases} groups={groups}")
+    stride = 8 + phases * 2
+    codes: set[int] = set()
+    for group in range(groups):
+        base = PHASE3_ANIM_GROUPS + group * stride + 8
+        for phase in range(phases):
+            codes.add(int.from_bytes(mc[base + phase * 2:base + phase * 2 + 2], "big") & 0x3FFF)
+    codes.discard(0)
+    return codes
+
 # Build 0310 Round-1 Plane-A semantic residency. These are complete contiguous
 # record epochs derived from the original arcade map data; records within one epoch share one
 # immutable exact-pattern vocabulary and therefore require no residency transition.
@@ -571,6 +595,8 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
     for record in records:
         codes = sorted((seg_fg_tiles(mc, record["segment"]) - {0})
                        | set(PLANE_A_SURFACE_MARK_CODES))
+        if record["segment"] == PHASE3_ANIM_RECORD:
+            codes = sorted(set(codes) | phase3_animation_codes(mc))
         code_blob = {code: tile_bytes(code) for code in codes}
         if authored is not None:
             for (source_code, _bank, _flip), (blob, _line, _usage) in \

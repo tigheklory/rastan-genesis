@@ -15,8 +15,9 @@ The MAME cheat "Select Starting Round/Sub-Round" (tools/mame/cheat/output.xml) w
 this same arcade byte.  This tool performs the Genesis-native equivalent: it looks up
 the relocated Genesis ROM offset of arcade 0x05FF9F via the maintained address map and
 patches that byte on a COPY of the parent canonical ROM.  The R1-S2 derivative also
-restores authentic command 0x27 at the retained direct-start stage initializer because
-direct start bypasses the natural 0x03A848 -> 0x055F68 transition that emits 0x27.
+restores authentic command 0x1B at the retained direct-start stage initializer because
+direct start bypasses the natural R1-S2 entry event.  Command 0x27 belongs to the
+later non-final-round Stage Clear controller at 0x055F68.
 No runtime scene poller or gameplay code is added; the variant shares the parent's
 build number and embedded crash-handler stamp.
 """
@@ -43,7 +44,7 @@ STAGE_DECODE_READ_OPCODES = (b"\x30\x39\x00\x05\xff\x9e", b"\x32\x39\x00\x05\xff
 LITERAL_READ_OFFSET = 0x0005FF9F
 R1S2_DIRECT_START_COMMAND_PC = 0x050690
 R1S2_DIRECT_START_COMMAND_BYTES = bytes.fromhex("303c0025")
-R1S2_AUTHENTIC_COMMAND = 0x27
+R1S2_AUTHENTIC_COMMAND = 0x1B
 
 
 def selector_value(round_no: int, subround: int) -> int:
@@ -115,7 +116,7 @@ def main() -> int:
             "genesis_command_byte_offset": f"0x{command_byte_offset:06X}",
             "original_command": "0x25",
             "replacement_command": f"0x{R1S2_AUTHENTIC_COMMAND:02X}",
-            "reason": "restore natural R1-S2 command 0x27 in direct-start initialization",
+            "reason": "restore natural R1-S2 command 0x1B in direct-start initialization",
         }
 
     # Safety: only the selector byte and the declared R1-S2 initialization

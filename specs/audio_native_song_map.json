@@ -17,13 +17,6 @@
       "evidence": "ORIGINAL ARCADE command-timing (states/traces/audio015_arcade_gameover): 0x04 emitted at the credit state (state0=1,state2=1) immediately after coin; 0x04 is a 2-channel cue and Credit is the 2-keyed-channel coin song; 0x04 is delivered to the Z80 ring on Genesis (native runtime gate command_values EF,04,...). Pending Tighe Genesis hardware audition."
     },
     {
-      "wire_command": "0x27",
-      "track": "05 - Re-In-Carnation (Scene 2)",
-      "status": "proven",
-      "semantics": "Round 1 Subround 2 (castle interior) music change",
-      "evidence": "ORIGINAL ARCADE R1 music sequencer at 0x055DDC: substate a5+0x13AA==9 (the castle phase, entered via 0x03A848 setting 13AA=9 / 1394=1) sends command 0x27 via jsr 0x3A0EC; the castle plays Re-In-Carnation (Scene 2). The substate-9 send has no sound-enable (a5+0x34) precondition, so unlike 0x19 it is delivered on Genesis. Pending Tighe Genesis hardware audition."
-    },
-    {
       "wire_command": "0x1B",
       "track": "05 - Re-In-Carnation (Scene 2)",
       "status": "proven",
@@ -36,6 +29,13 @@
       "status": "proven",
       "semantics": "Round 1 Subround 3 boss-entry music change",
       "evidence": "ORIGINAL ARCADE natural retained transition trace states/traces/prompt0076_arcade_r1s2_to_r1s3_audio_v2: record 0x17 boss entry emits shared appearance cue 0x25 at frame 982 followed by six-channel song command 0x1C at frame 983; this is the original Scene-3 boss entry where The Devil Boss Carnival plays. The native bridge already consumes the non-outdoor 0x25 and now dispatches the authentic following 0x1C."
+    },
+    {
+      "wire_command": "0x27",
+      "track": "07 - Scene Clear",
+      "status": "proven",
+      "semantics": "non-final-round stage-clear presentation after the boss controller selects state 9",
+      "evidence": "ORIGINAL ARCADE 0x055F40 compares round selector 0x10C118 with 6. The non-final branch preserves the current record, initializes/clears the per-round presentation, then loads D0=0x27 at 0x055F68 and calls the retained sound dispatcher 0x03A0EC before state 10 renders the per-round figure and exact congratulatory text through 0x05632A/0x0561D6. Round 6 instead branches to the distinct 0x05725A ending controller."
     }
   ],
   "diagnostic_selection_doc": [

@@ -66,6 +66,7 @@ SCENE_STAGE1_CAVE_S6 = 6
 # pre-gameplay and stays on gameplay.
 SCENE_STAGE1_SEG1 = 7
 SCENE_STAGE1_SEG2 = 8
+SCENE_STAGECLEAR = 9
 SCENE_IDS = (SCENE_TITLE, SCENE_GAMEPLAY, SCENE_ENDROUND, SCENE_GAMEPLAY_CAVE)
 # Map: runtime scene id -> arcade level segment(s) it makes resident.
 STAGE1_SEGMENT_SCENES = {
@@ -75,7 +76,7 @@ STAGE1_SEGMENT_SCENES = {
     SCENE_STAGE1_CAVE_S5: (5,),
     SCENE_STAGE1_CAVE_S6: (6,),
 }
-ALL_SCENE_IDS = SCENE_IDS + tuple(sorted(STAGE1_SEGMENT_SCENES))
+ALL_SCENE_IDS = SCENE_IDS + tuple(sorted(STAGE1_SEGMENT_SCENES)) + (SCENE_STAGECLEAR,)
 SCENE_NAMES = {
     SCENE_TITLE: "Title",
     SCENE_GAMEPLAY: "Gameplay",
@@ -86,6 +87,7 @@ SCENE_NAMES = {
     SCENE_STAGE1_CAVE_S6: "Stage1-Cave-Seg6",
     SCENE_STAGE1_SEG1: "Stage1-Outdoor-Seg1",
     SCENE_STAGE1_SEG2: "Stage1-Outdoor-Seg2",
+    SCENE_STAGECLEAR: "Stage-Clear",
 }
 
 # Static one-shot block-write sources (0x5A38E/0x5A370/0x5A3AC/0x5A3DE/0x5A442 family).
@@ -106,6 +108,12 @@ TITLE_STATIC_BLOCKS = (
 # RUNTIME_GAMEPLAY_* below and collect_runtime_gameplay_sources).
 GAMEPLAY_TABLE_START = 0x5635E
 GAMEPLAY_TABLE_END = 0x563A6
+
+# Original 0x055F88 -> 0x05632A selects one per-round congratulatory
+# figure from this table.  It is a finite stage-clear presentation, not a
+# gameplay map and not the Round-6-only 0x057272 ending scene.
+STAGECLEAR_TABLE_START = 0x5635E
+STAGECLEAR_TABLE_END = 0x563A6
 
 # Build 0217 runtime gameplay BG producer model (authoritative).
 # The live Stage 1 producer walks a 6-byte descriptor table {attr16, src32} at arcade
@@ -406,6 +414,16 @@ def collect_block_write_sources(maincpu: bytes) -> list[BlockWriteSource]:
             )
         )
 
+    sources.extend(
+        collect_table_block_sources(
+            maincpu,
+            STAGECLEAR_TABLE_START,
+            STAGECLEAR_TABLE_END,
+            SCENE_STAGECLEAR,
+            "stage_clear_round_figures",
+        )
+    )
+
     return sources
 
 
@@ -436,7 +454,7 @@ def collect_block_scene_tiles_and_source_map(
     maincpu: bytes,
     sources: list[BlockWriteSource],
 ) -> tuple[dict[int, set[int]], dict[int, int]]:
-    scene_tiles: dict[int, set[int]] = {scene_id: set() for scene_id in SCENE_IDS}
+    scene_tiles: dict[int, set[int]] = {scene_id: set() for scene_id in ALL_SCENE_IDS}
     source_scene_map: dict[int, int] = {}
 
     for source in sources:
@@ -762,6 +780,11 @@ def parse_args() -> argparse.Namespace:
         help="Output end-round scene preload manifest path.",
     )
     parser.add_argument(
+        "--scene-stageclear-output",
+        default="build/pc080sn_scene_preload_stageclear.bin",
+        help="Output per-round stage-clear presentation preload manifest path.",
+    )
+    parser.add_argument(
         "--source-scene-map-output",
         default="build/pc080sn_source_scene_map.bin",
         help="Output source->scene map path.",
@@ -817,6 +840,7 @@ def main() -> int:
         SCENE_GAMEPLAY: set(block_scene_tiles[SCENE_GAMEPLAY]) | set(fg_tiles) | set(text_tiles),
         SCENE_ENDROUND: set(block_scene_tiles[SCENE_ENDROUND]) | set(strip_tiles) | set(text_tiles),
         SCENE_GAMEPLAY_CAVE: set(block_scene_tiles[SCENE_GAMEPLAY_CAVE]) | set(fg_tiles) | set(text_tiles),
+        SCENE_STAGECLEAR: set(block_scene_tiles[SCENE_STAGECLEAR]) | set(text_tiles),
     }
     for scene_id, fg_seg in fg_cave_by_scene.items():
         scene_tiles[scene_id] = (
@@ -921,6 +945,7 @@ def main() -> int:
     write_scene_manifest(Path(args.scene_title_output), scene_manifest_pairs[SCENE_TITLE])
     write_scene_manifest(Path(args.scene_gameplay_output), scene_manifest_pairs[SCENE_GAMEPLAY])
     write_scene_manifest(Path(args.scene_endround_output), scene_manifest_pairs[SCENE_ENDROUND])
+    write_scene_manifest(Path(args.scene_stageclear_output), scene_manifest_pairs[SCENE_STAGECLEAR])
     write_scene_manifest(
         Path(args.scene_gameplay_cave_output),
         scene_manifest_pairs[SCENE_GAMEPLAY_CAVE],

@@ -7,6 +7,7 @@
     .global genesistan_hook_tilemap_plane_a_selector0_native
     .global genesistan_hook_tilemap_plane_a_selector12_native
     .global genesistan_plane_a_scene_scroll_reseed_native
+    .global genesistan_gameplay_scene_restore_after_teardown
     .global genesistan_plane_a_scene_scroll_reseed_native_exit
     .global genesistan_plane_a_pan_publish_entering_rows_up
     .global genesistan_plane_a_pan_publish_entering_rows_down
@@ -984,6 +985,22 @@ genesistan_plane_a_scene_scroll_reseed_native:
     bsr     genesistan_presentation_mark_ready_after_publish
 .Lscene_scroll_reseed_done:
 genesistan_plane_a_scene_scroll_reseed_native_exit:
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
+/* Original non-final-round state 13 reaches 0x056018 only after 0x056440 has
+ * cleared both PC080SN surfaces and 0x05600E..0x056014 has restored the exact
+ * retained record that owns the next gameplay scene.  The preceding scene
+ * fill has already completed, so the ordinary 0x050482 completion hook cannot
+ * publish this post-clear generation.  Reuse the existing finite native
+ * producer now, with the final retained record/descriptor/package inputs, and
+ * request its independently compiled Plane-B scene-entry product as well.
+ * This is a semantic post-teardown publication boundary; no stage, row,
+ * graphic, timer, or progression value is selected here. */
+genesistan_gameplay_scene_restore_after_teardown:
+    movem.l %d0-%d7/%a0-%a6, -(%sp)
+    move.b  #1, fg_scene_scroll_reseed_pending
+    bsr     genesistan_plane_a_scene_scroll_reseed_native
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 

@@ -144,6 +144,8 @@
   "genesistan_hook_cwindow_clear",
   "genesistan_endround_plane_a_clear",
   "genesistan_endround_owner_enter",
+  "genesistan_stageclear_owner_enter",
+  "genesistan_gameplay_scene_restore_after_teardown",
   "genesistan_title_present_once",
   "genesistan_item_description_enter",
   "genesistan_shadow_input_390001",
@@ -283,6 +285,30 @@
   }
  ],
  "shift_replacements": [
+  {
+   "arcade_pc": "0x056018",
+   "original_bytes": "60000010",
+   "replacement_bytes": "4EB9{symbol:genesistan_gameplay_scene_restore_after_teardown}4E75",
+   "note": "PROMT-ID-0106 natural next-subround post-teardown publication cut. Retained state 13 has completed the 0x056440 dual-plane clear and restored the saved next-scene record at 0x05600E..0x056014. Reuse the existing finite native Plane-A replay and generated Plane-B scene-entry product at the first boundary where record, descriptors and installed package are mutually final, then return exactly as the displaced branch to 0x05602A did. This fixes the demonstrated post-fill destructive clear; no stage gate, second scene map, chip shadow, timeout, direct progression or generic transition change is introduced.",
+   "expected_count": 1
+  },
+  {
+   "arcade_pc": "0x055F58",
+   "original_bytes": "302D013E",
+   "replacement_bytes": "4EB9{symbol:genesistan_stageclear_owner_enter}302D013E",
+   "note": "PROMT-ID-0106 non-final-round Stage Clear owner boundary. The retained round!=6 branch has selected the per-round congratulatory sequence but has not yet loaded its palette, cleared the planes, sent sound command 0x27, or produced the figure/text. Select the generated Stage-Clear pattern residency and hold visibility, then preserve the displaced current-record load. Proper 4-to-10-byte shift replacement; no PC080SN shadow, recreated controller, timeout, or progression bypass."
+  },
+  {
+   "arcade_pc": "0x055F8C",
+   "original_bytes": "61000248",
+   "relocate_after_shift": true,
+   "replacement_template": "4EB9",
+   "replacement_suffix": "4EB9{symbol:genesistan_presentation_mark_ready_after_publish}",
+   "operand_kind": "abs_l_32bit",
+   "operand_width": 4,
+   "operand_arcade_target": "0x0561D6",
+   "note": "PROMT-ID-0106 Stage Clear coherent-publication boundary. Preserve the retained per-round congratulatory text producer 0x0561D6, then mark the completed figure/text generation ready for the next fixed-order VBlank before visibility. Proper 4-to-12-byte shift replacement; timing and state progression remain arcade-owned."
+  },
   {
    "arcade_pc": "0x05727A",
    "original_bytes": "6100058C",

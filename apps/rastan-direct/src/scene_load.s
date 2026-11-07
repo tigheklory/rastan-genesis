@@ -5,6 +5,7 @@
     .global genesistan_frontend_owner_reset
     .global genesistan_gameplay_owner_reset
     .global genesistan_endround_owner_enter
+    .global genesistan_stageclear_owner_enter
     .global genesistan_presentation_mark_unsafe
     .global genesistan_presentation_mark_ready_after_publish
     .global genesistan_presentation_publish_complete
@@ -37,6 +38,8 @@
     .global genesistan_scene_preload_stage1_seg2_end
     .global genesistan_scene_preload_endround
     .global genesistan_scene_preload_endround_end
+    .global genesistan_scene_preload_stageclear
+    .global genesistan_scene_preload_stageclear_end
     .global genesistan_scene_a0_ranges
 
     .global genesistan_current_scene_id
@@ -106,8 +109,13 @@ load_scene_tiles:
     bra.s   .Lload_scene_manifest_ready
 .Lload_scene_check_stage1_seg2:
     cmpi.w  #8, %d6
-    bne.s   .Lload_scene_force_title
+    bne.s   .Lload_scene_check_stageclear
     lea     genesistan_scene_preload_stage1_seg2, %a0
+    bra.s   .Lload_scene_manifest_ready
+.Lload_scene_check_stageclear:
+    cmpi.w  #9, %d6
+    bne.s   .Lload_scene_force_title
+    lea     genesistan_scene_preload_stageclear, %a0
     bra.s   .Lload_scene_manifest_ready
 .Lload_scene_force_title:
     moveq   #0, %d6
@@ -145,8 +153,14 @@ load_scene_tiles:
 .Lload_scene_pairs_done:
     move.b  %d6, genesistan_current_pc080sn_tileset_id
     move.w  %d6, %d5
-    /* ids 3 (attr cave) and 4/5/6 (Stage-1 first-cave segments) are logically the gameplay
-     * scene: they share the gameplay a0 source range and fg_native ownership. */
+    /* Tile-set 9 is the finite stage-clear presentation and shares the existing
+     * non-gameplay presentation ownership class.  IDs 3..8 are gameplay
+     * residencies which share the gameplay A0 range and native ownership. */
+    cmpi.w  #9, %d5
+    bne.s   .Lload_scene_check_gameplay_tileset
+    moveq   #2, %d5
+    bra.s   .Lload_scene_logical_ready
+.Lload_scene_check_gameplay_tileset:
     cmpi.w  #3, %d5
     blo.s   .Lload_scene_logical_ready
     moveq   #1, %d5
@@ -265,14 +279,13 @@ genesistan_frontend_owner_reset:
 genesistan_gameplay_owner_reset:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
     bsr     .Lpresentation_mark_unsafe_body
-    /* PROMT-ID-0104: the retained substate-13 teardown has just cleared both
-     * physical planes.  Direct/cold entry already carries this latch into the
-     * 0x050482 scene-fill completion boundary; natural R1-S2 -> R1-S3 did not,
-     * so its retained 64-row fill was never committed as a new full scene.
-     * Arm the same one-shot publication contract before reloading scene-1
-     * patterns.  The retained fill/camera spine consumes the latch; no stage
-     * number, record, map row, or graphic is selected here. */
-    move.b  #1, genesistan_scene_present_pending
+    /* The retained state-13 teardown has selected gameplay ownership but has
+     * not yet cleared both planes or restored A5+0x013E.  Keep presentation
+     * unsafe while patterns are reloaded.  The post-teardown record-restore
+     * boundary performs the native scene reconstruction once those retained
+     * semantic inputs are final; arming the 0x050482 fill latch here was wrong
+     * because that fill has already completed on the natural R1-S2 -> R1-S3
+     * route. */
     moveq   #1, %d0
     bsr     load_scene_tiles
     bsr     genesistan_hud_deactivate
@@ -289,6 +302,19 @@ genesistan_endround_owner_enter:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
     bsr     .Lpresentation_mark_unsafe_body
     moveq   #2, %d0
+    bsr     load_scene_tiles
+    bsr     genesistan_hud_deactivate
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
+/* Original non-final-round state 9 at 0x055F38 enters the per-round
+ * congratulatory presentation.  Select its generated PC080SN pattern
+ * residency before the retained palette, clear, sound, figure and text
+ * producers run; those producers and their timing remain arcade-owned. */
+genesistan_stageclear_owner_enter:
+    movem.l %d0-%d7/%a0-%a6, -(%sp)
+    bsr     .Lpresentation_mark_unsafe_body
+    moveq   #9, %d0
     bsr     load_scene_tiles
     bsr     genesistan_hud_deactivate
     movem.l (%sp)+, %d0-%d7/%a0-%a6
@@ -437,6 +463,11 @@ genesistan_scene_preload_stage1_seg2_end:
 genesistan_scene_preload_endround:
     .incbin "../../build/pc080sn_scene_preload_endround.bin"
 genesistan_scene_preload_endround_end:
+
+    .align 2
+genesistan_scene_preload_stageclear:
+    .incbin "../../build/pc080sn_scene_preload_stageclear.bin"
+genesistan_scene_preload_stageclear_end:
 
 genesistan_scene_a0_ranges:
     .long 0x0005A7DA
