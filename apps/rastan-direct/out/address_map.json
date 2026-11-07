@@ -2355,7 +2355,7 @@
       "origin": "shift_replacement",
       "original_bytes": "4a6d026e",
       "replacement_bytes": "4eb900073c684e75",
-      "note": "PROMT-ID-0101 R1 boss-palette semantic cut. The retained frame spine and boss actor continue to own A5+0x026E enable, A5+0x0270 step, the actor +0x09 eight-update cadence, and step-7 dagger activation. Replace the first instruction of the obsolete CLCS-specific 0x47004 -> 0x4703C -> 0x47076 hardware tail with one native Line-1 staging call and return. The helper consumes an offline ROM/LUT/Test.json-derived eight-state CRAM table; no arcade palette-RAM emulation, runtime conversion, generic fade, or second dagger palette. Proper 4-to-8-byte shift replacement.",
+      "note": "PROMT-ID-0102 R1 boss-palette semantic cut. The retained frame spine and boss actor continue to own A5+0x026E enable, A5+0x0270 step, the actor +0x09 eight-update cadence, and step-7 dagger activation. Replace the first instruction of the obsolete CLCS-specific 0x47004 -> 0x4703C -> 0x47076 hardware tail with one native Line-1 staging call and return. The helper consumes an offline ROM/LUT/selected-authoring-profile-derived eight-state CRAM table; no arcade palette-RAM emulation, runtime conversion, generic fade, or second dagger palette. Proper 4-to-8-byte shift replacement.",
       "shift_delta": 4
     },
     {

@@ -7,21 +7,21 @@
   "lines": {
     "0": [
       "0x0000",
-      "0x006C",
-      "0x0226",
-      "0x0224",
-      "0x068A",
-      "0x0466",
-      "0x002C",
       "0x0000",
-      "0x0EEE",
-      "0x08AE",
-      "0x044A",
+      "0x0666",
+      "0x0888",
+      "0x0CCC",
+      "0x0006",
       "0x0008",
+      "0x000E",
+      "0x044A",
+      "0x08AE",
+      "0x0246",
+      "0x006E",
       "0x00EE",
-      "0x0080",
+      "0x0040",
       "0x0060",
-      "0x0040"
+      "0x0080"
     ],
     "1": [
       "0x0000",
@@ -64,7 +64,7 @@
     "0": {
       "bytes": 32,
       "path": "/home/tighe/projects/rastan-genesis/build/rastan-direct/test_palette_line0.bin",
-      "sha256": "273ab974ec8c85f4594878a39702d106614d4c7bbb601f667c7234165d99ecaf"
+      "sha256": "af2db4bccdbcaa9b396d2eb55d9350ae2dce6236b7f2999003fdcffc31dc4502"
     },
     "1": {
       "bytes": 32,
@@ -77,8 +77,8 @@
       "sha256": "637a34db76429fc7c88917b1b7b0ef07da575f2d728238907aa0923d73f3714f"
     }
   },
-  "profile": "/home/tighe/projects/rastan-genesis/analysis/graphics_optimizer/editor_policy/Test.json",
-  "profile_sha256": "35a742b32f3518ce3d7a16f56fb7db3879eb9d495e94a4c72656d12838794776",
+  "profile": "/home/tighe/projects/rastan-genesis/analysis/graphics_optimizer/editor_policy/Test_2_0.json",
+  "profile_sha256": "49f38ea9b8c889eb24dbe232a25c590b79755b642abb8d42743d0d8b6a17c04f",
   "schema": "rastan-test-palette-cram/v1",
   "transparent_entry_zero": "normalized to 0x0000; source index 0 is transparent",
   "words_per_line": 16

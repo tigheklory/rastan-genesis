@@ -17,7 +17,7 @@
       ],
       "index_map": {
         "1": 1,
-        "7": 2
+        "7": 4
       },
       "line": 0
     },
@@ -28,8 +28,8 @@
         "0x048"
       ],
       "index_map": {
-        "5": 8,
-        "7": 2
+        "5": 12,
+        "7": 4
       },
       "line": 0
     },
@@ -47,15 +47,15 @@
         "0x033"
       ],
       "index_map": {
-        "7": 2
+        "7": 4
       },
       "line": 0
     }
   },
   "output": "/home/tighe/projects/rastan-genesis/build/pc090oj_semantic_profile_genesis.bin",
-  "output_sha256": "9d08551e0d961e386b973dfb82f28e1c5f723b180fb2511b5b164f1d0d59597f",
-  "profile": "/home/tighe/projects/rastan-genesis/analysis/graphics_optimizer/editor_policy/Test.json",
-  "profile_sha256": "780ea18cde6fde0ee80ca2fc8de288e6b9c6f5f24af3d717ceae34fe05760b75",
+  "output_sha256": "27ca872c1a51d1bd9cbcc39e6d705855ae74c41011bb833794e6019152cc7d97",
+  "profile": "/home/tighe/projects/rastan-genesis/analysis/graphics_optimizer/editor_policy/Test_2_0.json",
+  "profile_sha256": "49f38ea9b8c889eb24dbe232a25c590b79755b642abb8d42743d0d8b6a17c04f",
   "schema": "pc090oj-semantic-profile-slice/v1",
   "source": "/home/tighe/projects/rastan-genesis/build/pc090oj_genesis.bin",
   "source_sha256": "916c0dcfeac887f5532ac1f525580c8db15ccc5acd950974a0be3234ce7b239b"
