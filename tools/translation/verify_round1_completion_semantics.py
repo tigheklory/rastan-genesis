@@ -72,6 +72,7 @@ def main() -> int:
         "genesistan_endround_plane_a_clear",
         "genesistan_presentation_mark_ready_after_publish",
         "genesistan_stageclear_owner_enter",
+        "genesistan_gameplay_scene_restore_after_teardown",
     }
     missing = sorted(needed - syms.keys())
     if missing:
@@ -101,6 +102,14 @@ def main() -> int:
     require_jsr(rom, stage_ready + 6, syms["genesistan_presentation_mark_ready_after_publish"],
                 "Stage Clear coherent publication")
 
+    scene_restore = mapped(amap, 0x056018)
+    require_jsr(
+        rom, scene_restore, syms["genesistan_gameplay_scene_restore_after_teardown"],
+        "natural post-teardown gameplay scene restore",
+    )
+    if rom[scene_restore + 6:scene_restore + 8] != b"\x4e\x75":
+        raise RuntimeError("post-teardown scene restore no longer preserves the common return")
+
     shifts = {int(row["arcade_pc"], 0): row for row in spec["shift_replacements"]}
     for pc in (0x05727A, 0x0574A2, 0x0575C4):
         if pc not in shifts:
@@ -112,8 +121,17 @@ def main() -> int:
     if len(torch) != 1 or "genesistan_phase3_fg_anim_native" not in torch[0]["replacement_bytes"]:
         raise RuntimeError("retained 0x0596F4 torch producer lacks native 0x059736 chip-tail cut")
 
-    if "move.b  #1, genesistan_scene_present_pending" not in scene:
-        raise RuntimeError("natural gameplay owner does not arm full-scene publication")
+    if "genesistan_gameplay_scene_restore_after_teardown:" not in tilemap:
+        raise RuntimeError("natural post-teardown native scene producer is absent")
+    restore_contract = (
+        "move.b  #1, fg_scene_scroll_reseed_pending",
+        "bsr     genesistan_plane_a_scene_scroll_reseed_native",
+    )
+    if any(token not in tilemap for token in restore_contract):
+        raise RuntimeError("post-teardown scene restore does not reuse the complete native producer")
+    owner_body = scene.split("genesistan_gameplay_owner_reset:", 1)[1].split("rts", 1)[0]
+    if "genesistan_scene_present_pending" in owner_body:
+        raise RuntimeError("gameplay owner still arms the already-passed 0x050482 completion latch")
     provenance = (
         "lea     plane_a_resident_logical_rows, %a1",
         "move.b  0(%a1,%d7.w), %d0",
@@ -219,6 +237,7 @@ def main() -> int:
     print(
         "ROUND1_COMPLETION_SEMANTICS_PASS "
         f"owner=0x{site:06X} ready=0x{ready:06X} plane_a_clear=0x{clear:06X} "
+        f"natural_restore=0x{scene_restore:06X} "
         f"torches=4x6 pixels=18/18 provenance=exact stageclear_tiles={len(stage_pairs)} "
         f"stageclear_command=0x27 ending_gate=round6 endround_preload={preload_pairs} text=exact"
     )

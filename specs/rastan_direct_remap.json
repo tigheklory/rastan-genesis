@@ -421,6 +421,7 @@
   },
   {
    "arcade_pc": "0x03AD4C",
+   "opaque_to_shift_reflow": true,
    "original_bytes": "323C0008",
    "replacement_bytes": "4EB9{symbol:genesistan_frontend_presentation_reset}4E75",
    "note": "RG-003 frontend presentation ownership cut, completed by RG-004 lifecycle cleanup. The retained eight callers invoke 0x03AD4C only after arcade control flow has selected a terminal/frontend reset event. Retire the complete PC090OJ object-RAM parking tail (both D00000/D00170 fill loops and their 0x03AD44 chip writer), restore the generated scene-0 PC080SN pattern/base-palette owner, clear both final Genesis staged name tables, and rebuild both native SAT staging banks with the clean FRONTEND_FULL package so VBlank publishes the transition. Retained Continue/GAME OVER/story/BEST 5 text and block producers remain arcade-owned and repopulate the cleared planes. Proper 4-to-8-byte shift replacement; no NOP, RTS bypass, chip shadow, route special case, pattern-VRAM clear, or Genesis-owned state machine."
