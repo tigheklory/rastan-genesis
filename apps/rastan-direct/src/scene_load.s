@@ -4,6 +4,7 @@
     .global genesistan_frontend_presentation_reset
     .global genesistan_frontend_owner_reset
     .global genesistan_gameplay_owner_reset
+    .global genesistan_endround_owner_enter
     .global genesistan_presentation_mark_unsafe
     .global genesistan_presentation_mark_ready_after_publish
     .global genesistan_presentation_publish_complete
@@ -264,7 +265,30 @@ genesistan_frontend_owner_reset:
 genesistan_gameplay_owner_reset:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
     bsr     .Lpresentation_mark_unsafe_body
+    /* PROMT-ID-0104: the retained substate-13 teardown has just cleared both
+     * physical planes.  Direct/cold entry already carries this latch into the
+     * 0x050482 scene-fill completion boundary; natural R1-S2 -> R1-S3 did not,
+     * so its retained 64-row fill was never committed as a new full scene.
+     * Arm the same one-shot publication contract before reloading scene-1
+     * patterns.  The retained fill/camera spine consumes the latch; no stage
+     * number, record, map row, or graphic is selected here. */
+    move.b  #1, genesistan_scene_present_pending
     moveq   #1, %d0
+    bsr     load_scene_tiles
+    bsr     genesistan_hud_deactivate
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
+/* Original end-round state 2 enters at 0x05727A immediately before its own
+ * palette loads, PC080SN clears/block producers, PC090OJ actor-32 spawn and
+ * retained timing machine.  Select the already-generated End-Round pattern
+ * residency at that semantic owner boundary, while holding display output
+ * until the retained initial producers finish.  Nothing in this helper owns
+ * the intermission art, text, palette, timing, sound, or progression. */
+genesistan_endround_owner_enter:
+    movem.l %d0-%d7/%a0-%a6, -(%sp)
+    bsr     .Lpresentation_mark_unsafe_body
+    moveq   #2, %d0
     bsr     load_scene_tiles
     bsr     genesistan_hud_deactivate
     movem.l (%sp)+, %d0-%d7/%a0-%a6

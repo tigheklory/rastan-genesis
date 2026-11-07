@@ -142,6 +142,8 @@
   "genesistan_hook_tilemap_bg_blockcopy",
   "genesistan_hook_text_writer_3c4d2",
   "genesistan_hook_cwindow_clear",
+  "genesistan_endround_plane_a_clear",
+  "genesistan_endround_owner_enter",
   "genesistan_title_present_once",
   "genesistan_item_description_enter",
   "genesistan_shadow_input_390001",
@@ -281,6 +283,28 @@
   }
  ],
  "shift_replacements": [
+  {
+   "arcade_pc": "0x05727A",
+   "original_bytes": "6100058C",
+   "relocate_after_shift": true,
+   "replacement_template": "4EB9{symbol:genesistan_endround_owner_enter}4EB9",
+   "operand_kind": "abs_l_32bit",
+   "operand_width": 4,
+   "operand_arcade_target": "0x057808",
+   "note": "PROMT-ID-0104 End-Round semantic owner cut. State 2 has been selected by the retained 0x057272 controller and reaches this call immediately before the original palette loads, plane clear/block producers, actor-32 spawn, timing, text and progression machine. Select generated scene-2 pattern residency and hold display publication, then call the same original 0x057808 palette routine through a post-reflow absolute operand. Proper 4-to-12-byte shift replacement; no chip shadow, recreated screen, timeout, or direct Round-2 jump."
+  },
+  {
+   "arcade_pc": "0x0574A2",
+   "original_bytes": "4E75",
+   "replacement_bytes": "4EB9{symbol:genesistan_presentation_mark_ready_after_publish}4E75",
+   "note": "PROMT-ID-0104 End-Round initial-presentation completion boundary. The retained 0x05744E routine has now authored all four initial Plane-B blocks after the original palette load and full clear. Mark that coherent native generation ready for visibility only after the next fixed-order VBlank publication, then preserve RTS. Proper 2-to-8-byte shift replacement; all content and timing remain arcade-owned."
+  },
+  {
+   "arcade_pc": "0x0575C4",
+   "original_bytes": "323C1000",
+   "replacement_bytes": "4EB9{symbol:genesistan_endround_plane_a_clear}4E75",
+   "note": "PROMT-ID-0104 End-Round Plane-A clear cut. Replace the first instruction of the 0x0575C4 PC080SN C08000 4096-longword hardware loop with the exact final Genesis Plane-A staging clear and return; the obsolete chip-write tail is retired. The two retained callers, state transitions, dirty publication, Plane B, palette, text, actor and progression semantics are preserved. Proper 4-to-8-byte shift replacement; no NOP, timeout, bypass, shadow tilemap, or framebuffer."
+  },
   {
    "arcade_pc": "0x047004",
    "original_bytes": "4A6D026E",

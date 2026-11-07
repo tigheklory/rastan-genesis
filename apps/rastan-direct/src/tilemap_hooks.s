@@ -15,6 +15,7 @@
     .global genesistan_phase3_fg_anim_native
     .global genesistan_hook_tilemap_fg
     .global genesistan_hook_cwindow_clear
+    .global genesistan_endround_plane_a_clear
     .global genesistan_hook_tilemap_bg_fill
     .global genesistan_hook_tilemap_fg_fill
     .global genesistan_hook_inline_fg_write_3a550
@@ -2937,22 +2938,26 @@ genesistan_hook_tilemap_fg_fill:
     lsr.w   #6, %d5
     andi.w  #0x003F, %d5
 
-    /* RG-023: a raw PC080SN Layer-A destination carries a 64-row logical
+    /* RG-023 / PROMT-ID-0104: a raw PC080SN Layer-A destination carries a 64-row logical
      * identity.  The Genesis resident plane carries only the live 32-row
      * window.  Folding every writer with row&31 made nonresident Phase-3
-     * animation destinations (for example logical rows 42..44 in R1-S3)
-     * overwrite resident rows 10..12.  Preserve non-gameplay callers exactly,
-     * but during gameplay publish only a logical row owned by the live window;
-     * retained state/timing still executes and no C-window image is created. */
+     * animation destinations overwrite an unrelated resident physical row.
+     * The earlier scroll-derived visibility test also rejected valid R1-S3
+     * torch rows because camera position is not row provenance.  Preserve
+     * non-gameplay callers exactly; during gameplay consult the existing exact
+     * per-physical-row provenance installed by the native scene/pan producers.
+     * Retained state/timing still executes and no C-window image is created. */
     cmpi.b  #SCENE_GAMEPLAY_ID, genesistan_current_scene_id
     bne.s   .Lfg_fill_project_row
     move.w  %d5, %d7
-    move.w  0x00FF10B0, %d0
-    bsr     .Lplane_a_visible_top_from_scroll_d0
-    sub.w   %d0, %d7
-    andi.w  #0x003F, %d7
-    cmpi.w  #32, %d7
-    bhs.s   .Lfg_fill_advance
+    andi.w  #0x001F, %d7
+    lea     plane_a_resident_logical_rows, %a1
+    moveq   #0, %d0
+    move.b  0(%a1,%d7.w), %d0
+    move.w  %d5, %d7
+    addq.w  #1, %d7
+    cmp.w   %d7, %d0
+    bne.s   .Lfg_fill_advance
 .Lfg_fill_project_row:
     andi.w  #0x001F, %d5
 
@@ -4679,6 +4684,37 @@ genesistan_hook_cwindow_clear:
     clr.l   bg_col_dirty
     clr.l   bg_col_dirty + 4
     clr.b   fg_native_gameplay_owner
+
+    movem.l (%sp)+, %d0-%d3/%a0-%a3
+    rts
+
+/* Original 0x0575C4 clears only the PC080SN Layer-A name surface during two
+ * retained End-Round state transitions.  Realize that exact plane-local
+ * consequence in the final 64x32 Genesis Plane-A staging table.  This retires
+ * the raw C08000 chip-write loop which BlastEm correctly reports as unmapped
+ * Genesis hardware; Plane B, CRAM, timing, and controller state are untouched. */
+genesistan_endround_plane_a_clear:
+    movem.l %d0-%d3/%a0-%a3, -(%sp)
+
+    lea     genesistan_pc080sn_tile_vram_lut, %a2
+    move.w  #0x0020, %d0
+    add.w   %d0, %d0
+    move.w  0(%a2,%d0.w), %d3
+
+    lea     genesistan_pc080sn_attr_lut, %a3
+    clr.w   %d0
+    move.w  0(%a3,%d0.w), %d0
+    or.w    %d0, %d3
+
+    lea     staged_fg_buffer, %a0
+    move.w  #(2048 - 1), %d0
+.Lendround_clear_fg:
+    move.w  %d3, (%a0)+
+    dbra    %d0, .Lendround_clear_fg
+
+    move.l  #0xFFFFFFFF, fg_row_dirty
+    clr.l   fg_col_dirty
+    clr.l   fg_col_dirty + 4
 
     movem.l (%sp)+, %d0-%d3/%a0-%a3
     rts
