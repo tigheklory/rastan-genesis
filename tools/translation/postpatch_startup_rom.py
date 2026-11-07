@@ -1558,7 +1558,7 @@ def main() -> int:
         _src_end = parse_hexish(_whole.get("source_end_exclusive", "0x060000"))
         _disasm = str(Path(__file__).resolve().parents[2] / "build" / "maincpu.disasm.txt")
         resolved_shift_replacements: list[dict[str, object]] = []
-        _opaque_opcode_ranges = [
+        _opaque_source_ranges = [
             (
                 parse_hexish(_op["arcade_pc"]),
                 parse_hexish(_op["arcade_pc"])
@@ -1567,6 +1567,15 @@ def main() -> int:
             for _op in spec.get("opcode_replace", [])
             if bool(_op.get("opaque_to_shift_reflow", False))
         ]
+        _opaque_source_ranges.extend(
+            (
+                parse_hexish(_rep["arcade_pc"]),
+                parse_hexish(_rep["arcade_pc"])
+                + len(bytes.fromhex(str(_rep["original_bytes"]).replace(" ", ""))),
+            )
+            for _rep in spec.get("shift_replacements", [])
+            if bool(_rep.get("opaque_to_shift_reflow", False))
+        )
         for _rep in spec["shift_replacements"]:
             _resolved_rep = dict(_rep)
             _pc = parse_hexish(_rep["arcade_pc"])
@@ -1627,7 +1636,7 @@ def main() -> int:
                 spec.get("jump_table_word_displacements", []),
                 [],
                 spec.get("declared_relative_branches", []),
-                _opaque_opcode_ranges,
+                _opaque_source_ranges,
             )
         )
         for _resolved_rep in resolved_shift_replacements:
