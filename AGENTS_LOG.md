@@ -55436,3 +55436,29 @@ CRAM/push; Test.json SHA e03dd2aa…d2d6b730 unchanged.
     1-15 to null first, then fills), matching the Layer-A derive; swatches + map-table target colours now
     show. (2) Derive button label was stale on line change — added renderSource() on active-line change
     (LINE label + swatch onclick, objects tab) so it tracks the selected line. node --check app.js passes.
+
+---
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0102 Result (Cody)
+
+`TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0102`
+
+- Resumed the interrupted/superseded 0100/0101 R1-S3 boss palette task after classifying and
+  preserving Tighe's dirty palette files and Andy's concurrent Composer/Bestiary/R1-S2 hazard work.
+- Tighe's edited `Test_2_0.json` is the selected build profile (SHA-256
+  `49f38ea9b8c889eb24dbe232a25c590b79755b642abb8d42743d0d8b6a17c04f`). Its R1-S3 boss Line 1
+  exactly matches current Test and the issued target:
+  `0000 0066 06AA 0EEE 0CA6 0A60 0600 04EE 024A 0008 0466 0646 0004 08A8 0046 0000`.
+  Test.json remained byte-identical (`ab131047...7ec98e`).
+- Build 0543 is preserved **REJECTED / NOT ACCEPTED / DIAGNOSTIC ONLY**: canonical gate caught a
+  stale Line-0 object caused by missing selected-palette prerequisite ordering. The Makefile
+  dependency was corrected without changing palette semantics.
+- Build 0544 passes canonical, boot, gameplay-entry, phase-epoch, selected-profile palette,
+  mandatory GENESIS NTSC trace, and complete variant-set checks. Normal SHA
+  `2b20fa2e...a5fd084`; supported `_S1-3` SHA `03d47674...c5bf847`; each is 3,972,792 bytes.
+- GENESIS NTSC boss capture observes fade states 1-7 at exact eight-frame intervals, then held
+  state 7, one boss plus five Flying Daggers, and the exact authored Line 1. No PAL `megadriv`.
+- Boss and daggers continue to share effective bank `$4F` -> Line 1; no second dagger palette.
+  Line 2 remains protected and Line0/index0 remains black. No hazard production palette, audio,
+  Composer, Bestiary, Green Sword Knight tooling, or Andy hazard-tool change by Cody. No push.
+- Commits: `ba176405`, `9b5617dd`, `c62e66a5`; documentation commit reported in final response.
