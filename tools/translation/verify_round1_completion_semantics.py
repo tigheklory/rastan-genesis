@@ -129,6 +129,14 @@ def main() -> int:
     )
     if any(token not in tilemap for token in restore_contract):
         raise RuntimeError("post-teardown scene restore does not reuse the complete native producer")
+    generation_contract = (
+        "addi.l  #0x0001691C, %d1",
+        ".Lscene_scroll_reseed_owner_sources_ready:",
+        ".Lscene_scroll_reseed_restore_owner_sources:",
+        ".Lscene_scroll_reseed_bad_source_generation:",
+    )
+    if any(token not in tilemap for token in generation_contract):
+        raise RuntimeError("scene replay lacks the proven owner/owner+64 descriptor-generation contract")
     owner_body = scene.split("genesistan_gameplay_owner_reset:", 1)[1].split("rts", 1)[0]
     if "genesistan_scene_present_pending" in owner_body:
         raise RuntimeError("gameplay owner still arms the already-passed 0x050482 completion latch")

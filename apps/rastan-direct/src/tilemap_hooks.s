@@ -866,6 +866,7 @@ genesistan_plane_a_scene_scroll_reseed_native:
     move.w  ARCADE_PC080SN_SELECTOR_OFFSET(%a5), -(%sp)
     move.w  ARCADE_PC080SN_STRIP_INDEX_OFFSET(%a5), -(%sp)
     move.w  ARCADE_PC080SN_STRIP_GROUP_OFFSET(%a5), -(%sp)
+    clr.w   -(%sp)                            /* restore-owner-source generation */
     move.b  #1, plane_a_initial_ring_rebuild_active
 
     /* Retained 0x0558E8 saves the selector that produced the just-completed
@@ -877,20 +878,33 @@ genesistan_plane_a_scene_scroll_reseed_native:
     cmpi.w  #2, %d0
     bhi     .Lscene_scroll_reseed_restore_cursor
 
-    /* Retained 0x0503DC advances each of the 16 live descriptor source
-     * pointers by four bytes after every four strips: 16 groups leave the
-     * table exactly +64 bytes from the start of this fill.  Rewind that
-     * semantic cursor, then mirror the retained advance/rebuild cadence while
-     * replaying the native producer under the final camera and active LUT.
-     * The last advance returns every pointer and rebuilt table to its exact
-     * retained post-fill value; no descriptor snapshot or name-map shadow is
-     * allocated. */
+    /* Retained 0x0502CC seeds each descriptor source as base + record*64.
+     * Direct entry reaches this boundary one stride beyond the owning record;
+     * natural next-subround entry can already be exactly at the owner because
+     * its fill was seeded from the preceding retained record.  Derive the
+     * owner from the authoritative post-fill A5+0x013E-1 tuple and accept only
+     * those two proven generations.  Rewind only the one-ahead form. */
     lea     PC080SN_DESC_REBUILD_SRC_TABLE, %a0
+    moveq   #0, %d1
+    move.w  0x013E(%a5), %d1
+    beq     .Lscene_scroll_reseed_bad_source_generation
+    subq.w  #1, %d1
+    lsl.l   #6, %d1
+    addi.l  #0x0001691C, %d1
+    cmp.l   (%a0), %d1
+    beq.s   .Lscene_scroll_reseed_owner_sources_ready
+    addi.l  #64, %d1
+    cmp.l   (%a0), %d1
+    bne     .Lscene_scroll_reseed_bad_source_generation
     moveq   #15, %d7
 .Lscene_scroll_reseed_rewind_sources:
     subi.l  #64, (%a0)
     addq.l  #4, %a0
     dbra    %d7, .Lscene_scroll_reseed_rewind_sources
+    bra.s   .Lscene_scroll_reseed_sources_ready
+.Lscene_scroll_reseed_owner_sources_ready:
+    move.w  #1, (%sp)
+.Lscene_scroll_reseed_sources_ready:
 
     clr.w   ARCADE_PC080SN_STRIP_INDEX_OFFSET(%a5)
     clr.w   ARCADE_PC080SN_STRIP_GROUP_OFFSET(%a5)
@@ -920,7 +934,22 @@ genesistan_plane_a_scene_scroll_reseed_native:
     bsr     .Lscene_scroll_reseed_rebuild_descriptors
     dbra    %d6, .Lscene_scroll_reseed_group_loop
 
+    /* If entry already named the owner generation, the bounded replay moved
+     * the live table one stride ahead.  Put the exact retained generation back
+     * and rebuild its derived pointer/word tables.  The direct-entry form was
+     * rewound first and therefore already returned to its original state. */
+    tst.w   (%sp)
+    beq.s   .Lscene_scroll_reseed_restore_cursor
+    lea     PC080SN_DESC_REBUILD_SRC_TABLE, %a0
+    moveq   #15, %d7
+.Lscene_scroll_reseed_restore_owner_sources:
+    subi.l  #64, (%a0)
+    addq.l  #4, %a0
+    dbra    %d7, .Lscene_scroll_reseed_restore_owner_sources
+    bsr     .Lscene_scroll_reseed_rebuild_descriptors
+
 .Lscene_scroll_reseed_restore_cursor:
+    addq.w  #2, %sp
     move.w  (%sp)+, ARCADE_PC080SN_STRIP_GROUP_OFFSET(%a5)
     move.w  (%sp)+, ARCADE_PC080SN_STRIP_INDEX_OFFSET(%a5)
     move.w  (%sp)+, ARCADE_PC080SN_SELECTOR_OFFSET(%a5)
@@ -987,6 +1016,9 @@ genesistan_plane_a_scene_scroll_reseed_native:
 genesistan_plane_a_scene_scroll_reseed_native_exit:
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
+
+.Lscene_scroll_reseed_bad_source_generation:
+    trap    #0
 
 /* Original next-subround state 8 reaches 0x055F2A only after 0x056440 has
  * cleared both PC080SN surfaces and 0x055F22..0x055F26 has restored the exact
