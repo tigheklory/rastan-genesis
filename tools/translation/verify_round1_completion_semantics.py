@@ -102,7 +102,7 @@ def main() -> int:
     require_jsr(rom, stage_ready + 6, syms["genesistan_presentation_mark_ready_after_publish"],
                 "Stage Clear coherent publication")
 
-    scene_restore = mapped(amap, 0x056018)
+    scene_restore = mapped(amap, 0x055F2A)
     require_jsr(
         rom, scene_restore, syms["genesistan_gameplay_scene_restore_after_teardown"],
         "natural post-teardown gameplay scene restore",

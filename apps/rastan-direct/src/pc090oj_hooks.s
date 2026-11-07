@@ -1982,12 +1982,12 @@ genesistan_pc090oj_hook_zero_fill_56440:
     clr.w   transient_items_active
 
     /* Original 0x056440 has two live retained callers.  Substate 8 is the
-     * death/item-to-READY lifecycle boundary and restores frontend ownership.
-     * Substate 13 is the natural next-sub-round teardown: retained gameplay
-     * immediately reconstructs the next scene, so preserve scene-1 ownership
-     * and activate its existing generated palette/package context instead of
-     * replacing it with scene 0. */
-    cmpi.w  #0x000D, 0x13AA(%a5)
+     * natural next-subround teardown at 0x055F0E; retained gameplay restores
+     * the saved next-scene record at 0x055F22 and immediately resumes the
+     * gameplay owner.  Substate 13 is the post-boss Round-clear teardown at
+     * 0x055FFA and returns through the frontend/READY owner for the next
+     * round.  Preserve that actual caller distinction here. */
+    cmpi.w  #0x0008, 0x13AA(%a5)
     beq.s   .Lzero_fill_gameplay_owner
     bsr     genesistan_frontend_owner_reset
     bra.s   .Lzero_fill_owner_ready

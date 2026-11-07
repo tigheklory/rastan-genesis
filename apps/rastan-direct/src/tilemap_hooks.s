@@ -988,8 +988,8 @@ genesistan_plane_a_scene_scroll_reseed_native_exit:
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
-/* Original non-final-round state 13 reaches 0x056018 only after 0x056440 has
- * cleared both PC080SN surfaces and 0x05600E..0x056014 has restored the exact
+/* Original next-subround state 8 reaches 0x055F2A only after 0x056440 has
+ * cleared both PC080SN surfaces and 0x055F22..0x055F26 has restored the exact
  * retained record that owns the next gameplay scene.  The preceding scene
  * fill has already completed, so the ordinary 0x050482 completion hook cannot
  * publish this post-clear generation.  Reuse the existing finite native

@@ -286,10 +286,10 @@
  ],
  "shift_replacements": [
   {
-   "arcade_pc": "0x056018",
-   "original_bytes": "60000010",
+   "arcade_pc": "0x055F2A",
+   "original_bytes": "600000FE",
    "replacement_bytes": "4EB9{symbol:genesistan_gameplay_scene_restore_after_teardown}4E75",
-   "note": "PROMT-ID-0106 natural next-subround post-teardown publication cut. Retained state 13 has completed the 0x056440 dual-plane clear and restored the saved next-scene record at 0x05600E..0x056014. Reuse the existing finite native Plane-A replay and generated Plane-B scene-entry product at the first boundary where record, descriptors and installed package are mutually final, then return exactly as the displaced branch to 0x05602A did. This fixes the demonstrated post-fill destructive clear; no stage gate, second scene map, chip shadow, timeout, direct progression or generic transition change is introduced.",
+   "note": "PROMT-ID-0106 natural next-subround post-teardown publication cut. Retained state 8 has completed the 0x056440 dual-plane clear and restored the saved next-scene record at 0x055F22..0x055F26. Reuse the existing finite native Plane-A replay and generated Plane-B scene-entry product at the first boundary where record, descriptors and installed package are mutually final, then return exactly as the displaced branch to 0x05602A did. State 13 is the distinct post-boss Round-clear/READY owner and is deliberately not redirected here. This fixes the demonstrated post-fill destructive clear; no stage gate, second scene map, chip shadow, timeout, direct progression or generic transition change is introduced.",
    "expected_count": 1
   },
   {
