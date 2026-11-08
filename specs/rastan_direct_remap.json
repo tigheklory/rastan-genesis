@@ -2307,6 +2307,22 @@
  },
  "absolute_long_pointer_tables": [
   {
+   "table_address": "0x0562CA",
+   "entry_count": 6,
+   "entry_size_bytes": 4,
+   "entry_stride_bytes": 8,
+   "pointer_offset_bytes": 0,
+   "note": "PROMT-ID-0108 / KF-028: six per-round Stage Clear congratulatory-text descriptors consumed by arcade 0x0561D6. Relocate only each ROM string source in the {source,destination} records; preserve the PC080SN destination as semantic input to the native text writer."
+  },
+  {
+   "table_address": "0x0562FA",
+   "entry_count": 6,
+   "entry_size_bytes": 4,
+   "entry_stride_bytes": 8,
+   "pointer_offset_bytes": 0,
+   "note": "PROMT-ID-0108 / KF-028: six per-round ROUND READY text descriptors consumed by arcade 0x0561FE. Relocate only each ROM string source in the {source,destination} records; preserve the PC080SN destination as semantic input to the native text writer. Round 1 completion selects the first source, exact bytes `ROUND 2`, 0xFF line break, ` READY `."
+  },
+  {
    "table_address": "0x05635E",
    "entry_count": 6,
    "entry_size_bytes": 4,

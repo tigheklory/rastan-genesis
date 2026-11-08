@@ -278,6 +278,19 @@ def main() -> int:
             raise RuntimeError(
                 f"Stage Clear selector at 0x{selector_pc:06X} still reads raw arcade WRAM"
             )
+    for table_pc, sources in (
+        (0x0562CA, (0x05653E, 0x056580, 0x0565C2, 0x056604, 0x056646, 0x056688)),
+        (0x0562FA, (0x0566CA, 0x0566DA, 0x0566EA, 0x0566FA, 0x05670A, 0x05671A)),
+    ):
+        table_runtime = mapped(amap, table_pc)
+        for index, source_pc in enumerate(sources):
+            actual = struct.unpack_from(">I", rom, table_runtime + index * 8)[0]
+            expected = mapped(amap, source_pc)
+            if actual != expected:
+                raise RuntimeError(
+                    f"Stage Clear text descriptor {table_pc:06X}[{index}] source "
+                    f"is 0x{actual:06X}, expected relocated 0x{expected:06X}"
+                )
 
     # 0x05725A/0x057272 is not an after-every-boss intermission.  The caller
     # enters it only when the retained round selector at 0x10C118 is six.
