@@ -1089,6 +1089,30 @@
    "note": "Build 0377 / OPEN-017 Phase-3 animation selector-source rebase. Original 0x596F4 reads the one-based stage byte at arcade WRAM 0x0010C118, subtracts one, and indexes six 6-byte {stream pointer, attribute} records at 0x5976E. Genesis retained the absolute arcade address as cartridge ROM and observed selector 8, selecting the out-of-range bytes 1AC41AD01AC4 and constructing A0=0x1AC41AD0. Rebase only this byte read to the retained field A5+0x0118 at 0x00FF0118. Paired indivisibly with the strided 0x5976E embedded-pointer relocation and native 0x59736 chip-tail cut; no selector constant, clamp, MODE condition, or stage special case."
   },
   {
+   "arcade_pc": "0x055F42",
+   "original_bytes": "10390010C118",
+   "replacement_bytes": "103900FF0118",
+   "note": "PROMT-ID-0108 Stage Clear/final-ending selector rebase. The retained round-clear state 9 reads the one-based round selector at arcade A5+0x0118; on Genesis the raw 0x0010C118 address is cartridge ROM. Rebase only that source to mapped WRAM 0x00FF0118 so rounds 1-5 select Stage Clear and round 6 selects the distinct ending. Byte-neutral address-contract correction; state ownership and control flow are unchanged."
+  },
+  {
+   "arcade_pc": "0x0561D8",
+   "original_bytes": "10390010C118",
+   "replacement_bytes": "103900FF0118",
+   "note": "PROMT-ID-0108 Stage Clear congratulatory-text descriptor selector rebase. Preserve the original one-based per-round table selection and rebase only the arcade A5+0x0118 absolute read to mapped Genesis WRAM."
+  },
+  {
+   "arcade_pc": "0x056200",
+   "original_bytes": "10390010C118",
+   "replacement_bytes": "103900FF0118",
+   "note": "PROMT-ID-0108 ROUND READY text descriptor selector rebase. Preserve the original one-based per-round table selection and rebase only the arcade A5+0x0118 absolute read to mapped Genesis WRAM."
+  },
+  {
+   "arcade_pc": "0x05632C",
+   "original_bytes": "10390010C118",
+   "replacement_bytes": "103900FF0118",
+   "note": "PROMT-ID-0108 Stage Clear figure descriptor selector rebase. Build 0552 runtime evidence proved the raw ROM byte was 0x16, selecting out-of-range descriptor 22 and passing garbage to the native block-copy. Rebase only the original one-based round selector source to mapped Genesis WRAM; descriptor data, native Plane-B semantic owner, geometry, and controller remain unchanged."
+  },
+  {
    "arcade_pc": "0x03A778",
    "original_bytes": "103900390001",
    "replacement_bytes": "1039{symbol:genesistan_shadow_input_390001}",

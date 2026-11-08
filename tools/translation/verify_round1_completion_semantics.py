@@ -268,6 +268,17 @@ def main() -> int:
     if maincpu[0x055F68:0x055F72] != bytes.fromhex("303C00274EB90003A0EC"):
         raise RuntimeError("Stage Clear no longer sends authentic command 0x27 before state 10")
 
+    # These four retained producers select per-round figure/text/READY data.
+    # Their arcade operand is A5+0x0118 at 0x10C118; Genesis must read the
+    # mapped work-RAM field, not cartridge ROM at the same numeric address.
+    selector_read = bytes.fromhex("103900FF0118")
+    for selector_pc in (0x055F42, 0x0561D8, 0x056200, 0x05632C):
+        runtime_pc = mapped(amap, selector_pc)
+        if rom[runtime_pc:runtime_pc + 6] != selector_read:
+            raise RuntimeError(
+                f"Stage Clear selector at 0x{selector_pc:06X} still reads raw arcade WRAM"
+            )
+
     # 0x05725A/0x057272 is not an after-every-boss intermission.  The caller
     # enters it only when the retained round selector at 0x10C118 is six.
     # Lock that distinction so R1 validation cannot claim the final ending.
