@@ -73,6 +73,7 @@ def main() -> int:
         "genesistan_presentation_mark_ready_after_publish",
         "genesistan_stageclear_owner_enter",
         "genesistan_gameplay_scene_restore_after_teardown",
+        "genesistan_hook_tilemap_bg_blockcopy",
     }
     missing = sorted(needed - syms.keys())
     if missing:
@@ -97,6 +98,25 @@ def main() -> int:
     require_jsr(rom, stage_owner, syms["genesistan_stageclear_owner_enter"], "Stage Clear owner")
     if rom[stage_owner + 6:stage_owner + 10] != bytes.fromhex("302D013E"):
         raise RuntimeError("Stage Clear owner no longer preserves current-record load")
+    descriptor = mapped(amap, 0x05635E)
+    r1_source = mapped(amap, 0x056A22)
+    expected_descriptor = struct.pack(">IIHH", r1_source, 0x00C00A28, 14, 16)
+    if rom[descriptor:descriptor + 12] != expected_descriptor:
+        raise RuntimeError(
+            "R1 Stage Clear descriptor is not the relocated native semantic tuple: "
+            f"expected {expected_descriptor.hex()}, got {rom[descriptor:descriptor + 12].hex()}"
+        )
+    blockcopy = mapped(amap, 0x05A4DE)
+    expected_cut = b"\x4e\xf9" + struct.pack(">I", syms["genesistan_hook_tilemap_bg_blockcopy"])
+    if rom[blockcopy:blockcopy + 6] != expected_cut:
+        raise RuntimeError("R1 Stage Clear block copy can still enter the retired PC080SN chip tail")
+    # The descriptor must retain the arcade hardware destination as data, but
+    # no absolute MOVEA instruction may intentionally dereference that address
+    # in the final Genesis program.  The native hook consumes it as row/column
+    # semantics and writes final name words to staged_bg_buffer.
+    for opcode in (bytes.fromhex("207C00C00A28"), bytes.fromhex("227C00C00A28")):
+        if opcode in rom:
+            raise RuntimeError("live absolute R1 Stage Clear C00A28 access remains in Genesis ROM")
     stage_ready = mapped(amap, 0x055F8C)
     require_jsr(rom, stage_ready, mapped(amap, 0x0561D6), "retained Stage Clear text")
     require_jsr(rom, stage_ready + 6, syms["genesistan_presentation_mark_ready_after_publish"],
@@ -163,6 +183,12 @@ def main() -> int:
         raise RuntimeError("Phase-3 publication is not gated by exact physical-row provenance")
     if "genesistan_endround_plane_a_clear:" not in tilemap or "staged_fg_buffer" not in tilemap:
         raise RuntimeError("native End-Round Plane-A clear is absent")
+    blockcopy_source = tilemap.split("genesistan_hook_tilemap_bg_blockcopy:", 1)[1].split(
+        "genesistan_hook_text_writer_3c4d2:", 1
+    )[0]
+    for token in ("ARCADE_PC080SN_CWINDOW_BASE_BG", "staged_bg_buffer", "bg_row_dirty"):
+        if token not in blockcopy_source:
+            raise RuntimeError("Stage Clear native block-copy semantic owner is incomplete")
 
     if maincpu[0x059792:0x059796] != b"\x00\x04\x00\x06":
         raise RuntimeError("Round-1 torch stream is not the original 4-phase/6-group table")
@@ -228,6 +254,8 @@ def main() -> int:
                        for i in range(0, len(stage_preload) - 2, 4))
     r1_art = {struct.unpack_from(">H", maincpu, 0x056A22 + i * 2)[0] & 0x3FFF
               for i in range(14 * 16)}
+    if len(r1_art) != 105:
+        raise RuntimeError(f"R1 Stage Clear figure uses {len(r1_art)} patterns, expected 105")
     missing_art = sorted(r1_art - stage_pairs.keys())
     if missing_art:
         raise RuntimeError("Stage Clear residency lacks R1 figure tiles: " +

@@ -2283,6 +2283,14 @@
  },
  "absolute_long_pointer_tables": [
   {
+   "table_address": "0x05635E",
+   "entry_count": 6,
+   "entry_size_bytes": 4,
+   "entry_stride_bytes": 12,
+   "pointer_offset_bytes": 0,
+   "note": "PROMT-ID-0108 / KF-028: six per-round Stage Clear figure descriptors consumed by arcade 0x05632A. Each 12-byte record is {source ROM long, PC080SN destination long, height word, width word}; relocate only the source field while preserving hardware destination/geometry as semantic inputs to the native 0x05A4DE block-copy cut. Round 1 is source 0x056A22, destination 0x00C00A28, 14x16. Size-changing 0106 replacements move the source to its authoritative address-map target; leaving the embedded source unrelocated made the native hook read unrelated shifted bytes and render a blank figure even though residency was complete."
+  },
+  {
    "table_address": "0x0550A8",
    "entry_count": 66,
    "entry_size_bytes": 4,
