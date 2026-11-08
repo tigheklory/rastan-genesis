@@ -2379,7 +2379,7 @@
   }
  ],
  "expectations": {
-  "opcode_replace_count": 228,
+  "opcode_replace_count": 232,
   "genesis_only_maincpu_ref_count": 6
  }
 }
