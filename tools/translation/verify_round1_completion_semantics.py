@@ -124,7 +124,7 @@ def main() -> int:
     # 0x0564FE, but its retained text writer at 0x0561F4 emits attr 0 while the
     # figure producer at 0x056352 emits attr 5.  The visible text therefore
     # retains physical bank 0; bank 4 must not alias that native line.
-    if maincpu[0x056128:0x056174] != bytes.fromhex(
+    if maincpu[0x056128:0x056176] != bytes.fromhex(
         "41F90005649E303C0004323C00004EB900059AD4"
         "41F9000564FE303C0005323C00004EB900059AD4"
         "41F9000564FE303C003342414EB900059AD4"
