@@ -788,6 +788,7 @@ $(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(R1_SELECTOR_STREAM
 	$(PYTHON) "$(ROUND1_COMPLETION_VERIFY)" --rom "$@" --maincpu "$(MAINCPU_REGION)" \
 		--address-map "$(ROOT)/build/rastan-direct/address_map.json" --symbols "$(SYMBOLS)" \
 		--spec "$(PATCH_SPEC)" --scene-source "$(SRC_DIR)/scene_load.s" \
+		--palette-source "$(SRC_DIR)/palette_hooks.s" \
 		--tilemap-source "$(SRC_DIR)/tilemap_hooks.s" \
 		--endround-preload "$(PC080SN_SCENE_PRELOAD_ENDROUND)" \
 		--stageclear-preload "$(PC080SN_SCENE_PRELOAD_STAGECLEAR)" \

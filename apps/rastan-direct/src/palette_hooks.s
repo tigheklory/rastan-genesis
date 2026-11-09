@@ -158,6 +158,11 @@ genesistan_palette_hook_59ad4:
      * reasserts; bank 0x36 now simply falls through to the normal reject. */
     cmpi.w  #0x0004, %d0
     bne.s   .L59_not_bank4
+    /* PROMT-ID-0111: Stage Clear text carries PC080SN attr 0 and therefore
+     * consumes physical arcade bank 0.  Bank 4 has no visible Stage Clear
+     * consumer; compressing it onto Genesis Line 0 destroyed the text line. */
+    cmpi.b  #2, genesistan_current_scene_id
+    beq.w   .L59_done
     moveq   #0, %d0                 /* frontend PC080SN bank 4 -> Line 0 */
     bra.s   .L59_dest_ready
 .L59_not_bank4:

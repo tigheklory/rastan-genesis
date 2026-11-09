@@ -1239,6 +1239,62 @@
    }
   },
   {
+   "id": "PAL-FRONTEND-STAGECLEAR-TEXT-BANK0-001",
+   "status": "proven",
+   "context": {
+    "scene": "Round-1 Stage Clear presentation",
+    "stage": "non-final-round controller states 9-11",
+    "subsystem": "PC080SN Stage Clear text CRAM ownership",
+    "actor_family": "Stage Clear message",
+    "actor_classes": null
+   },
+   "arcade_semantics": {
+    "effective_palette_banks": [
+     "0x00",
+     "0x04",
+     "0x05",
+     "0x33",
+     "0x43"
+    ],
+    "palette_sources": [
+     "maincpu 0x04EAF6 physical bank 0 retained by the attr-0 text",
+     "maincpu 0x05649E physical bank 4 loaded by 0x056128 but not consumed by the Stage Clear text or figure",
+     "maincpu 0x0564FE physical banks 5/0x33/0x43"
+    ],
+    "palette_source": "text writer 0x0561D6/0x0563A6 emits PC080SN attr 0; figure producer 0x05632A/0x05A4DE emits attr 5"
+   },
+   "genesis_realization": {
+    "palette_lines": {
+     "0x00": 0,
+     "0x05": 1,
+     "0x33": 3,
+     "0x43": 3
+    },
+    "route_kind": "Stage Clear ownership restores generated frontend physical bank 0 to Line 0; the retained bank-4 write is not aliased onto that text-owned line; figure and sprite lines retain their existing routes",
+    "dynamic_behavior": "one finite Line-0 restore at Stage Clear owner entry, followed by the existing pending-CRAM publication",
+    "shared_line_ownership": "none for Stage Clear text; physical bank 4 has no visible Stage Clear consumer and must not replace bank 0"
+   },
+   "decision_basis": "PROMT-ID-0111 source proof: MAME PC080SN selects attr&0x1FF directly; Stage Clear text passes D1=0 at 0x0561F4, while the figure passes D2=5 at 0x056352. Build 0554 incorrectly compressed the 0x056128 bank-4 load onto Line 0, replacing the retained bank-0 text colors. Continue uses a distinct panel path; only its 0x05A73A figure palette is byte-identical to Stage Clear 0x0564FE.",
+   "known_defects": [],
+   "consumers_to_inspect": [
+    "apps/rastan-direct/src/scene_load.s genesistan_stageclear_owner_enter",
+    "apps/rastan-direct/src/palette_hooks.s genesistan_palette_hook_59ad4",
+    "apps/rastan-direct/src/vdp_comm.s palette publication",
+    "tools/translation/verify_round1_completion_semantics.py"
+   ],
+   "evidence": [
+    "analysis/ghidra/rastan_arcade/exports/linear_disassembly.tsv",
+    "docs/reference/mame/rastan/src/mame/taito/pc080sn.cpp",
+    "TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0111"
+   ],
+   "scene_applicability": {
+    "scene_keys": [
+     "FRONTEND"
+    ],
+    "cross_scene_candidate": false
+   }
+  },
+  {
    "id": "PAL-R1-S3-BOSS-DAGGER-LINE1-001",
    "status": "proven",
    "context": {

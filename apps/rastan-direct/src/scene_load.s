@@ -6,6 +6,7 @@
     .global genesistan_gameplay_owner_reset
     .global genesistan_endround_owner_enter
     .global genesistan_stageclear_owner_enter
+    .global genesistan_stageclear_text_palette_enter
     .global genesistan_presentation_mark_unsafe
     .global genesistan_presentation_mark_ready_after_publish
     .global genesistan_presentation_publish_complete
@@ -316,8 +317,27 @@ genesistan_stageclear_owner_enter:
     bsr     .Lpresentation_mark_unsafe_body
     moveq   #9, %d0
     bsr     load_scene_tiles
+    bsr     genesistan_stageclear_text_palette_enter
     bsr     genesistan_hud_deactivate
     movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
+/* PROMT-ID-0111: the retained Stage Clear text writer emits PC080SN attr 0,
+ * so its glyph pixels consume physical arcade palette bank 0.  Restore the
+ * already-generated, source-proven frontend bank-0 line after leaving the
+ * Test-authored gameplay owner.  The subsequent retained 0x056128 load still
+ * supplies figure bank 5 and sprite banks 0x33/0x43; its unused bank-4 load is
+ * intentionally not allowed to alias this text-owned Genesis line. */
+genesistan_stageclear_text_palette_enter:
+    movem.l %d0/%a0-%a1, -(%sp)
+    lea     genesistan_frontend_base_palette, %a0
+    lea     staged_palette_words, %a1
+    moveq   #(16 - 1), %d0
+.Lstageclear_text_palette_copy:
+    move.w  (%a0)+, (%a1)+
+    dbra    %d0, .Lstageclear_text_palette_copy
+    move.b  #1, palette_pending
+    movem.l (%sp)+, %d0/%a0-%a1
     rts
 
 /* RG-015 presentation-only readiness latch.

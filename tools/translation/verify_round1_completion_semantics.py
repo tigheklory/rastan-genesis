@@ -42,6 +42,15 @@ def require_jsr(rom: bytes, site: int, target: int, label: str) -> None:
         )
 
 
+def arcade_0rgb_to_cram(raw: int) -> int:
+    """Match retained 0x059AD4 followed by native xBGR-555 -> CRAM."""
+    xbgr = ((raw & 0x0F00) >> 7) + ((raw & 0x00F0) << 2) + ((raw & 0x000F) << 11)
+    red = ((xbgr & 0x001F) >> 2) << 1
+    green = (((xbgr >> 5) & 0x001F) >> 2) << 5
+    blue = (((xbgr >> 10) & 0x001F) >> 2) << 9
+    return red | green | blue
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--rom", required=True, type=Path)
@@ -50,6 +59,7 @@ def main() -> int:
     ap.add_argument("--symbols", required=True, type=Path)
     ap.add_argument("--spec", required=True, type=Path)
     ap.add_argument("--scene-source", required=True, type=Path)
+    ap.add_argument("--palette-source", required=True, type=Path)
     ap.add_argument("--tilemap-source", required=True, type=Path)
     ap.add_argument("--endround-preload", required=True, type=Path)
     ap.add_argument("--stageclear-preload", required=True, type=Path)
@@ -65,6 +75,7 @@ def main() -> int:
     syms = symbols(args.symbols)
     spec = json.loads(args.spec.read_text(encoding="utf-8"))
     scene = args.scene_source.read_text(encoding="utf-8")
+    palette = args.palette_source.read_text(encoding="utf-8")
     tilemap = args.tilemap_source.read_text(encoding="utf-8")
 
     needed = {
@@ -72,6 +83,8 @@ def main() -> int:
         "genesistan_endround_plane_a_clear",
         "genesistan_presentation_mark_ready_after_publish",
         "genesistan_stageclear_owner_enter",
+        "genesistan_stageclear_text_palette_enter",
+        "genesistan_frontend_base_palette",
         "genesistan_gameplay_scene_restore_after_teardown",
         "genesistan_hook_tilemap_bg_blockcopy",
     }
@@ -98,6 +111,53 @@ def main() -> int:
     require_jsr(rom, stage_owner, syms["genesistan_stageclear_owner_enter"], "Stage Clear owner")
     if rom[stage_owner + 6:stage_owner + 10] != bytes.fromhex("302D013E"):
         raise RuntimeError("Stage Clear owner no longer preserves current-record load")
+    for token in (
+        "bsr     genesistan_stageclear_text_palette_enter",
+        "lea     genesistan_frontend_base_palette, %a0",
+        "lea     staged_palette_words, %a1",
+        "moveq   #(16 - 1), %d0",
+    ):
+        if token not in scene:
+            raise RuntimeError("Stage Clear bank-0 text owner is incomplete: " + token)
+
+    # Original Stage Clear state 9 loads bank 4 from 0x05649E and bank 5 from
+    # 0x0564FE, but its retained text writer at 0x0561F4 emits attr 0 while the
+    # figure producer at 0x056352 emits attr 5.  The visible text therefore
+    # retains physical bank 0; bank 4 must not alias that native line.
+    if maincpu[0x056128:0x056174] != bytes.fromhex(
+        "41F90005649E303C0004323C00004EB900059AD4"
+        "41F9000564FE303C0005323C00004EB900059AD4"
+        "41F9000564FE303C003342414EB900059AD4"
+        "41F9000564FE303C004342414EB900059AD44E75"
+    ):
+        raise RuntimeError("original Stage Clear palette producer changed")
+    if maincpu[0x0561F4:0x0561F8] != bytes.fromhex("323C0000"):
+        raise RuntimeError("Stage Clear text no longer uses physical palette bank 0")
+    if maincpu[0x056352:0x056356] != bytes.fromhex("343C0005"):
+        raise RuntimeError("Stage Clear figure no longer uses physical palette bank 5")
+    expected_text_line = b"".join(
+        struct.pack(">H", arcade_0rgb_to_cram(struct.unpack_from(">H", maincpu, 0x04EAF6 + i * 2)[0]))
+        for i in range(16)
+    )
+    actual_text_line = rom[syms["genesistan_frontend_base_palette"]:
+                           syms["genesistan_frontend_base_palette"] + 32]
+    if actual_text_line != expected_text_line:
+        raise RuntimeError("native Stage Clear text line is not translated arcade bank 0")
+    expected_figure_line = tuple(
+        arcade_0rgb_to_cram(struct.unpack_from(">H", maincpu, 0x0564FE + i * 2)[0])
+        for i in range(16)
+    )
+    if expected_figure_line != (
+        0x0000, 0x0000, 0x08AE, 0x068E, 0x046A, 0x0046, 0x0024, 0x0088,
+        0x0064, 0x0AAC, 0x0668, 0x002E, 0x004A, 0x0EEE, 0x00CE, 0x008A,
+    ):
+        raise RuntimeError("Stage Clear figure source conversion changed")
+    bank4_block = palette.split("cmpi.w  #0x0004, %d0", 1)[1].split(
+        ".L59_not_bank4:", 1
+    )[0]
+    for token in ("cmpi.b  #2, genesistan_current_scene_id", "beq.w   .L59_done"):
+        if token not in bank4_block:
+            raise RuntimeError("Stage Clear bank 4 can still overwrite text Line 0: " + token)
     descriptor = mapped(amap, 0x05635E)
     r1_source = mapped(amap, 0x056A22)
     expected_descriptor = struct.pack(">IIHH", r1_source, 0x00C00A28, 14, 16)
