@@ -138,12 +138,45 @@ def safe_profile_path(pid, suffix=".json"):
         raise ProfileIdError("profile id escapes profile directory")
     return full
 
-# Genesis destinations the user may route a source channel to. FM6 is DAC-reserved (not musically routable).
+# Genesis destinations the user may route a source channel to. FM6 is offered as a music voice ONLY on the
+# tracks that do not reserve it for sound effects (see fm6_reserved_for); MUSIC_DESTS is the FM1-5 base list.
 MUSIC_DESTS = ["ym2612_fm1", "ym2612_fm2", "ym2612_fm3", "ym2612_fm4", "ym2612_fm5",
                "psg_tone1", "psg_tone2", "psg_tone3", "psg_noise", "unassigned"]
 FM_MUSIC = {"ym2612_fm1", "ym2612_fm2", "ym2612_fm3", "ym2612_fm4", "ym2612_fm5"}
+FM6_MUSIC = "ym2612_fm6"              # FM6 routed as a 6th FM MUSIC voice (allowed only when not SFX-reserved)
+FM_ALL = FM_MUSIC | {FM6_MUSIC}       # all six YM2612 FM channels are monophonic voices
 PSG_TONES = {"psg_tone1", "psg_tone2", "psg_tone3"}
-RESERVED_DAC = "ym2612_fm6_dac"   # shown read-only; music may never be assigned here
+RESERVED_DAC = "ym2612_fm6_dac"   # the DAC sample path; never a MUSIC destination on any track
+
+# A gameplay track plays WHILE the player has control, so one FM channel (FM6) must stay free for live
+# sound effects. Only these four reserve FM6; every other track (title/credit/name-regist/scene-clear/ending)
+# may use FM6 as a 6th FM music voice. Keyed by the leading two-digit track number so a rename or a
+# re-authoring of a track cannot silently change the policy. (Tighe, 2026-11: only 03/05/06/08 have gameplay.)
+SFX_RESERVED_TRACK_NUMBERS = {"03", "05", "06", "08"}  # Aggressive World, Re-In-Carnation, Scene-3 Boss, Final Boss
+
+
+def _track_number(track):
+    """Accept a track dict, a 'NN - Name' stem / track_id string, or None; return the 'NN' number or None."""
+    if isinstance(track, dict):
+        track = track.get("track_id") or track.get("id") or track.get("stem") or ""
+    if not isinstance(track, str):
+        return None
+    m = re.match(r"\s*0*(\d{1,2})\b", track)
+    return ("%02d" % int(m.group(1))) if m else None
+
+
+def fm6_reserved_for(track):
+    """True when FM6 must stay free for sound effects (the four gameplay tracks). An UNIDENTIFIED track
+    reserves FM6 by default, so a policy gap never silently steals the SFX channel from a gameplay song."""
+    n = _track_number(track)
+    return True if n is None else (n in SFX_RESERVED_TRACK_NUMBERS)
+
+
+def music_destinations_for(track):
+    """Routable music destinations for a track. FM6 is inserted after FM5 only when it is not SFX-reserved."""
+    if fm6_reserved_for(track):
+        return list(MUSIC_DESTS)
+    return MUSIC_DESTS[:5] + [FM6_MUSIC] + MUSIC_DESTS[5:]
 
 
 def loadj(p, d=None):
@@ -257,6 +290,11 @@ def track_inventory():
                               "identity; musical identity needs AUDIO-003.",
             "channels": chans,
             "analysis_source": "build/audio/fm_psg_analysis + ym2151_track_reports (capture-derived)",
+            # FM6 policy for THIS track: gameplay tracks (03/05/06/08) reserve FM6 for live sound effects;
+            # every other track may route music to FM6 as a 6th FM voice.
+            "fm6_reserved": fm6_reserved_for(stem),
+            "fm6_role": "sound effects (gameplay)" if fm6_reserved_for(stem) else "available (FM music voice)",
+            "music_destinations": music_destinations_for(stem),
         })
     return tracks
 
@@ -310,7 +348,8 @@ def default_profile(pid, track_id=None):
         "approval_status": "draft",      # draft | proposed | approved
         "revision": 0,
         "reserved_dac": RESERVED_DAC,
-        "music_destinations": MUSIC_DESTS,
+        "fm6_reserved": fm6_reserved_for(track_id),
+        "music_destinations": music_destinations_for(track_id),
         "arcade_channel_count": arcade_channels,
     }
 
@@ -354,18 +393,26 @@ def atomic_write_json(path, obj):
 NOISE_MODES = {"fixed_512": 0, "fixed_1024": 1, "fixed_2048": 2, "tone3_clocked": 3}
 
 
-def validate_routing(routing, track=None, noise_mode="fixed_1024"):
+def validate_routing(routing, track=None, noise_mode="fixed_1024", track_id=None):
     """Structural + (where timing exists) overlap conflict detection. Never discards voices to fit.
-    `routing` = {arcade_ch(str): dest}. `noise_mode` is the PSG noise-frequency selector; only the
-    tone3-clocked mode couples tone 3 and noise pitch. Returns conflict dicts with severity + certainty."""
+    `routing` = {arcade_ch(str): dest}. `track` is the track dict used for time-overlap evidence; `track_id`
+    (or `track`) identifies the song for the FM6-reserved-for-SFX policy. `noise_mode` is the PSG
+    noise-frequency selector; only the tone3-clocked mode couples tone 3 and noise pitch."""
     conflicts = []
-    # 1. FM6 / reserved DAC may never carry music
+    reserve6 = fm6_reserved_for(track_id if track_id is not None else track)
+    valid_dests = set(music_destinations_for(track_id if track_id is not None else track))
+    # 1. destination legality: the DAC path is never music; FM6 is music only when this track does not
+    #    reserve it for sound effects (gameplay tracks 03/05/06/08).
     for ch, dest in routing.items():
-        if dest in (RESERVED_DAC, "ym2612_fm6", "ym2612_fm6_dac"):
+        if dest in (RESERVED_DAC, "ym2612_fm6_dac"):
             conflicts.append({"type": "reserved_fm6", "severity": "error", "certainty": "structural",
-                              "detail": "Arcade ch %s routed to FM6, which is reserved for DAC." % ch,
-                              "channels": [ch]})
-        elif dest not in MUSIC_DESTS:
+                              "detail": "Arcade ch %s routed to the FM6 DAC path, which is never a music "
+                                        "destination." % ch, "channels": [ch]})
+        elif dest == FM6_MUSIC and reserve6:
+            conflicts.append({"type": "reserved_fm6_sfx", "severity": "error", "certainty": "structural",
+                              "detail": "Arcade ch %s routed to FM6, which is reserved for sound effects on "
+                                        "this gameplay track." % ch, "channels": [ch]})
+        elif dest not in valid_dests:
             conflicts.append({"type": "invalid_dest", "severity": "error", "certainty": "structural",
                               "detail": "Arcade ch %s -> unknown destination '%s'." % (ch, dest),
                               "channels": [ch]})
@@ -377,14 +424,14 @@ def validate_routing(routing, track=None, noise_mode="fixed_1024"):
         by_dest.setdefault(dest, []).append(ch)
     # structural over-subscription of a single monophonic channel
     for dest, chs in by_dest.items():
-        if dest in FM_MUSIC or dest in PSG_TONES or dest == "psg_noise":
+        if dest in FM_ALL or dest in PSG_TONES or dest == "psg_noise":
             if len(chs) > 1:
                 # Is it a proven time overlap, or only a structural (possible) conflict?
                 certainty, sev = "potential", "warning"
                 detail = ("%d arcade channels (%s) share monophonic %s. Timing data is incomplete "
                           "(AUDIO-003 not decoded) -> POTENTIAL conflict, not proven." %
                           (len(chs), ",".join(chs), dest))
-                if track:
+                if isinstance(track, dict):
                     overlap = _time_overlap(chs, track)
                     if overlap:
                         certainty, sev = "proven", "error"
@@ -392,13 +439,16 @@ def validate_routing(routing, track=None, noise_mode="fixed_1024"):
                                   "share monophonic %s." % (",".join(chs), dest))
                 conflicts.append({"type": "monophonic_collision", "severity": sev, "certainty": certainty,
                                   "detail": detail, "channels": chs, "dest": dest})
-    # 3. FM budget: at most 5 FM music VOICES (arcade channels routed to FM). More than 5 forces a
-    #    collision because only FM1-5 exist (FM6 is DAC).
-    fm_assignments = [ch for ch, dest in routing.items() if dest in FM_MUSIC]
-    if len(fm_assignments) > 5:
+    # 3. FM budget: a gameplay track reserves FM6 for SFX, so only FM1-5 (5 voices) are available; every
+    #    other track may use all six FM channels (FM1-6). More assignments than available forces a collision.
+    fm_limit = 5 if reserve6 else 6
+    fm_assignments = [ch for ch, dest in routing.items() if dest in FM_ALL]
+    if len(fm_assignments) > fm_limit:
         conflicts.append({"type": "fm_budget", "severity": "error", "certainty": "structural",
-                          "detail": "%d arcade channels routed to FM; only 5 FM music channels exist "
-                                    "(FM6 is DAC)." % len(fm_assignments),
+                          "detail": "%d arcade channels routed to FM; only %d FM music channel%s available "
+                                    "on this track (%s)." % (
+                                        len(fm_assignments), fm_limit, "" if fm_limit == 1 else "s are",
+                                        "FM6 reserved for sound effects" if reserve6 else "FM1-6 all free"),
                           "channels": fm_assignments})
     # 4. PSG tone-3 / noise coupling — ONLY when the noise selector is tone3-clocked (Cody claim 41).
     #    Fixed noise rates (0/1/2) coexist with tone 3 WITHOUT a coupling warning.
@@ -433,6 +483,9 @@ class Hd(BaseHTTPRequestHandler):
         self.send_response(code)
         self.send_header("Content-Type", ct)
         self.send_header("Content-Length", str(len(body)))
+        # app.js/style.css are read fresh from disk per request; without this the browser may serve a stale
+        # cached app.js after the file changes (e.g. a new FM6 option would silently not appear). Never cache.
+        self.send_header("Cache-Control", "no-store, must-revalidate")
         self.end_headers()
         self.wfile.write(body)
 
@@ -539,11 +592,16 @@ class Hd(BaseHTTPRequestHandler):
             # routing comes from the request body, NOT from any stored profile; nothing is persisted.
             tid = body.get("track") or body.get("track_id")
             routing = {str(k): v for k, v in (body.get("approved_routing") or {}).items()}
-            # never let music target FM6/DAC (defense-in-depth; validator also rejects it)
+            # defense-in-depth (validator also rejects): the DAC path is never music, and FM6 may not carry
+            # music on a gameplay track that reserves it for sound effects.
+            reserve6 = fm6_reserved_for(tid)
             for ch, dest in list(routing.items()):
-                if dest in (RESERVED_DAC, "ym2612_fm6", "ym2612_fm6_dac"):
-                    return self._s(403, json.dumps({"error": "FM6 is DAC-reserved; cannot render music there"}).encode())
-            if not any(d in FM_MUSIC or d.startswith("psg_") for d in routing.values()):
+                if dest in (RESERVED_DAC, "ym2612_fm6_dac"):
+                    return self._s(403, json.dumps({"error": "the FM6 DAC path is not a music destination"}).encode())
+                if dest == FM6_MUSIC and reserve6:
+                    return self._s(403, json.dumps({"error": "FM6 is reserved for sound effects on this "
+                                                    "gameplay track; cannot render music there"}).encode())
+            if not any(d in FM_ALL or d.startswith("psg_") for d in routing.values()):
                 return self._s(400, json.dumps({"error": "no FM/PSG assignments to render"}).encode())
             levels = {str(k): v for k, v in (body.get("levels") or {}).items()}
             tok, stats = render_genesis(tid, routing, body.get("noise_mode", "fixed_1024"), levels)
@@ -568,8 +626,9 @@ class Hd(BaseHTTPRequestHandler):
             routing = body.get("approved_routing") or {}
 
             # AUDIO-009 §3B: the SERVER recomputes conflicts on the effective approved routing and REJECTS
-            # if ANY error-level conflict exists. Client-supplied conflicts are ignored. FM6 is one such error.
-            conflicts = validate_routing(routing, None, noise_mode)
+            # if ANY error-level conflict exists. Client-supplied conflicts are ignored. The track identity
+            # is passed so the FM6-reserved-for-SFX policy (gameplay tracks only) is enforced at save time.
+            conflicts = validate_routing(routing, None, noise_mode, track_id=body.get("track_id"))
             errors = [c for c in conflicts if c["severity"] == "error"]
             if errors:
                 return self._s(403, json.dumps({"error": "approved routing has error-level conflicts; not "
@@ -632,6 +691,8 @@ class Hd(BaseHTTPRequestHandler):
 
             merged["conflicts"] = conflicts
             merged["reserved_dac"] = RESERVED_DAC
+            merged["fm6_reserved"] = fm6_reserved_for(merged.get("track_id"))
+            merged["music_destinations"] = music_destinations_for(merged.get("track_id"))
             merged["revision"] = (prev.get("revision", 0) + 1) if isinstance(prev, dict) else 1
             merged["revision_id"] = "%s.r%d.%s" % (pid, merged["revision"], time.strftime("%Y%m%dT%H%M%SZ"))
             merged["modified"] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -679,7 +740,8 @@ def backfill(pol, track_hint=None):
         pol["migrated_from"] = pol.get("migrated_from") or [s for s in LEGACY_SCHEMAS]
     pol["schema"] = SCHEMA
     pol["reserved_dac"] = RESERVED_DAC
-    pol["music_destinations"] = MUSIC_DESTS
+    pol["fm6_reserved"] = fm6_reserved_for(tid)             # server truth: FM6 reserved for SFX only on gameplay tracks
+    pol["music_destinations"] = music_destinations_for(tid)
     pol["arcade_evidence"] = server_arcade_evidence(tid)   # server truth, overrides any stored/client value
     pol.setdefault("noise_mode", "fixed_1024")
     return pol

@@ -6,11 +6,21 @@ const DESTS = ["unassigned", "ym2612_fm1", "ym2612_fm2", "ym2612_fm3", "ym2612_f
   "psg_tone1", "psg_tone2", "psg_tone3", "psg_noise"];
 const DEST_LABEL = {
   unassigned: "Unassigned", ym2612_fm1: "FM1", ym2612_fm2: "FM2", ym2612_fm3: "FM3",
-  ym2612_fm4: "FM4", ym2612_fm5: "FM5", psg_tone1: "PSG T1", psg_tone2: "PSG T2",
+  ym2612_fm4: "FM4", ym2612_fm5: "FM5", ym2612_fm6: "FM6", psg_tone1: "PSG T1", psg_tone2: "PSG T2",
   psg_tone3: "PSG T3", psg_noise: "PSG Noise"
 };
-const SLOTS = ["ym2612_fm1", "ym2612_fm2", "ym2612_fm3", "ym2612_fm4", "ym2612_fm5",
-  "psg_tone1", "psg_tone2", "psg_tone3", "psg_noise", "ym2612_fm6_dac"];
+// FM6 is reserved for live sound effects ONLY on the gameplay tracks (03/05/06/08); the server marks each
+// track's fm6_reserved. Default to reserved so an unknown/unloaded track never offers FM6 by accident.
+const fm6Reserved = () => !(TRACK && TRACK.fm6_reserved === false);
+// Per-channel routing choices and the destination-slot column both depend on that per-track policy.
+const destChoices = () => fm6Reserved() ? DESTS
+  : ["unassigned", "ym2612_fm1", "ym2612_fm2", "ym2612_fm3", "ym2612_fm4", "ym2612_fm5", "ym2612_fm6",
+     "psg_tone1", "psg_tone2", "psg_tone3", "psg_noise"];
+const slotList = () => (fm6Reserved()
+  ? ["ym2612_fm1", "ym2612_fm2", "ym2612_fm3", "ym2612_fm4", "ym2612_fm5",
+     "psg_tone1", "psg_tone2", "psg_tone3", "psg_noise", "ym2612_fm6_dac"]
+  : ["ym2612_fm1", "ym2612_fm2", "ym2612_fm3", "ym2612_fm4", "ym2612_fm5", "ym2612_fm6",
+     "psg_tone1", "psg_tone2", "psg_tone3", "psg_noise"]);
 
 let INV = null, PSG = null, PROF = null, TRACK = null, DIRTY = false;
 
@@ -218,7 +228,7 @@ function renderChannels() {
       ` · PSG-fit(heur): ${c.psg_candidacy_inferred}</div></div>`;
     const sel = el("div", "destsel");
     const dd = el("select");
-    DESTS.forEach(d => { const o = el("option"); o.value = d; o.textContent = DEST_LABEL[d]; dd.appendChild(o); });
+    destChoices().forEach(d => { const o = el("option"); o.value = d; o.textContent = DEST_LABEL[d]; dd.appendChild(o); });
     dd.value = (prop && prop.dest) || appr || "unassigned";
     dd.onchange = () => setProposal(c.ch, dd.value);
     const rowbtn = el("div", "row");
@@ -288,14 +298,14 @@ function renderRouting() {
   renderNoiseMode();
   const appr = PROF.approved_routing || {};
   const byDest = {}; Object.entries(appr).forEach(([ch, d]) => (byDest[d] = byDest[d] || []).push(ch));
-  SLOTS.forEach(s => {
-    const isDac = s === "ym2612_fm6_dac";
+  slotList().forEach(s => {
+    const isDac = s === "ym2612_fm6_dac";   // only present on gameplay tracks that reserve FM6 for SFX
     const cls = isDac ? "dac" : destClass(s);
     const slot = el("div", "slot " + cls);
     const chs = byDest[s] || [];
     if (chs.length > 1) slot.classList.add("over");
-    slot.innerHTML = `<b>${isDac ? "FM6 — DAC (reserved)" : DEST_LABEL[s]}</b>` +
-      `<div class="asg">${isDac ? "voices / sampled SFX only" :
+    slot.innerHTML = `<b>${isDac ? "FM6 — reserved for SFX" : DEST_LABEL[s]}</b>` +
+      `<div class="asg">${isDac ? "sound effects (gameplay) — no music" :
         (chs.length ? chs.map(c => "CH" + c).join(", ") : "—")}</div>`;
     box.appendChild(slot);
   });

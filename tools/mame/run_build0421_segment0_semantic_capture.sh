@@ -18,6 +18,7 @@ SCENE_ADDR=$(symaddr genesistan_current_scene_id)
 ACTIVE_LUT_ADDR=$(symaddr fg_boundary_active_lut)
 STAGED_BG_ADDR=$(symaddr staged_bg_buffer)
 STAGED_FG_ADDR=$(symaddr staged_fg_buffer)
+STAGED_PALETTE_ADDR=$(symaddr staged_palette_words)
 TILESET_ADDR=$(symaddr genesistan_current_pc080sn_tileset_id)
 ACTIVE_RECORD_ADDR=$(symaddr fg_boundary_active_record)
 ACTIVE_PACKAGE_ADDR=$(symaddr fg_boundary_active_package)
@@ -25,7 +26,7 @@ SCENE_PENDING_ADDR=$(symaddr fg_scene_scroll_reseed_pending)
 RESEED_ENTRY_ADDR=$(symaddr genesistan_plane_a_scene_scroll_reseed_native)
 RESEED_EXIT_ADDR=$(symaddr genesistan_plane_a_scene_scroll_reseed_native_exit)
 
-for required in SCENE_ADDR ACTIVE_LUT_ADDR STAGED_BG_ADDR STAGED_FG_ADDR; do
+for required in SCENE_ADDR ACTIVE_LUT_ADDR STAGED_BG_ADDR STAGED_FG_ADDR STAGED_PALETTE_ADDR; do
     [[ -n "${!required}" ]] || { echo "missing symbol for $required in $SYMBOLS" >&2; exit 2; }
 done
 
@@ -37,6 +38,7 @@ fi
 TRACE_DIR="$OUTPUT_DIR" SEGMENT0_CAPTURE_X="$PLAYER_X" \
 SCENE_ADDR="$SCENE_ADDR" ACTIVE_LUT_ADDR="$ACTIVE_LUT_ADDR" \
 STAGED_BG_ADDR="$STAGED_BG_ADDR" STAGED_FG_ADDR="$STAGED_FG_ADDR" \
+STAGED_PALETTE_ADDR="$STAGED_PALETTE_ADDR" \
 TILESET_ADDR="$TILESET_ADDR" ACTIVE_RECORD_ADDR="$ACTIVE_RECORD_ADDR" \
 ACTIVE_PACKAGE_ADDR="$ACTIVE_PACKAGE_ADDR" \
 STAGE_PERF_SCENE_PENDING="$SCENE_PENDING_ADDR" \

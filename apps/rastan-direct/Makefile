@@ -118,7 +118,10 @@ PC080SN_EDITOR_LAYERA := $(ROOT)/build/regions/pc080sn_editor_layera.bin
 # Palette Composer profile selected for this build family. The default remains
 # Test; command-line builds may select another saved profile without copying it
 # over Test.json or mixing profile inputs across generated consumers.
-EDITOR_PALETTE_PROFILE_ID ?= Test
+# PROMT-ID-0112: production consumes Test 2.0 (Tighe's current authored profile; its Line 0
+# player palette is authored consistent across stages).  The legacy "Test" profile is stale and
+# must not be used for the numbered ROM.  Override only for deliberate profile experiments.
+EDITOR_PALETTE_PROFILE_ID ?= Test_2_0
 EDITOR_PALETTE_PROFILE := $(ROOT)/analysis/graphics_optimizer/editor_policy/$(EDITOR_PALETTE_PROFILE_ID).json
 TEST_PALETTE_LINE0 := $(ROOT)/build/rastan-direct/test_palette_line0.bin
 TEST_PALETTE_LINE1 := $(ROOT)/build/rastan-direct/test_palette_line1.bin

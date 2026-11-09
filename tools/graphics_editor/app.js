@@ -103,7 +103,21 @@ function ensureCenter(){if(window._layerActive){$('#center').innerHTML=window._C
 function pushUndo(){UNDO.push(JSON.stringify(POL));if(UNDO.length>50)UNDO.shift();REDO=[];}
 function undo(){if(!UNDO.length)return;REDO.push(JSON.stringify(POL));POL=JSON.parse(UNDO.pop());afterChange(true);}
 function redo(){if(!REDO.length)return;UNDO.push(JSON.stringify(POL));POL=JSON.parse(REDO.pop());afterChange(true);}
-function afterChange(noUndo){DIRTY=true;$('#dirty').textContent='● unsaved';renderScopeBar();renderTarget();renderSource();validate();}
+function afterChange(noUndo){DIRTY=true;$('#dirty').textContent='● unsaved';renderScopeBar();renderTarget();renderSource();validate();refreshDetail();}
+// A palette/mapping edit changes the EFFECTIVE Genesis colors, so every view that paints with them must
+// repaint — not just the Genesis Target swatches. Without this, editing a Genesis color updated the target
+// swatches only, while the mapped tile preview and the source→target mapping chips stayed stale (the R2-S3
+// "changes only show in Genesis Target" bug). Re-render whichever detail view is currently open.
+function refreshDetail(){
+  try{
+    if(TAB==='layera'){
+      if(LADET)renderLADetail();                 // Layer-A tile detail: mapped preview + mapping chips
+      else if(LAVIEW==='map'&&LAMAP)renderSegMap();  // Genesis-mode segment map (mapped colors)
+    } else if(U){
+      renderMapTable();renderPreviews();          // sprite mapping squares + mapped preview
+    }
+  }catch(e){/* a detail may not be fully initialized yet; the target/source views already repainted */}
+}
 async function maybeSwitch(pid){if(DIRTY&&!confirm('Discard unsaved changes?')){$('#profile').value=POL.profile_id;return;}loadProfile(pid);}
 async function loadProfile(pid){POL=await j('/api/policy?p='+encodeURIComponent(pid));if(!POL.target_palette_lines)POL.target_palette_lines=[...Array(4)].map(()=>Array(16).fill(null));if(!POL.usage_palette_mappings)POL.usage_palette_mappings={};if(!POL.plane_usage_palette_mappings)POL.plane_usage_palette_mappings={};if(!POL.context_policies)POL.context_policies={};if(!POL.reserved_lines)POL.reserved_lines=[2];DIRTY=false;renderScopeBar();$('#dirty').textContent='';$('#profile').value=pid;$('#pstatus').textContent=POL.immutable?'immutable baseline — Create editable profile to edit':('editable · parent '+(POL.parent||'—'));$('#save').disabled=!!POL.immutable;renderTarget();renderSource();validate();}
 function branch(){const base=($('#newprofile').value||'').trim().replace(/[^a-z0-9_\-]/gi,'_');if(!base)return alert('type a profile name first');POL={profile_id:base,display_name:base,parent:POL.profile_id,immutable:false,schema:'v0.4',target_palette_lines:JSON.parse(JSON.stringify(POL.target_palette_lines)),usage_palette_mappings:JSON.parse(JSON.stringify(POL.usage_palette_mappings)),plane_usage_palette_mappings:JSON.parse(JSON.stringify(POL.plane_usage_palette_mappings||{})),context_policies:JSON.parse(JSON.stringify(POL.context_policies||{})),reserved_lines:[2],line_owners:POL.line_owners,object_labels:{}};const o=el('option',null,base);o.value=base;$('#profile').appendChild(o);$('#profile').value=base;$('#save').disabled=false;DIRTY=true;$('#dirty').textContent='● unsaved';$('#pstatus').textContent='editable (unsaved) · parent '+POL.parent;validate();}
@@ -442,9 +456,12 @@ let ZOOM=(function(){try{return +localStorage.getItem('rz_zoom')||4;}catch(e){re
 let SHOWB=false;
 function setZoom(z){ZOOM=z;try{localStorage.setItem('rz_zoom',z);}catch(e){}renderPreviews();}
 async function renderPreviews(){const P=$('#previews');P.innerHTML='';if(!U)return;
- // PROMPT-ID-0091: pending/disabled groups (R1-S2 hazard candidates, boss death) have no static composite —
- // never fabricate art. Show what IS known + the hardware class + a clear "not authorable" note.
- if(U.hazard_pending||!U.pieces||!U.pieces.length){
+ // PROMPT-ID-0091: pending/disabled groups (boss death, etc.) have no static composite — never fabricate
+ // art. Show what IS known + the hardware class + a clear "not authorable" note. Layer-A animated-tile traps
+ // (fire bank 0x014 / water bank 0x01F) DO have real decoded tiles (U.plane_tiles) and render through the
+ // normal composite path below, identical to a sprite.
+ const hasArt=(U.pieces&&U.pieces.length)||(U.plane_tiles&&U.plane_tiles.length);
+ if(U.hazard_pending||!hasArt){
   const b=el('div','warn');b.style.cssText='border:1px solid #a86;background:#1c1710;color:#d9c9a0;padding:8px;border-radius:4px;font-size:12px;';
   b.innerHTML='<b>'+(U.preview_type||'PENDING')+'</b><br>'+(U.identity_note||'')
     +'<br><br><b>Hardware:</b> '+(U.hardware_class||'—')+(U.subround?(' · <b>'+U.subround+'</b>'):'')
@@ -461,14 +478,15 @@ async function renderPreviews(){const P=$('#previews');P.innerHTML='';if(!U)retu
  const bm=el('button','mini','−');bm.onclick=()=>setZoom(Math.max(1,(ZOOM==='fit'?4:ZOOM)-1));zb.appendChild(bm);
  const bp=el('button','mini','+');bp.onclick=()=>setZoom((ZOOM==='fit'?4:ZOOM)+1);zb.appendChild(bp);
  const cb=el('label','dim');const ck=el('input');ck.type='checkbox';ck.checked=SHOWB;ck.onchange=()=>{SHOWB=ck.checked;renderPreviews();};cb.appendChild(ck);cb.appendChild(el('span',null,' piece boundaries'));zb.appendChild(cb);
- const zlab=el('span','dim','  '+U.preview_type+' · '+U.n_pieces+' pieces · bank '+U.sprite_bank);zb.appendChild(zlab);
+ const UNIT=U.layera_tiles?'tiles':'pieces';
+ const zlab=el('span','dim','  '+U.preview_type+' · '+U.n_pieces+' '+UNIT+' · bank '+U.sprite_bank);zb.appendChild(zlab);
  P.appendChild(zb);
  const b=SHOWB?'&boundaries=1':'';const AVAIL=300;
  // uniform integer scale from the ACTUAL native PNG dims (source & target are identical geometry)
  function sizeImg(img){const nW=img.naturalWidth,nH=img.naturalHeight;let Z=ZOOM;
    if(Z==='fit'){Z=Math.max(1,Math.floor(Math.min(AVAIL/nW,AVAIL/nH)));}
    img.style.width=(nW*Z)+'px';img.style.height=(nH*Z)+'px';  // BOTH dims, same scalar
-   zlab.textContent=`  zoom: ${ZOOM==='fit'?'Fit('+Z+'×)':Z+'×'} · display ${nW*Z}×${nH*Z}px · source ${nW}×${nH}px · ${U.preview_type} · ${U.n_pieces} pieces`;}
+   zlab.textContent=`  zoom: ${ZOOM==='fit'?'Fit('+Z+'×)':Z+'×'} · display ${nW*Z}×${nH*Z}px · source ${nW}×${nH}px · ${U.preview_type} · ${U.n_pieces} ${UNIT}`;}
  const s=el('div','pv');s.appendChild(el('div','pvh',(U.composite_proven?'TRUE ARCADE COMPOSITE':'PROVEN CELL SHEET — NOT COMPOSITE')));
  const i1=new Image();i1.className='pimg';i1.onload=()=>sizeImg(i1);i1.src=`/api/render?usage=${uid}${b}`;s.appendChild(i1);P.appendChild(s);
  const map=POL.usage_palette_mappings[MK(U)];const pal=[[0,0,0]];for(let i=1;i<16;i++)pal[i]=[60,60,72];

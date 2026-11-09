@@ -98,7 +98,14 @@
    "owner": "editable",
    "control": "editor",
    "editable": true,
-   "optimizer_available": true
+   "optimizer_available": true,
+   "backdrop_invariant": {
+    "line": 0,
+    "index": 0,
+    "required_cram": "0x0000",
+    "label": "Backdrop: Line 0 / Index 0 \u2014 BLACK invariant",
+    "note": "Project-level production invariant (VDP reg 7). Cody owns the scene-package fix."
+   }
   },
   "1": {
    "owner": "editable",

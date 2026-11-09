@@ -2,7 +2,7 @@
 """AUDIO-012 — PROVISIONAL authored-routing renderer: ORIGINAL YM2151 capture -> Genesis YM2612+PSG VGM.
 
 Applies the user's per-channel Genesis routing (approved_routing: arcade YM2151 channel -> destination) to
-an original Rastan YM2151 capture and emits a real **YM2612 (FM1-5) + SN76489 (PSG)** VGM — actual chip
+an original Rastan YM2151 capture and emits a real **YM2612 (FM1-6) + SN76489 (PSG)** VGM — actual chip
 register commands (VGM 0x52/0x53 for YM2612, 0x50 for PSG), NOT oscillator/WAV fakery. It plays in the
 same webVGM engine, so the user hears the arrangement they authored and can A/B it against the original.
 
@@ -14,7 +14,8 @@ STAGE 1 / PROVISIONAL — limitations are explicit and labeled (not hidden):
   * Pitch is converted OPM KC/KF -> Hz -> OPN2 fnum/block using the target YM2612 clock (7.67 MHz).
   * PSG-routed voices become 50%-duty squares: pitch -> 10-bit divider, key-on/off -> 4-bit attenuation
     (fixed audible level; per-note dynamics are a later refinement). noise mode per the profile selector.
-  * FM6 is never targeted (DAC-reserved). Unassigned channels are dropped (silent).
+  * FM6 is targeted only when the routing assigns it (the composer allows that solely on tracks that do
+    not reserve FM6 for sound effects); DAC stays off. Unassigned channels are dropped (silent).
   * This is NOT the production converter and does NOT decode ROM sequences/instruments; user listening is
     the acceptance criterion.
 
@@ -37,14 +38,18 @@ PSG_HEADROOM = 3            # extra PSG attenuation steps (~6 dB) so squares sit
 # carrier operators per algorithm (op index 0-3); used only to estimate a PSG voice's output level
 CARRIER_OPS = {0: (3,), 1: (3,), 2: (3,), 3: (3,), 4: (1, 3), 5: (1, 2, 3), 6: (1, 2, 3), 7: (0, 1, 2, 3)}
 
-FM_TARGET = {"ym2612_fm1": 1, "ym2612_fm2": 2, "ym2612_fm3": 3, "ym2612_fm4": 4, "ym2612_fm5": 5}
+# FM6 is a routable music voice on tracks that do not reserve it for sound effects (the composer enforces
+# that policy before render). FM4-6 live on YM2612 port 1; DAC is globally disabled below, so FM6 plays as
+# an ordinary FM channel. The emit path is generic over YM_CH_PORT / YM_KEYSEL, so FM6 needs only its maps.
+FM_TARGET = {"ym2612_fm1": 1, "ym2612_fm2": 2, "ym2612_fm3": 3, "ym2612_fm4": 4, "ym2612_fm5": 5,
+             "ym2612_fm6": 6}
 PSG_TONE = {"psg_tone1": 0, "psg_tone2": 1, "psg_tone3": 2}
 # OPM note4 (KC low nibble) -> semitone in octave (codes 3,7,11,15 are invalid gaps)
 NOTE4 = {0: 0, 1: 1, 2: 2, 4: 3, 5: 4, 6: 5, 8: 6, 9: 7, 10: 8, 12: 9, 13: 10, 14: 11}
 # OPM operator-param group -> OPN2 group (bit-compatible); value passes through (DT2 masked off for 0xC0)
 OPM2OPN2_GROUP = {0x40: 0x30, 0x60: 0x40, 0x80: 0x50, 0xA0: 0x60, 0xC0: 0x70, 0xE0: 0x80}
-YM_CH_PORT = {1: (0, 0), 2: (0, 1), 3: (0, 2), 4: (1, 0), 5: (1, 1)}   # ch -> (port, within-port index)
-YM_KEYSEL = {1: 0, 2: 1, 3: 2, 4: 4, 5: 5}                            # ch -> 0x28 channel-select nibble
+YM_CH_PORT = {1: (0, 0), 2: (0, 1), 3: (0, 2), 4: (1, 0), 5: (1, 1), 6: (1, 2)}   # ch -> (port, within-port index)
+YM_KEYSEL = {1: 0, 2: 1, 3: 2, 4: 4, 5: 5, 6: 6}                      # ch -> 0x28 channel-select nibble
 
 
 # EXACT YM2151 (OPM) phase-increment ROM (768 entries = 64 steps/semitone x 12), copied verbatim from the

@@ -83,7 +83,7 @@
      0
     ]
    ],
-   "source": "startup base @0x4EBF6"
+   "source": "per-round base r1 @0x4EAF6 + bank*32 (@0x4EBF6)"
   },
   "0x019": {
    "arcade_rgb8": [
@@ -168,7 +168,7 @@
      115
     ]
    ],
-   "source": "startup base @0x4EE16"
+   "source": "per-round base r1 @0x4EAF6 + bank*32 (@0x4EE16)"
   }
  }
 }

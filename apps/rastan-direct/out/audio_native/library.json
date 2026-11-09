@@ -63,13 +63,6 @@
       "wire_command": "0x04"
     },
     {
-      "evidence": "ORIGINAL ARCADE R1 music sequencer at 0x055DDC: substate a5+0x13AA==9 (the castle phase, entered via 0x03A848 setting 13AA=9 / 1394=1) sends command 0x27 via jsr 0x3A0EC; the castle plays Re-In-Carnation (Scene 2). The substate-9 send has no sound-enable (a5+0x34) precondition, so unlike 0x19 it is delivered on Genesis. Pending Tighe Genesis hardware audition.",
-      "semantics": "Round 1 Subround 2 (castle interior) music change",
-      "status": "proven",
-      "track": "05 - Re-In-Carnation (Scene 2)",
-      "wire_command": "0x27"
-    },
-    {
       "evidence": "ORIGINAL ARCADE transition trace states/traces/prompt0076_arcade_r1s2_to_r1s3_audio_v2: stable record 0x11 emits appearance cue 0x25 at frame 787 followed by six-channel command 0x1B at frame 788. Genesis retained-transition evidence in states/traces/build0536_audio015_natural_round1_transitions_v2 reproduces 0x25 then 0x1B while activating record 0x11/package 5. The native song asset is the existing single Re-In-Carnation payload; no audio data is duplicated.",
       "semantics": "Round 1 Subround 2 castle-entry music decision following the shared player-appearance cue",
       "status": "proven",
@@ -82,13 +75,20 @@
       "status": "proven",
       "track": "06 - The Devil Boss Carnival (Scene 3 Boss)",
       "wire_command": "0x1C"
+    },
+    {
+      "evidence": "ORIGINAL ARCADE 0x055F40 compares round selector 0x10C118 with 6. The non-final branch preserves the current record, initializes/clears the per-round presentation, then loads D0=0x27 at 0x055F68 and calls the retained sound dispatcher 0x03A0EC before state 10 renders the per-round figure and exact congratulatory text through 0x05632A/0x0561D6. Round 6 instead branches to the distinct 0x05725A ending controller.",
+      "semantics": "non-final-round stage-clear presentation after the boss controller selects state 9",
+      "status": "proven",
+      "track": "07 - Scene Clear",
+      "wire_command": "0x27"
     }
   ],
   "fm6_reserved": true,
   "profile": "../../analysis/audio/decision_profiles/music-test.json",
-  "profile_revision": 15,
-  "profile_revision_id": "music-test.r15.20261024T214957Z",
-  "profile_sha256": "4ab8f9d6c95f549d43beb62d9fcb2b5d2165537d7e1e259283a577860abaedb4",
+  "profile_revision": 19,
+  "profile_revision_id": "music-test.r19.20261107T142918Z",
+  "profile_sha256": "d9c4e1fb4cd4a21d3bae16ba47d0022cfb277c7ffb5bfcfdd2cb8fc16af44d93",
   "schema": "rastan-genesis-native-audio-library/v1",
   "song_table_rows": 14,
   "songs": [
@@ -175,7 +175,6 @@
       "slug": "track_05_re_in_carnation_scene_2",
       "track": "05 - Re-In-Carnation (Scene 2)",
       "wire_commands": [
-        "0x27",
         "0x1B"
       ]
     },
@@ -202,8 +201,8 @@
       "has_loop": false,
       "id": 7,
       "intro": "out/audio_native/track_07_scene_clear_intro.bin",
-      "intro_bytes": 11985,
-      "intro_sha256": "e8c1f1400ee3ed47c7ef4f69520c02c577f856efac6c83609cc94152d19febc5",
+      "intro_bytes": 12550,
+      "intro_sha256": "ce296fe809939807544a340d1e7acbb393238fabe1f55704b8a0e077f240cb3a",
       "intro_ticks": 574,
       "loop": "out/audio_native/track_07_scene_clear_loop.bin",
       "loop_bytes": 1,
@@ -211,7 +210,9 @@
       "loop_ticks": 0,
       "slug": "track_07_scene_clear",
       "track": "07 - Scene Clear",
-      "wire_commands": []
+      "wire_commands": [
+        "0x27"
+      ]
     },
     {
       "diagnostic_command": "0xD7",
@@ -234,8 +235,8 @@
       "has_loop": false,
       "id": 9,
       "intro": "out/audio_native/track_09_the_man_of_saga_ending_intro.bin",
-      "intro_bytes": 192673,
-      "intro_sha256": "404616360a4f651be9814b0c86e3abbd7800ea41631d363b86cfe8a50201ba25",
+      "intro_bytes": 205733,
+      "intro_sha256": "cf3603fa4a696e61f17b1fd7698d9631946297230067326474a1ebf0aa18de23",
       "intro_ticks": 5177,
       "loop": "out/audio_native/track_09_the_man_of_saga_ending_loop.bin",
       "loop_bytes": 1,

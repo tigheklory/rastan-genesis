@@ -5,7 +5,7 @@
     "cases": 512,
     "mismatches": 0
   },
-  "palette_tool_profile_sha256": "49f38ea9b8c889eb24dbe232a25c590b79755b642abb8d42743d0d8b6a17c04f",
+  "palette_tool_profile_sha256": "4339688ebe07bc121d5108d464f57b320a6628f4c36cdd71a95cfe5ea8c964cf",
   "result": "PASS",
   "route_compatibility_source": "/home/tighe/projects/rastan-genesis/apps/rastan-direct/src/palette_hooks.s",
   "route_rows_sha1": "e085affceafe0ca1",

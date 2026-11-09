@@ -24,7 +24,7 @@ genesistan_audio_song_catalog:
     .word 0
     .long genesistan_audio_track_04_bad_bible_name_regist_start
     .long genesistan_audio_track_04_bad_bible_name_regist_loop
-    .byte 5, 0x27
+    .byte 5, 0x1B
     .word 0
     .long genesistan_audio_track_05_re_in_carnation_scene_2_start
     .long genesistan_audio_track_05_re_in_carnation_scene_2_loop
@@ -32,7 +32,7 @@ genesistan_audio_song_catalog:
     .word 0
     .long genesistan_audio_track_06_the_devil_boss_carnival_scene_3_boss_start
     .long genesistan_audio_track_06_the_devil_boss_carnival_scene_3_boss_loop
-    .byte 7, 0xFF
+    .byte 7, 0x27
     .word 0
     .long genesistan_audio_track_07_scene_clear_start
     .long 0
@@ -56,10 +56,6 @@ genesistan_audio_song_dispatch:
     .word 0
     .long genesistan_audio_track_01_credit_start
     .long 0
-    .byte 0x27, 5
-    .word 0
-    .long genesistan_audio_track_05_re_in_carnation_scene_2_start
-    .long genesistan_audio_track_05_re_in_carnation_scene_2_loop
     .byte 0x1B, 5
     .word 0
     .long genesistan_audio_track_05_re_in_carnation_scene_2_start
@@ -68,6 +64,10 @@ genesistan_audio_song_dispatch:
     .word 0
     .long genesistan_audio_track_06_the_devil_boss_carnival_scene_3_boss_start
     .long genesistan_audio_track_06_the_devil_boss_carnival_scene_3_boss_loop
+    .byte 0x27, 7
+    .word 0
+    .long genesistan_audio_track_07_scene_clear_start
+    .long 0
     .byte 0xD0, 1
     .word 0
     .long genesistan_audio_track_01_credit_start

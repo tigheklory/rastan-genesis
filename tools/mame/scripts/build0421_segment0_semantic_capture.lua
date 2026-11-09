@@ -16,6 +16,7 @@ local scene_addr = assert(tonumber(os.getenv("SCENE_ADDR")), "SCENE_ADDR is requ
 local active_lut_addr = assert(tonumber(os.getenv("ACTIVE_LUT_ADDR")), "ACTIVE_LUT_ADDR is required")
 local staged_bg_addr = assert(tonumber(os.getenv("STAGED_BG_ADDR")), "STAGED_BG_ADDR is required")
 local staged_fg_addr = assert(tonumber(os.getenv("STAGED_FG_ADDR")), "STAGED_FG_ADDR is required")
+local staged_palette_addr = assert(tonumber(os.getenv("STAGED_PALETTE_ADDR")), "STAGED_PALETTE_ADDR is required")
 local tileset_addr = tonumber(os.getenv("TILESET_ADDR") or "")
 local active_record_addr = tonumber(os.getenv("ACTIVE_RECORD_ADDR") or "")
 local active_package_addr = tonumber(os.getenv("ACTIVE_PACKAGE_ADDR") or "")
@@ -145,6 +146,18 @@ local function dump_vram(path)
   out:close()
 end
 
+local function dump_cram(path)
+  program:write_u16(0x00c00004, 0x8f02)
+  program:write_u16(0x00c00004, 0x0000)
+  program:write_u16(0x00c00004, 0x0020)
+  local out = assert(io.open(path, "wb"))
+  for _ = 0, 63 do
+    local word = program:read_u16(0x00c00000) & 0xffff
+    out:write(string.char((word >> 8) & 0xff, word & 0xff))
+  end
+  out:close()
+end
+
 local frame = 0
 local stable = 0
 local captured = false
@@ -197,6 +210,7 @@ emu.register_frame_done(function()
     dump(trace_dir .. "/collision_map.bin", 0xff1e00, 0x2000)
     dump(trace_dir .. "/descriptor_state.bin", 0xff1000, 0x0100)
     dump(trace_dir .. "/active_lut.bin", active_lut_addr, 0x5000)
+    dump(trace_dir .. "/staged_palette.bin", staged_palette_addr, 0x80)
     local snapshot_ok,snapshot_error=pcall(function() machine.video:snapshot() end)
     local snapshot_status=assert(io.open(trace_dir .. "/snapshot_status.txt","w"))
     snapshot_status:write(snapshot_ok and "PASS\n" or (tostring(snapshot_error).."\n"))
@@ -204,6 +218,7 @@ emu.register_frame_done(function()
     dump_vram_names(trace_dir .. "/vram_plane_b.bin", 0xc000)
     dump_vram_names(trace_dir .. "/vram_plane_a.bin", 0xe000)
     dump_vram(trace_dir .. "/vram.bin")
+    dump_cram(trace_dir .. "/cram.bin")
     if debug_post_lut_addr and debug_log then
       local dbg = assert(io.open(trace_dir .. "/post_lut_registers.txt", "w"))
       for index = 1, #debug_log do dbg:write(tostring(debug_log[index]), "\n") end

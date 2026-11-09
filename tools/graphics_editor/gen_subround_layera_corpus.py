@@ -34,6 +34,18 @@ def pal5(n):  # 4-bit arcade channel -> 8-bit, identical to the editor's _pal5
     return (v << 3) | (v >> 2)
 
 
+# Per-round Plane-A palette base pointer table (arcade FUN_00059c54 reads *(0x59C9A + (round-1)*4)).
+PER_ROUND_PALETTE_PTR = 0x59C9A
+
+
+def _per_round_palette_base(mc: bytes, rnd: int) -> int:
+    """Resolve the active per-round Plane-A palette base address from the arcade pointer table at
+    0x59C9A (round 1 -> 0x4EAF6, round 2 -> 0x4EEF8, ...). This is the authoritative background-palette
+    source that the arcade fades into visible palette RAM 0x200000; NOT the fixed startup base."""
+    off = PER_ROUND_PALETTE_PTR + (rnd - 1) * 4
+    return int.from_bytes(mc[off:off + 4], "big")
+
+
 def _load(path, name):
     spec = importlib.util.spec_from_file_location(name, path)
     m = importlib.util.module_from_spec(spec)
@@ -67,19 +79,28 @@ def main() -> int:
                 continue
             cells, uses = ag.decode_plane_a(mc, gfx, segments)
             banks = sorted({u["palette_bank"] for u in uses})
-            # Arcade palette = 0RGB nibble-packed (S[8:11]=R, S[4:7]=G, S[0:3]=B) at the startup
-            # base 0x4EAF6 + bank*32; convert to rgb8 via _pal5, EXACTLY like the editor's
-            # _arcade_round_palette.  Banks < 48 are fixed (scene-independent), which covers every
-            # Plane-A bank these subrounds use.
+            # Arcade Plane-A palette is PER-ROUND. The active background palette is loaded from a
+            # per-round base pointer table at 0x59C9A (loader FUN_00059c54, indexed by (round-1)*4),
+            # into the fade buffer 0x10D600, then faded into visible palette RAM 0x200000 (FUN_00045d7c).
+            #   round 1 -> 0x4EAF6 (== the startup/fixed base, so R1 is unchanged)
+            #   round 2 -> 0x4EEF8,  round 3 -> 0x4F15A,  round 4 -> 0x4F51C,
+            #   round 5 -> 0x4F85E,  round 6 -> 0x4FA80
+            # Using the fixed 0x4EAF6 base for every round was WRONG for round 2+ (it reproduced the
+            # Round-1 colors: teal foliage, black boss-room bank 2). Each bank is base + bank*32, 0RGB
+            # nibble-packed (S[8:11]=R, S[4:7]=G, S[0:3]=B) converted to rgb8 via pal5. See
+            # specs/palette_subround_map (round) and docs/design/Andy_*PROMT-ID-0110*.
+            rnd = sr["round"]
+            round_base = _per_round_palette_base(mc, rnd)
             bank_colors = {}
             for b in banks:
-                base = 0x4EAF6 + b * 32
+                base = round_base + b * 32
                 if b < 48 and base + 32 <= len(mc):
                     cols = []
                     for i in range(16):
                         w = int.from_bytes(mc[base + i * 2:base + i * 2 + 2], "big")
                         cols.append([pal5((w >> 8) & 0xF), pal5((w >> 4) & 0xF), pal5(w & 0xF)])
-                    bank_colors[f"0x{b:03X}"] = {"arcade_rgb8": cols, "source": f"startup base @0x{base:05X}"}
+                    bank_colors[f"0x{b:03X}"] = {"arcade_rgb8": cols,
+                                                 "source": f"per-round base r{rnd} @0x{round_base:05X} + bank*32 (@0x{base:05X})"}
                 else:
                     bank_colors[f"0x{b:03X}"] = {"arcade_rgb8": None, "source": "scene-selected bank (>=48): unresolved"}
             d = OUT / sk

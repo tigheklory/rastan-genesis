@@ -28,7 +28,15 @@ MAP = ROOT / "specs/palette_subround_map.json"
 R1P1 = ROOT / "analysis/actor_decompilation/r1p1_enemy_semantic_corpus.tsv"
 SR2 = ROOT / "analysis/actor_subround2/subround2_schedule_rosters.json"
 H13 = ROOT / "analysis/actor_decompilation/h13_phase2_actor_rosters.tsv"
+SIG = ROOT / "analysis/enemy_sprite_lexicon/dynamic_signature_map.json"
 OUT = ROOT / "build/palette_export/scene_sprite_coverage.json"
+
+# Scenes for which the editor now builds a browsable per-scene roster from the dynamic capture + schedule
+# (server.py r2_field_usages / r2_boss_usages). Keyed scene_key -> dynamic_signature_map group.
+ROSTER_SCENES = {
+    "PAL-R2-S1-PLANEA-OUTDOOR": "round2_phase1",
+    "PAL-R2-S3-PLANEA-BOSS": "round2_boss",
+}
 
 BLOCKER = ("per-scene spawn markers not enumerated — blocked on the A5+0x10D000 collision-record "
            "populator (column marker source); see analysis/actor_decompilation/h11_phase2_actor_rosters.tsv")
@@ -76,6 +84,17 @@ def main() -> int:
     r1p1 = _r1p1_objects()
     sr2 = _sr2_by_round()
     reach = _h13_reach()
+    sig = json.loads(SIG.read_text()) if SIG.is_file() else {}
+
+    def _captured_bases(group: str) -> list[str]:
+        """Distinct actor bases captured for a dynamic_signature_map group (e.g. round2_phase1)."""
+        seen, out = set(), []
+        for k in sig:
+            if k.split("|")[0] == group:
+                b = k.split("|")[2]
+                if b not in seen:
+                    seen.add(b); out.append(b)
+        return out
 
     scenes = {}
     for sr in smap.get("subrounds", []):
@@ -87,6 +106,12 @@ def main() -> int:
             if rnd == 1 and sub == 1:
                 status, roster, note = ("PROVEN_COMPLETE", r1p1,
                     "Authoritative captured R1/Phase-1 enemy vocabulary (already authored).")
+            elif sk in ROSTER_SCENES:
+                bases = _captured_bases(ROSTER_SCENES[sk])
+                status, roster, note = ("ROSTER_CAPTURED", bases,
+                    "Per-scene roster built in the editor from the dynamic signature capture "
+                    "(dynamic_signature_map.json) + field schedule 0x4A104, rendered via the compositor VM. "
+                    "Identities are proven/scheduled; frames are provisional source-derived (boss palette PENDING).")
             elif sub == 2:
                 rkey = f"round{rnd}"
                 bases = (sr2.get(rkey, {}) or {}).get("schedule_family2_spawners", []) \
@@ -102,8 +127,9 @@ def main() -> int:
                 "coverage_status": status,
                 "roster": roster,
                 "note": note,
-                "authored_vocabulary": "R1/Phase-1 corpus only",
-                "substitution_warning": (None if status == "PROVEN_COMPLETE" else
+                "authored_vocabulary": ("this scene's captured roster (provisional frames)"
+                    if status == "ROSTER_CAPTURED" else "R1/Phase-1 corpus only"),
+                "substitution_warning": (None if status in ("PROVEN_COMPLETE", "ROSTER_CAPTURED") else
                     "The sprite graphics shown are the proven R1/Phase-1 vocabulary and are NOT a "
                     "substitute for this scene's enemies."),
             }
@@ -116,9 +142,11 @@ def main() -> int:
             "subround2_schedule": "analysis/actor_subround2/subround2_schedule_rosters.json",
             "reachability": "analysis/actor_decompilation/h13_phase2_actor_rosters.tsv",
             "blocker_ref": "analysis/actor_decompilation/h11_phase2_actor_rosters.tsv",
+            "dynamic_signature_map": "analysis/enemy_sprite_lexicon/dynamic_signature_map.json",
         },
         "legend": {
             "PROVEN_COMPLETE": "captured, authorable now",
+            "ROSTER_CAPTURED": "per-scene roster built from the dynamic capture + schedule; frames provisional",
             "SCHEDULE_ONLY": "actors identified, cell vocabulary not captured",
             "PENDING": "per-scene roster not enumerated (blocked)",
         },

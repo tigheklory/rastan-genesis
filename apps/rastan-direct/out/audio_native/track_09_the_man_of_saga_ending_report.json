@@ -1,16 +1,16 @@
 {
   "channel_levels": {},
   "has_source_loop": false,
-  "intro_bytes": 192673,
+  "intro_bytes": 205733,
   "loop_bytes": 1,
   "loop_tick": 5177,
   "loop_ticks": 0,
   "max_events_per_tick": 90,
-  "native_event_count": 73980,
+  "native_event_count": 74591,
   "noise_mode": "fixed_1024",
   "original_track_command_mapping": "unresolved unless listed by the generated native dispatch registry",
-  "profile_revision": 15,
-  "profile_revision_id": "music-test.r15.20261024T214957Z",
+  "profile_revision": 19,
+  "profile_revision_id": "music-test.r19.20261107T142918Z",
   "render_stats": {
     "dropped_channels": [],
     "duration_s": 84.079,
@@ -19,16 +19,16 @@
       2,
       3,
       4,
-      5
+      5,
+      6
     ],
     "psg_targets": [
       "psg_tone1",
-      "psg_tone2",
       "psg_tone3"
     ],
-    "psg_writes": 34441,
+    "psg_writes": 23214,
     "total_samples": 3707867,
-    "ym2612_writes": 39533
+    "ym2612_writes": 51371
   },
   "routing": {
     "0": "psg_tone1",
@@ -37,7 +37,7 @@
     "3": "ym2612_fm3",
     "4": "ym2612_fm4",
     "5": "ym2612_fm5",
-    "6": "psg_tone2",
+    "6": "ym2612_fm6",
     "7": "psg_tone3"
   },
   "scheduler_owned_registers": [

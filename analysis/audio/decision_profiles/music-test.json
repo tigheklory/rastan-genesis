@@ -150,7 +150,7 @@
    "evidence": "capture-derived role"
   },
   "6": {
-   "dest": "psg_tone2",
+   "dest": "ym2612_fm6",
    "rationale": "user proposal (unaudited)",
    "evidence": "capture-derived role"
   },
@@ -167,7 +167,7 @@
   "3": "ym2612_fm3",
   "4": "ym2612_fm4",
   "5": "ym2612_fm5",
-  "6": "psg_tone2",
+  "6": "ym2612_fm6",
   "7": "psg_tone3"
  },
  "noise_mode": "fixed_1024",
@@ -176,7 +176,7 @@
  "conflicts": [],
  "notes": "\nAUDIO-015: recovered Scene Clear (from r8) and Final Boss (from r13 top level) into track_routings after the persistence bug; approvals preserved as stored.",
  "approval_status": "draft",
- "revision": 15,
+ "revision": 19,
  "reserved_dac": "ym2612_fm6_dac",
  "music_destinations": [
   "ym2612_fm1",
@@ -184,6 +184,7 @@
   "ym2612_fm3",
   "ym2612_fm4",
   "ym2612_fm5",
+  "ym2612_fm6",
   "psg_tone1",
   "psg_tone2",
   "psg_tone3",
@@ -191,8 +192,8 @@
   "unassigned"
  ],
  "arcade_channel_count": 8,
- "revision_id": "music-test.r15.20261024T214957Z",
- "modified": "2026-10-24T21:49:57Z",
+ "revision_id": "music-test.r19.20261107T142918Z",
+ "modified": "2026-11-07T14:29:18Z",
  "track_routings": {
   "09 - The Man Of Saga (Ending)": {
    "approved_routing": {
@@ -202,7 +203,7 @@
     "3": "ym2612_fm3",
     "4": "ym2612_fm4",
     "5": "ym2612_fm5",
-    "6": "psg_tone2",
+    "6": "ym2612_fm6",
     "7": "psg_tone3"
    },
    "proposals": {
@@ -237,7 +238,7 @@
      "evidence": "capture-derived role"
     },
     "6": {
-     "dest": "psg_tone2",
+     "dest": "ym2612_fm6",
      "rationale": "user proposal (unaudited)",
      "evidence": "capture-derived role"
     },
@@ -509,7 +510,7 @@
     "2": "ym2612_fm3",
     "3": "ym2612_fm4",
     "4": "ym2612_fm5",
-    "5": "psg_noise"
+    "5": "ym2612_fm6"
    },
    "proposals": {
     "0": {
@@ -538,13 +539,20 @@
      "evidence": "capture-derived role"
     },
     "5": {
-     "dest": "psg_noise",
+     "dest": "ym2612_fm6",
      "rationale": "user proposal (unaudited)",
      "evidence": "capture-derived role"
     }
    },
    "noise_mode": "fixed_1024",
-   "instrument_overrides": {}
+   "instrument_overrides": {
+    "0": {
+     "level": 107
+    },
+    "3": {
+     "level": 107
+    }
+   }
   },
   "08 - Final Destroy (Scene 3 Round 6 Boss)": {
    "approved_routing": {
@@ -594,5 +602,6 @@
     }
    }
   }
- }
+ },
+ "fm6_reserved": false
 }

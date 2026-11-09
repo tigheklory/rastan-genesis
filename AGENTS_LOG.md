@@ -1,5 +1,105 @@
 # AGENTS Log
 
+## [PROMPT-0107 — Andy — Palette Composer: Round 2 Object rosters (R2-S1 field + R2-S3 boss)]
+
+* **Tighe directive:** R2-S1/S2/S3 now function in the Palette Composer (Cody enabled R2 progression); populate
+  Round 2 the same way as Round 1 and (scoping answer) **also RE the R2 Objects rosters**, like R1-S2/S3 got.
+* **Starting state:** the R2 Layer-A/background + palette scaffolding was already generated/committed (commit
+  `4d449e18`) and regenerates **byte-identically** — so the generator pipeline was done; the only gap vs R1 was
+  the Objects roster. R2-S1 showed only the shared R1 field census (PENDING, substitution-flagged); R2-S3 had 0
+  actors; R2-S2 already had 47 (green knight $033E + castle $0224).
+* **Evidence CONSUMED (no new RE loop, no fabrication):** `analysis/enemy_sprite_lexicon/dynamic_signature_map.json`
+  (proven capture: `round2_phase1` → actor_2c8 $004B/$0400 + comp2 $0A5A/$0A73; `round2_boss` → body $061D comp1
+  anim$01 + aux $0275 — R2 boss reuses the R1 $061D program) + field schedule `0x4A104` (installer `0x4A086`,
+  block `(0x13E-round)>>1`; R2-S1 band `0x18..0x27` schedules families 0/1/3/4/8/11; family 5 is R2-S2 not S1).
+* **Built (`tools/graphics_editor/server.py`, mirrors r1s2_castle_usages/r1_boss_usages):** `r2_field_usages()`
+  (R2-S1, 64 usages/8 objects — 6 browsable field bases + 2 honest incomplete comp2 specials) + `r2_boss_usages()`
+  (R2-S3, body $061D PROVEN composite, aux $0275 PARTIAL). New `_r2_field_frames()` ranks for a **coherent
+  single-enemy** preview (tight bbox + rich tiles over comp 0/1, real anim range) instead of the busiest frame;
+  each base renders its own tiles (base-faithful). The two dynamic-captured frames are guaranteed present +
+  labeled. **R2 boss palette is PENDING** (R1 used ROM-proven `0x4708C`/Cody 0095; R2 fade not independently
+  proven) → not authorable, no invented colors. Wired into `build_usages()`.
+* **Coverage:** `scene_sprite_coverage.py` now reads the signature map and reports R2-S1/R2-S3 as new status
+  **`ROSTER_CAPTURED`** (frames provisional, boss palette PENDING), clearing their PENDING/substitution banner.
+* **Verify:** NEW `tools/graphics_editor/verify_r2_rosters.py` **12/12 PASS**; `verify_scene_automap` (44),
+  `verify_r1s2_castle_browser` (15), `verify_independent_scopes` (9), `verify_per_piece_palette` (6) PASS;
+  `node --check app.js` OK. Pre-existing, NOT this task: `verify_palette_families` + `verify_subround_palette_coverage`
+  check 7 both key off prior-session-modified palette files (`Test_2_0.json` / `pc090oj_palsel_lut.inc` /
+  `palette_decisions.json`) never touched here.
+* **Scaffolding: NONE.** Durable tool code only (2 roster producers + 1 frame picker + coverage status + committed
+  verify). No ROM/build number/Z80/68000 ASM/capture/palette-registry change; arcade captures read-only; palette
+  colors stay Tighe-authored. Design note: `docs/design/Andy_r2_object_rosters.md`.
+
+## [PROMPT-0106 — Andy — Audio Composer: FM6 reserved for SFX only on the four gameplay tracks]
+
+* **Tighe directive:** re-authored **07 - Scene Clear** and disliked the channel assignment. Only the gameplay
+  tracks need an FM channel kept free for sound effects — **03 Aggressive World, 05 Re-In-Carnation, 06 Scene-3
+  Boss, 08 Final Boss**. Every other track (01/02/04/07/09) may use **FM6** as a 6th FM music voice.
+* **One policy, one source of truth** (not a per-track patch): `SFX_RESERVED_TRACK_NUMBERS={"03","05","06","08"}`
+  keyed by track **number** (rename-proof) → `fm6_reserved_for()` (unknown track ⇒ reserved, fail-safe) →
+  `music_destinations_for()`.
+* `tools/audio_composer/server.py`: new FM6 constants/helpers; `validate_routing(...,track_id=)` makes FM6
+  legality + FM budget (5 on gameplay, 6 elsewhere) per-track, keeps DAC path always non-music, splits
+  overlap-dict from song-identity; save + render endpoints enforce per-track; inventory/default_profile/backfill/
+  save emit `fm6_reserved`/`fm6_role`/per-track `music_destinations`; `_s` now sends `Cache-Control: no-store`.
+* `tools/audio/render_genesis_vgm.py`: FM6 is a real 6th FM voice (`FM_TARGET`+`YM_CH_PORT[6]=(1,2)`+
+  `YM_KEYSEL[6]=6`); FM4–6 already on YM2612 port 1, DAC globally off → FM6 plays as an ordinary FM channel.
+* `tools/audio_composer/app.js`: `fm6Reserved()/destChoices()/slotList()` driven by `TRACK.fm6_reserved`; FM6 in
+  the dropdown + its own slot only on non-gameplay tracks; gameplay tracks keep a read-only "FM6 — reserved for
+  SFX" slot.
+* **Verified:** policy correct for all 9 tracks + None/garbage; validator cases (03→`reserved_fm6_sfx`, 07 clean,
+  6-FM on 07 clean, 6-FM on 06 → budget+reserved, DAC always rejected); renderer emits FM6 (`fm_targets=[6]`,
+  key-on `0x28 0xF6`); `verify_audio_composer.py` **40/40**; `node --check` OK.
+* **Scaffolding:** none — durable tool code only; no ROM/build/Z80/68000/capture/palette-registry change; arcade
+  captures read-only; audition still the provisional YM2151→YM2612/PSG translation (now incl. FM6). Design note:
+  `docs/design/Andy_audio_fm6_per_track_sfx_reservation.md`.
+
+## [PROMPT-0101b — Andy — R1-S2 traps CORRECTION: flame & water are REAL Layer-A tiles, not palette-only]
+
+* **Tighe review caught the defect:** the first PROMPT-0101 pass shipped Pit Flame / Falling Water as
+  **palette-only** objects (swatch strips, no pixels). Wrong — a palette cycle animates fixed tiles that must
+  be included. Fixed by decoding the real PC080SN Layer-A tiles from the arcade character ROM.
+* **Proven from arcade data (no tracing):** background tilemap path `0x562CA[round]` → `0x563A6` → PC080SN name
+  table (`rastan_scene_map.c`); castle Layer-A corpus + `build/regions/pc080sn.bin`.
+  * **Pit Flame = Layer-A tiles `$093A-$0949` (4×4 unit), bank `0x014`, rows 28-31, rec 18** — decoded +
+    rendered = orange/yellow flames; bank `0x014` = the mode-8 fire CRAM line `0x14`. NOT a sprite (PC090OJ base
+    `$0224` is a separate R2/R4 marker actor, retired in R1-S2).
+  * **Falling Water = Layer-A tiles bank `0x01F`** (pool `$24BB-$24C2` + falling column `$24C3-$24CA`), rows
+    52-63, rec 20 — teal/cyan, decoded + rendered. **Water is Layer A, not a sprite** (lines `0x1A-0x1D` are not
+    in the Layer-A bank set; bank `0x01F` is). Palette mode 8/9 (`0x59AD4`, tables `$59B1A`/`$59B7A`) cycles the
+    fixed tiles' colours.
+  * **Trap-door / crusher** = the chained descending block = **Ceiling Spike / Crusher** (`$09EA` anim `0xD8`).
+    No separate sprite "top row" for the fire pit (rec 18 has tiles only at rows 28-31); the one R1-S2 marker
+    sprite ('M' burst `0x43ECC`, anim `0x7A`) is a coordinate-only 5-child burst with no static base.
+* `server.py`: added `_layera_trap_tiles`, `render_layera_block`, `layera_block_hitmap`; `hazard_trap_usages()`
+  flame/water now carry `plane_tiles`+`bank_palette`+`layera_tiles`+`composite_proven`; `/api/render` +
+  `/api/hitmap` render the tile unit. Removed the dead palette-only helpers. `app.js`: `plane_tiles` objects
+  flow through the normal TRUE-ARCADE-COMPOSITE + GENESIS-TARGET + pixel-pick path (swatch-strip branch removed).
+* Verified: `verify_0091_handoff` 25 PASS (HZ1 now asserts real `plane_tiles`), `verify_0092` 28 PASS,
+  `verify_0098` 39 PASS, `verify_r1s2_castle_browser` 15 PASS; HTTP smoke-test of `/api/render`+`/api/hitmap` for
+  both tile traps. **`Test.json` byte-unchanged** (tool surface only). No scaffolding. Bestiary regenerated.
+
+## [PROMPT-0101 — Andy — R1-S2 traps: proven sources, fully authorable (no placeholders)]
+
+* Replaced the disabled "SOURCE SUBSET PENDING" R1-S2 hazard placeholders with **four authorable,
+  palette-mappable trap objects**, each authored against a PROVEN arcade source:
+  * **Floor Spike** / **Ceiling / Suspended Spike** — PC090OJ graphics base `$09EA` (spike/spear/stalagmite
+    family, Tighe HUMAN IDENTITY), two distinct compositor forms (`0x79` / `0xD8`) on different arcade palette
+    lines; real composites via the compositor VM + R5 per-round palette.
+  * **Pit Flame** — palette animation **mode 8** (`0x59962` → loader `0x59AD4`, table `$59B1A`, R1 CRAM line
+    `0x14`), 14 proven warm colours.
+  * **Falling Water** — palette animation **mode 9** (`0x599B2` → `0x59AD4`×4, table `$59B7A`, indices 14-15,
+    R1 CRAM lines `0x1A-0x1D`), proven blue/cyan shimmer. Colour tables are stage-independent.
+* `server.py`: removed `r1s2_hazard_candidates()`; added `hazard_trap_usages()` +
+  `_anim_pal_distinct_colors` / `_palette_anim_used_colors`. `app.js`: `renderPreviews()` renders palette-only
+  traps as ARCADE/GENESIS swatch strips (Derive/map already run off `used_colors`).
+* Verified: `verify_0091_handoff` 25 PASS (HZ1 rewritten), `verify_0092_bestiary_artifact` 28 PASS,
+  `verify_0098` 39 PASS, `verify_r1s2_castle_browser` 15 PASS. **`Test.json` byte-unchanged** (tool surface
+  only; no production ROM/CRAM/registry/build-counter mutated). No scaffolding added.
+* Bestiary updated (`build_bestiary.py` R1-S2 hazard block → PROMPT-0101 proven classification), regenerated
+  (consistency PASS), republished to canonical artifact `67b741cb`.
+* Design note: `docs/design/Andy_r1s2_traps_proven_authorable.md`.
+
 ## [AUDIO-010 — Cody — Independent regression verification of AUDIO-009]
 
 * **AUDIO-010 verdict: AUDIO-009 REJECTED.** The reported Audio Composer suite independently passes
@@ -3470,6 +3570,45 @@ Build 91 status: **Ready for testing**.
 - Final PC: 0x20A30A
 - Stack Pointer (SP): 0xE0FFFEAC
 - Unique Unmapped Memory Addresses: none
+
+---
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0101 Result
+
+`TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0101`
+
+- Resumed historical/consumed PROMT-ID-0100 from a clean worktree at HEAD `1b422b49`, counter 539;
+  no partial 0100 files existed. Current Test.json SHA is `23e95837...9a27c2b` and was not changed.
+- Independently re-derived ROM `$4708C-$470A9`; `$46F84` state 7 matches PROMT-ID-0095 raw live
+  `$4F` words 16/16 using full brightness. No half-bright decode and no nearest-neighbor target.
+- Stage 22 now consumes its authored R1-S3 Plane-A/CRAM asset. Production Line 1 equals Tighe's
+  exact `0000 0066 06AA 0EEE 0CA6 0A60 0600 04EE 024A 0008 0466 0646 0004 08A8 0046 0000`.
+  Plane A uses Line 3, Plane B remains protected Line 2, Rastan remains Line 0, and Line 0/index 0
+  is black.
+- Added the proven `$4F -> Genesis Line 1` route: one shared line for the type-`0E` boss and
+  type-`0F` Flying Daggers; no second dagger line. Added canonical registry decision
+  `PAL-R1-S3-BOSS-DAGGER-LINE1-001`.
+- Proper shift replacement at arcade `$47004` removes the CLCS-specific tail below the semantic
+  boundary. Native helper reads retained A5+`$26E/$270`; retained actor `+$09` still owns the
+  eight-update cadence and step-7 dagger activation. Offline table states 0-6 use the arcade LUT
+  then `f>>1`; state 7 is the exact authored endpoint. No runtime RGB conversion or palette-RAM
+  emulation.
+- Build 0540 passes canonical/gameplay/epoch/variant gates and USA/NTSC `genesis` MAME. Boss trace
+  sees states change at frames 563/571/579/587/595/603/611, five daggers at state 7, exact final
+  CRAM, red/gold boss, and visible dagger. Hardware test remains authoritative.
+- Primary ROM `rastan_direct_video_test_build_0540.bin`, SHA
+  `d579c026e4be66466e909f2e91f437470a50d5e89ef1ccf9e661ab5dd4008b87`; direct boss
+  `_S1-3`, SHA `fbd7c18d642ffdee6411b873148678c4a62c05f891ce389b2e5351ddc4cc42b6`;
+  invincible, SHA `69e364a269cdacd125991f1287eef9b1165f27267eb745c63d5ef27153fe1afe`.
+- Commits: source `930cb77d`; coverage `ee4e3c97`; Build 540 `9c777488`; documentation hash is
+  reported in the final response. No push. Composer, Bestiary, Green Sword Knight tooling,
+  Test.json, and audio unchanged.
+- Report:
+  `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0101_r1_boss_genesis_palette_fade_resume.md`.
+
+`REAL-HARDWARE ACCEPTANCE: PENDING TIGHE`
+
+`TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0101`
 
 ### MAME Exit Summary (2026-03-18 17:43:14)
 - Final PC: 0x20973C
@@ -55437,6 +55576,53 @@ CRAM/push; Test.json SHA e03dd2aa…d2d6b730 unchanged.
     show. (2) Derive button label was stale on line change — added renderSource() on active-line change
     (LINE label + swatch onclick, objects tab) so it tracks the selected line. node --check app.js passes.
 
+### MAME Exit Summary (2026-11-06 16:00:14)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-11-06 16:12:37)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-11-06 16:16:20)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## 2026-11-06 — Test 2.0 global Line-0 / Full Body 00 reorganization (Cody)
+
+- Created `analysis/graphics_optimizer/editor_policy/Test_2_0.json` as a separate
+  revision-1 child of `Test`; source Test SHA
+  `ab13104780289fc1f7455a4f2ab94502ef3d6ba6757fe4d147d71e97ad7ec98e`
+  remained unchanged during the operation. Test 2.0 SHA:
+  `044c5dab39a46e041a7200d789a937b2f6054fb0d2e9b22aa14dbc4cb6197cbc`.
+- Rebuilt Line 0 from Full Body 00's 15 arcade colors using the Composer's
+  Genesis quantization and deterministic HSL order; updated the Rastan body map
+  directly. Translated 13 other Line-0 object maps by old Test target color to
+  closest new color (CIEDE2000), preserving target-index-0 transparency.
+- Removed the three saved context-local Line-0 color overlays so one Line 0 is
+  shared across R1-S1/R1-S2/R1-S3. Lines 1/2/3 are unchanged. Flying Demon is
+  unchanged because it is fully mapped to Line 1. The editor's stage-specific
+  override capability remains intact; only the overrides saved in Test 2.0 were
+  cleared.
+- Validation: Test CRAM generation PASS; PC090OJ reindex generation PASS; palette
+  selector LUT verification PASS (512 LUT combinations and 16,777,216 SAT word-2
+  cases, zero mismatches). No ROM produced; no canonical palette decision changed.
+- Report:
+  `docs/design/Cody_Test_2_0_global_line0_full_body_palette_reorganization.md`.
+
+### MAME Exit Summary (2026-11-06 21:02:07)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-11-06 21:04:21)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
 ---
 
 ## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0102 Result (Cody)
@@ -55462,6 +55648,16 @@ CRAM/push; Test.json SHA e03dd2aa…d2d6b730 unchanged.
   Line 2 remains protected and Line0/index0 remains black. No hazard production palette, audio,
   Composer, Bestiary, Green Sword Knight tooling, or Andy hazard-tool change by Cody. No push.
 - Commits: `ba176405`, `9b5617dd`, `c62e66a5`; documentation commit reported in final response.
+- Report:
+  `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0102_r1_boss_genesis_palette_fade_resume_after_hazard_tooling.md`.
+- `REAL-HARDWARE ACCEPTANCE: PENDING TIGHE`
+
+`TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0102`
+
+### MAME Exit Summary (2026-11-07 01:45:39)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
 
 ---
 
@@ -55494,3 +55690,166 @@ CRAM/push; Test.json SHA e03dd2aa…d2d6b730 unchanged.
 - `REAL-HARDWARE ACCEPTANCE: PENDING TIGHE`
 
 `TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0105`
+
+### MAME Exit Summary (2026-11-07 14:40:00)
+- Final PC: 0x3CC254
+- Stack Pointer (SP): 0x00FFF000
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-11-07 14:42:41)
+- Final PC: 0x3CC254
+- Stack Pointer (SP): 0x00FFF000
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-11-07 14:45:58)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-11-07 17:22:26)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-11-07 17:32:03)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-11-07 17:43:02)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-11-08 11:35:41)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-11-08 11:45:08)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-11-08 11:49:09)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## [TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0110 — Andy — R2 arcade palettes (static) + R2-S3 Composer mapping fix]
+
+* **Part A (palette provenance, static route 1 — no live capture):** Found the per-round Plane-A palette
+  **base pointer table at `0x59C9A`** (loader `FUN_00059c54`, index `(round-1)*4`): r1→`0x4EAF6` (== fixed
+  startup base, why R1 matched), r2→`0x4EEF8`, r3→`0x4F15A`, r4→`0x4F51C`, r5→`0x4F85E`, r6→`0x4FA80`. Loaded
+  into fade buffer `0x10D600`, faded by `FUN_00045d7c` into visible palette RAM `0x200000`. The corpus
+  generator hardcoded `0x4EAF6` for every round → R2 showed R1 colors (teal foliage; R2-S3 bank 2 `@0x4EB36`
+  all-zero → black). The pool `0x4FD02`/index `0x3BA88`/`a5+0x1600` path is the per-round SPRITE palette (red
+  herring; it did not match the proven R1 background).
+* **Fix:** `gen_subround_layera_corpus.py` new `_per_round_palette_base()` reads `0x59C9A`; banks = `base+bank*32`
+  (round from `palette_subround_map`). Regenerated R2 corpus matches arcade (green foliage, maroon trunk, brown
+  ground; R2-S3 bank 2 real). R1 color values byte-identical (round-1 base is `0x4EAF6`); only `source` labels
+  changed. Record-23 render now matches the MAME screenshot.
+* **Part B (R2-S3 Composer mapping bug):** Root cause = `afterChange()` re-rendered Target/Source but not the
+  active detail, so Genesis-color edits updated only the Target swatches, not the mapped tile preview / mapping
+  chips (black compounded by the Part-A palette bug). Fix: `afterChange()` → new `refreshDetail()` re-renders
+  the Layer-A detail (or seg-map) and the sprite map-table/preview. Scope/serialization were already correct.
+* **Verify:** NEW `verify_r2_arcade_palette.py` 12/12 (pointer chain, R2 green/not-teal, R2-S3 not black, corpus
+  == per-round ROM, R1 preserved, generator sources the table); NEW `verify_r2s3_mapping.js` 9/9 (headless DOM
+  shim, TEMPORARY fixture — Test/Test_2_0 untouched: afterChange re-renders detail, effCramAt/laGenPal reflect a
+  scoped edit, arcade source bank-addressed/independent, serialize+reload preserves scoped mapping). Preserved:
+  `verify_r2_rosters.py` 12/12. `node --check app.js` OK.
+* **Pre-existing/unrelated (NOT this task):** verify_palette_families (LUT SHA vs prior-session `Test_2_0.json`/
+  `pc090oj_palsel_lut.inc`) and verify_subround_palette_coverage check 7 (`palette_decisions.json` migration
+  backup) — those files were not touched here.
+* **Safety:** no production ASM/ROM/Z80/build-counter change; no authored Genesis palette or `palette_decisions`
+  change; R2 object rosters preserved; explicit staging; no GitHub push. Design:
+  `docs/design/Andy_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0110_r2_arcade_palettes_and_r2s3_mapping.md`.
+
+### MAME Exit Summary (2026-11-08 19:28:53)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-11-08 19:31:07)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0111 — Cody — Stage Clear text palette
+
+- Source proof: retained Stage Clear text selects physical palette bank 0
+  (`$0561F4`, D1=0); the large figure selects bank 5 (`$056352`, D2=5).
+  Continue shares the bank-5 figure palette only, not the Stage Clear text palette.
+- Fix: Stage Clear scene ownership restores converted arcade bank 0 (`$04EAF6`)
+  to Genesis Line 0 and prevents unused physical bank 4 from overwriting it.
+  Line 1 figure colors and all Stage Clear descriptors remain unchanged.
+- Added proven decision `PAL-FRONTEND-STAGECLEAR-TEXT-BANK0-001` and a focused
+  deterministic semantic gate.
+- Build 0556 canonical/family gates and natural Round-1 completion capture passed
+  through Stage Clear states 9–13, command `$27`, READY, and Round 2. Stage Clear
+  and READY Plane A/B snapshots are byte-identical to Build 0554.
+- Build 0556 normal SHA-256:
+  `69b6274feba521c458f19f088a67a6493311b998877466e249c757eb3502e8e3`.
+- Report:
+  `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0111_stage_clear_text_palette.md`.
+- No torch, Round-2, score, Continue, palette-authoring, or editor changes. No push.
+- BLASTEM / REAL-HARDWARE ACCEPTANCE: PENDING TIGHE
+
+`TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0111`
+
+### PROMT-ID-0111 delivery correction — Build 0557
+
+- Build 0556 is rejected: the delivery omitted the requested R1S2, R1S3, R2S1,
+  R2S2, and R2S3 direct-start ROMs, and Test 2.0's production Rastan mapping
+  still used legacy pixel permutations against its reorganized Line 0.
+- Commit `17f5b131` applies the authored bank-$33 permutation to
+  `object:player.rastan` and all three exposed Rastan frame usages. The focused
+  gate now rejects empty or divergent player mappings; generated verification
+  covers all 344 native Rastan codes with zero mismatches.
+- Build 0557 passed canonical, gameplay-entry, epoch, mandatory USA/NTSC MAME,
+  complete standard-family, and natural Round-1 completion gates. The Stage
+  Clear palette fix, command `$27`, READY, and Round 2 remain intact.
+- Produced and selector-verified `_S1-2`, `_S1-3`, `_S2-1`, `_S2-2`, and
+  `_S2-3` derivatives from canonical Build 0557.
+- Normal SHA-256:
+  `77e3a0371568fe6a8cc85c136a4dbfda1d37b02cc143df80fa9fcda05edbf301`.
+- BLASTEM / REAL-HARDWARE ACCEPTANCE: PENDING TIGHE
+
+`TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0111`
+
+### MAME Exit Summary (2026-11-08 20:55:40)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+---
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0112 — Rastan gameplay palette repair (Build 0560)
+
+**Andy, 2026-11-08.** Root cause of the broken gameplay Rastan colors: production built every palette/sprite
+asset from the stale **`Test`** profile (`EDITOR_PALETTE_PROFILE_ID ?= Test` in `apps/rastan-direct/Makefile`),
+while Tighe had moved authoring to **Test 2.0** (`Test_2_0.json`), where **Line 0 is Rastan's palette, authored
+consistent across all rounds/subrounds**. The Composer showed Test 2.0 (correct); the ROM consumed Test
+(stale). Fix = one line: `EDITOR_PALETTE_PROFILE_ID ?= Test_2_0`, plus forcing regeneration of mtime-gated
+profile-derived artifacts (`pc090oj_palsel_lut.inc`, `test_palette_*` CRAM) that did not rebuild on the ID
+change (`PALETTE_FAMILY_VERIFY_PASS` after). Cody's 0557 `Test_2_0.json` pixel-index edit (wrong fix, wrong
+file) was already reverted in the tree (§3) and left untouched. My interim 0558 (identity) and 0559 (Test.json
+key-align) were wrong because the whole profile — not one mapping — drives the assets; those `Test.json` edits
+were reverted (Test.json now unused by production, content = Cody's concurrent values preserved).
+
+Evidence (offline, pre-MAME-break Genesis captures via new `genesis_player_palette_probe.lua`, symbols resolved
+dynamically — legacy `0xFF60E4`/`0xFFB26C` were stale, confirming §5): 0554 good; 0556 = good pixels + scrambled
+Line-0 palette; 0557 = good Line-0 palette + Cody-permuted pixels; SAT selects Line 0 (correct); staged CRAM ==
+actual CRAM (publication correct). The defect was upstream at **asset generation (wrong profile)**, not a runtime
+writer/SAT-line bug. Build **0560** (Test 2.0): player tiles 27/27 byte-identical to 0554, Line 0 == 0554 except
+idx 4 (`0CCC`, intentional Test 2.0 value). Tighe visually confirmed 0560 Rastan correct.
+
+Blast radius (intended per Tighe): R1 enemy/object + HUD palettes also move to Test 2.0 authored values. Stage
+Clear (PROMT-ID-0111) preserved (`palette_hooks.s`/`scene_load.s`/`context_policies` untouched;
+`verify_round1_completion_semantics` PASS). §15 ROMs (0560 normal/invincible/S1-2/S1-3) built + offline-verified;
+R1-S2/S3 direct via `build_subround_variant.py`. MAME wedged in this sandbox (hangs at init, ignores SIGTERM) so
+`entry`/`epoch` gates were killed (labels, ROM numbered+preserved per CLAUDE.md) and runtime §16 gate deferred;
+runs fine in Cody's env. New tooling: `genesis_player_palette_probe.lua`, `run_genesis_player_palette_probe.sh`,
+`verify_player_palette_runtime.py`. Doc:
+`docs/design/Andy_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0112_rastan_runtime_palette_repair.md`.
+BlastEm/hardware acceptance pending Tighe.

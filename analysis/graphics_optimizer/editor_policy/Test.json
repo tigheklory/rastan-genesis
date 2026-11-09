@@ -264,95 +264,19 @@
    },
    "solver": "delta_e_fixed_layera_ground_entries_1_5"
   },
-  "object:player.rastan": {
+  "object:weapon.sword": {
    "line": 0,
    "index_map": {
     "1": 1,
     "2": 2,
-    "3": 3,
-    "4": 4,
-    "5": 5,
-    "6": 6,
-    "7": 7,
-    "8": 8,
-    "9": 9,
-    "10": 10,
-    "11": 11,
     "12": 12,
-    "13": 13,
-    "14": 14,
-    "15": 15
-   }
-  },
-  "object:weapon.sword": {
-   "line": 0,
-   "index_map": {
-    "1": 7,
-    "2": 8,
-    "12": 4,
-    "13": 5
-   }
-  },
-  "object:weapon.axe": {
-   "line": 0,
-   "index_map": {
-    "1": 7,
-    "2": 8,
-    "6": 11,
-    "10": 13,
-    "11": 14,
-    "12": 0,
-    "13": 5,
-    "15": 3
-   }
-  },
-  "object:weapon.hammer": {
-   "line": 0,
-   "index_map": {
-    "1": 7,
-    "2": 8,
-    "6": 2,
-    "12": 9,
-    "13": 5,
-    "15": 6
-   }
-  },
-  "object:weapon.fire_sword": {
-   "line": 0,
-   "index_map": {
-    "2": 8,
-    "8": 12,
-    "9": 1,
-    "12": 0,
-    "13": 5
-   }
-  },
-  "usage:burst:bank0x30": {
-   "line": 0,
-   "index_map": {
-    "2": 11,
-    "3": 1,
-    "9": 6
-   }
-  },
-  "object:hud.p1_label": {
-   "line": 0,
-   "index_map": {
-    "5": 12,
-    "7": 8
+    "13": 13
    }
   },
   "object:hud.score_digits": {
    "line": 0,
    "index_map": {
-    "7": 8
-   }
-  },
-  "object:attract.game_over": {
-   "line": 0,
-   "index_map": {
-    "1": 7,
-    "7": 8
+    "7": 2
    }
   },
   "usage:small_bat:bank0x3E": {
@@ -498,6 +422,82 @@
     "10": 10,
     "11": 11,
     "13": 13
+   }
+  },
+  "object:weapon.axe": {
+   "line": 0,
+   "index_map": {
+    "1": 1,
+    "2": 2,
+    "6": 6,
+    "10": 10,
+    "11": 14,
+    "12": 12,
+    "13": 13,
+    "15": 15
+   }
+  },
+  "object:weapon.hammer": {
+   "line": 0,
+   "index_map": {
+    "1": 1,
+    "2": 2,
+    "6": 6,
+    "12": 12,
+    "13": 13,
+    "15": 15
+   }
+  },
+  "object:weapon.fire_sword": {
+   "line": 0,
+   "index_map": {
+    "2": 2,
+    "8": 8,
+    "9": 9,
+    "12": 12,
+    "13": 13
+   }
+  },
+  "usage:burst:bank0x30": {
+   "line": 3,
+   "index_map": {
+    "2": 3,
+    "3": 4,
+    "9": 9
+   }
+  },
+  "object:attract.game_over": {
+   "line": 0,
+   "index_map": {
+    "1": 1,
+    "7": 2
+   }
+  },
+  "object:hud.p1_label": {
+   "line": 0,
+   "index_map": {
+    "5": 8,
+    "7": 2
+   }
+  },
+  "object:player.rastan": {
+   "line": 0,
+   "index_map": {
+    "1": 7,
+    "2": 8,
+    "3": 9,
+    "4": 10,
+    "5": 4,
+    "6": 11,
+    "7": 6,
+    "8": 12,
+    "9": 1,
+    "10": 13,
+    "11": 14,
+    "12": 0,
+    "13": 5,
+    "14": 15,
+    "15": 3
    }
   }
  },
@@ -24120,7 +24120,7 @@
    "tpl": {
     "0": {
      "1": "0x0000",
-     "2": "0x0CCC",
+     "2": "0x0EEE",
      "3": "0x08AE",
      "4": "0x044A",
      "5": "0x0246",

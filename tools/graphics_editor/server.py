@@ -1364,48 +1364,363 @@ def r1_boss_usages():
     return out
 
 
-# PROMPT-ID-0091 (Cody PROMPT-ID-0090 §R1-S2 Trap/Hazard Audit): the visible R1-S2 hazards are PLANE-A (or
-# mixed tile/palette-animation) graphics whose exact source (tile,bank,flip) subset is PENDING. They are NOT
-# the PC090OJ actor bases $0224 (pit flame = R2/R4) or $09EA (spike/spear/stalagmite = R5). Each is shown as
-# a disabled candidate ("SOURCE SUBSET PENDING") so it can never be authored against fabricated source codes.
-_R1S2_HAZARD_CANDIDATES = [
-    ("floor_spikes", "Floor Spikes", "Plane A", "Static/animated floor spike tiles; not R1 $09EA."),
-    ("moving_spiked_trap", "Suspended / Moving Spike Trap", "Plane A / mixed",
-     "Separate object; never merge with floor spikes."),
-    ("moving_wood_gate", "Moving Wooden Gate", "Plane A / mixed",
-     "Not automatically the collision-$7E exit; separate gate art."),
-    ("falling_water", "Falling Water", "Plane A + palette animation (PARTIAL)",
-     "Likely tile + palette animation; not proven the R1-S1 $59AD4 mechanism."),
-    ("pit_flame_animation", "Pit Flame Animation", "Plane A / palette animation",
-     "NOT base $0224 ($0224 = R2/R4). Separate from static lava."),
-    ("static_lava", "Static Lava / Pit Field", "Plane A scene map",
-     "Scene-environment group; raw Layer-A tiles exist, semantic subset pending."),
-    ("rope_chain_terrain", "Rope / Chain Terrain", "Plane A + collision",
-     "Map/collision traversal; player-state owner, not a sprite."),
-]
-def r1s2_hazard_candidates():
-    """PROMPT-ID-0091: disabled R1-S2 Plane-A hazard candidate groups (SOURCE SUBSET PENDING). Human name +
-    round/sub-round + hardware class + what-is-known only; NO pieces, NO source codes, NOT authorable."""
+# ===== ROUND 2 scene-tagged rosters (same method as the Round-1 castle/boss rosters) ======================
+# Membership is anchored to PROVEN evidence, NOT fabricated:
+#   * analysis/enemy_sprite_lexicon/dynamic_signature_map.json -> the captured (round|subround|slot|base|anim)
+#     signatures (round2_phase1 / round2_boss). This is the authoritative dynamic capture already in the repo.
+#   * field schedule table 0x4A104 (installer 0x4A086), block=(0x13E-round)>>1, decoded by
+#     tools/analysis/decode_field_schedule.py, cross-checked against the family base tables 0x45502 (var0) /
+#     0x45562 (varN). The R2-S1 OUTDOOR band (0x13E 0x18..0x27) schedules families 0/1/3/4/8/11; the castle
+#     band (0x28..0x2d) schedules family 2 (knight, covered by green_knight_usages) + family 5 -> NOT S1.
+# Frames are rendered by the SAME compositor VM (0x3D054) the Bestiary and the R1 castle/boss browsers use;
+# each base renders its OWN tiles (0x004B->~$4D, 0x0420->~$422, 0x0400->~$402 ...), so the frames are
+# base-faithful. Labels are provisional source-derived; nothing is authored and no art is fabricated.
+_R2_FRAMES_CACHE = {}
+def _r2_field_frames(base, captured=None):
+    """Distinct compositor frames for an R2 field base, ranked for a COHERENT single-enemy preview (tight
+    bounding box + rich tile count) rather than the busiest multi-instance frame. Unlike _castle_frames this
+    enumerates compositors 0 and 1 over the real animation range and prefers the dynamically-captured
+    (comp, anim) when known. Returns (ranked list of (comp, anim, pcs, is_captured), distinct_count)."""
+    key = (base, captured)
+    if key in _R2_FRAMES_CACHE:
+        return _R2_FRAMES_CACHE[key]
+    distinct = {}
+    for comp in (0, 1):
+        for anim in range(0x80):                     # real animation range (high indices wrap/garble)
+            pcs = _comp_pieces(base, anim, comp, minp=2)
+            if not pcs:
+                continue
+            sig = tuple((p["code"], p["x"], p["y"], p["fx"], p["fy"], p["palette"]) for p in pcs)
+            if sig not in distinct:
+                distinct[sig] = (comp, anim, pcs)
+    def _rank(item):
+        comp, anim, pcs = item
+        xs = [p["x"] for p in pcs]; ys = [p["y"] for p in pcs]
+        w = max(xs) - min(xs) + 16; h = max(ys) - min(ys) + 16
+        tight = 0 if (w <= 48 and h <= 48) else (1 if (w <= 80 and h <= 80) else 2)
+        cap = 0 if (captured and comp == captured[0] and anim == captured[1]) else 1
+        return (tight, cap, -len(pcs), anim)
+    ranked = [(c, a, p, bool(captured and c == captured[0] and a == captured[1]))
+              for (c, a, p) in sorted(distinct.values(), key=_rank)]
+    _R2_FRAMES_CACHE[key] = (ranked, len(distinct))
+    return _R2_FRAMES_CACHE[key]
+
+
+_R2_FIELD_USAGES_CACHE = None
+def r2_field_usages():
+    """R2-S1 OUTDOOR field roster (mirrors r1s2_castle_usages): one browsable multi-frame object per PROVEN
+    R2-S1 scheduled/captured actor base, scene-tagged PAL-R2-S1-PLANEA-OUTDOOR with the Round-2 per-round
+    palette. Compositor-2 specials that do not statically decode are kept as honest INCOMPLETE nodes."""
+    global _R2_FIELD_USAGES_CACHE
+    if _R2_FIELD_USAGES_CACHE is not None:
+        return _R2_FIELD_USAGES_CACHE
+    SCENE = "PAL-R2-S1-PLANEA-OUTDOOR"
+    MAXF = 10
+    # (base, family, captured, note) — families from the R2-S1 schedule band. `captured` is the dynamic
+    # signature map's (compositor, anim) when round2_phase1 recorded this base, else None (schedule-only).
+    BASES = [
+        (0x004B, 0, (0, 0x00), "family 0 base $004B; DYNAMIC CAPTURE round2_phase1 actor_2c8 comp0 anim $00; "
+                               "field schedule 0x4A104 (R2-S1 band, blocks 11-18)"),
+        (0x00D0, 1, None, "family 1 base $00D0; field schedule 0x4A104 (R2-S1 band, blocks 14-16). No R2 dynamic "
+                          "anim captured — representative frames via the compositor VM, provisional."),
+        (0x02E8, 3, None, "family 3 base $02E8; field schedule 0x4A104 (R2-S1 band, blocks 12-18). Representative "
+                          "frames via the compositor VM — provisional."),
+        (0x0420, 4, None, "family 4 base $0420 (introduced in Round 2); field schedule 0x4A104 (R2-S1 band, "
+                          "blocks 13/17). Representative frames via the compositor VM — provisional."),
+        (0x0241, 8, None, "family 8 base $0241 (the rope-climber family base, also R1-S2); field schedule "
+                          "0x4A104 (R2-S1 band, blocks 14/16). Representative frames via the compositor VM — "
+                          "provisional."),
+        (0x0400, 11, (1, 0x01), "family 11 base $0400 (introduced in Round 2); DYNAMIC CAPTURE round2_phase1 "
+                                "actor_2c8 comp1 anim $01; field schedule 0x4A104 (R2-S1 band, blocks 11-17)"),
+    ]
     out = []
-    for order, (key, name, hw, note) in enumerate(_R1S2_HAZARD_CANDIDATES):
-        obj = "object:hazard.r1s2.%s" % key
+    for base, fam, captured, note in BASES:
+        frames, total = _r2_field_frames(base, captured)
+        obj_id = "object:r2field.base_0x%04X" % base
+        name = "R2-S1 field actor · base $%04X (family %d)" % (base, fam)
+        shown = list(frames[:MAXF])
+        # Guarantee the PROVEN dynamically-captured frame is always browsable (even if the coherence
+        # ranking placed it beyond MAXF), so the capture provenance is never dropped from the UI.
+        if captured and not any(f[3] for f in shown):
+            cap_frame = next((f for f in frames if f[3]), None)
+            if cap_frame is not None:
+                shown.append(cap_frame)
+        for order, (comp, anim, pcs, is_cap) in enumerate(shown):
+            nibs = sorted({p["palette"] for p in pcs})
+            xs = [p["x"] for p in pcs]; ys = [p["y"] for p in pcs]
+            out.append({
+                "usage_id": "usage:r2field_0x%04X:c%d_anim0x%02X" % (base, comp, anim),
+                "object_id": obj_id, "map_key": obj_id,
+                "frame_category": None,
+                "frame_label": ("anim 0x%02X (dynamic capture)" % anim) if is_cap else "anim 0x%02X" % anim,
+                "frame_order": order,
+                "player_counts": None, "weapon_counts": None,
+                "display_name": name, "sprite_bank": "0x%02X" % nibs[0],
+                "sprite_banks": ["0x%X" % n for n in nibs], "multi_bank": len(nibs) > 1,
+                "scene_key": SCENE, "round": 2, "subround": "R2-S1", "base": "0x%04X" % base,
+                "compositor": comp, "dynamic_captured_frame": is_cap,
+                "provisional": True, "membership": "scene", "view": "authoring",
+                "human_identity_status": ("proven" if captured else "scheduled"),
+                "human_identity_label": name,
+                "identity_note": note, "mapping_scope": "scene",
+                "confidence": ("dynamic-captured + scheduled" if captured else "scheduled (static table 0x4A104)"),
+                "pieces": pcs, "n_pieces": len(pcs),
+                "bounds": [max(xs) - min(xs) + 16, max(ys) - min(ys) + 16],
+                "composite_proven": True, "preview_type": "TRUE ARCADE COMPOSITE (provisional frame)",
+                "used_colors": _castle_used_colors(pcs, 2), "mrd_pairs": [],
+                "n_used": len({(p["palette"], v) for p in pcs for v in cell_indices(p["code"]) if v}),
+                "frames_total_distinct": total,
+            })
+    # Compositor-2 specials captured in round2_phase1 (0x0A5A / 0x0A73): the compositor-2 program is not
+    # statically decodable by the VM (0 pieces), so they are honest INCOMPLETE nodes — no fabricated art.
+    for base in (0x0A5A, 0x0A73):
         out.append({
-            "usage_id": "usage:hazard_r1s2_%s:info" % key, "object_id": obj, "map_key": obj,
-            "frame_category": "Hazards / Traps (Plane A — pending)", "frame_label": name, "frame_order": order,
+            "usage_id": "usage:r2field_0x%04X:info" % base,
+            "object_id": "object:r2field.base_0x%04X.incomplete" % base,
+            "map_key": "object:r2field.base_0x%04X.incomplete" % base,
+            "frame_category": None, "frame_label": "compositor-2 (not statically decodable)", "frame_order": 0,
             "player_counts": None, "weapon_counts": None,
-            "display_name": name, "variant_label": "R1-S2 · SOURCE SUBSET PENDING",
+            "display_name": "R2-S1 field actor · base $%04X (compositor-2)" % base,
             "sprite_bank": "0x00", "sprite_banks": [], "multi_bank": False,
-            "scene_key": "PAL-R1-S2-PLANEA-CASTLE", "round": 1, "subround": "R1-S2", "base": None,
-            "provisional": True, "incomplete": True, "hazard_pending": True,
-            "membership": "scene", "view": "authoring", "authorable": False,
-            "hardware_class": hw, "human_identity_status": "partial",
-            "human_identity_label": "%s (Tighe visual)" % name,
-            "mapping_scope": "scene", "confidence": "hardware class known · source (tile,bank,flip) subset PENDING",
-            "identity_note": ("R1-S2 hazard, %s. %s Exact source (tile,bank,flip) subset is PENDING — not "
-                              "authorable against fabricated codes. $0224=R2/R4, $09EA=R5 are excluded." % (hw, note)),
+            "scene_key": SCENE, "round": 2, "subround": "R2-S1", "base": "0x%04X" % base,
+            "provisional": True, "incomplete": True, "membership": "scene", "view": "authoring",
+            "authorable": False, "hardware_class": "PC090OJ sprite", "human_identity_status": "partial",
+            "human_identity_label": "R2-S1 compositor-2 actor (graphics pending)",
+            "mapping_scope": "scene", "confidence": "dynamic-captured membership; compositor-2 art not decodable",
+            "identity_note": ("DYNAMIC CAPTURE round2_phase1 actor_2c8 base $%04X comp2 anim $02 "
+                              "(dynamic_signature_map.json); the compositor-2 program does not statically "
+                              "decode to pieces, so no frame is fabricated." % base),
             "pieces": [], "n_pieces": 0, "bounds": [16, 16], "composite_proven": False,
-            "preview_type": "SOURCE SUBSET PENDING (Plane-A candidate)",
+            "preview_type": "INCOMPLETE — compositor-2 program not statically decodable (no composite)",
             "used_colors": [], "mrd_pairs": [], "n_used": 0,
+        })
+    _R2_FIELD_USAGES_CACHE = out
+    return out
+
+
+_R2_BOSS_USAGES_CACHE = None
+def r2_boss_usages():
+    """R2-S3 boss roster (mirrors r1_boss_usages). CORRECTED (Tighe, 2026-11-08): the R2 boss BODY is a
+    SEPARATE body at base $0753 — NOT $061D. $061D is the ROUND-1 boss body; the earlier roster used it
+    because dynamic_signature_map.json captured the SAME degenerate signature ($061D/$0275) for all six
+    rounds' bosses (it does not discriminate the per-round boss at all). The real per-round boss bodies are
+    statically PROVEN (Andy_per_round_boss_actor_map.md / manifest per_round_boss_body_map): trigger
+    0x45330->0x4449E, table 0x444E0[round-1]={0E,13,14,15,10,17} -> loader 0x4543E/table 0x45592 -> bodies
+    R1 $061D, R2 $0753, R3 $082C, R4 $07BF, R5 $0988, R6 $0B35. When the R2 boss deploys its WINGS, those
+    reuse the FLYING-DEMON wing sprites (base $0129, bank $35) with a different R2-boss palette (Tighe
+    visual ground truth) — a separate shared-sprite component, not part of the body. PALETTE IS PENDING:
+    the R2 boss fade is not independently proven (0x45684 boss branch / table 0x456EC, live-variant
+    dependent), so nothing is authorable and no colors are invented."""
+    global _R2_BOSS_USAGES_CACHE
+    if _R2_BOSS_USAGES_CACHE is not None:
+        return _R2_BOSS_USAGES_CACHE
+    SCENE = "PAL-R2-S3-PLANEA-BOSS"
+    # (object, name, base, anim, comp, idstat, note). Body = the proven R2 body base $0753 (rendered via
+    # the shared boss compositor program rebased onto the R2 tile region $07xx; per-R2-frame capture still
+    # PENDING). Wings = the shared flying-demon sprites ($0129) the R2 boss deploys, recolored.
+    SPECS = [
+        ("object:boss.r2.body", "Round 2 Boss — Body", 0x0753, 0x01, 1, "proven",
+         "PROVEN per-round boss body base $0753 (R2): trigger 0x45330->0x4449E, table 0x444E0[1]=0x13 -> "
+         "loader 0x4543E / table 0x45592 -> base $0753, comp1 @A5+0x708 (Andy_per_round_boss_actor_map.md; "
+         "manifest per_round_boss_body_map). SUPERSEDES the degenerate dynamic_signature_map.json capture "
+         "that reported $061D (the Round-1 body) for every round. Geometry shown via the shared boss "
+         "compositor program rebased to the R2 tile region ($07xx); the per-R2-frame capture and the R2 "
+         "body-update dispatch are still PENDING."),
+        ("object:boss.r2.wings", "Round 2 Boss — Wings (shared flying-demon sprites $0129)", 0x0129, 0x01, 1, "partial",
+         "The R2 boss is a SEPARATE body ($0753); when its wings deploy they reuse the FLYING-DEMON wing "
+         "sprites (base $0129, palette bank $35) with a different R2-boss palette — Tighe visual ground "
+         "truth (R2 boss screenshots). The static component-spawn link is UNRESOLVED (the R2 body "
+         "positioning state 0x42318 spawns no captured child; doc 'components PENDING'), so the wing colors "
+         "are NOT asserted and this is not authorable. Shown as the flying-demon winged composite to "
+         "identify the shared wing sprites."),
+    ]
+    out = []
+    for order, (obj, name, base, anim, comp, idstat, note) in enumerate(SPECS):
+        pcs = _comp_pieces(base, anim, comp, minp=1)
+        if not pcs:
+            continue
+        xs = [p["x"] for p in pcs]; ys = [p["y"] for p in pcs]
+        out.append({
+            "usage_id": "usage:boss_r2_%s:anim0x%02X" % (obj.split(".")[-1], anim),
+            "object_id": obj, "map_key": obj, "group_label": "Round 2 Boss",
+            "frame_category": "Round 2 Boss", "frame_label": name, "frame_order": order,
+            "player_counts": None, "weapon_counts": None,
+            "display_name": name, "variant_label": "R2-S3 · base $%04X · comp %d · anim $%02X" % (base, comp, anim),
+            "sprite_bank": "0x%02X" % (sorted({p["palette"] for p in pcs})[0]),
+            "sprite_banks": ["0x%X" % n for n in sorted({p["palette"] for p in pcs})],
+            "multi_bank": len({p["palette"] for p in pcs}) > 1,
+            "scene_key": SCENE, "round": 2, "subround": "R2-S3", "base": "0x%04X" % base,
+            "compositor": comp, "provisional": True, "membership": "scene", "view": "authoring",
+            "incomplete": (idstat == "partial"),
+            "authorable": False, "hardware_class": "PC090OJ sprite", "human_identity_status": idstat,
+            "human_identity_label": name, "mapping_scope": "scene",
+            "confidence": "composite PROVEN (dynamic capture); palette PENDING (R2 boss fade not proven)",
+            "palette_status": {"rgb_status": "PENDING — R2 boss palette not independently proven. The R2 boss "
+                               "body base is $0753 (proven) but its per-round fade is not verified here (boss "
+                               "palette via the 0x45684 branch / table 0x456EC, live-variant dependent). The "
+                               "deployed wings reuse the flying-demon sprites ($0129) recolored. No colors are "
+                               "asserted and the group is not authorable."},
+            "identity_note": note,
+            "pieces": pcs, "n_pieces": len(pcs),
+            "bounds": [max(xs) - min(xs) + 16, max(ys) - min(ys) + 16],
+            "composite_proven": True,
+            "preview_type": "R2 BOSS composite (provisional Round-2 palette — fade PENDING)",
+            "used_colors": _castle_used_colors(pcs, 2), "mrd_pairs": [], "n_used": 0,
+        })
+    _R2_BOSS_USAGES_CACHE = out
+    return out
+
+
+# ---- PROVEN TRAP/HAZARD objects (replaces the old disabled "SOURCE SUBSET PENDING" placeholders) --------
+# Every trap below is authored against a PROVEN arcade source, not a fabricated code:
+#   * Floor Spike + Ceiling/Suspended Spike -> PC090OJ graphics base $09EA (the spike/spear/stalagmite family,
+#     Tighe HUMAN IDENTITY, PROMPT-0086). The two are distinct forms of the shared animation program table
+#     (geometry selected by marker/band at runtime) that render against DIFFERENT arcade palette lines, so
+#     they are separately authorable. Rendered by the SAME compositor VM (0x3D054) the Bestiary/castle browser
+#     use; per-piece arcade palette via the proven R5 per-round instance.
+#   * Pit Flame + Falling Water -> the arcade LIQUID/FIRE palette-animation system. The scene cycler
+#     (0x59882 -> mode 8 at 0x59962 / mode 9 at 0x599B2) drives the per-line palette loader $59AD4, which
+#     converts 0RGB source rows into live CRAM. Mode 8 (table $59B1A) is the warm fire/torch cycle; mode 9
+#     (table $59B7A) is the 4-line blue/cyan water shimmer (indices 14-15). These are palette-only objects
+#     (no sprite pieces) whose authorable colours ARE the decoded ROM animation rows. The dest CRAM line is
+#     per-stage (A5+0x118): R1 flame -> line 0x14; R1 water -> lines 0x1A-0x1D. The colour tables themselves
+#     are stage-independent, so the authored palette is correct for every round the effect appears in.
+
+# NOTE: fire/water are NOT palette-only objects — their tiles are real PC080SN Layer-A graphics decoded by
+# _layera_trap_tiles() below. The mode-8/mode-9 colour tables ($59B1A/$59B7A) are the RUNTIME animation that
+# cycles those tiles' colours; authoring maps the static tile bank (0x014 fire / 0x01F water).
+
+
+# (key, name, base, representative anim, geometry note) for the two PC090OJ spike forms of base $09EA.
+_SPIKE_FORMS = [
+    ("floor_spike", "Floor Spike", 0x09EA, 0x79,
+     "Up-pointing floor-spike / spear column form of the $09EA family (compositor anim 0x79)."),
+    ("ceiling_spike", "Ceiling Spike / Crusher", 0x09EA, 0xD8,
+     "Overhead chain + spiked-head form of the $09EA family (compositor anim 0xD8) — the suspended block that "
+     "descends on its chain to crush the player (the chained 'trap-door' crusher in the R1-S2 castle)."),
+]
+
+# (key, name, bank_hex, period_cols, row_lo, row_hi, anim_mode, note) for the two Layer-A animated-tile
+# traps. These are REAL PC080SN background tiles decoded from the scene character ROM (build/regions/
+# pc080sn.bin) via the scene corpus — NOT palette-only objects. The palette ANIMATION (mode 8/9, loader
+# $59AD4) cycles the colours of these fixed tiles; the tile pixels are authored graphics.
+_LAYERA_TRAPS = [
+    ("pit_flame", "Pit Flame", "0x014", 4, 28, 31, 8,
+     "PC080SN Layer-A animated FIRE block: tiles $093A-$0949 (a 4x4 unit) at screen rows 28-31, palette bank "
+     "0x014 (warm orange->yellow->white). The TILES are fixed background graphics; the flicker is the mode-8 "
+     "palette cycle (cycler 0x59962 -> loader $59AD4, colour table $59B1A) on CRAM line 0x14. NOT a sprite "
+     "(the separate PC090OJ base $0224 pit-flame actor is an R2/R4 marker-chain actor, retired in R1-S2)."),
+    ("water_pit", "Water Pit", "0x01F", 12, 52, 63, 9,
+     "PC080SN Layer-A WATER PIT (the standing-water pool in the floor): bank 0x01F teal/cyan tiles "
+     "(pool surface $24BB-$24C2 + the submerged channel $24C3-$24CA) at rows 52-63 of record 20. The TILES are "
+     "fixed background graphics. This is the POOL, NOT the falling-water streams: the falling water is a "
+     "PC090OJ sprite animated by the mode-9 palette cycle on CRAM lines 0x1A-0x1D (table $59AA4 stage 1); its "
+     "sprite base is source-pending and is NOT authored here. Decoded from the character ROM."),
+]
+
+
+def _layera_trap_tiles(scene, bank_hex, period, row_lo, row_hi):
+    """Decode ONE repetition unit of a Layer-A animated-hazard tile block from the scene's PC080SN corpus.
+
+    Faithful to the arcade tilemap: each tile is placed from its coordinate_samples (col,row), not a guessed
+    order. gx = col % period (the block repeats every `period` cols across the screen), gy = row - row_lo.
+    Returns (tiles, bank_palette16, used_colors, bounds_px). tiles: [{code,gx,gy,fx,fy}] (8px grid)."""
+    d = _scene_corpus_dir(scene)
+    uses = loadj(os.path.join(d, "plane_a_uses.json"), []) if d else []
+    bankj = loadj(os.path.join(d, "plane_palette_banks.json"), {"banks": {}}) if d else {"banks": {}}
+    pal = [list(c) for c in bankj.get("banks", {}).get(bank_hex, {}).get("arcade_rgb8", [[0, 0, 0]] * 16)]
+    cells = {}                                             # (gx,gy) -> (tile_code, flip)
+    for u in uses:
+        if u.get("palette_bank_hex") != bank_hex:
+            continue
+        for (col, row) in u.get("coordinate_samples", []):
+            if row_lo <= row <= row_hi:
+                cells.setdefault((col % period, row - row_lo), (u["tile_code"], u.get("flip", 0)))
+    tiles = [{"code": code, "gx": gx, "gy": gy, "fx": bool(flip & 1), "fy": bool(flip & 2)}
+             for (gx, gy), (code, flip) in sorted(cells.items())]
+    counts = {}
+    for t in tiles:
+        for v in tile_indices8(t["code"]):
+            if v:
+                counts[v] = counts.get(v, 0) + 1
+    used_colors = []
+    for si in sorted(counts):
+        rgb = pal[si] if si < len(pal) else [0, 0, 0]
+        disp, cram, _ = gen_quant(rgb)
+        used_colors.append({"src_index": si, "arcade_rgb8": rgb, "hex": "#%02X%02X%02X" % tuple(rgb),
+                            "pixel_count": counts[si], "genesis_rgb8": disp, "genesis_cram": cram})
+    gxmax = max((t["gx"] for t in tiles), default=0)
+    gymax = max((t["gy"] for t in tiles), default=0)
+    return tiles, pal, used_colors, [(gxmax + 1) * 8, (gymax + 1) * 8]
+
+
+def hazard_trap_usages():
+    """PROVEN, AUTHORABLE trap/hazard objects (replaces the former disabled PENDING placeholders).
+
+    Two kinds, both proven from the arcade program:
+      - PC090OJ spike forms (base $09EA): real compositor-VM composites + per-piece R5 arcade palette.
+      - Layer-A animated-tile traps (fire bank 0x014 / water bank 0x01F): REAL PC080SN background tiles
+        decoded from the scene character ROM (build/regions/pc080sn.bin via the scene corpus), assembled into
+        their arcade tile unit and rendered as a true composite. The palette ANIMATION (mode 8/9, loader
+        $59AD4) cycles the colours of those fixed tiles. used_colors key on the real tile nibble index so
+        Derive/Recommend/the map table operate exactly as for a sprite object."""
+    out = []
+    SCENE = "PAL-R1-S2-PLANEA-CASTLE"
+    # --- PC090OJ spike forms (base $09EA). R5 is the base's proven materialization round (castle browser). ---
+    RND = 5
+    for order, (key, name, base, anim, geo) in enumerate(_SPIKE_FORMS):
+        pcs = _manifest_vm_pieces(base, anim, 0)
+        if not pcs:
+            continue
+        nibs = sorted({p["palette"] for p in pcs})
+        xs = [p["x"] for p in pcs]; ys = [p["y"] for p in pcs]
+        obj = "object:hazard.spike.%s" % key
+        out.append({
+            "usage_id": "usage:hazard_%s:anim0x%02X" % (key, anim), "object_id": obj, "map_key": obj,
+            "frame_category": "Hazards / Traps", "frame_label": name, "frame_order": order,
+            "player_counts": None, "weapon_counts": None,
+            "display_name": name, "variant_label": "base $%04X · R5 palette" % base,
+            "sprite_bank": "0x%02X" % nibs[0], "sprite_banks": ["0x%X" % n for n in nibs],
+            "multi_bank": len(nibs) > 1,
+            "scene_key": SCENE, "round": 1, "subround": "R1-S2", "base": "0x%04X" % base,
+            "provisional": True, "authorable": True,
+            "membership": "scene", "view": "authoring", "hardware_class": "PC090OJ sprite",
+            "human_identity_status": "proven", "human_identity_label": "%s ($%04X spike family)" % (name, base),
+            "mapping_scope": "scene",
+            "confidence": "PROVEN $09EA spike/spear/stalagmite family (Tighe, PROMPT-0086); form geometry-selected",
+            "identity_note": ("%s %s Rendered by the compositor VM (0x3D054); palette is the proven R5 "
+                              "per-round $09EA instance (0x3BA88->0x4FD02)." % (name, geo)),
+            "pieces": pcs, "n_pieces": len(pcs),
+            "bounds": [max(xs) - min(xs) + 16, max(ys) - min(ys) + 16],
+            "composite_proven": True, "preview_type": "TRUE ARCADE COMPOSITE",
+            "used_colors": _castle_used_colors(pcs, RND), "mrd_pairs": [],
+            "n_used": len({(p["palette"], v) for p in pcs for v in cell_indices(p["code"]) if v}),
+        })
+    # --- Layer-A animated-tile traps (fire / water): REAL PC080SN tiles, assembled + composited -----------
+    for order, (key, name, bank_hex, period, row_lo, row_hi, mode, note) in enumerate(_LAYERA_TRAPS):
+        tiles, bank_pal, uc, bounds = _layera_trap_tiles(SCENE, bank_hex, period, row_lo, row_hi)
+        if not tiles:
+            continue
+        sidx = [c["src_index"] for c in uc]
+        obj = "object:hazard.layera.%s" % key
+        out.append({
+            "usage_id": "usage:hazard_%s:layera" % key, "object_id": obj, "map_key": obj,
+            "frame_category": "Hazards / Traps", "frame_label": name, "frame_order": 10 + order,
+            "player_counts": None, "weapon_counts": None,
+            "display_name": name, "variant_label": "Layer-A tiles · bank %s · mode-%d palette anim" % (bank_hex, mode),
+            "sprite_bank": bank_hex, "sprite_banks": [bank_hex], "multi_bank": False,
+            "scene_key": SCENE, "round": 1, "subround": "R1-S2", "base": None,
+            "provisional": False, "authorable": True,
+            "membership": "scene", "view": "authoring", "hardware_class": "PC080SN plane (Layer A)",
+            "human_identity_status": "proven", "human_identity_label": name,
+            "mapping_scope": "scene",
+            "confidence": "PROVEN Layer-A tile block (pc080sn.bin + scene corpus) animated by palette mode %d" % mode,
+            "identity_note": note,
+            "plane_tiles": tiles, "bank_palette": bank_pal, "layera_tiles": True,
+            "pieces": [], "n_pieces": len(tiles), "bounds": bounds,
+            "composite_proven": True, "preview_type": "TRUE ARCADE COMPOSITE (Layer A)",
+            "used_colors": uc, "n_used": len(uc),
+            "mrd_pairs": [[a, b] for i, a in enumerate(sidx) for b in sidx[i + 1:]],
         })
     return out
 
@@ -1555,7 +1870,9 @@ def build_usages(banks):
     usages += list(rope_climber_usages())        # PROMPT-ID-0091: family-8 base $0241 rope climber (split)
     usages += list(gameplay_reward_usages())     # PROMPT-ID-0091: 17 reward children (comp 2; lines 0/3)
     usages += list(r1_boss_usages())             # PROMPT-ID-0091: R1-S3 boss body + type-15 aux + death
-    usages += list(r1s2_hazard_candidates())     # PROMPT-ID-0091: R1-S2 Plane-A hazard candidates (disabled)
+    usages += list(r2_field_usages())            # Round 2: R2-S1 OUTDOOR field roster (dynamic capture + schedule)
+    usages += list(r2_boss_usages())             # Round 2: R2-S3 boss body + aux (dynamic capture; palette PENDING)
+    usages += list(hazard_trap_usages())         # PROVEN authorable traps: $09EA spikes + fire/water palette anim
     for key, name, bank, pieces, proven in defs:
         pal = banks.get(bank)
         if not pal or not pieces:
@@ -2359,11 +2676,63 @@ def render_composite(pieces, pal, boundaries=False):
     return png(W, H, rows)
 
 
+def render_layera_block(tiles, pal, boundaries=False):
+    """TRUE composite of an assembled Layer-A (PC080SN) 8x8-tile unit — the 8px analogue of render_composite.
+    Each tile is decoded 4bpp (tile_indices8) and drawn at its 8px grid slot with H/V flips; the pixel nibble
+    indexes the supplied 16-colour `pal` (arcade bank for the source preview, or the mapped Genesis palette)."""
+    if not tiles:
+        return png(2, 2, [[30, 30, 38] * 2 for _ in range(2)])
+    gxmax = max(t["gx"] for t in tiles); gymax = max(t["gy"] for t in tiles)
+    W = (gxmax + 1) * 8 + 2; H = (gymax + 1) * 8 + 2
+    rows = [[30, 30, 38] * W for _ in range(H)]
+    for t in tiles:
+        idx = tile_indices8(t["code"])
+        ox = t["gx"] * 8 + 1; oy = t["gy"] * 8 + 1
+        for y in range(8):
+            sy = 7 - y if t.get("fy") else y
+            for x in range(8):
+                sx = 7 - x if t.get("fx") else x
+                v = idx[sy * 8 + sx]
+                if v:
+                    c = pal[v] if v < len(pal) else [255, 0, 255]
+                    px = (ox + x) * 3
+                    rows[oy + y][px:px + 3] = list(c)
+        if boundaries:
+            for x in range(8):
+                for yy in (0, 7):
+                    r = rows[oy + yy]; r[(ox + x) * 3:(ox + x) * 3 + 3] = [90, 90, 110]
+    return png(W, H, rows)
+
+
+def layera_block_hitmap(tiles):
+    """Source-index buffer for a Layer-A tile unit, SAME geometry as render_layera_block (for pixel-pick)."""
+    if not tiles:
+        return 2, 2, [0, 0, 0, 0]
+    gxmax = max(t["gx"] for t in tiles); gymax = max(t["gy"] for t in tiles)
+    W = (gxmax + 1) * 8 + 2; H = (gymax + 1) * 8 + 2
+    buf = [0] * (W * H)
+    for t in tiles:
+        idx = tile_indices8(t["code"])
+        ox = t["gx"] * 8 + 1; oy = t["gy"] * 8 + 1
+        for y in range(8):
+            sy = 7 - y if t.get("fy") else y
+            for x in range(8):
+                sx = 7 - x if t.get("fx") else x
+                v = idx[sy * 8 + sx]
+                if v:
+                    buf[(oy + y) * W + (ox + x)] = v
+    return W, H, buf
+
+
 class Hd(BaseHTTPRequestHandler):
     def _s(self, code, body, ct="application/json"):
         self.send_response(code)
         self.send_header("Content-Type", ct)
         self.send_header("Content-Length", str(len(body)))
+        # app.js/style.css are read fresh from disk every request, but without this the browser
+        # may serve a stale cached app.js after the file changes — which looks like "the sliders /
+        # +,- buttons do nothing" because the live page is running old code. Never cache this tool.
+        self.send_header("Cache-Control", "no-store, must-revalidate")
         self.end_headers()
         self.wfile.write(body)
 
@@ -2402,7 +2771,10 @@ class Hd(BaseHTTPRequestHandler):
             usage = next((x for x in build_usages(sprite_bank_colors()) if x["usage_id"] == uid), None) if uid else None
             if usage is None:
                 return self._s(404, b'{"error":"usage not found"}')
-            W, H, buf = composite_hitmap(usage["pieces"])
+            if usage.get("plane_tiles"):
+                W, H, buf = layera_block_hitmap(usage["plane_tiles"])
+            else:
+                W, H, buf = composite_hitmap(usage["pieces"])
             return self._s(200, json.dumps({"w": W, "h": H, "idx": buf}).encode())
         if u.path == "/api/render_tile":
             try:
@@ -2487,6 +2859,14 @@ class Hd(BaseHTTPRequestHandler):
                 usage = next((x for x in build_usages(banks) if x["usage_id"] == uid), None) if uid else None
                 if usage is None:
                     return self._s(404, b'{"error":"usage not found"}')
+                # Layer-A animated-tile trap (fire/water): render the assembled PC080SN tile unit. Source
+                # preview uses the arcade bank palette; `target` (a 16-colour array keyed by tile nibble)
+                # renders the mapped Genesis colours — exactly the same two-image contract as a sprite.
+                if usage.get("plane_tiles"):
+                    bnd = q.get("boundaries", ["0"])[0] == "1"
+                    tpal = (json.loads(q["target"][0]) if "target" in q
+                            else usage.get("bank_palette") or [[0, 0, 0]] * 16)
+                    return self._s(200, render_layera_block(usage["plane_tiles"], tpal, bnd), "image/png")
                 pal = [list(x) for x in banks.get(int(usage["sprite_bank"], 16), [[0, 0, 0]] * 16)]
                 # Overlay the usage's OWN resolved arcade colors so the composite is never all-black when
                 # its bank is absent from sprite_bank_colors() (e.g. reward/pickup banks 0x31/0x37): these

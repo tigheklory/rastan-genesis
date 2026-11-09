@@ -46,7 +46,7 @@
  },
  "target_authority": {
   "profile": "../../analysis/graphics_optimizer/editor_policy/Test_2_0.json",
-  "profile_sha256": "49f38ea9b8c889eb24dbe232a25c590b79755b642abb8d42743d0d8b6a17c04f",
+  "profile_sha256": "4339688ebe07bc121d5108d464f57b320a6628f4c36cdd71a95cfe5ea8c964cf",
   "context": "PAL-R1-S3-PLANEA-BOSS",
   "genesis_line": 1,
   "words": [

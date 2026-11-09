@@ -148,9 +148,21 @@ def main() -> int:
     l2 = lay.get("line_owners", {}).get("2", {})
     ck("LN1. R1-S3 Line 2 shown CONDITIONAL and still locked (not globally freed)",
        l2.get("scene_local_status") == "CONDITIONAL" and l2.get("editable") is False and l2.get("free_in_scene") is False)
-    haz = [u for u in us if u.get("hazard_pending")]
-    ck("HZ1. R1-S2 hazard candidates present, disabled, NOT $0224/$09EA",
-       len(haz) >= 6 and all(u.get("authorable") is False and u.get("base") is None for u in haz), len(haz))
+    # Traps are now PROVEN and AUTHORABLE with REAL graphics (the old disabled "SOURCE SUBSET PENDING" and the
+    # palette-only placeholders are both gone): $09EA PC090OJ spike forms (floor + ceiling/suspended) carry
+    # sprite pieces; fire/water are REAL PC080SN Layer-A tile units (plane_tiles decoded from pc080sn.bin).
+    haz = [u for u in us if "object:hazard." in (u.get("object_id") or "")
+           and (u.get("object_id") or "").split(".")[1] in ("spike", "layera")]
+    spikes = [u for u in haz if (u.get("base") or "") == "0x09EA" and u.get("pieces")]
+    layera = [u for u in haz if u.get("layera_tiles")]
+    ck("HZ1. R1-S2 traps PROVEN + authorable with real graphics: $09EA spike sprites + fire/water Layer-A tiles",
+       len(spikes) == 2 and len(layera) == 2
+       and all(u.get("authorable") is True for u in haz)
+       and all(len(u.get("used_colors") or []) > 0 for u in haz)
+       and all(len(u.get("plane_tiles") or []) > 0 and u.get("composite_proven") is True for u in layera)
+       and all(u.get("hazard_pending") is None for u in haz),
+       {"spikes": len(spikes), "layera": len(layera),
+        "layera_tiles": {u["display_name"]: len(u.get("plane_tiles") or []) for u in layera}})
 
     t1 = hashlib.sha256(tjson.read_bytes()).hexdigest()
     ck("INT. Test.json byte-unchanged", t0 == t1)

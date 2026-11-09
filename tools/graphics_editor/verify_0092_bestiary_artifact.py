@@ -57,8 +57,8 @@ REQUIRED = [
     "0x47908",
     "LINE-F SELECT PROVEN · RGB PENDING",
     "staged boss RGB PENDING",
-    # R1-S2 hazards: source-subset pending (the Composer candidate groups)
-    "SOURCE SUBSET PENDING",
+    # R1-S2 traps: now PROVEN + authorable (spikes $09EA + fire/water palette animation $59AD4)
+    "R1-S2 traps now PROVEN + AUTHORABLE",
 ]
 
 
