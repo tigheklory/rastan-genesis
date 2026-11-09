@@ -37,6 +37,11 @@ CURRENT_AUTHORED = (
     "object:player.rastan",
     "object:castle.green_sword_knight.r1.n3",
 )
+RASTAN_FRAME_USAGES = (
+    "usage:rastan_f7722:bank0x33",
+    "usage:rastan_f15828:bank0x33",
+    "usage:rastan_f16199:bank0x33",
+)
 GREEN_KNIGHT_DECISION = "PAL-PC090OJ-R1S2-GREEN-SWORD-KNIGHT-001"
 
 
@@ -133,6 +138,20 @@ def main() -> int:
         if generated["index_map"] != authored["index_map"]:
             fail(f"reindexed index_map mismatch for {uid}")
 
+    # Test 2.0 reorganizes the shared bank-$33 player palette.  Every Rastan
+    # frame identity exposed by the Composer must carry the exact same pixel
+    # permutation as the production object mapping; an empty/legacy override
+    # renders old pixel indexes against the new Line 0 colors.
+    rastan = mappings["object:player.rastan"]
+    for uid in RASTAN_FRAME_USAGES:
+        frame_usage = mappings.get(uid)
+        if frame_usage is None:
+            fail(f"missing Rastan frame usage {uid}")
+        if int(frame_usage["line"]) != int(rastan["line"]):
+            fail(f"Rastan frame usage line mismatch for {uid}")
+        if frame_usage.get("index_map") != rastan["index_map"]:
+            fail(f"Rastan frame usage index_map mismatch for {uid}")
+
     knight = mappings["object:castle.green_sword_knight.r1.n3"]
     if int(knight["line"]) != 0:
         fail("current R1 green-knight authored destination is not line 0")
@@ -158,7 +177,7 @@ def main() -> int:
     print("hud_p1=semantic_object hud_score=semantic_object")
     print("changed_existing=small_bat,large_bat:exact")
     print("demon=current_line_and_index_map:exact")
-    print("current_authored=rastan,green_sword_knight.r1.n3:exact")
+    print("current_authored=rastan_all_bank33_frames,green_sword_knight.r1.n3:exact")
     print("line2=reserved,not_generated")
     return 0
 
