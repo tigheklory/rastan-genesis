@@ -2,7 +2,9 @@
 
 ## Result
 
-Build 0556 corrects only the Round-1 Stage Clear message palette. The retained
+Build 0557 is the corrected candidate. It preserves the Round-1 Stage Clear
+message-palette fix and corrects the Test 2.0 Rastan pixel-index mapping omitted
+from the initial delivery. The retained
 arcade text writer selects physical palette bank 0, so the native Stage Clear
 owner now restores the existing converted arcade bank-0 frontend palette to
 Genesis Line 0. The large Rastan figure remains on Line 1 with its original
@@ -75,13 +77,13 @@ descriptor rewrite.
 
 ## Regression Check
 
-Build 0556 passed:
+Build 0557 passed:
 
 - canonical ROM gate and complete same-number family verification;
 - gameplay-entry and phase-epoch gates;
 - mandatory 30-second USA/NTSC Genesis trace;
 - palette-family validation using `Test_2_0` SHA-256
-  `9b660114ee126383154caf25ffdd8e666fce86ef9754ce4888c22c9b4d37a656`;
+  `eb53bfc119403331f042a0844ed07d2231444b4c1dac13eec029ff6e329e1dec`;
 - focused natural Round-1 completion capture through presentation states 9–13,
   Scene Clear command `$27`, READY, and Round 2.
 
@@ -90,33 +92,52 @@ was the translated `$04EAF6` bank 0:
 
 `0000 0EEE 000E 0468 08AC 046A 0246 0EEE 0EEE 0EEE 0EEE 0EEE 0EEE 0EEE 0EEE 0EEE`
 
-Line 1 remained the exact figure palette listed above. The Build 0556 state-11
-Plane A/B snapshots and Round-2 READY Plane A/B snapshots are byte-identical to
-the Build 0554 baseline, proving that figure/message geometry and READY content
-did not move.
+Line 1 remained the exact figure palette listed above. The focused Build 0557
+gate again reached every presentation state, Scene Clear command `$27`, READY,
+and Round 2.
+
+The initial 0556 delivery was incomplete and is rejected. It omitted the five
+requested direct-start derivatives. It also rebuilt gameplay sprites with the
+organized Test 2.0 Line 0 while `object:player.rastan` and two exposed bank-$33
+frame usages still carried legacy/empty pixel permutations. This rendered old
+pixel indexes against the reorganized colors. Build 0557 applies the authored
+permutation to the production player object and all three exposed Rastan frame
+usages. The generated asset gate verifies all 344 native player codes with zero
+mismatches.
 
 Build 0555 is preserved but rejected as the final candidate: its new focused
 semantic gate passed, but its canonical gate failed because the canonical
 verifier still expected the superseded 228-site opcode inventory rather than
 the existing 232-site inventory. Commit `0169b6fe` aligned that stale invariant;
-Build 0556 then passed the canonical gate.
+Build 0556 then passed the canonical gate, but is superseded for the reasons
+above.
 
 ## Build / SHA-256
 
 - Candidate normal ROM:
+  `dist/rastan-direct/rastan_direct_video_test_build_0557.bin`
+  - size: 3,985,080 bytes
+  - SHA-256: `77e3a0371568fe6a8cc85c136a4dbfda1d37b02cc143df80fa9fcda05edbf301`
+- Candidate invincible ROM used by the focused natural-path capture:
+  `dist/rastan-direct/rastan_direct_video_test_build_0557_invincible.bin`
+  - size: 3,985,080 bytes
+  - SHA-256: `db7a6e3b439d412251201e895e719e583df2db6e1369aaa2df0b98b56b137802`
+- Direct-start derivatives, each 3,985,080 bytes:
+  - R1S2 `_S1-2`: `eb3b18eee93391df7f95dc2d8622271ac5d6c77c7b389252a5784b2d05488282`
+  - R1S3 `_S1-3`: `b9c50862cdc3b4a618eff43648392b76e335ed7d87d643b20bea25c0c8cc4393`
+  - R2S1 `_S2-1`: `e47868abab76049a7885565c6afc0da246f615b628a649c0747938cdcf649f96`
+  - R2S2 `_S2-2`: `05f6520e2296bd1bd5ff021ededc3412e5a942adfbf267a66b291c8bae51a852`
+  - R2S3 `_S2-3`: `a87148825585591a48dfcb01dc7715f9a4e675ff195998195b377b2574b6ba48`
+- Rejected/preserved Build 0556 normal ROM:
   `dist/rastan-direct/rastan_direct_video_test_build_0556.bin`
   - size: 3,985,080 bytes
   - SHA-256: `69b6274feba521c458f19f088a67a6493311b998877466e249c757eb3502e8e3`
-- Candidate invincible ROM used by the focused natural-path capture:
-  `dist/rastan-direct/rastan_direct_video_test_build_0556_invincible.bin`
-  - size: 3,985,080 bytes
-  - SHA-256: `c6857d320a55d16cce4cf9aefcf3904adaa64ccecd103f1207f115520e25df59`
 - Rejected/preserved Build 0555 normal ROM:
   `dist/rastan-direct/rastan_direct_video_test_build_0555.bin`
   - size: 3,985,080 bytes
   - SHA-256: `eb5e8c4a5a2789e49310167a8e5c9c11f454bb71c43ec26579d3ebc8c7b1c408`
-- Makefile counter after delivery: 556.
-- Production source commits: `6a0c1bc3`, `9ca0b456`, `0169b6fe`.
+- Makefile counter after delivery: 557.
+- Production commits: `6a0c1bc3`, `9ca0b456`, `0169b6fe`, `17f5b131`.
 
 ## Deferred Issues
 
@@ -126,7 +147,7 @@ Unchanged and explicitly outside PROMT-ID-0111:
 - Round-2 graphics, palettes, and gameplay work;
 - score values and score display;
 - Continue-screen text/palette behavior;
-- palette-editor authoring and Test/Test 2.0 content.
+- all palette-editor tooling and all non-Rastan Test/Test 2.0 authoring.
 
 ## Tighe Acceptance Pending
 
