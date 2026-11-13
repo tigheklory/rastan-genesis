@@ -414,13 +414,25 @@ vdp_install_test_lines:
     bhs.w   .Liti_done
     lea     diagnostic_palette_scene_select, %a0
     move.b  0(%a0,%d2.w), %d2
-    beq.s   .Liti_done
+    beq.w   .Liti_done
     move.w  %d2, diagnostic_palette_active_asset
+    /* Build 0561 (PROMT-ID-0115): visual-index block = base + (asset-1)*INDEX_BYTES.
+     * Round-1 assets 1-3 keep their exact prior offsets; Round-2 assets 4,5,6 extend the
+     * same uniform per-context stride (FG_AUTHORED_DESC_CONTEXTS is now 6). */
     lea     genesistan_plane_a_authored_descriptor_visuals, %a1
     cmpi.w  #2, %d2
     blo.s   .Liti_visual_index_ready
     adda.l  #FG_AUTHORED_DESC_INDEX_BYTES, %a1
     cmpi.w  #3, %d2
+    blo.s   .Liti_visual_index_ready
+    adda.l  #FG_AUTHORED_DESC_INDEX_BYTES, %a1
+    cmpi.w  #4, %d2
+    blo.s   .Liti_visual_index_ready
+    adda.l  #FG_AUTHORED_DESC_INDEX_BYTES, %a1
+    cmpi.w  #5, %d2
+    blo.s   .Liti_visual_index_ready
+    adda.l  #FG_AUTHORED_DESC_INDEX_BYTES, %a1
+    cmpi.w  #6, %d2
     blo.s   .Liti_visual_index_ready
     adda.l  #FG_AUTHORED_DESC_INDEX_BYTES, %a1
 .Liti_visual_index_ready:

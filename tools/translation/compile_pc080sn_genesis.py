@@ -39,6 +39,7 @@ PLANE_B_DESC_TABLE = 0x3951C
 PLANE_B_DESC_STRIDE = 6       # adjacent {attr16, src32} descriptors; scene init uses pairs
 PLANE_B_ROWS = 64
 PLANE_B_COLS = 16
+PLANE_B_PALETTE_LINE = 2       # dedicated Genesis background palette line for Plane B (all rounds)
 
 # ---- Genesis VRAM policy (project constants) ----
 SPRITE_TILE_BASE = 1339        # Build 0308: physical remainder after fixed B + worst-record A
@@ -58,6 +59,7 @@ SLOT_MAX = SAFE_PLANE_SLOT_LAST - BG_RESERVE                 # Plane-A (FG) band
 PLANE_SLOTS = SLOT_MAX - SLOT_MIN + 1                        # 640 FG slots
 TILE_BYTES = 32
 AUTHORED_SYNTHETIC_FIRST = 0x1600
+ROUND2_FIRST_RECORD = 23        # arcade stage records 23..45 belong to Round 2
 AUTHORED_DESC_FIRST = 0x1691C
 AUTHORED_DESC_END = 0x3951C
 AUTHORED_DESC_ENTRY_BYTES = 4
@@ -73,13 +75,31 @@ class AuthoredLayerA:
          ROOT / "analysis/graphics_optimizer/subround_corpus/PAL-R1-S2-PLANEA-CASTLE/plane_a_uses.json"),
         ("PAL-R1-S3-PLANEA-BOSS", range(22, 23),
          ROOT / "analysis/graphics_optimizer/subround_corpus/PAL-R1-S3-PLANEA-BOSS/plane_a_uses.json"),
+        # RG-021 (PROMT-ID-0115): Round-2 authored Layer-A scenes. Same offline Palette Composer
+        # realization as Round 1 (Test_2_0 per-usage mappings), feeding the same native package
+        # format and runtime installer. Records: outdoor 23-38, castle 39-44, boss 45.
+        ("PAL-R2-S1-PLANEA-OUTDOOR", range(23, 39),
+         ROOT / "analysis/graphics_optimizer/subround_corpus/PAL-R2-S1-PLANEA-OUTDOOR/plane_a_uses.json"),
+        ("PAL-R2-S2-PLANEA-CASTLE", range(39, 45),
+         ROOT / "analysis/graphics_optimizer/subround_corpus/PAL-R2-S2-PLANEA-CASTLE/plane_a_uses.json"),
+        ("PAL-R2-S3-PLANEA-BOSS", range(45, 46),
+         ROOT / "analysis/graphics_optimizer/subround_corpus/PAL-R2-S3-PLANEA-BOSS/plane_a_uses.json"),
     )
 
     def __init__(self, profile_path: Path, raw_patterns: bytes):
         self.profile_path = profile_path
         self.profile_bytes = profile_path.read_bytes()
         profile = json.loads(self.profile_bytes)
-        pending = []
+        # Build 0561 (PROMT-ID-0115): synthetic-code assignment is ROUND-STABLE. Round-1 authored
+        # patterns keep the exact byte-sorted order (and therefore the exact synthetic codes) they
+        # had before Round 2 existed; Round-2-only patterns are appended AFTER the Round-1 pool.
+        # This is required because the synthetic code band ($1600+) shares the arcade tile-code
+        # namespace, and Round-1 record 22 (PHASE3_ANIM_RECORD) legitimately uses arcade codes
+        # $1AC0..$1AD1 that fall inside it. Globally re-sorting the pool with Round-2 patterns would
+        # silently reassign the pattern those boss-animation codes resolve to and change Round-1
+        # output. Keeping the Round-1 sub-pool order-identical preserves Round-1 byte-for-byte.
+        pending_r1 = []
+        pending_r2 = []
         self.by_record = {}
         self.by_context = []
         self.raw_required_by_record = {}
@@ -87,6 +107,7 @@ class AuthoredLayerA:
         self.unmapped = 0
         for context, records, uses_path in self.SCENES:
             record_set = set(records)
+            pending = pending_r2 if min(records) >= ROUND2_FIRST_RECORD else pending_r1
             uses = json.loads(uses_path.read_text())
             mappings = profile["context_policies"][context]["plane_usage_palette_mappings"]
             lookups = {record: {} for record in record_set}
@@ -123,7 +144,9 @@ class AuthoredLayerA:
                     merged[key] = value
             self.by_context.append(merged)
 
-        unique = sorted(set(pending))
+        r1_unique = sorted(set(pending_r1))
+        r2_extra = sorted(set(pending_r2) - set(pending_r1))
+        unique = r1_unique + r2_extra
         if AUTHORED_SYNTHETIC_FIRST + len(unique) > BOUNDARY_LUT_WORDS:
             raise SystemExit("authored Layer-A variants exceed native logical-code band")
         self.code_for_blob = {blob: AUTHORED_SYNTHETIC_FIRST + index
@@ -231,8 +254,9 @@ BOUNDARY_ROUND1_EPOCH_RECORDS = (
 # grouping is the exhaustive minimum contiguous partition at the established
 # 676-pattern Plane-A capacity (see the compiler proof below).
 BOUNDARY_ROUND2_EPOCH_RECORDS = (
-    tuple(range(23, 34)),
-    tuple(range(34, 46)),
+    tuple(range(23, 33)),      # epoch: records 23-32
+    tuple(range(33, 39)),      # epoch: records 33-38
+    tuple(range(39, 46)),      # epoch: records 39-45 (castle + boss tail)
 )
 BOUNDARY_PHASE1_EPOCH_CAPACITY = 676
 
@@ -998,16 +1022,18 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
             "gate": "PASS",
         })
 
-    # Transition scratch reuses a statically proven hole in the 0x2800-word active LUT. It must
-    # never overlap an actual Level-1 A/B code mapping.
-    scratch_word = 0x1600
-    scratch_words = len(pattern_id) + a_slot_count
-    occupied_codes = {code for entry in round_b for code in entry["codes"]}
-    occupied_codes.update(code for record in records
-                          for code in seg_fg_tiles(mc, record["segment"]) - {0})
-    scratch_overlap = sorted(occupied_codes & set(range(scratch_word, scratch_word + scratch_words)))
-    if scratch_word + scratch_words > BOUNDARY_LUT_WORDS or scratch_overlap:
-        raise SystemExit(f"transition scratch overlaps legal LUT codes: {scratch_overlap[:8]}")
+    # Build 0561 (PROMT-ID-0115): the transition scratch now lives in its OWN dedicated transient
+    # WRAM buffer (runtime symbol fg_boundary_transition_scratch), NOT inside fg_boundary_active_lut.
+    # The active LUT is once again exclusively tile/logical-code -> Genesis VRAM slot across the full
+    # $0000-$27FF index domain, so legal Plane-A tile codes (including Round-2's real arcade FG codes
+    # $24BB-$24C2, which fall inside the former $1600-$27FF scratch hole) can no longer collide with
+    # scratch bookkeeping. The runtime sizes its buffer from FG_BOUNDARY_PATTERN_IDENTITIES and
+    # FG_BOUNDARY_SLOT_COUNT; here we only compute the contract size for the manifest/report.
+    # Historical R1-only assumption removed: there is no scratch_word placement, hence no LUT-code
+    # overlap check. See PROMT-ID-0114 architecture recovery.
+    scratch_identity_words = len(pattern_id)
+    scratch_slot_translation_words = a_slot_count
+    scratch_words = scratch_identity_words + scratch_slot_translation_words
 
     # Binary contract: record->package table, fixed-size descriptors, per-package A sections, then
     # the fixed-B sections. Each incoming transition record first selects its bounded overlap
@@ -1232,8 +1258,16 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
                 source_code = u16(source + logical_row * 0x20 + (column & 15) * 2) & 0x3FFF
                 blob = tile_bytes(source_code)
                 slot = b_slots.get(blob, 0)
+                # PROMT-ID-0118: gameplay Plane B is the semantic owner of Genesis CRAM Line 2 in
+                # EVERY round. A real Plane-B tile (nonzero slot) therefore always emits Line 2,
+                # regardless of the arcade PC080SN palette-select bits (R1 tiles carry attr&3==2,
+                # R2 tiles carry attr&3==3; both are the same Layer-B semantic owner -> Line 2).
+                # This is a semantic ownership rule, NOT a round/record test. Blank cells (slot 0)
+                # are not gameplay tiles and keep their original bits, so R1 -- whose tiles already
+                # emit Line 2 -- stays byte-identical.
+                plane_b_line = PLANE_B_PALETTE_LINE if slot else (attr & 0x0003)
                 native_attr = ((((attr >> 13) & 1) << 15) |
-                               ((attr & 0x0003) << 13) |
+                               (plane_b_line << 13) |
                                (((attr >> 15) & 1) << 12) |
                                (((attr >> 14) & 1) << 11))
                 physical_words[physical_row * 64 + column] = native_attr | slot
@@ -1423,7 +1457,9 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
         f".equ FG_RECORD_NATIVE_ROW_INDEX_BYTES, {64 * 2}\n"
         f".equ FG_RECORD_NATIVE_ROW_POOL_OFFSET, {native_row_pool_offset}\n"
         f".equ FG_RECORD_NATIVE_ROW_COUNT, {len(native_row_ids)}\n"
-        f".equ FG_BOUNDARY_SCRATCH_WORD, {scratch_word}\n"
+        f".equ FG_BOUNDARY_SCRATCH_IDENTITY_WORDS, {scratch_identity_words}\n"
+        f".equ FG_BOUNDARY_SCRATCH_SLOT_WORDS, {scratch_slot_translation_words}\n"
+        f".equ FG_BOUNDARY_SCRATCH_TOTAL_WORDS, {scratch_words}\n"
         + "".join(
             f".equ FG_BOUNDARY_FIXED_B_R{item['round']}_OFFSET, {item['offset']}\n"
             f".equ FG_BOUNDARY_FIXED_B_R{item['round']}_MAP_COUNT, {item['map_count']}\n"
@@ -1569,8 +1605,11 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
                 packages[transition_package_ids[1]]["assigned"].get(
                     tile_bytes(code), b_slot.get(tile_bytes(code))) for code in waterfall_codes}),
         },
-        "scratch_word_first": scratch_word,
-        "scratch_word_last": scratch_word + scratch_words - 1,
+        "scratch_location": "dedicated_transient_wram_buffer",
+        "scratch_in_active_lut": False,
+        "scratch_identity_words": scratch_identity_words,
+        "scratch_slot_translation_words": scratch_slot_translation_words,
+        "scratch_total_words": scratch_words,
         "scratch_legal_code_overlap": 0,
         "compiler_zero_drop_gate": "PASS",
         "binary_bytes": len(binary),

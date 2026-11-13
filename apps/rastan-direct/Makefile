@@ -91,13 +91,19 @@ RASTAN_MODE_RACK_ADVANCE ?= 0
 # asserts the original arcade A5+0x0040 debug gate at its startup source. The
 # standard numbered ROM defaults to 0 and retains normal enemy damage.
 RASTAN_INVINCIBLE ?= 0
+# PROMT-ID-0126: isolated, removable diagnostic that captures retained $055F2A lifecycle state and
+# halts BEFORE the native reseed. Default 0 = production/Build-0564 behavior (diagnostic excluded).
+RASTAN_DIAG_055F2A_CAPTURE ?= 0
 # Tighe's saved Palette Composer profile is the production Round-1 palette
 # authority.  Keep an explicit command-line override for controlled comparisons,
 # but never silently omit the authored scene palettes from a normal build.
 RASTAN_PALETTE_TEST_PROFILE ?= 1
 ifeq ($(RASTAN_PALETTE_TEST_PROFILE),1)
-GENESIS_COVERAGE_DELTA := 0x53000
-FULL_HUD_GENESIS_COVERAGE_DELTA := 0x53000
+# Build 0561 (PROMT-ID-0115): +0x70000 for the native Round-2 authored Plane-A data appended to the
+# Genesis image (authored_descriptor_visuals grows to six contexts, boundary_packages +R2 epochs).
+# Covers canonical arcade program + all declared native data; observed coverage = 0x43CEB8.
+GENESIS_COVERAGE_DELTA := 0xC3000
+FULL_HUD_GENESIS_COVERAGE_DELTA := 0xC3000
 else
 GENESIS_COVERAGE_DELTA := 0x43000
 FULL_HUD_GENESIS_COVERAGE_DELTA := 0x3B000
@@ -134,6 +140,10 @@ PALETTE_SCENE_MANIFEST := $(ROOT)/build/palette_export/palette_scene_manifest.js
 PALETTE_R1S1_CRAM := $(ROOT)/build/palette_export/cram/PAL-R1-S1-PLANEA-OUTDOOR.bin
 PALETTE_R1S2_CRAM := $(ROOT)/build/palette_export/cram/PAL-R1-S2-PLANEA-CASTLE.bin
 PALETTE_R1S3_CRAM := $(ROOT)/build/palette_export/cram/PAL-R1-S3-PLANEA-BOSS.bin
+# Build 0561 (PROMT-ID-0115): Round-2 authored scene CRAM assets, same exporter pipeline.
+PALETTE_R2S1_CRAM := $(ROOT)/build/palette_export/cram/PAL-R2-S1-PLANEA-OUTDOOR.bin
+PALETTE_R2S2_CRAM := $(ROOT)/build/palette_export/cram/PAL-R2-S2-PLANEA-CASTLE.bin
+PALETTE_R2S3_CRAM := $(ROOT)/build/palette_export/cram/PAL-R2-S3-PLANEA-BOSS.bin
 R1_BOSS_FADE_GEN := $(ROOT)/tools/translation/gen_r1_boss_fade_cram.py
 R1_BOSS_FADE_VERIFY := $(ROOT)/tools/translation/verify_r1_boss_palette_fade.py
 ROUND1_COMPLETION_VERIFY := $(ROOT)/tools/translation/verify_round1_completion_semantics.py
@@ -405,7 +415,7 @@ $(CRASH_BUILD_INC): FORCE_ASM_REBUILD | $(OUT_DIR)
 $(OUT_DIR)/tilemap_hooks.o: $(SRC_DIR)/tilemap_hooks.s $(PC090OJ_CONFIG_INC) $(PC080SN_BOUNDARY_CONSTANTS) $(PC080SN_PLANE_B_SCENE_FILL_MAPS) $(PC080SN_PAN_ROW_MAPS) $(PC080SN_AUTHORED_DESCRIPTOR_VISUALS) $(BEST5_NUMBER_TABLE) $(BEST5_NAME_TABLE) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-$(OUT_DIR)/palette_hooks.o: $(SRC_DIR)/palette_hooks.s $(PC090OJ_CONFIG_INC) $(TEST_PALETTE_LINE0) $(TEST_PALETTE_LINE1) $(TEST_PALETTE_LINE3) $(PALETTE_R1S1_CRAM) $(PALETTE_R1S2_CRAM) $(PALETTE_R1S3_CRAM) $(R1_BOSS_FADE_CRAM) $(PC080SN_PALETTE_SCENE_SELECT) FORCE_ASM_REBUILD | $(OUT_DIR)
+$(OUT_DIR)/palette_hooks.o: $(SRC_DIR)/palette_hooks.s $(PC090OJ_CONFIG_INC) $(TEST_PALETTE_LINE0) $(TEST_PALETTE_LINE1) $(TEST_PALETTE_LINE3) $(PALETTE_R1S1_CRAM) $(PALETTE_R1S2_CRAM) $(PALETTE_R1S3_CRAM) $(PALETTE_R2S1_CRAM) $(PALETTE_R2S2_CRAM) $(PALETTE_R2S3_CRAM) $(R1_BOSS_FADE_CRAM) $(PC080SN_PALETTE_SCENE_SELECT) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
 # Validated pattern-reuse resolution: canonical policy -> resolved (code,bank) substitutions. Hard gate:
@@ -430,7 +440,7 @@ $(TEST_PALETTE_CRAM_LINES): $(TEST_PALETTE_CRAM_REPORT)
 $(PALETTE_SCENE_MANIFEST): $(EDITOR_PALETTE_PROFILE) $(ROOT)/specs/palette_subround_map.json $(PALETTE_DECISIONS) $(PALETTE_SCENE_EXPORTER)
 	$(PYTHON) "$(PALETTE_SCENE_EXPORTER)" --profile "$(EDITOR_PALETTE_PROFILE_ID)"
 
-$(PALETTE_R1S1_CRAM) $(PALETTE_R1S2_CRAM) $(PALETTE_R1S3_CRAM): $(PALETTE_SCENE_MANIFEST)
+$(PALETTE_R1S1_CRAM) $(PALETTE_R1S2_CRAM) $(PALETTE_R1S3_CRAM) $(PALETTE_R2S1_CRAM) $(PALETTE_R2S2_CRAM) $(PALETTE_R2S3_CRAM): $(PALETTE_SCENE_MANIFEST)
 	@test -f "$@"
 
 $(R1_BOSS_FADE_REPORT): $(MAINCPU_REGION) $(EDITOR_PALETTE_PROFILE) $(R1_BOSS_FADE_EVIDENCE) $(R1_BOSS_FADE_GEN)
@@ -631,6 +641,7 @@ $(PC090OJ_FRAME_TABLE) $(PC090OJ_PLAYER_PIECE_TABLE) $(PC090OJ_FRAME_INDEX) $(PC
 $(PC090OJ_CONFIG_INC): FORCE_ASM_REBUILD | $(OUT_DIR)
 	@printf '/* GENERATED from PC090OJ_MIRROR_RECORDS=%s RASTAN_GAMEPLAY_HUD_SPRITES=%s RASTAN_DIAG_CPU_BAR=%s RASTAN_DIAG_SCORE_METRIC=%s RASTAN_VBLANK_DISPLAY_OFF=%s RASTAN_MODE_RACK_ADVANCE=%s RASTAN_INVINCIBLE=%s by apps/rastan-direct/Makefile -- do not hand-edit. */\n.equ PC090OJ_MIRROR_RECORDS, %s\n.equ PC090OJ_MIRROR_BYTES, (PC090OJ_MIRROR_RECORDS * 8)\n.equ PC090OJ_BITSET_BYTES, ((PC090OJ_MIRROR_RECORDS + 7) / 8)\n.equ RASTAN_GAMEPLAY_HUD_SPRITES, %s\n.equ RASTAN_DIAG_CPU_BAR, %s\n.equ RASTAN_DIAG_SCORE_METRIC, %s\n.equ RASTAN_VBLANK_DISPLAY_OFF, %s\n.equ RASTAN_MODE_RACK_ADVANCE, %s\n.equ RASTAN_INVINCIBLE, %s\n' '$(PC090OJ_MIRROR_RECORDS)' '$(RASTAN_GAMEPLAY_HUD_SPRITES)' '$(RASTAN_DIAG_CPU_BAR)' '$(RASTAN_DIAG_SCORE_METRIC)' '$(RASTAN_VBLANK_DISPLAY_OFF)' '$(RASTAN_MODE_RACK_ADVANCE)' '$(RASTAN_INVINCIBLE)' '$(PC090OJ_MIRROR_RECORDS)' '$(RASTAN_GAMEPLAY_HUD_SPRITES)' '$(RASTAN_DIAG_CPU_BAR)' '$(RASTAN_DIAG_SCORE_METRIC)' '$(RASTAN_VBLANK_DISPLAY_OFF)' '$(RASTAN_MODE_RACK_ADVANCE)' '$(RASTAN_INVINCIBLE)' > $@
 	@printf '.equ RASTAN_PALETTE_TEST_PROFILE, %s\n' '$(RASTAN_PALETTE_TEST_PROFILE)' >> $@
+	@printf '.equ RASTAN_DIAG_055F2A_CAPTURE, %s\n' '$(RASTAN_DIAG_055F2A_CAPTURE)' >> $@
 	@echo "PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) RASTAN_GAMEPLAY_HUD_SPRITES=$(RASTAN_GAMEPLAY_HUD_SPRITES) RASTAN_DIAG_CPU_BAR=$(RASTAN_DIAG_CPU_BAR) RASTAN_DIAG_SCORE_METRIC=$(RASTAN_DIAG_SCORE_METRIC) RASTAN_VBLANK_DISPLAY_OFF=$(RASTAN_VBLANK_DISPLAY_OFF) RASTAN_MODE_RACK_ADVANCE=$(RASTAN_MODE_RACK_ADVANCE) RASTAN_INVINCIBLE=$(RASTAN_INVINCIBLE) -> $@"
 
 # Build 0340 OPT-003: generate the prebaked (scene,effective_bank)->palette-line LUT from the authored

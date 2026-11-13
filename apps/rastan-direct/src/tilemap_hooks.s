@@ -301,8 +301,13 @@
 .Lplane_b_native_attr_from_word:
     movem.l %d1-%d2/%a0, -(%sp)
 
-    move.w  %d0, %d1
-    andi.w  #0x0003, %d1
+    /* PROMT-ID-0118: gameplay Plane B is the semantic owner of Genesis CRAM Line 2 in every round.
+     * The arcade PC080SN palette-select bits (attr&3) choose one of the chip's background palette
+     * banks (R1 tiles use 2, R2 tiles use 3), but on Genesis they are the SAME Layer-B semantic
+     * owner -> Line 2. Force the palette-line index to 2 regardless of attr&3 (flip/priority bits
+     * below are preserved). R1 (attr&3==2) is unchanged; R2 (attr&3==3) is corrected. Not a round
+     * test. */
+    moveq   #2, %d1
 
     move.w  %d0, %d2
     lsr.w   #8, %d2
@@ -1031,6 +1036,65 @@ genesistan_plane_a_scene_scroll_reseed_native_exit:
  * graphic, timer, or progression value is selected here. */
 genesistan_gameplay_scene_restore_after_teardown:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
+.if RASTAN_DIAG_055F2A_CAPTURE
+    /* PROMT-ID-0126 "055F2A LIFECYCLE CAPTURE" diagnostic (RASTAN_DIAG_055F2A_CAPTURE=1 ONLY).
+     * Captures the retained lifecycle state at this post-teardown reseed boundary into registers +
+     * A0=$FF1000, then traps into the existing crash/diagnostic display BEFORE the native reseed
+     * runs. It HALTS: the production reseed and .Lscene_scroll_reseed_rebuild_bad_ptr never execute
+     * on this path when the flag is set (the production trap is NOT touched/weakened). This whole
+     * .if block is removable in one edit; with the flag 0 (default) the code below is excluded and
+     * behavior is byte-identical to Build 0564.
+     * Register map for the captured screenshot (see the 0126 report):
+     *   D0=w[A5+13AA] D1=w[A5+013E] D2=w[A5+13B8] D3=w[A5+1242]
+     *   D4=(scene_id<<8)|fg_native_gameplay_owner
+     *   D5=l[A5+0002]  D6=(w[A5+0014]<<16)|w[A5+0118]  D7=w[A5+013A]<<16
+     *   A0=$FF1000 (STATE rows then show the first descriptor longwords)
+     *   A1=l[A5+0214] (=w0214:w0216)  A2=l[A5+0218] (=w0218:w021A)
+     *   A3=XOR checksum of the 16 $FF1000 longwords
+     *   A4=(valid_count<<16)|invalid_count  (legal range $0F08..$3A00C, diagnostic only) */
+    lea     0x00FF0000, %a5
+    lea     0x00FF1000, %a0
+    moveq   #0, %d0                      /* XOR checksum accumulator */
+    moveq   #0, %d1                      /* valid pointer count */
+    moveq   #0, %d2                      /* invalid pointer count */
+    moveq   #15, %d3
+.Ldiag055f2a_desc_loop:
+    move.l  (%a0)+, %d4
+    eor.l   %d4, %d0
+    cmpi.l  #0x00000F08, %d4
+    blo.s   .Ldiag055f2a_desc_invalid
+    cmpi.l  #0x0003A00C, %d4
+    bhs.s   .Ldiag055f2a_desc_invalid
+    addq.l  #1, %d1
+    bra.s   .Ldiag055f2a_desc_next
+.Ldiag055f2a_desc_invalid:
+    addq.l  #1, %d2
+.Ldiag055f2a_desc_next:
+    dbra    %d3, .Ldiag055f2a_desc_loop
+    movea.l %d0, %a3                     /* A3 = checksum */
+    swap    %d1
+    move.w  %d2, %d1
+    movea.l %d1, %a4                     /* A4 = valid<<16 | invalid */
+    move.w  0x13AA(%a5), %d0
+    move.w  0x013E(%a5), %d1
+    move.w  0x13B8(%a5), %d2
+    move.w  0x1242(%a5), %d3
+    moveq   #0, %d4
+    move.b  genesistan_current_scene_id, %d4
+    lsl.w   #8, %d4
+    move.b  fg_native_gameplay_owner, %d4
+    move.l  0x0002(%a5), %d5
+    move.w  0x0014(%a5), %d6
+    swap    %d6
+    move.w  0x0118(%a5), %d6
+    move.w  0x013A(%a5), %d7
+    swap    %d7
+    clr.w   %d7
+    lea     0x00FF1000, %a0
+    move.l  0x0214(%a5), %a1
+    move.l  0x0218(%a5), %a2
+    trap    #0
+.endif
     move.b  #1, fg_scene_scroll_reseed_pending
     bsr     genesistan_plane_a_scene_scroll_reseed_native
     movem.l (%sp)+, %d0-%d7/%a0-%a6
@@ -2445,8 +2509,17 @@ genesistan_hook_tilemap_plane_a:
     lsl.w   #1, %d0
     adda.w  %d0, %a4
 
+    /* PROMT-ID-0124: this BG scene-preamble producer is shared frontend+gameplay. Gameplay Plane B
+     * owns Genesis Line 2; frontend (title/throne/story) keeps the original arcade attr&3 selection
+     * (Lines 0/1). Gate the Line-2 normalization on the authoritative gameplay scene owner
+     * (genesistan_current_scene_id == SCENE_GAMEPLAY_ID). 0119 forced L2 unconditionally here, which
+     * recoloured the frontend throne. flip/priority preserved. */
     move.w  %d4, %d0
     andi.w  #0x0003, %d0
+    cmpi.b  #SCENE_GAMEPLAY_ID, genesistan_current_scene_id
+    bne.s   .Lbg_hook_desc_line_ready
+    moveq   #2, %d0
+.Lbg_hook_desc_line_ready:
     move.w  %d4, %d3
     lsr.w   #8, %d3
     lsr.w   #6, %d3
@@ -2858,8 +2931,15 @@ genesistan_hook_tilemap_bg_fill:
 
     move.l  %d0, %d4
     swap    %d4
+    /* PROMT-ID-0124: bg_fill is shared frontend+gameplay. Gameplay Plane B owns Genesis Line 2;
+     * frontend keeps the original arcade attr&3 selection. Gate the Line-2 normalization on the
+     * gameplay scene owner (0119 forced L2 unconditionally -> frontend throne regression). */
     move.w  %d4, %d5
     andi.w  #0x0003, %d5
+    cmpi.b  #SCENE_GAMEPLAY_ID, genesistan_current_scene_id
+    bne.s   .Lbg_fill_line_ready
+    moveq   #2, %d5
+.Lbg_fill_line_ready:
 
     move.w  %d4, %d7
     lsr.w   #8, %d7
@@ -3223,8 +3303,15 @@ genesistan_hook_tilemap_bg_blockcopy:
     add.w   %d3, %d3
     move.w  0(%a3,%d3.w), %d5
 
+    /* PROMT-ID-0124: bg_blockcopy is shared frontend+gameplay. Gameplay Plane B owns Genesis Line 2;
+     * frontend keeps the original arcade attr&3 selection. Gate the Line-2 normalization on the
+     * gameplay scene owner (0119 forced L2 unconditionally -> frontend throne regression). */
     move.w  %d2, %d3
     andi.w  #0x0003, %d3
+    cmpi.b  #SCENE_GAMEPLAY_ID, genesistan_current_scene_id
+    bne.s   .Lbg_blockcopy_line_ready
+    moveq   #2, %d3
+.Lbg_blockcopy_line_ready:
 
     move.w  %d2, %d7
     lsr.w   #8, %d7

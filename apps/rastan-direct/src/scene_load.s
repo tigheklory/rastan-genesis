@@ -208,6 +208,22 @@ load_scene_tiles:
     cmpi.w  #1, %d5
     bne.s   .Lload_scene_no_cache_reset
     bsr     fg_cache_reset
+    /* PROMT-ID-0134: re-establish the current round's Layer-B palette (Genesis Line 2) at every
+     * gameplay-scene activation.  The arcade keeps each round's Layer-B palette resident in its own
+     * physical bank across the substate-8 READY/death teardown, so its gameplay Layer-B colours
+     * survive a respawn untouched.  On Genesis the four arcade Layer-B banks collapse onto the single
+     * CRAM Line 2, and the READY/death teardown routes through scene_id==0, where the scene-0 branch
+     * above copies genesistan_frontend_base_palette across ALL four staged lines -- clobbering the
+     * gameplay Line 2.  Respawn rebuilds scene_id==1 here, but the scene-0 copy is skipped,
+     * vdp_install_test_lines owns only Lines 0/1/3, and the retained round-entry sequence that
+     * normally arms the Layer-B reload (a5@0x13b0, frame 0x70) does not re-run on a same-stage
+     * respawn -- so Line 2 is never restored and keeps the frontend base palette (the observed
+     * wrong R2-S1 colours).  Re-arm the retained arcade reload flag so FUN_00059de8 repaints the
+     * CURRENT round's Layer-B -- current round (a5@0x118) and current progression row (a5@0x13e) --
+     * into Line 2 on the next player update, identical to a normal scene entry.  Round-general
+     * (every gameplay round, not round==2 or a death hook); reuses the original arcade loader, so no
+     * colour is copied, hardcoded, or frozen, and later progression/water rows are preserved. */
+    move.w  #1, 0x13b0(%a5)
     /* RG-021: only Round 1 has Tighe-authored native Test palette assets.
      * Later rounds retain the original finite arcade palette conversion until
      * Palette Composer exports an approved round/scene family; never substitute

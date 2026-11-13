@@ -53,6 +53,18 @@ def accepted_0422_record(maincpu: bytes, attr_lut: bytes, descriptor: int) -> by
         return b"\0" * RECORD_BYTES
     key = attr_key(attr)
     native_attr = be16(attr_lut, key * 2)
+    # PROMT-ID-0131: gameplay Plane B is the semantic owner of Genesis CRAM Line 2 in EVERY round.
+    # The shared attr LUT maps the arcade palette-select field (attr&3) straight into the Genesis
+    # palette-line bits (physical bank N -> line N): R1 Plane-B descriptors carry attr&3==2 (-> Line
+    # 2, already correct) while R2 descriptors carry attr&3==3 (-> Line 3, the leak Tighe sees on
+    # vertically refreshed R2-S1 rows via .Lplane_b_publish_logical_row_native). This Plane-B-specific
+    # generated artifact must encode Line 2 for every real tile, independent of the physical arcade
+    # bank, so the row/vertical-pan producer matches the other gameplay Plane-B producers. Priority
+    # (bit15), V flip (bit12) and H flip (bit11) are preserved from the proven LUT entry; only the
+    # palette-line field (bits 14:13) is forced to 2. R1 stays byte-identical because its LUT entry
+    # already selects Line 2. The shared LUT itself is NOT modified (it has other owners), and Plane
+    # A is untouched.
+    native_attr = (native_attr & 0x9FFF) | (0x2 << 13)
     return native_attr.to_bytes(2, "big") + (source + COPIED_MAINCPU_DELTA).to_bytes(4, "big")
 
 

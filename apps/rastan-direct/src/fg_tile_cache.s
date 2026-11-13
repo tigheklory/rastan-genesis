@@ -58,10 +58,14 @@
     .equ VRAM_PLANE_B_BASE,     0x0000C000
     .equ VRAM_PLANE_A_BASE,     0x0000E000
     .equ PLANE_NAME_WORDS,      2048
-    /* Package installation owns the active LUT until the final code->slot rebuild.
-     * Reuse that storage for both temporary maps instead of extending BSS through
-     * the retained arcade A5+0xC242 gameplay state. */
-    .equ FG_BOUNDARY_IDENTITY_SCRATCH, (FG_BOUNDARY_SCRATCH_WORD * 2)
+    /* Build 0561 (PROMT-ID-0115): the two transition bookkeeping maps live in their own
+     * dedicated transient WRAM buffer fg_boundary_transition_scratch, NOT inside
+     * fg_boundary_active_lut. The active LUT is exclusively tile/logical-code -> VRAM slot
+     * over the full $0000..$27FF index domain, so Round-2's legitimate raw Plane-A codes
+     * (e.g. $24BB..$24C2) can no longer alias scratch. These offsets index that buffer:
+     * identity map first, slot-translation map immediately after. Buffer size is derived
+     * from the same generated identity/slot contract (see the .bss allocation below). */
+    .equ FG_BOUNDARY_IDENTITY_SCRATCH, 0
     .equ FG_BOUNDARY_SLOT_TRANSLATION_SCRATCH, (FG_BOUNDARY_IDENTITY_SCRATCH + FG_BOUNDARY_PATTERN_IDENTITIES * 2)
     /* Dense LUT words for codes 0x031A..0x034B alias the fixed crash record at
      * Genesis-WRAM 0xFF6800..0xFF6863. Keep this proven hole in a bounded side segment. */
@@ -430,7 +434,7 @@ fg_boundary_install:
 .Linstall_build_translation:
     /* Build exact old-A-slot -> identity -> new-A-slot translation. Plane-B slots are outside
      * this band and therefore cannot be moved or blanked by a Plane-A transition. */
-    lea     fg_boundary_active_lut + FG_BOUNDARY_IDENTITY_SCRATCH, %a0
+    lea     fg_boundary_transition_scratch + FG_BOUNDARY_IDENTITY_SCRATCH, %a0
     move.w  #(FG_BOUNDARY_PATTERN_IDENTITIES - 1), %d7
 .Linstall_clear_identity_lut:
     clr.w   (%a0)+
@@ -451,12 +455,12 @@ fg_boundary_install:
     moveq   #0, %d1
     move.w  (%a3)+, %d1                 /* canonical exact-pattern identity */
     add.w   %d1, %d1
-    lea     fg_boundary_active_lut + FG_BOUNDARY_IDENTITY_SCRATCH, %a0
+    lea     fg_boundary_transition_scratch + FG_BOUNDARY_IDENTITY_SCRATCH, %a0
     move.w  %d0, 0(%a0,%d1.w)
     dbra    %d7, .Linstall_new_identity_loop
 .Linstall_new_identities_done:
 
-    lea     fg_boundary_active_lut + FG_BOUNDARY_SLOT_TRANSLATION_SCRATCH, %a0
+    lea     fg_boundary_transition_scratch + FG_BOUNDARY_SLOT_TRANSLATION_SCRATCH, %a0
     move.w  #(FG_BOUNDARY_SLOT_COUNT - 1), %d7
 .Linstall_clear_slot_translation:
     clr.w   (%a0)+
@@ -501,14 +505,14 @@ fg_boundary_install:
     moveq   #0, %d1
     move.w  (%a3)+, %d1                 /* canonical exact-pattern identity */
     add.w   %d1, %d1
-    lea     fg_boundary_active_lut + FG_BOUNDARY_IDENTITY_SCRATCH, %a0
+    lea     fg_boundary_transition_scratch + FG_BOUNDARY_IDENTITY_SCRATCH, %a0
     move.w  0(%a0,%d1.w), %d2           /* exact new slot, or blank */
     subi.w  #FG_BOUNDARY_SLOT_FIRST, %d0
     bcs.s   .Linstall_old_identity_next
     cmpi.w  #FG_BOUNDARY_SLOT_COUNT, %d0
     bhs.s   .Linstall_old_identity_next
     add.w   %d0, %d0
-    lea     fg_boundary_active_lut + FG_BOUNDARY_SLOT_TRANSLATION_SCRATCH, %a0
+    lea     fg_boundary_transition_scratch + FG_BOUNDARY_SLOT_TRANSLATION_SCRATCH, %a0
     move.w  %d2, 0(%a0,%d0.w)
 .Linstall_old_identity_next:
     dbra    %d7, .Linstall_old_identity_loop
@@ -587,7 +591,7 @@ fg_boundary_install:
     cmpi.w  #FG_BOUNDARY_SLOT_COUNT, %d1
     bhs.s   .Linstall_upload_required
     add.w   %d1, %d1
-    lea     fg_boundary_active_lut + FG_BOUNDARY_SLOT_TRANSLATION_SCRATCH, %a0
+    lea     fg_boundary_transition_scratch + FG_BOUNDARY_SLOT_TRANSLATION_SCRATCH, %a0
     cmp.w   0(%a0,%d1.w), %d0
     bne.s   .Linstall_upload_required
     addq.l  #1, fg_boundary_slots_retained
@@ -730,7 +734,7 @@ fg_boundary_install:
     bhs.s   .Linstall_remap_plane_store
     subi.w  #FG_BOUNDARY_SLOT_FIRST, %d1
     add.w   %d1, %d1
-    lea     fg_boundary_active_lut + FG_BOUNDARY_SLOT_TRANSLATION_SCRATCH, %a3
+    lea     fg_boundary_transition_scratch + FG_BOUNDARY_SLOT_TRANSLATION_SCRATCH, %a3
     move.w  0(%a3,%d1.w), %d2
 .Linstall_remap_plane_store:
     andi.w  #0xF800, %d0
@@ -754,6 +758,12 @@ fg_boundary_packages:
     .section .bss
     .align 2
 fg_boundary_active_lut:                 .space (FG_BOUNDARY_LUT_WORDS * 2)
+    /* Build 0561 (PROMT-ID-0115): dedicated transient transition-bookkeeping buffer, moved
+     * out of fg_boundary_active_lut so the active LUT index domain is purely tile/logical
+     * code -> VRAM slot. Identity map (FG_BOUNDARY_PATTERN_IDENTITIES words) followed by the
+     * old-slot->new-slot translation map (FG_BOUNDARY_SLOT_COUNT words). Live only during an
+     * fg_boundary_install; never read by normal-runtime rendering. */
+fg_boundary_transition_scratch:         .space ((FG_BOUNDARY_PATTERN_IDENTITIES + FG_BOUNDARY_SLOT_COUNT) * 2)
 fg_boundary_epoch_transitions:          .space 4
 fg_boundary_variant_selections:         .space 4
 fg_boundary_miss_a:                     .space 4

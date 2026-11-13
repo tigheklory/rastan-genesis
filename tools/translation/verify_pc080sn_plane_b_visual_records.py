@@ -46,6 +46,15 @@ def verify_runtime_contract(maincpu: bytes, records: bytes) -> int:
         legacy_source = be32(expected, 2) - COPIED_MAINCPU_DELTA
         native_attr = be16(actual, 0)
         native_source = be32(actual, 2) - COPIED_MAINCPU_DELTA
+        # PROMT-ID-0131: every real gameplay Plane-B tile is the semantic owner of Genesis CRAM
+        # Line 2 in EVERY round, independent of the arcade physical palette bank (R1 descriptors
+        # carry attr&3==2, R2 carry attr&3==3).  Assert the forced palette-line field directly so
+        # the rule is proven standalone, not merely self-consistent with the generator.
+        if ((native_attr >> 13) & 0x3) != 2:
+            raise SystemExit(
+                f"FAIL Plane-B palette line d={descriptor:#x} "
+                f"line={(native_attr >> 13) & 0x3} (must be 2 / CRAM Line 2)"
+            )
         # Every subcell alignment and vertical ring placement must reproduce
         # the exact 32 rows accepted by the old 64-probe/visibility-filter path.
         for subcol in range(16):

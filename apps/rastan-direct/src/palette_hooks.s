@@ -85,6 +85,20 @@ palette_route_table:
     .word 1, PROUTE_OWNER_HUD,        0,  0, 0
     .word 0xFFFF, 0, 0, 0, 0
 
+/* PROMT-ID-0132: per-round gameplay Layer-B PC080SN bank assignment.
+ * The retained arcade per-stage background loader (FUN_00059de8, gated a5@0x13b0==1, indexed by
+ * stage a5@0x118) loads each round's Layer-B palette into a ROUND-DEPENDENT physical bank, taken
+ * from arcade table 0x59E8C[(round-1)*4] (D5=0): R1=2, R2=3, R3=9, R4=8, R5=1, R6=4. This is the
+ * SAME bank the round's Plane-B tiles select via attr&3 (R1 tiles=2, R2 tiles=3). This mirror is
+ * bank-ROUTING metadata only -- NOT palette colour data; the 16 colours still come from the
+ * retained arcade loader source (0x59EC8[round], e.g. R2=0x5DC4E) through the existing runtime
+ * xBGR->CRAM conversion. genesistan_palette_hook_59ad4 uses it so the current round's Layer-B
+ * palette reaches Genesis CRAM Line 2 whatever physical bank the round assigns (previously only
+ * bank 2 / R1 did; R2's bank-3 write hit the bank-3->Line-1 branch and was gameplay-gate rejected,
+ * leaving L2 stale). Verify against the ROM: 0x59E8C[(r-1)*4] for r=1..6. */
+genesistan_layerb_bank_by_round:
+    .word 2, 3, 9, 8, 1, 4
+
     .section .text,"ax"
 
 /* palette_route_lookup: resolve (scene,owner,bank) -> line/flags via the table.
@@ -150,6 +164,31 @@ genesistan_palette_hook_59ad4:
     movem.l %d0-%d7/%a0-%a2, -(%sp)
     moveq   #0, %d5
 
+    /* PROMT-ID-0132: current-round gameplay Layer-B ownership of Genesis CRAM Line 2.
+     * In the authored gameplay scene (scene_id==1) the retained per-stage loader supplies this
+     * round's Layer-B palette with D0 == the round's physical PC080SN bank (R1=2, R2=3, ..., from
+     * genesistan_layerb_bank_by_round / arcade 0x59E8C). Whatever that bank is, it is the semantic
+     * Layer-B palette and must stage to Line 2 -- the single Genesis Layer-B owner in every round.
+     * Only bank 2 (R1) previously reached L2; R2's bank-3 Layer-B write fell into the bank-3->Line-1
+     * branch and was rejected by the gameplay gate, leaving L2 stale. The arcade FG bank-3 write
+     * (a different, round-1 caller) does NOT equal round 1's Layer-B bank (2), so R1 is unaffected.
+     * A0 (source) and D1 (row) are preserved; A1 is reloaded at .L59_dest_ok. */
+    cmpi.b  #1, genesistan_current_scene_id
+    bne.s   .L59_not_layerb_round
+    moveq   #0, %d2
+    move.b  0x0118(%a5), %d2                /* current round 1..6 */
+    subq.w  #1, %d2
+    cmpi.w  #6, %d2
+    bhs.s   .L59_not_layerb_round
+    add.w   %d2, %d2
+    lea     genesistan_layerb_bank_by_round, %a1
+    move.w  0(%a1,%d2.w), %d2               /* this round's arcade Layer-B bank */
+    cmp.w   %d0, %d2
+    bne.s   .L59_not_layerb_round
+    moveq   #2, %d0                         /* current round's Layer-B palette -> Genesis Line 2 */
+    bra.w   .L59_dest_ok
+.L59_not_layerb_round:
+
     /* Build 0145: the arcade's bank-51 sprite-palette update reaches this helper with d0 = 0x33;
      * route it to Genesis staged line 3. RG-004 proves READY banks 0x33 and 0x43 carry the same
      * retained source palette and therefore share that frontend line. Build 0174: Stage-1 PC080SN
@@ -204,16 +243,17 @@ genesistan_palette_hook_59ad4:
     cmpi.w  #4, %d0
     bcc.s   .L59_done
 .L59_dest_ready:
-    /* Build 0331: R1/P1 (scene 1) -> only Layer-B Line 2 (arcade bank 2, the gameplay sky) may be
-     * staged by this arcade producer; Lines 0/1/3 are Test-owned (installed once at scene
-     * activation).  Frontend / other scenes stage all lines.  Line 2 is partial-dynamic: the loop
-     * rewrites only the entries the arcade actually changes and marks palette_dirty only on a real
-     * change, so a static sky costs no per-frame CRAM commit. */
+    /* Build 0331 / PROMT-ID-0119: the authored gameplay scene (genesistan_current_scene_id==1) owns
+     * Lines 0/1/3 (Test 2.0 authored palettes, installed once at scene activation); only Layer-B
+     * Line 2 may be staged by this retained arcade producer. This is palette SEMANTIC OWNERSHIP,
+     * not a round number: the earlier `stage < 23` guard was an R1-only artifact that let Round 2+
+     * (same authored scene_id==1) fall through and overwrite the authored Lines 0/1/3 -> wrong
+     * mapped-sprite colours at R2 entry until a later reseed reinstalled them. Removing the round
+     * guard protects Lines 0/1/3 for every round's authored scene_id==1. Round 1 is unchanged
+     * (it already took the only-Line-2 path). Frontend / non-authored scenes stage all lines. */
 .if RASTAN_PALETTE_TEST_PROFILE
     cmpi.b  #1, genesistan_current_scene_id
     bne.s   .L59_dest_ok
-    cmpi.w  #23, 0x1242(%a5)
-    bhs.s   .L59_dest_ok
     cmpi.w  #2, %d0
     bne     .L59_done
 .endif
@@ -345,15 +385,14 @@ genesistan_palette_hook_45dae:
     tst.w   %d0
     beq.s   .L45_done
 
-    /* Build 0329/0331: this bank-0 positional copy targets the Test-owned Lines 0..3.  The gameplay
-     * Layer-B (Line 2) sky is NOT loaded here (proven: allowing this hook's Line-2 writes in scene 1
-     * left the sky frozen; the real loader is genesistan_palette_hook_59ad4 bank 2 -> Line 2).  In
-     * R1/P1 (scene 1) Lines 0/1/3 are Test-owned, so skip the whole copy; frontend / other scenes
-     * are unaffected. */
+    /* Build 0329/0331 / PROMT-ID-0119: this bank-0 positional copy targets the Test-owned
+     * Lines 0..3. In the authored gameplay scene (genesistan_current_scene_id==1) those lines are
+     * Test 2.0 owned, so skip the whole copy. Palette SEMANTIC OWNERSHIP, not round number: the
+     * earlier `stage < 23` guard was an R1-only artifact that let Round 2+ (same authored
+     * scene_id==1) run the copy and overwrite the authored Lines 0/1/3. Round 1 is unchanged (it
+     * already skipped). Frontend / non-authored scenes keep the copy. */
     cmpi.b  #1, genesistan_current_scene_id
-    bne.s   .L45_native_round_ok
-    cmpi.w  #23, 0x1242(%a5)
-    blo.s   .L45_done
+    beq.s   .L45_done
 .L45_native_round_ok:
 
     lea     staged_palette_words, %a2
@@ -456,15 +495,15 @@ genesistan_palette_hook_3ba64:
 .L3ba64_to_line3:
     moveq   #3, %d6                 /* arcade bank 51 -> Genesis line 3 */
 .L3ba64_line_ok:
-    /* Build 0329: during R1/P1 (scene 1), Test owns Lines 0/1/3 (installed at scene activation).
-     * Only Layer-B Line 2 may still be written by this arcade producer; skip any 0/1/3 target so
-     * the static Test palette is not re-owned per stage/segment load.  Frontend / other scenes are
-     * unaffected (they keep full arcade palette staging). */
+    /* Build 0329 / PROMT-ID-0119: the authored gameplay scene (genesistan_current_scene_id==1) owns
+     * Lines 0/1/3; only Layer-B Line 2 (arcade bank 48) may be written by this retained arcade
+     * producer. Palette SEMANTIC OWNERSHIP, not round number: the earlier `stage < 23` guard was an
+     * R1-only artifact that let Round 2+ (same authored scene_id==1) overwrite the authored
+     * Lines 0/1/3. Removing it protects Lines 0/1/3 for every round's authored scene_id==1; Round 1
+     * is unchanged (already only-Line-2). Frontend / non-authored scenes keep full staging. */
 .if RASTAN_PALETTE_TEST_PROFILE
     cmpi.b  #1, genesistan_current_scene_id
     bne.s   .L3ba64_line_store
-    cmpi.w  #23, 0x1242(%a5)
-    bhs.s   .L3ba64_line_store
     cmpi.w  #2, %d6
     bne     .L3ba64_next
 .endif
@@ -570,6 +609,18 @@ diagnostic_palette_r1s2:
     .global diagnostic_palette_r1s3
 diagnostic_palette_r1s3:
     .incbin "../../build/palette_export/cram/PAL-R1-S3-PLANEA-BOSS.bin"
+    /* Build 0561 (PROMT-ID-0115): Round-2 authored scene CRAM assets (Lines 0,1,3). Same
+     * Composer export pipeline as Round 1. The R2 palette is provisional pending RG-022
+     * authoring; these are additive assets 4,5,6 and do not touch the Round-1 assets 1-3. */
+    .global diagnostic_palette_r2s1
+diagnostic_palette_r2s1:
+    .incbin "../../build/palette_export/cram/PAL-R2-S1-PLANEA-OUTDOOR.bin"
+    .global diagnostic_palette_r2s2
+diagnostic_palette_r2s2:
+    .incbin "../../build/palette_export/cram/PAL-R2-S2-PLANEA-CASTLE.bin"
+    .global diagnostic_palette_r2s3
+diagnostic_palette_r2s3:
+    .incbin "../../build/palette_export/cram/PAL-R2-S3-PLANEA-BOSS.bin"
 
     .global diagnostic_palette_scene_select
 diagnostic_palette_scene_select:
@@ -580,3 +631,6 @@ diagnostic_palette_asset_ptrs:
     .long diagnostic_palette_r1s1
     .long diagnostic_palette_r1s2
     .long diagnostic_palette_r1s3
+    .long diagnostic_palette_r2s1
+    .long diagnostic_palette_r2s2
+    .long diagnostic_palette_r2s3

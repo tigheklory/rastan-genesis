@@ -332,8 +332,13 @@ def main() -> None:
                 source = be32(maincpu, descriptor + 2) & 0xFFFFFF
                 code = be16(maincpu, source + logical_row * 0x20 + (column & 15) * 2) & 0x3FFF
                 slot = round_slots.get(code, 0)
+                # PROMT-ID-0118: gameplay Plane B is the semantic owner of Genesis Line 2 in every
+                # round; a real Plane-B tile (nonzero slot) always emits Line 2 regardless of the
+                # arcade attr&3 bits. Blank cells keep their bits. Mirrors the generator (semantic
+                # ownership, not a round/record test).
+                plane_b_line = compiler.PLANE_B_PALETTE_LINE if slot else (attr & 3)
                 native_attr = ((((attr >> 13) & 1) << 15) |
-                               ((attr & 3) << 13) |
+                               (plane_b_line << 13) |
                                (((attr >> 15) & 1) << 12) |
                                (((attr >> 14) & 1) << 11))
                 expected = native_attr | slot

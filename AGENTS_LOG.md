@@ -55853,3 +55853,440 @@ runs fine in Cody's env. New tooling: `genesis_player_palette_probe.lua`, `run_g
 `verify_player_palette_runtime.py`. Doc:
 `docs/design/Andy_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0112_rastan_runtime_palette_repair.md`.
 BlastEm/hardware acceptance pending Tighe.
+
+---
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0113 — Native R2 Plane-A integration (progress + blocker)
+
+**Andy, 2026-11-09.** Began the native Round-2 Plane-A port on Build 0560. **Solved the epoch-capacity concern:**
+a finer R2 epoch split `BOUNDARY_ROUND2_EPOCH_RECORDS = (range(23,33), range(33,39), range(39,46))` yields R2
+synthetic pattern counts 586/606/425 — all ≤ the 676 cap — with R1 epoch output semantically unchanged. The
+earlier "683>676" was only R2's coarse 2-epoch default, not a VRAM wall (Tighe was right). Extended
+`AuthoredLayerA.SCENES` with the three R2 contexts consuming Test 2.0's existing per-usage mappings (789/234/200).
+
+**Blocked at the next layer (not shipped):** enabling R2 Plane-A grows `len(pattern_id)` so the native LUT's
+fixed transition-scratch region (`compile_pc080sn_genesis.py:1016`, `0x1600` + total patterns, in the
+`0x2800`-word LUT) collides with R2's arcade FG codes 9403–9410. The scratch is **shared by R1 and R2
+transitions**, so every fix (enlarge `BOUNDARY_LUT_WORDS` + relocate scratch / refine occupied-code check /
+consolidate R2 near-dups) changes R1 transition behavior and needs **visual MAME verification** of R1 — which
+this sandbox cannot provide (MAME wedged). Per §10/§13 (keep R1 stable, no new regression) I reverted the
+generator to keep 0560 buildable rather than gamble the accepted baseline blind. Separately, 8 R2-S1 Plane-A
+uses (codes 0x0020/0x00AD) are unmapped in Test 2.0 (§8 forbids me authoring them). No numbered build produced;
+0560 stands. Full remaining path + handoff: `docs/design/Andy_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-
+ID-0113_r2_native_plane_a_integration.md` and `Andy_r2_native_plane_a_port_plan.md`. Deferred (untouched): R2
+boss AI, R2 post-boss softlock, score/high-score, R1-S3 torches.
+
+## [Andy — PROMT-ID-0114 Round-1 Plane-A residency architecture recovery (read-only archaeology)]
+
+`TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0114`
+
+* ANALYSIS / DOCUMENTATION ARCHAEOLOGY. No production source/generator/profile/Makefile/binary/ROM/build-number
+  change; no MAME/trace. Baseline Build 0560 untouched; counter unchanged. Deliverable:
+  `docs/design/Andy_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0114_round1_residency_architecture_recovery.md`.
+* VERDICT: **YES — R1 already solved this; R2 must reuse it, not redesign.** The native Plane-A system is a
+  complete offline-precompute residency engine: arcade record (`A5+0x13E`) -> epoch via `record_to_epoch`;
+  each epoch = complete exact-32-byte pattern vocabulary + code->slot map in ROM `boundary_packages.bin`;
+  in-epoch record changes do ZERO DMA/remap/evict (`fg_boundary_install` early-returns); two streamed handoffs
+  (rope->waterfall rec2->3, waterfall->next rec3->4) served by bounded overlap packages 7/8 that keep outgoing
+  visible patterns in-slot + add incoming, retired at logical column 45 by `fg_boundary_transition_step`. This
+  IS Tighe's ROM=epoch-data / WRAM=current+incoming model, already implemented.
+* TIMELINE recovered: 0308 zero-drop per-record residency (scratch in "statically empty LUT word range
+  5632-7969"); 0310 seven complete-residency epochs (`0,0,0,1,2,2,2,2,2,2,3,4,5,5,5,6`, DP-minimum at cap 484);
+  0311 transition overlap packages + writable `fg_boundary_active_lut` (0x2800w WRAM) + in-LUT transition
+  scratch (git `c8adf2a4`); 0316 Palette Composer authored-reindex integration (dedup on final bytes;
+  Plane-B byte-identical; Line 3 authored); 0342 clean 676-slot contiguous Plane-A repack (663-1338), 5 stable
+  epochs `((0-2),(3),(4-10),(11-12),(13-15))`, `record_to_package [0,0,0,5,6,2,2,2,2,2,2,3,3,4,4,4]`. 0560 runs
+  the 0342 shape; NO drift from historical design.
+* "Immutable" = within an epoch a logical code maps to exactly one 32-byte pattern identity
+  (`compile_pc080sn_genesis.py:663-666`); basis of zero-in-epoch-work.
+* LUT ownership: ROM = all epoch packages + record tables + constants (immutable). WRAM = ONE
+  `fg_boundary_active_lut` (installed working copy of the current package) + transient identity/slot-translation
+  scratch parked in its unused tail (explicitly a temporary optimization, 0308) + 50-word `fg_boundary_conflict_lut`.
+  The 20KB size is forced only by dense raw-code indexing, not by residency semantics.
+* PROMT-0113 scratch collision REINTERPRETED: NOT new architecture, NOT a two-LUT problem. It is an R1-ONLY
+  numeric-range assumption exposed by R2 — R1's real Plane-A codes are all < 0x1600 so the scratch parks in the
+  [0x1600,0x2800) hole; R2's real arcade FG codes 0x24BB..0x24C2 (9403-9410) sit INSIDE that hole, so the
+  Build-0308 guard `transition scratch overlaps legal LUT codes` (`:1005-1010`) correctly refuses. Fix =
+  relocate the transient scratch to a hole empty for the active round (preferably its own small WRAM buffer),
+  a placement change, not a residency redesign.
+* 8 unmapped R2-S1 usages (codes 0x0020/0x00AD): real authoring problem UNPROVEN / likely NOT a blocker. The
+  generator already renders unmapped usages as raw arcade pattern on palette Line 3 (`:96-100,140-141`), same as
+  R1's own unmapped usages; §27 no-drop is satisfied. Do not bother Tighe to pre-author them.
+* PRODUCTION CHANGES: NONE. BUILD CONSUMED: NONE. Recommended next (narrow, NOT done here): extend the generator
+  with the three R2 scenes + proven finer R2 epoch split AND move the transition scratch out of the shared
+  0x1600 LUT hole, then wire R2 palette-install/scene-select/round gates R2-additively; validate R1 byte-identical
+  via existing epoch/transition/canonical gates + MAME; start with R2-S3 (smallest).
+
+---
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0115 — R2 native Plane-A: scratch relocation + proven R2 epoch/scene integration (Andy, 2026-11-10)
+
+Resumed the historical PROMT-ID-0113 R2 work using the PROMT-ID-0114 architecture recovery. Narrow, no LUT/residency redesign.
+
+* **PROMT-ID:** TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0115
+* **Baseline commit:** `f8b07a84` (Post Build 560); accepted visual baseline Build 0560.
+* **Final commit(s):** none — changes left uncommitted in the working tree for Tighe review (no commit/push instruction given).
+* **Builds produced:** Build **0561** (counter 560→561). Release ROM `dist/rastan-direct/rastan_direct_video_test_build_0561.bin`, SHA-256 `b08e505eb648ba688a5862c951b97c62ad6b3f9667a4a4b85c0e609022c85565`, 4,443,832 bytes. Ledger `[canonical=PASS entry=FAIL epoch=FAIL]` (entry/epoch = GENESIS NTSC MAME gates, sandbox-wedged and killed so the ROM numbers — same label profile as accepted 0560; NOT gameplay acceptance).
+* **Scratch old location:** inside `fg_boundary_active_lut` at word `0x1600` (byte `0x2C00`), `len(pattern_id)+676` words, zero separate BSS (reused the statically-empty LUT tail — the R1-only assumption).
+* **Scratch new location:** dedicated `.bss` buffer `fg_boundary_transition_scratch` @ `0xFFB2B4`; active LUT is now purely tile/logical-code → VRAM slot over `$0000..$27FF`.
+* **Identity scratch bytes:** 3125 words = **6250 B** (`0xFFB2B4..0xFFBEFD`).
+* **Slot-translation scratch bytes:** 676 words = **1352 B** (`0xFFBEFE..0xFFD065`).
+* **Total additional WRAM:** **+7602 B** (whole dedicated buffer; old in-LUT scratch had 0 BSS footprint).
+* **Final BSS end:** `0xFFE42C` (`.bss` `0xFF4000..0xFFE42C`, 42028 B; was `0xFF4000..0xFFC67A`, 34426 B).
+* **Remaining WRAM/stack margin:** `.bss` end → top of WRAM (`0x1000000`) = `0x1BD4` = **7124 B** (stack init SP `0xFF0000` mirrors to `0xFFFFFE`, grows down). 0560 margin was 14726 B. Scratch does NOT overlap arcade A5 WRAM `$FF0000..$FF3FFF` (scratch at `0xFFB2B4+`), nor other BSS/stack.
+* **R2 epoch counts (recomputed):** records 23–32 = **586**, 33–38 = **606**, 39–45 = **425** (all ≤ 676). Scenes: PAL-R2-S1-OUTDOOR 23–38, PAL-R2-S2-CASTLE 39–44, PAL-R2-S3-BOSS 45; profile `Test_2_0`; 8 R2-S1 usages stay raw-on-Line-3.
+* **R1 regression results:** BYTE-IDENTICAL. Record native maps 0–22 (stable + overlap) identical; epoch unions `[283,366,665,634,640,590]` identical; `record_to_epoch` R1 unchanged; `native_pattern_region` R1 region identical (first diff exactly at the appended R2 pool, code `0x1D93`); rope/waterfall retention held (peaks `414/511/673/346 ≤ 676`, missing=0, collisions=0). Required the round-stable synthetic-code fix (R1 pool locked, R2 appended) because R1 record 22 boss-animation arcade codes `$1AC0..$1AD1` live inside the synthetic band.
+* **R2 test results:** generator + all build gates pass (canonical=PASS); transition-retention and coverage invariants updated for the 9-epoch/13-package layout. No R2 **gameplay** validated here (sandbox MAME wedges; Tighe's gameplay test authoritative).
+* **Exact artifacts produced:** `rastan_direct_video_test_build_0561.bin` (+ dual-build suffixed postpatch copies sharing #0561); generated `build/pc080sn_boundary/*`, `build/rastan-direct/{address_map.json,rastan_direct_patch_manifest.json,build_counter.txt}`, `states/traces/..._build_0561_mame_30s_*` (trace was MAME-wedged/killed). Source changes: `tools/translation/compile_pc080sn_genesis.py`, `tools/translation/verify_build0311_transition_retention.py`, `apps/rastan-direct/src/{fg_tile_cache.s,vdp_comm.s,palette_hooks.s}`, `apps/rastan-direct/Makefile`. Report: `docs/design/Andy_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0115_r2_native_plane_a_scratch_relocation.md`.
+* **Still requires Tighe gameplay verification:** R2-S1/S2/S3 native Plane-A gameplay on USA/NTSC `genesis` (test R2-S1 direct-start first); R2 palette is provisional (RG-022 pending) so R2 colours may be wrong even with correct geometry; confirm R1 unchanged vs 0560. Do NOT claim Round 2 fixed/accepted until Tighe verifies gameplay.
+
+`TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0115`
+
+---
+
+## PROMT-ID-0115 follow-up — R2 Plane-B (Layer-B) palette-line fix (Andy, 2026-11-10, Build 0562)
+
+Tighe (Build 0561 test): R2-S1 Layer A great, but Layer B (dedicated palette line) shows wrong colours
+(purple trees vs arcade brown/green). Requested R2 get its own Layer-B palette on the same line used by R1,
+without changing R1's Line 2.
+
+* **Root cause (confirmed, caused by the 0115 authored-Layer-A work):** native Plane B sets its Genesis
+  palette line from the arcade PC080SN `attr&3`. Every R1 background record carries `attr&3==2` (Genesis
+  Line 2, the dedicated background line); every R2 background record carries `attr&3==3` (Genesis Line 3).
+  PROMT-ID-0115 put the authored Layer-A palette on Line 3, so R2's background trees were drawn with the
+  Layer-A (foreground) palette -> wrong colours. R1 was unaffected (Line 2). Evidence: per-round outdoor
+  palette table (arcade 0x59EC8, indexed by round `a5@0x118`) stage1 = blue/purple sky, stage2 = brown/green
+  forest -- the purple exactly matches R1 stage-1 entries applied to R2 trees.
+* **Fix:** `compile_pc080sn_genesis.py` pins Round-2 Plane-B scene-fill tiles to the dedicated background
+  line (`PLANE_B_PALETTE_LINE=2`) for records >= `ROUND2_FIRST_RECORD`; Round 1 keeps raw `attr&3` verbatim.
+  Mirrored the same round-gated remap in `verify_plane_a_scene_fill_maps.py` (the scene-fill gate recomputes
+  the expected Plane-B word from `attr&3`).
+* **R1 byte-identity:** PROVEN. Only `plane_b_scene_fill_maps.bin` changed, and only its R2 records (23-45);
+  all R1 records (0-22) byte-identical (including blank slot-0 tiles). No other artifact changed; epoch/package
+  layout, coverage delta (0xC3000), all other gates unchanged.
+* **Build 0562** (counter 561->562). ROM `dist/rastan-direct/rastan_direct_video_test_build_0562.bin`
+  SHA-256 `aada40c58760658f2951c372a1897779c2f1d17e5f824fb674bf8724ee39dadf`; `[canonical=PASS entry=FAIL
+  epoch=FAIL]` (entry/epoch = sandbox-wedged MAME gates killed so the ROM numbers, same as 0560/0561). Plus
+  _d/_s/_do/_c/_full_hud/_invincible and R2-S1/S2/S3 direct-start ROMs. Source changed:
+  `tools/translation/compile_pc080sn_genesis.py`, `tools/translation/verify_plane_a_scene_fill_maps.py`.
+* **Requires Tighe gameplay verification:** R2-S1 trees should now use the per-round background palette on
+  Line 2. If they instead show R1's blue/purple sky (not the Layer-A collision), the secondary suspect is the
+  round index `a5@0x118` being stale on the R2 path (the per-round palette would then load Round 1's) -- a
+  separate fix. Test R2-S1 direct-start first.
+* **Open / NOT fixed this build:** R2-S1 (scene 1) music "Aggressive World" not playing (R2-S2/S3 music
+  correct). Separate subsystem (Z80/arcade sound-command translation); scene-1 re-entry in Round 2 likely not
+  re-triggering the scene-1 track. Needs its own investigation.
+
+`TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0115`
+
+---
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0119 — R2 Layer-B palette completion (Andy, 2026-11-11, Build 0563)
+
+Continuation of PROMT-ID-0118 (incomplete). Finished the statically-justified Plane-B->L2 + authored-0/1/3
+ownership work and produced a candidate. Baseline working tree HEAD `f8b07a84` (uncommitted, preserved).
+
+* **Architecture:** every gameplay Plane-B tile -> Genesis CRAM Line 2 (semantic owner, all rounds); authored
+  `scene_id==1` scenes own Lines 0/1/3 (Test 2.0); retained arcade Layer-B code owns Line 2. NO `record>=23`
+  rule, NO hardcoded R2 CRAM, NO static copy of `$5DC4E` (`$5DC4E` = `0x59EC8[1]` oracle data only, absent from
+  Genesis code).
+* **Plane-B producer inventory (complete):** 4 gameplay Plane-B producers corrected to select Line 2 regardless
+  of arcade `attr&3` (flip/prio preserved): generator scene-fill (`compile_pc080sn_genesis.py`, slot-based) +
+  runtime `.Lplane_b_native_attr_from_word`, `genesistan_hook_tilemap_bg_fill`, `..._bg_blockcopy`, and the BG
+  scene-preamble `.Lbg_hook_desc_loop`. The shared `genesistan_pc080sn_attr_lut` was NOT globally rewritten
+  (shared with Plane-A/text/HUD: `fg`, `fg_fill`, text writers, number/glyph renderers, `endround_plane_a_clear`
+  left untouched; `cwindow_clear` is a blank clear). `verify_plane_a_scene_fill_maps.py` mirrors the rule.
+* **Authored Lines 0/1/3 gate repair:** removed the R1-only `stage<23` term from all three retained arcade
+  palette producers (`genesistan_palette_hook_59ad4`, `_3ba64`, `_45dae`); authored `scene_id==1` scenes now
+  protect Lines 0/1/3 for every round. This is the static repair for the R2 sprite-colour defect (arcade
+  producer was overwriting authored 0/1/3 at R2 entry). R1 unchanged.
+* **R1 non-regression:** generated `plane_b_scene_fill_maps.bin` R1 records 0-22 BYTE-IDENTICAL to 0560 (only R2
+  records move to L2). Runtime producers: R1 tiles carry attr&3==2 so forcing pal=2 is a no-op. Gate repair
+  removes only the round term; R1 already took the protected path.
+* **Runtime-unproven (needs working MAME, blocked here):** whether, after the gate repair, Line 2 shows R2's
+  per-round palette at the first R2 frame (the `A5+0x118` round-index / per-round-palette selection timing), and
+  the exact record where sprites currently flip wrong->correct. Measured statically only; `A5+0x118` not read.
+* **Build 0563** (counter 562->563): `dist/rastan-direct/rastan_direct_video_test_build_0563.bin`
+  SHA-256 `6dd40cba2254a9136613a9e441e818a43cff05405275b175c3d206f9a45ae557`; family _d/_s/_do/_c/_full_hud/
+  _invincible; direct-starts R2-S1 `c5b0172a...`, R2-S2 `ecc4f2cc...`, R2-S3 `2c257c07...`.
+  Ledger `[canonical=PASS entry=FAIL epoch=FAIL]`: canonical + boot-guard + transition-retention + scene-fill/
+  Plane-B + metatile/HUD/item/title + VDP-DMA gates PASS; GENESIS NTSC MAME entry/epoch gates + post-number 30s
+  trace are NOT RUN / ENVIRONMENT-BLOCKED (MAME wedges at init; terminated cleanly), not gameplay pass/fail.
+* **Tighe test first:** natural R1->R2 if practical, else `rastan_direct_video_test_build_0563_R2-S1.bin`. Verify
+  entire Plane B uses one consistent L2 realization (initial + streamed match), L2 shows R2 colours not R1,
+  mapped sprites correct immediately at R2 entry, dying ~29 and crossing 32->33 do NOT repair colours, dynamic
+  Layer-B changes still occur. Not claimed fixed until Tighe verifies.
+* Reports: `docs/design/Andy_...PROMT-ID-0118_r2_original_layerb_palette_to_l2.md` (historical) and
+  `docs/design/Andy_...PROMT-ID-0119_r2_layerb_palette_completion.md`.
+
+`TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0119`
+
+---
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0121 — read-only regression archaeology (Andy, 2026-11-11)
+
+READ-ONLY. No production source, generator, ROM, or build counter changed (this task added only the report doc
++ this entry). Pre-existing uncommitted 0115/0118/0119 source work left untouched.
+
+* **Attract-demo crash (first-bad 0548->0549):** TRAP #0 (vector $20) = `tilemap_hooks.s`
+  `.Lscene_scroll_reseed_bad_source_generation` in `genesistan_plane_a_scene_scroll_reseed_native` — the native
+  scene-scroll reseed rejects the retained scene-descriptor SOURCE GENERATION. Same invariant across 0549-0563
+  (constant A3=$000599DE in the retained scene-descriptor driver band 0x5988C/0x59962/0x599B2/0x59DE0,
+  A5=$FF0000, SR=2F04; PC drift only). Cause = the PROMT-ID-0106 series (14fe7967 subround-vs-round-clear
+  ownership substate 13->8 flip; e8ae0945 scene-descriptor source-generation handling; b7a10783 shared-package
+  reseed context) scoped to the natural R1-S2->R1-S3 transition made the reseed/ownership contract too strict /
+  mis-owned for ATTRACT-mode gameplay-demo entry, which reaches the same 0x056440 teardown->reseed path. 0548
+  (pre-tightening) accepted it. Smallest fix: accept the attract generation / restore its ownership WITHOUT
+  weakening the trap, scoped away from the natural-subround fix. Exact live substate = PENDING-RUNTIME (MAME
+  wedged).
+* **Throne palette regression (0562->0563, self-inflicted by PROMT-ID-0119):** NAME-WORD ROUTING, not CRAM.
+  0119 forced Plane-B palette line = 2 in `bg_fill`, `bg_blockcopy`, and the BG scene-preamble
+  `.Lbg_hook_desc_loop` — which are UNGATED and FRONTEND-reachable (unlike `fg_fill`, which gates on
+  `scene_id==SCENE_GAMEPLAY_ID`). Frontend throne/story Plane-B tiles that previously selected Line 0/1 now
+  select Line 2 (no frontend palette) -> recoloured. The 0119 "gameplay-only" classification of those three
+  producers was wrong. `.Lplane_b_native_attr_from_word` + generator scene-fill are genuinely gameplay-only
+  (safe). Smallest fix: gate the Line-2 forcing in those three on gameplay ownership (`fg_native_gameplay_owner`
+  / `scene_id==SCENE_GAMEPLAY_ID`) so frontend keeps Line 0/1; keep gameplay Plane-B -> L2. (R2-S1 still NOT
+  fixed by 0563; R2 Layer-B content remains a separate open item.)
+* Report: `docs/design/Andy_...PROMT-ID-0121_build0549_and_0563_regression_archaeology.md`.
+
+`TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0121`
+
+---
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0123 — read-only binary forensics; CORRECTS 0121 (Andy, 2026-11-11)
+
+READ-ONLY. No production source/generator/ROM/build-counter change. Used the actual preserved ROMs 0548/0549
+(and 0554/0560/0562/0563) disassembled with the project m68k toolchain.
+
+* **0548 vs 0549 = 241 differing bytes, ONE meaningful cluster** at ROM `0x055F9D-0x0560C1` (copied-arcade
+  teardown); `$70Bxx` crash code is BYTE-IDENTICAL. [BINARY]
+* **Exact delta:** ROM `0x55FBE` — 0548 `braw 0x560d0` (exit) vs 0549 `jsr 0x70b38` + `rts` (call native scene
+  reseed/publish). 0549 added the reseed call; 0548 skipped it. [BINARY]
+* **Trap = `.Lscene_scroll_reseed_rebuild_bad_ptr`** at `0x70BA2` (`trap #0`, vector $20; 0549 displayed PC
+  `$70BA4`). Function at `0x70B4E` validates 16 descriptor pointers from `PC080SN_DESC_REBUILD_SRC_TABLE`
+  (`0xFF1000`) against the Plane-B descriptor-table range `[0xF08,0x3A00C)`; attract-demo entry supplies an
+  invalid table -> trap. 0548 never runs the rebuild on that path. Same invariant 0549/0554/0560 (trap at
+  0x70BA2/0x70BAE), 0561-0563 same function shifted by R2 growth. [BINARY]
+* **Cause = commit `14fe7967` (PROMT-ID-0106)** opcode_replace at `arcade_pc 0x055F2A` ("post-teardown
+  publication cut", redirect state-8 natural next-subround teardown to native Plane-A replay + Plane-B
+  scene-entry). Confirms + narrows 0121's lead (was 14fe7967+e8ae0945+b7a10783 -> the single 0x055F2A splice).
+  [BINARY+DOC]
+* **CORRECTIONS to 0121:** (1) trap label was wrong — it is `rebuild_bad_ptr`, NOT `bad_source_generation`.
+  (2) **A3=$599DE claim RETRACTED** — the invariant validates `%a4` (the 0xFF1000 descriptor pointer), not
+  `%a3`; A3 is residue, not causal.
+* **Throne (0562->0563):** frontend CRAM UNCHANGED (0119 palette-hook gate edits only touch `scene_id==1`
+  paths; frontend is `scene_id!=1` -> unchanged `dest_ok`) [SRC]; regression is NAME-WORD routing — 0119 forced
+  Plane-B line=2 in frontend-reachable `bg_fill`/`bg_blockcopy`/`.Lbg_hook_desc_loop`, so frontend Plane-B tiles
+  select Line 2 instead of 0/1. Exact per-cell writer PENDING-RUNTIME (0562/0563 byte-diff swamped by shift-table
+  drift; MAME wedged). Smallest fix: gameplay-gate the L2 forcing; keep gameplay Plane-B->L2.
+* Report: `docs/design/Andy_...PROMT-ID-0123_exact_0548_0549_binary_regression_and_0563_throne_forensics.md`.
+  0121/0122 docs left intact.
+
+`TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0123`
+
+---
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0124 — throne regression FIXED (Build 0564); attract STOPPED (Andy, 2026-11-11)
+
+Implements the two 0123-proven regressions. PART A (throne) done + isolated build; PART B/C (attract) STOPPED
+per the prompt's no-guess rule (no statically-provable discriminator; MAME wedged). Working tree 0115/0118/0119
+preserved; snapshot in scratchpad.
+
+* **PART A — throne/frontend:** 0119 forced Genesis Plane-B line=2 unconditionally in three shared
+  frontend+gameplay producers. FIX: gate the Line-2 normalization on `genesistan_current_scene_id ==
+  SCENE_GAMEPLAY_ID (1)` (the authoritative gate already used by sibling `fg_fill`) in
+  `genesistan_hook_tilemap_bg_fill`, `genesistan_hook_tilemap_bg_blockcopy`, and BG preamble
+  `.Lbg_hook_desc_loop` (tilemap_hooks.s). Frontend (`scene_id!=1`) keeps original `attr&3` -> Lines 0/1;
+  gameplay (`scene_id==1`) selects Line 2. KEPT gameplay-only L2 in `.Lplane_b_native_attr_from_word` + generated
+  scene-fill maps (not "undo 0119"; scope it). .s-only; boundary artifacts unchanged from 0563.
+* **Build 0564** (counter 563->564) `dist/rastan-direct/rastan_direct_video_test_build_0564.bin`
+  SHA `869054a32e526294c3046d39b51df6cabef4e76238448118c3ddf080fe7ced1f`; family + R2-S1/S2/S3 direct-starts.
+  `[canonical=PASS entry=FAIL epoch=FAIL]` (MAME gates ENVIRONMENT-BLOCKED/killed). **Intentionally still
+  contains the attract crash** (isolation build).
+* **PART B/C — attract: STOPPED.** The `14fe7967` reseed splice (arcade `$055F2A`) must be scoped to the natural
+  next-subround lifecycle, but natural + attract reach the SAME state-8 teardown (`a5@0x13AA==8`), so substate
+  doesn't distinguish them, and no retained attract/demo discriminator is provable statically (Ghidra inventory
+  has none; distinguishing needs the `$FF1000` descriptor-table + game-mode state captured for BOTH routes under
+  working MAME, which is wedged). Did NOT guess, did NOT add a pointer-validity fallback, did NOT roll back to
+  0548 (would reintroduce the R1-S2->S3 bug). `.Lscene_scroll_reseed_rebuild_bad_ptr` trap UNTOUCHED/active.
+  Required runtime capture documented in the report.
+* **Tighe test FIRST:** `rastan_direct_video_test_build_0564.bin` — throne/story/title colours restored, R1
+  unchanged, R2 Plane-B consistent L2; attract demo still expected to crash (isolation). Second (attract)
+  candidate pending the runtime capture.
+* Report: `docs/design/Andy_...PROMT-ID-0124_attract_and_frontend_regression_repair.md`.
+
+`TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0124`
+
+---
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0125 — attract $055F2A discriminator: static analysis + diagnostic design (Andy, 2026-11-11)
+
+Throne fix (0564) ACCEPTED by Tighe; NOT touched. Task = find the natural-vs-attract discriminator at the
+$055F2A reseed. No production behavior changed; invariant `.Lscene_scroll_reseed_rebuild_bad_ptr` untouched; no
+R2/LUT/scratch/audio work.
+
+* **Phase 1: NO static discriminator proven.** Both routes use state-8 teardown, so A5+0x13AA/0x13E/0x13B8/0x1242
+  are identical/same-populated. Ghidra exports have no labelled attract/demo/credit/game-mode field; the
+  controllers are unnamed FUN_* (inputs at Taito I/O 0x390001/0x390007). The game-mode flag was not isolated
+  this session.
+* **New evidence from the 0564 attract crash screen:** crash handler captures CRASH_GS_00/02/04/34/200 from
+  `(a0)` with a0=0xFF1000 (crash_handler.s:216-220); attract shows +00=0002 +02=0002 +04=0006 -> first $FF1000
+  descriptor longwords are 0x00020002/0x00060000 = INVALID (not in [0xF08,0x3A00C)). Confirms attract table is
+  stale. DIAGNOSTIC EVIDENCE ONLY — not the proposed fix (descriptor validity != semantic discriminator).
+* **Phase 2 diagnostic ROM: designed, NOT built this session (budget).** Design in the report: build-flag-gated
+  (`RASTAN_DIAG_055F2A_CAPTURE`) capture at the reseed entry of A5+0x13AA/0x13E/0x13B8/0x1242, scene_id,
+  fg_native_gameplay_owner, a window of low game-flow A5 bytes, and a $FF1000 16-entry signature (first-invalid
+  index, valid/invalid counts, XOR checksum); display via crash-screen infra + diagnostic halt (NOT via the
+  production trap). Capture A = attract normal ROM; Capture B = R1-S2 direct-start + invincibility through real
+  S2->S3. Diff reveals the discriminator for the next prompt to implement.
+* Build 0564 + throne repair + build counter UNCHANGED (564). Report:
+  `docs/design/Andy_...PROMT-ID-0125_attract_vs_natural_055f2a_state_capture.md`.
+
+`TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0125`
+
+---
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0126 — $055F2A lifecycle diagnostic ROMs DELIVERED (Andy, 2026-11-11, Build 0565 DIAGNOSTIC)
+
+Implemented + built the 0125-designed diagnostic. DIAGNOSTIC ONLY; no production attract fix. Build 0564 (throne
+baseline) untouched.
+
+* **Instrumentation:** `.if RASTAN_DIAG_055F2A_CAPTURE` block (new flag default 0) in
+  `genesistan_gameplay_scene_restore_after_teardown` (tilemap_hooks.s), after the entry movem, BEFORE the native
+  reseed. Captures A5+$13AA/$013E/$13B8/$1242, scene_id, fg_native_gameplay_owner, candidates
+  $0002/$0004/$0014/$0118/$013A/$0214/$0216/$0218/$021A, A0=$FF1000, and a $FF1000 XOR checksum + valid/invalid
+  counts, into D0-D7/A0-A4, then `trap #0` -> crash display + HALT. Binary-verified in 0565: trap #0 @0x70C52
+  precedes reseed bsr @0x70C5C. Flag=0 => block excluded => Build-0564 behavior. Flag plumbed via Makefile ->
+  pc090oj_config.inc; NOT in CANONICAL_BUILD_FLAGS (canonical defaults 0).
+* **Build 0565 (DIAGNOSTIC ONLY, invincible)** — ROM A (attract):
+  `dist/rastan-direct/rastan_direct_video_test_build_0565_DIAG_attract.bin` SHA
+  `5dcf7fcd520dd6d8fe8634e85302b95d2a0adf7ee864c676c71ca1056c4a02ab`; ROM B (natural R1-S2 direct-start):
+  `..._0565_DIAG_natural_r1s2.bin` SHA `ff12afc045fce0d3792f227060d72eebb878fecdab757c90c89e19f8bafbf613`.
+* **Tighe:** Capture A = boot ROM A, press nothing, let attract reach the demo -> halt screenshot. Capture B =
+  boot ROM B (direct-start R1-S2, invincible), play to the real S2->S3 transition -> halt screenshot. Next task
+  diffs A vs B for the discriminator (register map in the 0126 report).
+* **Untouched:** Build 0564 (SHA 869054a3), throne fix (SCENE_GAMEPLAY_ID gates), production trap
+  `.Lscene_scroll_reseed_rebuild_bad_ptr`. Counter 564->565 (diagnostic). Isolated edits: tilemap_hooks.s +
+  Makefile. Report: `docs/design/Andy_...PROMT-ID-0126_055f2a_diagnostic_rom_delivery.md`.
+
+`TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0126`
+
+---
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0131 — R2-S1 Layer-B L2 tile fix + arcade palette re-derivation (Build 0566)
+
+**Author:** Andy · **Date:** 2026-11-12 · Start HEAD `f8b07a84` (branch rastan-direct-proposal), preserved
+0113-0126 working tree. MAME environment-blocked (gates self-timeout 120s; surgically killed exact `mame` binary
+only — NOT recipe shells).
+
+* **Part 1 (tile palette-line → L2, offline):** `tools/translation/gen_pc080sn_plane_b_visual_records.py` —
+  after the proven attr-LUT lookup (keeps priority/H/V flip/source), force the palette-line field to Line 2:
+  `native_attr = (native_attr & 0x9FFF) | (0x2 << 13)`. Semantic-ownership rule (every real gameplay Plane-B
+  tile → L2, every round), NOT `if round==2`. `verify_pc080sn_plane_b_visual_records.py` now asserts
+  `((native_attr>>13)&3)==2` for every valid record (standalone proof). Regen: valid-record line histogram
+  NEW {2:392} (OLD {0:63,1:107,2:93,3:129}); **299 changed (banks 0/1/3→L2), 0 bank-2 changed → R1 Plane-B
+  byte-identical.** Shared LUT, Plane A, frontend untouched. This closes the row/vertical-pan L2/L3 split
+  (`.Lplane_b_publish_logical_row_native`), the one producer that read the baked attr. The other 3 producers
+  already force L2; no runtime code changed (live-fed producers keep their L2 force; 0124 throne gate intact).
+* **Part 2 (L2 color CONTENTS, re-derived from arcade program):** retained loader `FUN_00059de8` stages the
+  per-stage outdoor palette to Genesis **L2** via `genesistan_palette_hook_59ad4` (bank 2 → Line 2, proven),
+  gated on `a5@0x13b0==1` (set by `FUN_00055c22`), indexed by stage `a5@0x118`. Every link except the proven
+  hook is original retained arcade code ⇒ **no R2-specific production divergence.** All wrong-color evidence is
+  from the direct-start R2-S1 ROM, which patches only the stage-decode selector byte (0xFF→0xFE) and does not
+  reproduce the natural `a5@0x118=2` + reload trigger ⇒ wrong R2-S1 L2 colors are **most likely a direct-start
+  harness artifact, not a production bug.** Per "natural progression is authority," NO palette change made, NO
+  hardcode, `palette_hooks.s` NOT edited by this task. Decisive confirmation = runtime read of
+  `a5@0x118`/`a5@0x13b0`/L2 at R2-S1 (natural vs direct-start) via the bookmark cycle; MAME-blocked here →
+  handed to Tighe (verify natural R1→R2 first).
+* **Previous `$59EC8`/`$5DC4E`/bank-48 docs:** re-confirmed correct from `rastan_direct_remap.json` + Ghidra
+  decompiler (per-stage palette table → hook bank 2 → L2; `$5DC4E`=stage-2 entry = oracle only; BG bank 48 → L2).
+* **Build 0566** (counter 565→566, GATE_PASS, `[canonical=PASS entry=FAIL epoch=FAIL]`, MAME env-blocked):
+  * Normal/R1-S1: `dist/rastan-direct/rastan_direct_video_test_build_0566.bin`
+    SHA `54eb2558bf1030cc64469c6b066ffc23c6c250c7fb4064c039568b5a5a376806` (R1-S1 variant selector 0xFF = default
+    ⇒ byte-identical to normal).
+  * R2-S1: `..._build_0566_R2-S1.bin` SHA `ffa157efe800bf4c8b10d5597d1828eee515cd7567cdd34dc911a45396ce2680`.
+* **Test first:** `rastan_direct_video_test_build_0566.bin` in NATURAL progression — this decides whether any
+  production palette change is warranted. Check: R2-S1 Plane-B all on L2 before/after scroll (split gone); R2-S1
+  L2 colors in natural R1→R2; R1-S1 unchanged incl. live Layer-B/water; Lines 0/1/3; throne/frontend; R2 Plane A.
+* **Untouched:** Build 0564 / 0565 artifacts; working tree not reset. Reports:
+  `docs/design/Andy_...PROMT-ID-0131_r2s1_layerb_l2_and_arcade_palette_fix.md`;
+  `docs/design/Andy_layerb_palette_offline_color_preconversion_long_term_goal.md` (FUTURE WORK, not implemented);
+  resolution section added to `docs/design/Andy_r2_layerb_l2_split_producer_forensics.md`.
+
+`TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0131`
+
+---
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0132 — R2-S1 L2 palette-content root cause + fix (Build 0567)
+
+**Author:** Andy · **Date:** 2026-11-12 · Start HEAD `f8b07a84`, counter 566. MAME env-blocked (exact-binary
+kills only). Tighe natural-gameplay test of 0566: tile split gone (0131 Part 1 ACCEPTED), R2-S1 L2 colours
+still wrong -> 0131 Part-2 "direct-start artifact" hypothesis DISPROVEN; real production defect.
+
+* **Contradiction resolved:** per-stage loader `FUN_00059de8` writes each round's Layer-B palette into a
+  ROUND-DEPENDENT bank from arcade `0x59E8C[(round-1)*4]` (R1=2, **R2=3**, R3=9, R4=8, R5=1, R6=4) -- the SAME
+  bank the round's Plane-B tiles select via `attr&3`. My 0131 "bank 2 every round" claim was wrong (described
+  only R1). Proof: `jsr 0x59ad4` @0x59E06 takes D0 from `FUN_00059e50` = `0x59E8C[D5*2+(round-1)*8]`.
+* **Root cause:** Genesis `genesistan_palette_hook_59ad4` only recognised arcade bank 2 as Layer-B->Line 2
+  (R1-only, Build-0174 "bank3=Stage-1 FG->Line 1"). R2's Layer-B arrives as bank 3 -> hook `bank3->Line 1`
+  branch -> gameplay gate `cmpi #2,d0; bne .L59_done` REJECTS it -> Genesis L2 never gets the R2 palette
+  (retains authored Test-2.0 Line-2 default; matches Tighe's cyan/yellow). The FG bank3->Line1 carrier is dead
+  (vdp_comm.s:496, removed 0336).
+* **Fix (palette_hooks.s only):** added `genesistan_layerb_bank_by_round: .word 2,3,9,8,1,4` (mirror of arcade
+  0x59E8C, bank-ROUTING metadata, not colours) + at hook entry, in gameplay (scene_id==1): if incoming bank D0
+  == layerb_bank_by_round[a5@0x118-1] -> `moveq #2,%d0; bra .L59_dest_ok` (Line 2). Round-general (fixes
+  R2/R3/R4/R5), NOT `if round==2`; R1 unchanged (bank 2 already->L2); R1 FG bank-3 != round-1 bank(2) so no R1
+  corruption. Colours still from retained arcade loader (0x5DC4E) + runtime xBGR->CRAM. No hardcode/freeze/
+  Composer asset. L0/L1/L3 still protected (only Line 2 ever set; other banks still gated).
+  Residual (disclosed): frame-0x50 transition write (bank3,src 0x511DA) could transiently touch L2 in R2 if
+  a5@0x118 already 2 & scene_id==1 then; overwritten by the frame-0x70 BG load -> steady state correct. If a
+  READY flash appears, follow-up = caller/flag discriminator.
+* **Exact wrong L2 bytes:** inferred (authored Test Line-2 default), NOT runtime-captured (MAME blocked); fix
+  independent of exact stale bytes.
+* **Build 0567** (counter 566->567, GATE_PASS `[canonical=PASS entry=FAIL epoch=FAIL]`):
+  * Normal: `dist/rastan-direct/rastan_direct_video_test_build_0567.bin`
+    SHA `d2fc5a64d5c66837edc2ae7205916a42357c157054ca1351f0229ae47590277f`.
+  * R2-S1: `..._0567_R2-S1.bin` SHA `7382320eaddb192b653ce804f6e24e449ce884210583e12454d04707f9096994`.
+* **Test first:** `rastan_direct_video_test_build_0567.bin` NATURAL progression -> R2-S1 Layer-B should be
+  brown/green forest (not cyan/yellow); R1-S1 unchanged (colours/progression/water); Lines 0/1/3; throne; R2
+  Plane A.
+* **Preserved:** 0566 tile fix (generator unchanged), throne/frontend, Plane A, attract/$055F2A, score, audio.
+  Reports: `docs/design/Andy_...PROMT-ID-0132_...md`; 0131 report got a correction note.
+
+`TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0132`
+
+---
+
+## PROMT-ID-0134 — R2-S1 death/respawn L2-palette forensics (Andy, 2026-11-13) — INVESTIGATION, no build
+
+Baseline Build 0567 (0131 tiles + 0132 initial-entry routing accepted). Tighe runtime result: normal R2-S1
+entry correct; **after death/respawn in R2-S1 the L2 colours are wrong** (geometry correct, Plane-B still L2).
+0134 prompt delivered TRUNCATED (cut mid-Phase-2). Delivered Phase 1 + Phase 2 analysis; NO source/spec/build
+changed (counter stays 567).
+
+* **Phase 1 (known-good path, proven):** correct L2 is produced solely by retained loader `FUN_00059de8`
+  (0x59DE8, gated `a5@0x13b0==1`) via the one hook at **0x59E06** -> `genesistan_palette_hook_59ad4`. Source
+  `A0=0x59EC8[a5@0x118-1]+D5*256` (R1=0x5DB4E, R2=0x5DC4E...); bank `0x59E8C[(a5@0x118-1)*8+D5*2]` (R1=2,R2=3...);
+  row `a5@0x13ae=byte[0x5E24E+a5@0x13e]` (0x5E24E is a fade ramp, 6 blocks of 0x17, row7=full). 0132 routes the
+  round's bank -> L2. `vdp_install_test_lines` reinstalls Lines 0/1/3 only and NEVER touches L2 (vdp_comm.s:403).
+* **Phase 2 result (PROVEN by colour identity):** loader source is indexed ONLY by `a5@0x118`. R1 source
+  `0x5DB4E` entries 12-15 = `#0000ff #ffffbb #0088ff #00ccdd` (bright blue/yellow/cyan) — exactly Tighe's
+  respawn screenshot; R2 `0x5DC4E` is dark green/brown; the 0x511DA flash is cyan/grey. Only the loader can
+  write a source into L2. => **after respawn the loader fires with `a5@0x118==1`, painting R1's palette into
+  L2 (bank2->L2, pre-0132 R1 path); R2 tiles shown through R1 colours.** Not a 0132-only regression (bank2->L2
+  predates 0132; 0132 just made the entry-forest visible so the mismatch now shows).
+* **Divergence:** arcade R2 respawn ends with `a5@0x118==2` (forest); Genesis fires the loader while round
+  still reads 1 and no later `a5@0x118==2` reload corrects L2. Two candidate mechanisms (early stale-round
+  reload w/ no R2 re-fire; OR round never re-advanced to 2 before reload) — NOT guessed; needs one trace.
+* **Confirmation needed (interactive, cannot run non-interactively):** ORIGINAL ARCADE + GENESIS NTSC MAME,
+  reach R2-S1, die, trace `a5@0x118 / 0x13b0 / 0x13e / 0x12f4` and each `FUN_00059de8` fire's source + staged
+  L2 across respawn. MAME itself works here (arcade progression harness clocked ~1670%); only driving a death
+  needs interactive play.
+* **Fix direction (NOT implemented):** make the respawn's LAST Layer-B reload run with `a5@0x118==2` (match
+  arcade), OR add a stale-round guard so a Layer-B write whose `a5@0x118` disagrees with `a5@0x1242` cannot
+  clobber L2. Both retain arcade semantics; neither copies/hardcodes the stage-start palette.
+* **Report:** `docs/design/Andy_...PROMT-ID-0134_r2s1_respawn_l2_palette_forensics.md`. Preserved: 0131 tiles,
+  0132 mapping, all prior artifacts.
+
+`TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0134`

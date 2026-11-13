@@ -35,17 +35,20 @@ def main() -> int:
     binary = args.packages.read_bytes()
     patterns = args.patterns.read_bytes()
 
-    # RG-021: eight stable epochs (six Round 1, two Round 2), the two original streamed overlap packages, and the
-    # Segment-10 -> 11 / record-12 -> 13 overlaps. Stable packages 3 and 4 are locked to their
-    # accepted Build-0397 map/upload/identity payloads.
-    assert const["FG_BOUNDARY_EPOCHS"] == 8
-    assert const["FG_BOUNDARY_PACKAGES"] == 12
+    # RG-021 / Build 0561 (PROMT-ID-0115): nine stable epochs (six Round 1, three Round 2 after the
+    # proven finer R2 split records 23-32 / 33-38 / 39-45), the two original Round-1 streamed overlap
+    # packages, and the Segment-10 -> 11 / record-12 -> 13 overlaps. Adding the third Round-2 stable
+    # epoch appends one stable package, so the Round-1 transition-overlap package ids shift +1
+    # (8,9,10,11 -> 9,10,11,12); the Round-1 stable epochs 0-5 and their record->epoch mapping are
+    # unchanged. Round-1 record native maps remain byte-identical to the Build-0560 baseline.
+    assert const["FG_BOUNDARY_EPOCHS"] == 9
+    assert const["FG_BOUNDARY_PACKAGES"] == 13
     assert const["FG_BOUNDARY_TRANSITION_HANDOFF_COLUMN"] == 45
     assert len(binary) == const["FG_BOUNDARY_BINARY_LEN"]
     assert report["record_to_epoch"] == ([0, 0, 0, 1, 2, 2, 2, 2, 2, 2, 2, 3, 3, 4, 4, 4] +
-                                          [5] * 7 + [6] * 11 + [7] * 12)
-    assert report["record_to_package"] == ([0, 0, 0, 8, 9, 2, 2, 2, 2, 2, 2, 10, 3, 11, 4, 4] +
-                                            [5] * 7 + [6] * 11 + [7] * 12)
+                                          [5] * 7 + [6] * 10 + [7] * 6 + [8] * 7)
+    assert report["record_to_package"] == ([0, 0, 0, 9, 10, 2, 2, 2, 2, 2, 2, 11, 3, 12, 4, 4] +
+                                            [5] * 7 + [6] * 10 + [7] * 6 + [8] * 7)
 
     layout = {item["package"]: item for item in report["binary_contract"]["package_layout"]}
 
@@ -53,6 +56,15 @@ def main() -> int:
     # identity namespace. Every pre-boss Round-1 stable/transition payload must
     # remain byte-for-byte identical; package 5 is intentionally expanded from
     # records 16-20 to 16-22.
+    # Build 0561 (PROMT-ID-0115): these exact-payload hashes and package ids are the
+    # pre-R2-finer-split baseline lock and are only checked in the non-candidate path
+    # (LAYERA_EDITOR_CANDIDATE unset). The production build runs this gate with
+    # LAYERA_EDITOR_CANDIDATE=1, which skips them; R1 retention is still enforced below by
+    # verify_object (stable[code] == overlap[code]) and the HARD per-transition asserts.
+    # Round-1 record native maps are proven byte-identical to Build 0560, but the package
+    # *payload* (identity-index metadata) shifts when the global identity pool grows, so this
+    # baseline lock must be re-pinned to the renumbered packages (8..11 -> 9..12) after Tighe
+    # accepts the Round-2 candidate.
     locked_payloads = {
         0: "9a4c320cb62c0a28140d03555aae5fba633ac308028b1f66817ad6db80285553",
         1: "116c203da698ca360490479979839f570f4ba3f01f934e9ca2f39dcf8e1a8212",
@@ -148,8 +160,8 @@ def main() -> int:
             assert gate["margin"] == margin
             assert gate["incoming_only_required_patterns"] == incoming_only
 
-    print("BUILD0311_TRANSITION_GATE PASS: rope 12 retained; waterfall 224 retained; "
-          "peaks 395/479/607/346 <= 676; stable packages 3/4 and overlap 8 locked; "
+    print("BUILD0311_TRANSITION_GATE PASS: nine stable epochs (6 R1 + 3 R2); rope/waterfall "
+          "retention held; R1 transition peaks <= 676; R1 record->epoch unchanged; "
           "missing=0; collisions=0")
     return 0
 
