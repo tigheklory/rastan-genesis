@@ -1088,6 +1088,17 @@ Final response must include "Open/Closed Issues Impact" section with:
   Plane A renders correct content, a palette decision is authored and correct, and the vertical map
   is constructed with correct orientation and no overlap; Tighe real-Genesis visual verification.
 
+## OPEN-040 — R2-S1 progressed-checkpoint Layer-B palette requires Record-29 gameplay acceptance
+
+- **Status:** OPEN — production mechanism corrected in candidate Build 0571; exact Record-29 gameplay acceptance pending.
+- **Priority:** HIGH.
+- **Discovered/By:** Tighe gameplay observation; root cause proven by Cody, PROMT-ID-0138, 2026-11-14.
+- **Summary:** R2-S1 initially and after an early death had correct Plane-B Line-2 colours, but a death after a progressed checkpoint (known Record 29) left L2 holding the frontend base palette. Build 0570 trace proves the first divergence: active-human scene-0 `load_scene_tiles` copied the full frontend palette and destroyed resident L2. The retained R2 loader then processed a later fade row whose 16 entries are all `$FFFF` keep semantics, so it correctly retained the already-wrong Genesis line. Early restore only appeared correct because its fade-0 row is the complete base and reconstructed L2.
+- **Candidate correction:** source commit `538fac0c`, Build 0571. Active-human transient scene 0 preserves existing staged L2 while restoring frontend Lines 0/1/3; no-human frontend/attract still restores all four lines. No round, record, checkpoint, fade, palette, or colour special case was added.
+- **Evidence:** real progressed Record-26/checkpoint-25 death/respawn ends with staged and actual CRAM L2 equal to the correct R2 line after fade-1 all-keep processing. Normal two-cycle attract, R1 initial/death-respawn, and R2-S1/S2/S3 direct entry regressions pass. `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0138_r2s1_layerb_respawn_palette_lifecycle_fix.md`.
+- **Boundary:** Record 29/fade 3 has the same all-`$FFFF` residency requirement statically, but automation did not reach that exact checkpoint. Do not call the user-observed subcase accepted from Record-26 evidence alone.
+- **Closure condition:** Tighe verifies Build 0571 through the real Record-29 death/respawn and continued later R2-S1 progression, with current R2 Layer-B colours retained and no frontend/attract/R1 regression.
+
 ## OPEN-039 — Native Genesis audio architecture (preserve arcade Z80 sequencer; offline FM/pitch/ADPCM conversion)
 
 - **Status:** OPEN / RESEARCH COMPLETE — design proposed, awaiting approval + the M0 Z80-disasm prerequisite
