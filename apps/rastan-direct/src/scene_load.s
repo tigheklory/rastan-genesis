@@ -177,13 +177,42 @@ load_scene_tiles:
     /* Scene 0 is a finite frontend ownership boundary. Restore the original
      * cold-start frontend base palette offline-generated from arcade banks
      * 0/1/48, and release gameplay's Test-owned Lines 0/2/3. Retained READY,
-     * title, Continue and item producers may then overwrite their own lines. */
+     * title, Continue and item producers may then overwrite their own lines.
+     *
+     * PROMT-ID-0138: while the original active-human-session latch remains
+     * asserted, scene 0 is also used transiently by the retained death/READY
+     * lifecycle.  The arcade leaves the current round's physical Layer-B
+     * palette bank resident across that transition.  Genesis collapses every
+     * round's Layer-B bank onto Line 2, so copying the frontend bank-48 line
+     * here destroyed that resident state.  Later fade rows are sparse
+     * 0xFFFF-keep deltas and cannot reconstruct the erased base; only the
+     * base-row early respawn happened to recover.  Preserve the already
+     * staged Line 2 for an active human session while restoring frontend
+     * Lines 0, 1 and 3.  With no active human (cold boot, title, attract/demo
+     * exit, terminal frontend) copy all four lines exactly as before.  This
+     * uses the existing native staged palette as the resident state: no
+     * duplicate palette buffer, round/checkpoint test, or hardcoded colour. */
     lea     genesistan_frontend_base_palette, %a0
     lea     staged_palette_words, %a1
+    tst.w   0x0034(%a5)
+    beq.s   .Lload_scene_frontend_palette_all
+    moveq   #(32 - 1), %d2
+.Lload_scene_frontend_palette_before_l2:
+    move.w  (%a0)+, (%a1)+
+    dbra    %d2, .Lload_scene_frontend_palette_before_l2
+    lea     32(%a0), %a0
+    lea     32(%a1), %a1
+    moveq   #(16 - 1), %d2
+.Lload_scene_frontend_palette_after_l2:
+    move.w  (%a0)+, (%a1)+
+    dbra    %d2, .Lload_scene_frontend_palette_after_l2
+    bra.s   .Lload_scene_frontend_palette_done
+.Lload_scene_frontend_palette_all:
     moveq   #(64 - 1), %d2
 .Lload_scene_frontend_palette_copy:
     move.w  (%a0)+, (%a1)+
     dbra    %d2, .Lload_scene_frontend_palette_copy
+.Lload_scene_frontend_palette_done:
     move.b  #1, palette_pending
 .Lload_scene_palette_ready:
     cmpi.w  #1, %d5
