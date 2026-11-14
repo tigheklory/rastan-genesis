@@ -77,6 +77,8 @@ def main() -> int:
     scene = args.scene_source.read_text(encoding="utf-8")
     palette = args.palette_source.read_text(encoding="utf-8")
     tilemap = args.tilemap_source.read_text(encoding="utf-8")
+    pc090oj = args.tilemap_source.with_name("pc090oj_hooks.s").read_text(encoding="utf-8")
+    makefile = args.tilemap_source.parent.parent.joinpath("Makefile").read_text(encoding="utf-8")
 
     needed = {
         "genesistan_endround_owner_enter",
@@ -204,11 +206,27 @@ def main() -> int:
     if "genesistan_gameplay_scene_restore_after_teardown:" not in tilemap:
         raise RuntimeError("natural post-teardown native scene producer is absent")
     restore_contract = (
+        "tst.w   0x0034(%a5)",
+        "beq.s   .Lgameplay_scene_restore_after_teardown_done",
         "move.b  #1, fg_scene_scroll_reseed_pending",
         "bsr     genesistan_plane_a_scene_scroll_reseed_native",
     )
     if any(token not in tilemap for token in restore_contract):
-        raise RuntimeError("post-teardown scene restore does not reuse the complete native producer")
+        raise RuntimeError(
+            "post-teardown restore lacks the original human-session discriminator or native producer"
+        )
+    owner_contract = (
+        "cmpi.w  #0x0008, 0x13AA(%a5)",
+        "tst.w   0x0034(%a5)",
+        "bne.s   .Lzero_fill_gameplay_owner",
+        ".Lzero_fill_frontend_owner:",
+    )
+    if any(token not in pc090oj for token in owner_contract):
+        raise RuntimeError("0x056440 owner reset lacks the original shared-state-8 session split")
+    if ".Lscene_scroll_reseed_rebuild_bad_ptr:\n    trap    #0" not in tilemap:
+        raise RuntimeError("Plane-B descriptor-range invariant trap was removed or weakened")
+    if "RASTAN_DIAG_055F2A_CAPTURE ?= 0" not in makefile:
+        raise RuntimeError("0x055F2A lifecycle diagnostic no longer defaults OFF")
     generation_contract = (
         "addi.l  #0x0001691C, %d1",
         ".Lscene_scroll_reseed_owner_sources_ready:",

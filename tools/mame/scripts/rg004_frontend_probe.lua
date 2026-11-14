@@ -9,6 +9,7 @@ local symbols_path = assert(os.getenv("RG004_SYMBOLS"), "RG004_SYMBOLS is requir
 local output_path = assert(os.getenv("RG004_OUTPUT"), "RG004_OUTPUT is required")
 local continue_dwell_frames = tonumber(os.getenv("RG004_CONTINUE_DWELL_FRAMES") or "120")
 local route = os.getenv("RG004_ROUTE") or "final_life"
+local attract_target_cycles = tonumber(os.getenv("RG004_ATTRACT_CYCLES") or "1")
 
 local function parse_symbols(path)
   local result = {}
@@ -31,6 +32,7 @@ end
 
 local function r8(address) return program:read_u8(address) & 0xff end
 local function r16(address) return program:read_u16(address) & 0xffff end
+local function r32(address) return program:read_u32(address) & 0xffffffff end
 
 -- MAME's :gen_vdp "videoram" Lua space is only the inherited 16-KiB Mode-4
 -- compatibility window.  Read actual Mega Drive VRAM/CRAM through the 68000
@@ -80,12 +82,18 @@ local attract_last_tuple = ""
 local attract_demo_seen = false
 local attract_demo_death_seen = false
 local attract_second_title_frame = nil
+local attract_completed_cycles = 0
 local first_title_palette = nil
 local second_title_palette = nil
 local display_on = false
 local unsafe_display_on_writes = 0
 local second_title_display_enable_writes = 0
 local second_title_display_disable_writes = 0
+local expected_trap_pc = tonumber(os.getenv("RG004_EXPECTED_TRAP_PC") or "", 16)
+local observed_trap_pc = nil
+local observed_trap_a4 = nil
+local observed_trap_a5_34 = nil
+local observed_trap_descriptors = nil
 
 local function arrays_equal(left, right)
   if not left or not right or #left ~= #right then return false end
@@ -152,6 +160,8 @@ local function finish_attract(result, reason)
   end
   local out = assert(io.open(output_path, "w"))
   out:write(string.format("route=attract\nresult=%s\nreason=%s\nframe=%d\n", result, reason, frame))
+  out:write(string.format("completed_cycles=%d\ntarget_cycles=%d\n",
+    attract_completed_cycles, attract_target_cycles))
   out:write(string.format("state=%04X/%04X/%04X\nscene=%02X\ntileset=%02X\n",
     r16(0xff0000), r16(0xff0002), r16(0xff0004),
     r8(symbols.genesistan_current_scene_id),
@@ -166,6 +176,12 @@ local function finish_attract(result, reason)
     unsafe_display_on_writes))
   out:write(string.format("demo_seen=%s\ndemo_death_seen=%s\n",
     attract_demo_seen and "YES" or "NO", attract_demo_death_seen and "YES" or "NO"))
+  out:write(string.format("observed_trap_pc=%s\nobserved_trap_a4=%s\nobserved_trap_a5_34=%s\n",
+    observed_trap_pc and string.format("%08X", observed_trap_pc) or "NONE",
+    observed_trap_a4 and string.format("%08X", observed_trap_a4) or "NONE",
+    observed_trap_a5_34 and string.format("%04X", observed_trap_a5_34) or "NONE"))
+  out:write("descriptor_longwords=" ..
+    (observed_trap_descriptors and table.concat(observed_trap_descriptors, ",") or "NOT_CAPTURED") .. "\n")
   if first_title_palette then
     for line, value in ipairs(palette_text(first_title_palette)) do
       out:write(string.format("first_title_line_%d=%s\n", line - 1, value))
@@ -316,6 +332,24 @@ if route == "attract" then
   if runtime_03ad4c then install_exec_observer(runtime_03ad4c, "ARCADE_03AD4C") end
   install_exec_observer(symbols.genesistan_frontend_presentation_reset,
     "FRONTEND_PRESENTATION_RESET")
+  if expected_trap_pc then
+    attract_taps[#attract_taps + 1] = program:install_read_tap(
+      expected_trap_pc, expected_trap_pc + 1, "rg004_expected_trap", function(_, data)
+        -- MAME can report the 68000 prefetch PC behind the watched word; the
+        -- tap address is the exact executed invariant instruction.
+        observed_trap_pc = expected_trap_pc
+        observed_trap_a4 = cpu.state["A4"].value & 0xffffffff
+        observed_trap_a5_34 = r16(0x00ff0034)
+        observed_trap_descriptors = {}
+        for index = 0, 15 do
+          observed_trap_descriptors[#observed_trap_descriptors + 1] =
+            string.format("%08X", r32(0x00ff1000 + index * 4))
+        end
+        attract_event("EXPECTED_TRAP")
+        finish_attract("FAIL", "EXPECTED_TRAP_EXECUTED")
+        return data
+      end)
+  end
 end
 
 -- MAME tap objects must stay strongly reachable after the autoboot chunk
@@ -328,6 +362,10 @@ emu.register_frame_done(function()
     for _, name in ipairs({"Coin 1", "P1 A", "1 Player Start", "P1 Start",
                            "P1 Up", "P1 Down", "P1 Left", "P1 Right", "P1 B", "P1 C"}) do
       set_input(name, false)
+    end
+    if observed_trap_pc then
+      finish_attract("FAIL", "EXPECTED_TRAP_EXECUTED")
+      return
     end
     local outer, phase, subphase = r16(0xff0000), r16(0xff0002), r16(0xff0004)
     local tuple = string.format("%04X/%04X/%04X", outer, phase, subphase)
@@ -352,14 +390,35 @@ emu.register_frame_done(function()
         if second_title_display_enable_writes > 0 and display_on and
            r8(symbols.genesistan_presentation_readiness) == 0 and
            unsafe_display_on_writes == 0 then
-          finish_attract("PASS", "SECOND_TITLE_VISIBLE")
+          if not arrays_equal(first_title_palette, second_title_palette) then
+            finish_attract("FAIL", "SECOND_TITLE_PALETTE_DIFFERS")
+            return
+          end
+          attract_completed_cycles = attract_completed_cycles + 1
+          attract_event("ATTRACT_CYCLE_PASS")
+          if attract_completed_cycles >= attract_target_cycles then
+            finish_attract("PASS", "SECOND_TITLE_VISIBLE")
+            return
+          end
+          -- Continue the same natural frontend loop and require another
+          -- complete demo/death/title cycle.  Do not reset game state or feed
+          -- input; only re-arm this observer's per-cycle milestones.
+          attract_demo_seen = false
+          attract_demo_death_seen = false
+          attract_second_title_frame = nil
+          second_title_palette = nil
+          second_title_display_enable_writes = 0
+          second_title_display_disable_writes = 0
         else
           finish_attract("FAIL", "SECOND_TITLE_REACHED_DISPLAY_OFF")
+          return
         end
-        return
       end
     end
-    if frame >= 20000 then finish_attract("FAIL", "MAX_FRAMES"); return end
+    if frame >= 20000 * attract_target_cycles then
+      finish_attract("FAIL", "MAX_FRAMES")
+      return
+    end
     return
   end
 

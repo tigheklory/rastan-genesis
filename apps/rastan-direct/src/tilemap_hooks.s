@@ -1025,15 +1025,15 @@ genesistan_plane_a_scene_scroll_reseed_native_exit:
 .Lscene_scroll_reseed_bad_source_generation:
     trap    #0
 
-/* Original next-subround state 8 reaches 0x055F2A only after 0x056440 has
- * cleared both PC080SN surfaces and 0x055F22..0x055F26 has restored the exact
- * retained record that owns the next gameplay scene.  The preceding scene
- * fill has already completed, so the ordinary 0x050482 completion hook cannot
- * publish this post-clear generation.  Reuse the existing finite native
- * producer now, with the final retained record/descriptor/package inputs, and
- * request its independently compiled Plane-B scene-entry product as well.
- * This is a semantic post-teardown publication boundary; no stage, row,
- * graphic, timer, or progression value is selected here. */
+/* Original state 8 reaches 0x055F2A after 0x056440 has cleared both PC080SN
+ * surfaces and 0x055F22..0x055F26 has restored the saved record.  State 8 is
+ * shared: A5+0x34 != 0 identifies the original paid-human session whose next
+ * gameplay scene needs native reconstruction; A5+0x34 == 0 identifies the
+ * no-human attract/demo exit, which returns to frontend flow and must not
+ * interpret its non-gameplay descriptor state as a scene package.  For the
+ * paid path, the preceding scene fill has already completed, so the ordinary
+ * 0x050482 completion hook cannot publish this post-clear generation.  Reuse
+ * the existing finite native producer with the final retained inputs. */
 genesistan_gameplay_scene_restore_after_teardown:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
 .if RASTAN_DIAG_055F2A_CAPTURE
@@ -1095,8 +1095,11 @@ genesistan_gameplay_scene_restore_after_teardown:
     move.l  0x0218(%a5), %a2
     trap    #0
 .endif
+    tst.w   0x0034(%a5)
+    beq.s   .Lgameplay_scene_restore_after_teardown_done
     move.b  #1, fg_scene_scroll_reseed_pending
     bsr     genesistan_plane_a_scene_scroll_reseed_native
+.Lgameplay_scene_restore_after_teardown_done:
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 

@@ -1981,14 +1981,19 @@ genesistan_pc090oj_hook_copy_56114:
 genesistan_pc090oj_hook_zero_fill_56440:
     clr.w   transient_items_active
 
-    /* Original 0x056440 has two live retained callers.  Substate 8 is the
-     * natural next-subround teardown at 0x055F0E; retained gameplay restores
-     * the saved next-scene record at 0x055F22 and immediately resumes the
-     * gameplay owner.  Substate 13 is the post-boss Round-clear teardown at
-     * 0x055FFA and returns through the frontend/READY owner for the next
-     * round.  Preserve that actual caller distinction here. */
+    /* Original 0x056440 has two live retained callers, but state 8 itself is
+     * shared by paid gameplay and the no-human attract/demo lifecycle.
+     * A5+0x34 is the original active-human-session latch: paid Start sets it
+     * at 0x03A984 and terminal exit clears it at 0x03A460.  Only state 8 with
+     * that latch set is the natural next-subround teardown which restores the
+     * saved gameplay record at 0x055F22.  State 8 with the latch clear is the
+     * attract/demo exit and must return to frontend ownership.  State 13 is
+     * the post-boss Round-clear/frontend path. */
     cmpi.w  #0x0008, 0x13AA(%a5)
-    beq.s   .Lzero_fill_gameplay_owner
+    bne.s   .Lzero_fill_frontend_owner
+    tst.w   0x0034(%a5)
+    bne.s   .Lzero_fill_gameplay_owner
+.Lzero_fill_frontend_owner:
     bsr     genesistan_frontend_owner_reset
     bra.s   .Lzero_fill_owner_ready
 .Lzero_fill_gameplay_owner:
