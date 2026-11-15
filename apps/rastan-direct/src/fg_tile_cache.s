@@ -646,7 +646,13 @@ fg_boundary_install:
      * activation is the first boundary where stage, record, and native epoch
      * are mutually current, so refresh the already-generated scene palette
      * here.  This changes no authored palette data and adds no palette path. */
+    /* PROMT-ID-0139: package residency can be prepared during READY.  Refresh
+     * an authored palette only when the retained gameplay palette loader has
+     * already activated that owner; otherwise the loader activates it later. */
+    tst.w   diagnostic_palette_active_asset
+    beq.s   .Linstall_palette_ready
     bsr     vdp_install_test_lines
+.Linstall_palette_ready:
     addq.l  #1, fg_boundary_epoch_transitions
     tst.b   genesistan_scene_present_pending
     bne.s   .Linstall_leave_display_off

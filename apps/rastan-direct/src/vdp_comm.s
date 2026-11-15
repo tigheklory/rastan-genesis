@@ -21,6 +21,7 @@
     .global vdp_refresh_test_lines_if_scene_changed
     .global diagnostic_palette_active_asset
     .global diagnostic_palette_active_visual_index
+    .extern pc090oj_select_palette_map
     .extern editor_layera_palette
     .extern test_sprite_line0
     .extern test_sprite_line1
@@ -401,7 +402,7 @@ vdp_commit_scroll:
  * The unconditional VBlank CRAM DMA (Build 0336) publishes the staged buffer; no palette_dirty.
  * Offsets: staged_palette_words is 4 lines x 16 words; line N at +N*32 bytes. */
 vdp_install_test_lines:
-    movem.l %d2/%a0-%a1, -(%sp)
+    movem.l %d0/%d2/%a0-%a1, -(%sp)
     clr.w   diagnostic_palette_active_asset
     clr.l   diagnostic_palette_active_visual_index
 .if RASTAN_PALETTE_TEST_PROFILE
@@ -464,9 +465,12 @@ vdp_install_test_lines:
     clr.w   staged_palette_words
 .Liti_publish:
     move.b  #1, palette_pending
+    /* PROMT-ID-0139: the authored palette and its PC090OJ pixel-to-line map
+     * acquire ownership together at the retained gameplay palette-load event. */
+    bsr     pc090oj_select_palette_map
 .endif
 .Liti_done:
-    movem.l (%sp)+, %d2/%a0-%a1
+    movem.l (%sp)+, %d0/%d2/%a0-%a1
     rts
 
 /* A retained full-scene reseed can advance the stage while keeping the same
@@ -479,6 +483,11 @@ vdp_refresh_test_lines_if_scene_changed:
     movem.l %d0-%d2/%a0, -(%sp)
     moveq   #0, %d0
 .if RASTAN_PALETTE_TEST_PROFILE
+    /* A graphics package may change while READY still owns presentation.
+     * Defer authored context refresh until the retained gameplay palette
+     * loader has activated an authored owner. */
+    tst.w   diagnostic_palette_active_asset
+    beq.s   .Lrefresh_test_context_done
     move.w  0x1242(%a5), %d1
     cmpi.w  #(6 * 23), %d1
     bhs.s   .Lrefresh_test_context_selected

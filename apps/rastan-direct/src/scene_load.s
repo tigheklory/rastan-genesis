@@ -54,6 +54,8 @@
     .extern fg_native_gameplay_owner
     .extern vdp_install_test_lines
     .extern pc090oj_select_palette_map
+    .extern diagnostic_palette_active_asset
+    .extern diagnostic_palette_active_visual_index
     .extern genesistan_hud_deactivate
     .extern genesistan_hud_activate_frontend
     .extern staged_palette_words
@@ -171,7 +173,24 @@ load_scene_tiles:
     bne.s   .Lload_scene_hud_ready
     bsr     genesistan_hud_deactivate
 .Lload_scene_hud_ready:
+    /* PROMT-ID-0139: graphics residency and palette presentation ownership are
+     * distinct retained-arcade events.  Gameplay patterns may be prepared
+     * while READY still owns the display, so scene_id==1 cannot by itself
+     * select the authored gameplay sprite/palette map.  A non-gameplay owner
+     * releases the authored asset here; a gameplay preload keeps the current
+     * presentation map until FUN_00059de8 performs the real gameplay palette
+     * load and vdp_install_test_lines activates the authored owner. */
+    cmpi.w  #1, %d5
+    beq.s   .Lload_scene_palette_map_gameplay_prepare
+    clr.w   diagnostic_palette_active_asset
+    clr.l   diagnostic_palette_active_visual_index
     bsr     pc090oj_select_palette_map
+    bra.s   .Lload_scene_palette_map_ready
+.Lload_scene_palette_map_gameplay_prepare:
+    tst.w   diagnostic_palette_active_asset
+    beq.s   .Lload_scene_palette_map_ready
+    bsr     pc090oj_select_palette_map
+.Lload_scene_palette_map_ready:
     tst.w   %d5
     bne.s   .Lload_scene_palette_ready
     /* Scene 0 is a finite frontend ownership boundary. Restore the original
@@ -230,10 +249,11 @@ load_scene_tiles:
     move.l  %d1, genesistan_scene_a0_hi
 
     /* Build 0301: reset the streaming tile cache on gameplay-scene entry (display still off). */
-    /* Install the generated current-Test R1/P1 palette Lines 0/1/3 ONCE here, at the gameplay-scene
-     * activation event.  This replaces the removed per-VBlank vdp_reassert_test_lines: Test ownership
-     * is established at the semantic boundary and the arcade palette hooks are gated off Lines 0/1/3
-     * during scene 1, so the Test lines stay static until the next scene-activation event. */
+    /* Gameplay graphics residency is prepared here, but PROMT-ID-0139 moves
+     * authored palette activation to the retained FUN_00059de8 -> 0x059AD4
+     * gameplay palette-load event.  READY and inter-round presentation can
+     * therefore keep their original arcade writers even when scene 1 patterns
+     * have already been loaded. */
     cmpi.w  #1, %d5
     bne.s   .Lload_scene_no_cache_reset
     bsr     fg_cache_reset
@@ -253,13 +273,6 @@ load_scene_tiles:
      * (every gameplay round, not round==2 or a death hook); reuses the original arcade loader, so no
      * colour is copied, hardcoded, or frozen, and later progression/water rows are preserved. */
     move.w  #1, 0x13b0(%a5)
-    /* RG-021: only Round 1 has Tighe-authored native Test palette assets.
-     * Later rounds retain the original finite arcade palette conversion until
-     * Palette Composer exports an approved round/scene family; never substitute
-     * Round-1 colors as if they were approved for Round 2. */
-    cmpi.w  #23, 0x1242(%a5)
-    bhs.s   .Lload_scene_no_cache_reset
-    bsr     vdp_install_test_lines
 .Lload_scene_no_cache_reset:
 
     /* Build 0394 / RG-015: a semantic scene fill or lifecycle transition keeps

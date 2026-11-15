@@ -12,6 +12,8 @@
     .extern genesistan_current_scene_id
     .extern staged_palette_words
     .extern palette_pending
+    .extern diagnostic_palette_active_asset
+    .extern vdp_install_test_lines
     /* Build 0336: palette_dirty and the fg-bank3 / bank-0x36 carrier caches were retired. */
 
 /* ------------------------------------------------------------------------- *
@@ -185,6 +187,15 @@ genesistan_palette_hook_59ad4:
     move.w  0(%a1,%d2.w), %d2               /* this round's arcade Layer-B bank */
     cmp.w   %d0, %d2
     bne.s   .L59_not_layerb_round
+    /* PROMT-ID-0139: this retained FUN_00059de8 current-round Layer-B load is
+     * the actual arcade gameplay palette-ownership boundary.  Graphics scene
+     * residency can become gameplay earlier during READY; activate authored
+     * Lines 0/1/3 only when this original loader runs.  The installer also
+     * selects the matching sprite palette map. */
+    tst.w   diagnostic_palette_active_asset
+    bne.s   .L59_layerb_owner_active
+    bsr     vdp_install_test_lines
+.L59_layerb_owner_active:
     moveq   #2, %d0                         /* current round's Layer-B palette -> Genesis Line 2 */
     bra.w   .L59_dest_ok
 .L59_not_layerb_round:
@@ -252,8 +263,8 @@ genesistan_palette_hook_59ad4:
      * guard protects Lines 0/1/3 for every round's authored scene_id==1. Round 1 is unchanged
      * (it already took the only-Line-2 path). Frontend / non-authored scenes stage all lines. */
 .if RASTAN_PALETTE_TEST_PROFILE
-    cmpi.b  #1, genesistan_current_scene_id
-    bne.s   .L59_dest_ok
+    tst.w   diagnostic_palette_active_asset
+    beq.s   .L59_dest_ok
     cmpi.w  #2, %d0
     bne     .L59_done
 .endif
@@ -391,8 +402,8 @@ genesistan_palette_hook_45dae:
      * earlier `stage < 23` guard was an R1-only artifact that let Round 2+ (same authored
      * scene_id==1) run the copy and overwrite the authored Lines 0/1/3. Round 1 is unchanged (it
      * already skipped). Frontend / non-authored scenes keep the copy. */
-    cmpi.b  #1, genesistan_current_scene_id
-    beq.s   .L45_done
+    tst.w   diagnostic_palette_active_asset
+    bne.s   .L45_done
 .L45_native_round_ok:
 
     lea     staged_palette_words, %a2
@@ -502,8 +513,8 @@ genesistan_palette_hook_3ba64:
      * Lines 0/1/3. Removing it protects Lines 0/1/3 for every round's authored scene_id==1; Round 1
      * is unchanged (already only-Line-2). Frontend / non-authored scenes keep full staging. */
 .if RASTAN_PALETTE_TEST_PROFILE
-    cmpi.b  #1, genesistan_current_scene_id
-    bne.s   .L3ba64_line_store
+    tst.w   diagnostic_palette_active_asset
+    beq.s   .L3ba64_line_store
     cmpi.w  #2, %d6
     bne     .L3ba64_next
 .endif
