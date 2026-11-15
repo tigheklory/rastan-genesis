@@ -48,11 +48,13 @@
     .global genesistan_scene_a0_lo
     .global genesistan_scene_a0_hi
     .global genesistan_scene_present_pending
+    .global genesistan_frontend_base_palette
 
     .extern vdp_set_reg
     .extern vdp_set_vram_write_addr
     .extern fg_native_gameplay_owner
     .extern vdp_install_test_lines
+    .extern vdp_prepare_test_visual_context
     .extern pc090oj_select_palette_map
     .extern diagnostic_palette_active_asset
     .extern diagnostic_palette_active_visual_index
@@ -187,6 +189,10 @@ load_scene_tiles:
     bsr     pc090oj_select_palette_map
     bra.s   .Lload_scene_palette_map_ready
 .Lload_scene_palette_map_gameplay_prepare:
+    /* PROMT-ID-0141: Plane-A generation needs its stage visual descriptor at
+     * graphics-preparation time.  This deliberately does not install Test 2.0
+     * colors or acquire the authored PC090OJ palette-map owner. */
+    bsr     vdp_prepare_test_visual_context
     tst.w   diagnostic_palette_active_asset
     beq.s   .Lload_scene_palette_map_ready
     bsr     pc090oj_select_palette_map

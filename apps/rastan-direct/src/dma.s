@@ -45,6 +45,8 @@
 
     .extern staged_palette_words
     .extern palette_pending
+    .extern native_hud_mode
+    .extern genesistan_frontend_base_palette
 
     .global dma_publish_frame
     .extern genesistan_presentation_publish_complete
@@ -246,7 +248,7 @@ vdp_dma_words_to_vram:
  * palette_dirty.  Clobbers d1-d3/a1. */
 vdp_commit_palette:
     tst.b   palette_pending
-    beq.s   .Lpal_none
+    beq.w   .Lpal_none
     movea.l #VDP_CTRL, %a1
     move.w  #0x8F02, (%a1)              /* reg 0x0F: autoincrement 2 */
     move.w  #0x9340, (%a1)              /* reg 0x13: DMA length low  = 64 words */
@@ -269,6 +271,35 @@ vdp_commit_palette:
     ori.w   #0x9700, %d1
     move.w  %d1, (%a1)                  /* reg 0x17: source high + mode 00 (68k->VDP) */
     move.l  #0xC0000080, (%a1)          /* CRAM write addr 0 + DMA trigger */
+    /* PROMT-ID-0141: FRONTEND_FULL's native PC090OJ HUD records use palette
+     * Line 2, whose source is original arcade sprite bank 48.  Genesis also
+     * uses staged Line 2 for the resident gameplay Layer-B palette, so retain
+     * that staged state (0138) and multiplex only the visible CRAM line at the
+     * existing native presentation boundary.  This is event-driven by
+     * palette_pending, not a per-frame reload or a second palette buffer. */
+    cmpi.b  #1, native_hud_mode
+    bne.s   .Lpal_published
+    move.w  #0x9310, (%a1)              /* 16 words */
+    move.w  #0x9400, (%a1)
+    move.l  #(genesistan_frontend_base_palette + 64), %d3
+    lsr.l   #1, %d3
+    move.w  %d3, %d1
+    andi.w  #0x00FF, %d1
+    ori.w   #0x9500, %d1
+    move.w  %d1, (%a1)
+    move.l  %d3, %d1
+    lsr.l   #8, %d1
+    andi.w  #0x00FF, %d1
+    ori.w   #0x9600, %d1
+    move.w  %d1, (%a1)
+    move.l  %d3, %d1
+    moveq   #16, %d2
+    lsr.l   %d2, %d1
+    andi.w  #0x007F, %d1
+    ori.w   #0x9700, %d1
+    move.w  %d1, (%a1)
+    move.l  #0xC0400080, (%a1)          /* CRAM Line 2 + DMA trigger */
+.Lpal_published:
     clr.b   palette_pending
 .Lpal_none:
     rts

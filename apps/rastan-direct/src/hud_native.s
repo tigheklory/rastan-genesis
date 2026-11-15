@@ -4,6 +4,7 @@
     .global genesistan_hud_prepare_frontend
     .global genesistan_hud_deactivate
     .global genesistan_hud_link_transient
+    .global native_hud_mode
     .extern staged_sprite_sat
     .extern staged_sprite_sat_b
     .extern pc090oj_sat_frame_ready
@@ -15,6 +16,7 @@
     .extern transient_items_active
     .extern gameplay_hud_score_dirty
     .extern vdp_set_vram_write_addr
+    .extern palette_pending
 
     .equ VDP_DATA, 0x00C00000
     .equ HUD_MODE_OFF, 0
@@ -69,6 +71,10 @@ genesistan_hud_activate_frontend:
     bsr     .Lhud_update_all
     clr.b   native_hud_initializing
     move.b  #HUD_MODE_FRONTEND_FULL, native_hud_mode
+    /* PROMT-ID-0141: the native frontend SAT selects Genesis Line 2 for the
+     * original PC090OJ HUD glyphs.  Request the VBlank publisher to expose the
+     * original bank-48 line without changing resident staged gameplay L2. */
+    move.b  #1, palette_pending
     clr.b   native_hud_transient_linked
     move.w  #HUD_SAT_RECORDS, pc090oj_emitted_count
     move.w  #1, pc090oj_sat_frame_ready
@@ -140,6 +146,8 @@ genesistan_hud_deactivate:
     beq.s   .Lhud_deactivate_done
     movem.l %d0-%d1/%d7/%a0, -(%sp)
     clr.b   native_hud_mode
+    /* Restore the resident staged gameplay L2 at the next safe publication. */
+    move.b  #1, palette_pending
     clr.b   native_hud_cache_valid
     clr.b   native_hud_transient_linked
     lea     sprite_tile_resident_code, %a0

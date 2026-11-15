@@ -50,6 +50,7 @@
     .extern vdp_set_reg
     .extern vdp_dma_words_to_vram
     .extern vdp_install_test_lines
+    .extern vdp_prepare_test_visual_context
     .extern vdp_refresh_test_lines_if_scene_changed
 
     .equ VDP_REG_MODE2,         1
@@ -649,6 +650,10 @@ fg_boundary_install:
     /* PROMT-ID-0139: package residency can be prepared during READY.  Refresh
      * an authored palette only when the retained gameplay palette loader has
      * already activated that owner; otherwise the loader activates it later. */
+    /* PROMT-ID-0141: package activation is a graphics-residency boundary.
+     * Always make its Plane-A visual context current; only the palette install
+     * below remains gated by the retained gameplay palette owner. */
+    bsr     vdp_prepare_test_visual_context
     tst.w   diagnostic_palette_active_asset
     beq.s   .Linstall_palette_ready
     bsr     vdp_install_test_lines

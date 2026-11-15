@@ -18,6 +18,7 @@
     .extern genesistan_current_scene_id
     .extern vdp_commit_palette             /* Build 0345: CRAM palette DMA now lives in dma.s */
     .global vdp_install_test_lines
+    .global vdp_prepare_test_visual_context
     .global vdp_refresh_test_lines_if_scene_changed
     .global diagnostic_palette_active_asset
     .global diagnostic_palette_active_visual_index
@@ -401,10 +402,49 @@ vdp_commit_scroll:
  * scene 1 (palette_hooks.s), so the Test lines stay static until the next scene-activation event.
  * The unconditional VBlank CRAM DMA (Build 0336) publishes the staged buffer; no palette_dirty.
  * Offsets: staged_palette_words is 4 lines x 16 words; line N at +N*32 bytes. */
+/* PROMT-ID-0141: select the offline-authored Plane-A visual descriptor for the
+ * arcade-owned stage without acquiring authored palette or PC090OJ-map
+ * ownership.  Graphics preparation begins before the retained gameplay
+ * palette-load event; 0139 accidentally delayed this required map input with
+ * the palette owner and left initial Plane-A generation without a descriptor. */
+vdp_prepare_test_visual_context:
+    movem.l %d2/%a0-%a1, -(%sp)
+    clr.l   diagnostic_palette_active_visual_index
+.if RASTAN_PALETTE_TEST_PROFILE
+    moveq   #0, %d2
+    move.w  0x1242(%a5), %d2
+    cmpi.w  #(6 * 23), %d2
+    bhs.s   .Lptvc_done
+    lea     diagnostic_palette_scene_select, %a0
+    move.b  0(%a0,%d2.w), %d2
+    beq.s   .Lptvc_done
+    lea     genesistan_plane_a_authored_descriptor_visuals, %a1
+    cmpi.w  #2, %d2
+    blo.s   .Lptvc_ready
+    adda.l  #FG_AUTHORED_DESC_INDEX_BYTES, %a1
+    cmpi.w  #3, %d2
+    blo.s   .Lptvc_ready
+    adda.l  #FG_AUTHORED_DESC_INDEX_BYTES, %a1
+    cmpi.w  #4, %d2
+    blo.s   .Lptvc_ready
+    adda.l  #FG_AUTHORED_DESC_INDEX_BYTES, %a1
+    cmpi.w  #5, %d2
+    blo.s   .Lptvc_ready
+    adda.l  #FG_AUTHORED_DESC_INDEX_BYTES, %a1
+    cmpi.w  #6, %d2
+    blo.s   .Lptvc_ready
+    adda.l  #FG_AUTHORED_DESC_INDEX_BYTES, %a1
+.Lptvc_ready:
+    move.l  %a1, diagnostic_palette_active_visual_index
+.endif
+.Lptvc_done:
+    movem.l (%sp)+, %d2/%a0-%a1
+    rts
+
 vdp_install_test_lines:
     movem.l %d0/%d2/%a0-%a1, -(%sp)
     clr.w   diagnostic_palette_active_asset
-    clr.l   diagnostic_palette_active_visual_index
+    bsr     vdp_prepare_test_visual_context
 .if RASTAN_PALETTE_TEST_PROFILE
     /* The arcade stage authority has already chosen the environment at this
      * boundary. Consume the offline stage->asset ID table; ID zero is the
@@ -420,24 +460,6 @@ vdp_install_test_lines:
     /* Build 0561 (PROMT-ID-0115): visual-index block = base + (asset-1)*INDEX_BYTES.
      * Round-1 assets 1-3 keep their exact prior offsets; Round-2 assets 4,5,6 extend the
      * same uniform per-context stride (FG_AUTHORED_DESC_CONTEXTS is now 6). */
-    lea     genesistan_plane_a_authored_descriptor_visuals, %a1
-    cmpi.w  #2, %d2
-    blo.s   .Liti_visual_index_ready
-    adda.l  #FG_AUTHORED_DESC_INDEX_BYTES, %a1
-    cmpi.w  #3, %d2
-    blo.s   .Liti_visual_index_ready
-    adda.l  #FG_AUTHORED_DESC_INDEX_BYTES, %a1
-    cmpi.w  #4, %d2
-    blo.s   .Liti_visual_index_ready
-    adda.l  #FG_AUTHORED_DESC_INDEX_BYTES, %a1
-    cmpi.w  #5, %d2
-    blo.s   .Liti_visual_index_ready
-    adda.l  #FG_AUTHORED_DESC_INDEX_BYTES, %a1
-    cmpi.w  #6, %d2
-    blo.s   .Liti_visual_index_ready
-    adda.l  #FG_AUTHORED_DESC_INDEX_BYTES, %a1
-.Liti_visual_index_ready:
-    move.l  %a1, diagnostic_palette_active_visual_index
     subq.w  #1, %d2
     lsl.w   #2, %d2
     lea     diagnostic_palette_asset_ptrs, %a0
@@ -483,6 +505,9 @@ vdp_refresh_test_lines_if_scene_changed:
     movem.l %d0-%d2/%a0, -(%sp)
     moveq   #0, %d0
 .if RASTAN_PALETTE_TEST_PROFILE
+    /* Visual residency follows graphics preparation even while READY owns the
+     * visible palette.  Authored palette refresh remains owner-gated below. */
+    bsr     vdp_prepare_test_visual_context
     /* A graphics package may change while READY still owns presentation.
      * Defer authored context refresh until the retained gameplay palette
      * loader has activated an authored owner. */
