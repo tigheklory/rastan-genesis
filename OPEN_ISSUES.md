@@ -1091,6 +1091,7 @@ Final response must include "Open/Closed Issues Impact" section with:
 ## OPEN-040 — R2-S1 progressed-checkpoint Layer-B palette requires Record-29 gameplay acceptance
 
 - **Status:** OPEN — production mechanism corrected in candidate Build 0571; exact Record-29 gameplay acceptance pending.
+- **Human update (2026-11-15):** Tighe reports the PROMT-ID-0138 checkpoint-respawn Layer-B corruption is visually fixed. The issue remains open only because its written closure condition specifically requires the real Record-29 death/respawn plus continued later R2-S1 progression and the broader frontend/attract/R1 regression check; PROMT-ID-0139 Build 0572 is the current candidate for that combined pass.
 - **Priority:** HIGH.
 - **Discovered/By:** Tighe gameplay observation; root cause proven by Cody, PROMT-ID-0138, 2026-11-14.
 - **Summary:** R2-S1 initially and after an early death had correct Plane-B Line-2 colours, but a death after a progressed checkpoint (known Record 29) left L2 holding the frontend base palette. Build 0570 trace proves the first divergence: active-human scene-0 `load_scene_tiles` copied the full frontend palette and destroyed resident L2. The retained R2 loader then processed a later fade row whose 16 entries are all `$FFFF` keep semantics, so it correctly retained the already-wrong Genesis line. Early restore only appeared correct because its fade-0 row is the complete base and reconstructed L2.
@@ -1098,6 +1099,16 @@ Final response must include "Open/Closed Issues Impact" section with:
 - **Evidence:** real progressed Record-26/checkpoint-25 death/respawn ends with staged and actual CRAM L2 equal to the correct R2 line after fade-1 all-keep processing. Normal two-cycle attract, R1 initial/death-respawn, and R2-S1/S2/S3 direct entry regressions pass. `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0138_r2s1_layerb_respawn_palette_lifecycle_fix.md`.
 - **Boundary:** Record 29/fade 3 has the same all-`$FFFF` residency requirement statically, but automation did not reach that exact checkpoint. Do not call the user-observed subcase accepted from Record-26 evidence alone.
 - **Closure condition:** Tighe verifies Build 0571 through the real Record-29 death/respawn and continued later R2-S1 progression, with current R2 Layer-B colours retained and no frontend/attract/R1 regression.
+
+## OPEN-041 — Palette ownership lifecycle visual acceptance across READY and round transition
+
+- **Status:** OPEN — production timing correction in candidate Build 0572; Tighe visual acceptance pending.
+- **Priority:** HIGH.
+- **Discovered/By:** Tighe Build-0571 gameplay/presentation observations; root cause proven and corrected by Cody, PROMT-ID-0139, 2026-11-15.
+- **Summary:** gameplay graphics residency became active during READY/inter-round preparation and incorrectly installed/protected Test 2.0 Lines 0/1/3 before gameplay presentation began. This contaminated READY and natural R1-S3→Round-2 presentation colors, including `1UP`, `HIGH SCORE`, and `2UP`, while direct R2-S1 gameplay itself remained correct.
+- **Candidate correction:** source commit `a57a0934`, Build 0572. Gameplay scene preparation no longer acquires authored palette ownership. The retained `FUN_00059de8->$059AD4` current-round gameplay palette load activates Test 2.0 Lines 0/1/3 and the matching PC090OJ map; retained presentation writers remain enabled before that event. PROMT-ID-0138 active-human L2 residency is unchanged.
+- **Automated evidence:** canonical/gameplay-entry/mandatory NTSC trace and all direct subround selector checks pass; natural invincible route reaches End-Round states 9–13, Scene Clear, Round-2 READY and Round 2 with staged palette equal to actual CRAM at every captured state; normal ROM completes two attract/title cycles with exact title palettes and no trap.
+- **Closure condition:** Tighe visually verifies normal Build 0572 through cold R1 READY, R1 death/READY/resume, natural R1-S3 Stage Clear/inter-round/ROUND 2 READY/R2-S1 gameplay, progressed R2-S1 death/respawn, GAME OVER and title return, with correct presentation colors and unchanged gameplay palettes/audio.
 
 ## OPEN-039 — Native Genesis audio architecture (preserve arcade Z80 sequencer; offline FM/pitch/ADPCM conversion)
 
