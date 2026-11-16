@@ -1102,13 +1102,25 @@ Final response must include "Open/Closed Issues Impact" section with:
 
 ## OPEN-041 — Palette ownership lifecycle visual acceptance across READY and round transition
 
-- **Status:** OPEN — production timing correction in candidate Build 0572; Tighe visual acceptance pending.
+- **Status:** OPEN — Build 0572 rejected by Tighe; corrected candidate Build 0573 awaits visual acceptance.
 - **Priority:** HIGH.
 - **Discovered/By:** Tighe Build-0571 gameplay/presentation observations; root cause proven and corrected by Cody, PROMT-ID-0139, 2026-11-15.
-- **Summary:** gameplay graphics residency became active during READY/inter-round preparation and incorrectly installed/protected Test 2.0 Lines 0/1/3 before gameplay presentation began. This contaminated READY and natural R1-S3→Round-2 presentation colors, including `1UP`, `HIGH SCORE`, and `2UP`, while direct R2-S1 gameplay itself remained correct.
-- **Candidate correction:** source commit `a57a0934`, Build 0572. Gameplay scene preparation no longer acquires authored palette ownership. The retained `FUN_00059de8->$059AD4` current-round gameplay palette load activates Test 2.0 Lines 0/1/3 and the matching PC090OJ map; retained presentation writers remain enabled before that event. PROMT-ID-0138 active-human L2 residency is unchanged.
-- **Automated evidence:** canonical/gameplay-entry/mandatory NTSC trace and all direct subround selector checks pass; natural invincible route reaches End-Round states 9–13, Scene Clear, Round-2 READY and Round 2 with staged palette equal to actual CRAM at every captured state; normal ROM completes two attract/title cycles with exact title palettes and no trap.
-- **Closure condition:** Tighe visually verifies normal Build 0572 through cold R1 READY, R1 death/READY/resume, natural R1-S3 Stage Clear/inter-round/ROUND 2 READY/R2-S1 gameplay, progressed R2-S1 death/respawn, GAME OVER and title return, with correct presentation colors and unchanged gameplay palettes/audio.
+- **Tighe rejection (2026-11-15):** Build 0572 still showed wrong `1UP`, `HIGH SCORE`, and `2UP` colors on READY/round-transition presentation. Its staged-CRAM-equals-actual-CRAM trace proved publication consistency, not correct presentation ownership. Build 0572 also introduced the separate Plane-A initialization regression tracked by OPEN-042.
+- **Revised cause:** the 0139 delayed Lines 0/1/3 boundary was directionally valid, but those three lines do not color the native top HUD. `native_hud_static_sat.bin` uses `0xCxxx` attributes, selecting Genesis Line 2 for the original PC090OJ frontend glyphs. Original frontend sprite bank 48 and resident gameplay PC080SN Layer-B therefore collide on Genesis L2 even though they are independent arcade palette surfaces.
+- **Candidate correction:** source commit `579d1b43`, Build 0573. `FRONTEND_FULL` publication overlays original converted PC090OJ bank 48 onto visible CRAM L2 only; `staged_palette_words` L2 remains the resident gameplay Layer-B state required by PROMT-ID-0138. Leaving frontend mode requests a normal full staged-palette publication, restoring gameplay L2. No new palette buffer, scheduler, READY/round/score special case, per-frame reload, or palette-editor change.
+- **Automated evidence:** canonical and gameplay-entry gates, mandatory NTSC trace, palette-family validation, complete same-number family, all 18 derivative checks, and focused canonical/R1-S2/R1-S3/R2-S1/R2-S2/R2-S3 entry probes pass. The legacy phase-epoch automation did not progress beyond record 0 and reports FAIL; it is not represented as acceptance evidence.
+- **Closure condition:** Tighe visually verifies normal Build 0573 through cold R1 READY, R1 death/READY/resume, natural R1-S3 Stage Clear/inter-round/ROUND 2 READY/R2-S1 gameplay, progressed R2-S1 death/respawn, GAME OVER and title return, with correct top-HUD and presentation colors and unchanged gameplay palettes/audio.
+
+## OPEN-042 — Build 0572 Plane-A initialization regression
+
+- **Status:** OPEN — Build 0572 rejected; source-backed correction in candidate Build 0573 awaits Tighe visual acceptance.
+- **Priority:** HIGH.
+- **Discovered/By:** Tighe Build-0572 visual testing; mechanically isolated by Cody, PROMT-ID-0141, 2026-11-15.
+- **Summary:** PROMT-ID-0139 correctly delayed authored palette/map ownership but also cleared and delayed `diagnostic_palette_active_visual_index`. Despite its diagnostic-era name, that pointer is a production input consumed by `MAP_GET_AUTHORED_VISUAL_A0` during initial Plane-A map generation. A zero pointer therefore suppressed authored Plane-A visual materialization in early R1, mountain/outdoor, Stage Clear/throne, and Round-2/jungle presentation.
+- **First divergence:** Build 0571 selected the visual descriptor as a side effect of `vdp_install_test_lines` during graphics preparation. Build 0572 owner-gated that call in `load_scene_tiles` and `fg_boundary_install`, so initial map generation could run before `$059AD4` later acquired palette ownership.
+- **Candidate correction:** source commit `579d1b43`, Build 0573. New `vdp_prepare_test_visual_context` selects only the stage-authored Plane-A visual pointer at scene/package graphics-preparation boundaries. Test 2.0 Lines 0/1/3 and the PC090OJ palette map remain delayed until the retained gameplay palette-load event. No scene hardcode, shadow map, delayed display workaround, or 0571 wholesale rollback.
+- **Automated evidence:** assembly/link/canonical/gameplay-entry/mandatory trace pass; direct R1-S2/R1-S3/R2-S1/R2-S2/R2-S3 probes report the expected stage/record/package, zero A/B misses, and populated name tables. These checks do not replace Tighe's first-visible-frame review.
+- **Closure condition:** Tighe verifies Build 0573 cold R1, R1 READY→gameplay, natural R1-S2/R1-S3, R2-S1/R2-S2/R2-S3, throne/Stage Clear, and jungle entry with complete Plane A on the first visible presentation.
 
 ## OPEN-039 — Native Genesis audio architecture (preserve arcade Z80 sequencer; offline FM/pitch/ADPCM conversion)
 
