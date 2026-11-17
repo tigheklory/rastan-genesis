@@ -17,6 +17,9 @@ rather than trusting the Markdown conclusions.
 - `rastan_actor_tables.c` — the record-type (`0x45592`) and family (`0x45502`/`0x45562`/`0x454BA/D2/EA`) templates as real C data, with exact values.
 - `rastan_actor_dispatch.c` — `0x40BAA` state dispatch (+ table), `0x40E74` recheck, `0x41064` find.
 - `rastan_actor_creation.c` — allocators/initializers (CHECKPOINT C).
+- `rastan_scripted_scene_dispatch.c` — PROMT-ID-0154 Ghidra-derived appearance gates for the
+  Round-1/2 scripted bat/Flying-Demon dispatchers (`0x4580C`/`0x45EFC`), the `0x46204` wrapper,
+  and a deliberately PARTIAL inventory of the six-round materialized dispatcher `0x4650E`.
 - `rastan_actor_helpers.c` — template/palette loaders (`0x4543E`/`0x4544E`/`0x45684`).
 - `rastan_actor_behavior.c` — engines (`0x40CCC`/`0x47140`/`0x473B8`/`0x4684E`) + the 10 H5 handlers.
 - `rastan_actor_materialization.c` — CHECKPOINT H6: state-0 scanner/hunter `0x41180`, the 28-route

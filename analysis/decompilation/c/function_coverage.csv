@@ -154,3 +154,7 @@ arcade_pc,raw_file,semantic_file,status,provenance,original_export_present,confi
 00047004,raw/00047004.c,rastan_r1_boss_palette_fade.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,DYNAMIC,"PROMT-0095: per-frame R1-R6 boss entrance palette gate/source selection; R1 target 0x4708C -> physical CLCS line 0x4F"
 0004703c,raw/00047004.c,rastan_r1_boss_palette_fade.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,DYNAMIC,"PROMT-0095: 15-entry component fade and xBGR-555 publication to 0x2009E2..0x2009FE"
 00047076,raw/00047004.c,rastan_r1_boss_palette_fade.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,DYNAMIC,"PROMT-0095: 0x46F84[source_nibble][A5+0x270] eight-step lookup"
+0004580c,raw/0004580c.c,rastan_scripted_scene_dispatch.c,PARTIAL,GHIDRA_RAW,NO,STATIC,"PROMT-0154: R1 scripted appearance gates; placement/latches remain outside normalized C"
+00045efc,raw/00045efc.c,rastan_scripted_scene_dispatch.c,PARTIAL,GHIDRA_RAW,NO,STATIC,"PROMT-0154: R2 scripted bat-group and paired-demon appearance gates"
+00046204,raw/00046204.c,rastan_scripted_scene_dispatch.c,COMPLETE,GHIDRA_RAW,NO,STATIC,"PROMT-0154: four-call R2 scripted wrapper"
+0004650e,raw/0004650e.c,rastan_scripted_scene_dispatch.c,PARTIAL,GHIDRA_RAW,NO,STATIC,"PROMT-0154: six-round materialized-actor dispatcher inventory; individual branches remain open"

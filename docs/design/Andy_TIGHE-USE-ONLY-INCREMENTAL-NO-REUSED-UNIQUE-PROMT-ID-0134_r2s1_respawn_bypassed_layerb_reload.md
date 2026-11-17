@@ -101,3 +101,20 @@ palette persists; verify R1 death/respawn, R1 progression/water, Lines 0/1/3, th
 This file. 0132 report updated (initial-entry accepted; respawn regression + proven lifecycle). AGENTS_LOG appended.
 
 `TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0134`
+
+## Follow-up status (PROMT-ID-0136, 2026-11-13) — PARTIALLY ACCEPTED
+- **Early R2-S1 death/respawn: ACCEPTED** by Tighe (the activation re-arm restores the correct Layer-B there).
+- **Record-29 R2-S1 death/respawn: STILL FAILS** — after respawn at record ≈29 the Layer-B palette reverts to
+  the frontend-base bright cyan/yellow (tiles correct). The 0134 conclusion that the activation re-arm "always
+  reconstructs the current palette state" is therefore **incomplete, not universal**: the re-arm is sufficient
+  for an early respawn but not on the progression-selected path reached by record 29.
+- **Why (proven data model, PROMT-ID-0136):** R2 Layer-B is one base palette (`0x5DC4E`) + a fade level
+  (`0x5E24E[record]`, 0→7); record 29 = level 3; every valid level is green, so the wrong palette is the
+  scene-0 **frontend-base clobber persisting** — the loader never restored L2 on that path (bypass, same family
+  as the pre-0134 bug). `a5@0x13e` is monotone (never rewinds on respawn), so this is NOT a wrong-row.
+- **Leading cause to confirm:** the Genesis teardown-owner dispatcher
+  (`genesistan_pc090oj_hook_zero_fill_56440`) tests `0x13AA==8`, but arcade `0x13aa` is only ever 0 or 9 —
+  never 8 (the real substate-8 var is `0x13ac`), so the gameplay-owner branch is dead and the teardown falls
+  through to the scene-0 frontend L2 clobber. Not yet proven as THE record-29 cause (does not alone explain
+  early-vs-29) — runtime diagnostic specified in the 0136 report. **No further blind re-arm was added.**
+- See `Andy_...PROMT-ID-0136_r2s1_record29_respawn_palette_state.md`.

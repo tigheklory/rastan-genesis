@@ -20,8 +20,13 @@
     .equ ARCADE_PLAYER_STATE, 0x00FF10E8
     .equ ARCADE_PLAYER_X,     0x00FF10BE
     .equ ARCADE_PLAYER_RECORD, 0x00FF013E
+    .equ ARCADE_ROUND,        0x00FF0118      /* a5@0x118 current round 1..6 */
     .equ SPAWN_COLUMN_X,      0x0028
-    .equ R1_CASTLE_FIRST_RECORD, 0x0011
+    /* PROMT-ID-0135: outdoor-section width per round (arcade 0x0506C6 compares
+       record-1-base against 0x10) and per-round base stride (arcade table 0x50722:
+       base[round]=(round-1)*23). */
+    .equ OUTDOOR_SECTION_LEN, 0x0010
+    .equ ROUND_RECORD_STRIDE, 23
 
 z80_request_bus:
     move.w  #0x0100, Z80_BUSREQ
@@ -120,10 +125,11 @@ z80_write_command:
        The separate retained substate-9 route at $055F68 can publish $27, and
        the direct-start derivative exercises that route, but the captured
        natural boundary is $25,$1B.  $25 is not a second music-selection
-       request in the original sound driver.  The native Aggressive fallback
-       therefore applies only while the retained record is in R1-S1's outdoor
-       range; castle/boss appearance cues are consumed and cannot replace the
-       authentic following $1B/$1C selections. */
+       request in the original sound driver.  The native Aggressive start
+       therefore applies while the retained record is in the CURRENT round's
+       outdoor Subround-1 range (PROMT-ID-0135 generalized this from R1-S1 only
+       to every round's outdoor section); castle/boss appearance cues are
+       consumed and cannot replace the authentic following $1B/$1C selections. */
     cmpi.b  #0x25, %d0
     bne.s   .Lnot_appearance
     cmpi.w  #0x0002, ARCADE_OUTER_STATE
@@ -132,8 +138,28 @@ z80_write_command:
     bne.s   .Lcommand_consumed
     cmpi.w  #SPAWN_COLUMN_X, ARCADE_PLAYER_X
     bhi.s   .Lcommand_consumed
-    cmpi.w  #R1_CASTLE_FIRST_RECORD, ARCADE_PLAYER_RECORD
-    bhs.s   .Lcommand_consumed
+    /* PROMT-ID-0135: publish the appearance->Aggressive World start for the outdoor Subround 1 of
+       EVERY round, not just R1-S1.  The retained arcade per-subround music selector (0x050660) emits
+       this shared $25 appearance cue and then the subround song $1A(outdoor)/$1B(castle)/$1C(boss);
+       the outdoor case issues NO following song command, so the $25 appearance IS the outdoor music
+       start (that is exactly how R1-S1 already works here).  The arcade classifies "outdoor" at
+       0x0506C6 as (record - 1 - base[round]) < 0x10, with base[round] = (round-1)*23 (ROM table
+       0x50722 = 0,0x17,0x2E,0x45,0x5C,0x73).  The previous test (record < 0x11) assumed base 0 and so
+       matched only R1-S1, dropping the appearance for R2-S1..R6-S1 and leaving them silent.  Use the
+       arcade's own per-round outdoor test instead: castle/boss still fall outside it, are consumed,
+       and defer to the authentic following $1B/$1C; the respawn reappearance cue is published the same
+       way, matching R1-S1 respawn behavior.  d1/d2 are scratch here and are reloaded at .Lpublish. */
+    moveq   #0, %d1
+    move.b  ARCADE_ROUND, %d1               /* round 1..6 */
+    subq.w  #1, %d1                         /* round-1 (0..5) */
+    cmpi.w  #6, %d1
+    bhs.s   .Lcommand_consumed              /* round out of range -> consume (safety) */
+    mulu.w  #ROUND_RECORD_STRIDE, %d1       /* base = (round-1)*23 */
+    move.w  ARCADE_PLAYER_RECORD, %d2
+    subq.w  #1, %d2                         /* record - 1 */
+    sub.w   %d1, %d2                        /* record - 1 - base[round] (unsigned) */
+    cmpi.w  #OUTDOOR_SECTION_LEN, %d2
+    bhs.s   .Lcommand_consumed              /* past the outdoor section -> castle/boss -> consume */
     bra.s   .Lpublish
 .Lnot_appearance:
     /* Original command $1E is the authentic GAME OVER music cue (song-table

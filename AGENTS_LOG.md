@@ -56489,6 +56489,19 @@ TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0143
 
 TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0144
 
+---
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0151 — R1-S2 Line-1 fire-pit capacity proof (Cody, 2026-11-17)
+
+* Starting state: branch `rastan-direct-proposal`, HEAD `275e2e35e65e46dab46ce685c035e554dea4110d`, counter 573. Build 0573 remained the protected baseline; PROMT-ID-0149 analyzer/report work was still uncommitted. Concurrent audio, generated, trace, documentation, and performance work was preserved.
+* Static schedule/marker, production sprite-manifest, native death/reward-record, subround-lifetime, pixel-index, and palette-writer analysis proves there are no legal Genesis Line-1 sprite consumers while the record-18 fire can be visible. R1-S1 enemy families and R1-S3 boss assets are excluded; reward kinds 01/11 use native embedded Line 0 in Build 0573 rather than their unintegrated editor-only Line-1 mappings.
+* Line-1 index 0 remains reserved `USED_STATIC`; indices 1–15 are all `UNUSED_STABLE`. The host demand is empty, exact overlap with the nine fire colors is zero, and the lossless union is 9/15. Verdicts: `LOSSLESS_FREE_SLOT_LEASE` and independently `LOSSLESS_REGIONAL_COMPOSITE`; zero artistic merges. Only fire usages `LA-0479..LA-0494` would require offline PC080SN regional reindexing, with a 512-byte maximum pre-dedup pattern-variant cost.
+* The generic 0149 analyzer/tests were narrowly extended for Line 1, and stale prose describing a superseded ten-color hypothesis was corrected to match the proven nine-color arrays/counts. `py_compile` PASS; 13 unit tests PASS; generated JSON SHA-256 `676f9af42c8336a252ed9a29a249fc4276cbcba8e72fee21a54e7da1dec0d885`.
+* Production assembly/runtime/VDP/scene/sprite code, Test 2.0, palette registry, authored mappings, and production graphics changed: NONE. ROM produced/build number consumed: NONE; counter remains 573. Recommendation is Line 1 as the candidate host for a later, separately authorized residency implementation. No push.
+* Report: `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0151_r1s2_line1_firepit_capacity_proof.md`.
+
+TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0151
+
 ## PROMT-ID-0146 — R1-S2 fire-pit palette residency (READ-ONLY forensic proposal, 2026-11-16)
 Independent of Cody/Antigravity (their new proposals not read). No production/Composer/Test_2_0 change, no ROM,
 no build number (counter stays 569). Deliverable: docs/design/Andy_...PROMT-ID-0146_firepit_arcade_palette_residency_proposal.md.
@@ -56506,3 +56519,14 @@ Key proven findings (built on Andy_r1s2_trap_graphics_sources.md, re-verified vs
   re-arm on respawn; analogous to R2 graphics-epoch residency. Avoid leasing protected/respawn-managed Line 2.
 - Gaps for Tighe: flicker-vs-static; intentional merges; exact scroll/checkpoint envelope; no palette_decisions
   entry exists for the fire yet.
+## 2026-11-17 — TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0154
+
+- Completed a research-only, arcade-source-first PC090OJ appearance audit covering all 18 gameplay subrounds.
+- Added deterministic authority manifest `analysis/graphics_optimizer/pc090oj_subround_appearance_manifest.json` and its generator `tools/analysis/build_pc090oj_subround_appearance_manifest.py`; 57 canonical workload identities each carry 18 explicit P/C/A/? cells.
+- Added Ghidra selected-function export helper and durable C for the previously missing scripted dispatchers `$4580C`, `$45EFC`, `$46204`, and `$4650E` (the last remains explicitly PARTIAL).
+- Source reconciliation proves Small and Large Bat conditional appearance in R1-S1 and R1-S2 through `$4580C->$45B18`; the R1-S2 call is progression `$11` / retained record 16.
+- The current separate family-8 Rope Climber R1-S2 classification is not supported by `$4A104`: family 8 occurs in R1 outside records 6–7, while R1-S2 records 16–21 schedule family 2/base `$033E`. Marked conflated rather than silently accepted.
+- R1-S2 permits reward kinds 3, 4, 6, 11, and 13. Test 2.0 maps kind 11 to Line 1, contradicting PROMT-ID-0151's sprite-Line-1 exclusion; no palette or fire-pit decision was changed.
+- Wrote `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0154_pc090oj_round_subround_appearance_authority.md` with all 49 required sections, master matrix, and 18 detailed tables.
+- No production, Palette Composer, bestiary, Test 2.0, ROM, build, or counter change was made by this task.
+
