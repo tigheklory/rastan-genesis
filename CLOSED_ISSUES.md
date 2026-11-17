@@ -499,3 +499,14 @@ Closure note format:
   `states/traces/build0462_final_life_zero_input_20261020_112626/`.
 - **Related still-open issue:** OPEN-034 remains open for the distinct post-death/front-end tiles,
   palette, and presentation-lifecycle corruption addressed by PROMPT RG-003.
+
+---
+
+## CLOSED-043 — Natural round transition retains final player-facing direction into R2-S1
+
+- **Original title:** Natural round transition retains left-facing player state into R2-S1.
+- **Closed by:** Tighe ORIGINAL ARCADE human LEFT/RIGHT oracle; Cody PROMT-ID-0144 reconciliation, 2026-11-16.
+- **Build/artifact:** No corrective build. Build 0573 is the compared Genesis artifact: `dist/rastan-direct/rastan_direct_video_test_build_0573.bin`, 4,443,832 bytes, SHA-256 `1b396536f2a3543e42e6cab9b73e2f9bd67e40486ec3b070aa323223bc985b2f`.
+- **Evidence:** assisted original arcade LEFT trace `states/traces/promt0142_arcade_left_human/` reaches R2-S1 with `$1114=$0002`; RIGHT control `states/traces/promt0142_arcade_right_human/` reaches R2-S1 with `$1114=$0003`. Build-0573 Genesis controls retain the same values. Historical checkpoint and resolution: `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0142_round_transition_player_facing_reset.md`; reconciliation: `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0144_round_transition_facing_oracle_resolution.md`; KF-097.
+- **Closure note:** **CLOSED / NOT A BUG — arcade-accurate behavior.** Original arcade preserves the finishing direction across R1-S3→R2-S1; it does not force a right-facing new-round default. Native Genesis player compositors already read retained `A5+$1114` directly. Do not add a reset, SAT/HFlip override, READY/scene/round special case, or independent facing cache.
+- **Related still-open issue:** NONE for player facing. This closure does not resolve the separate Build-0573 acceptance conditions in OPEN-040, OPEN-041, or OPEN-042.

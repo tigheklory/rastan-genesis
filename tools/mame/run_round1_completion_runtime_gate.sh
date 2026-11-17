@@ -18,6 +18,7 @@ if [[ "${R1C_CAPTURE_RESEED:-0}" == 1 || "${R1C_CAPTURE_STAGECLEAR:-0}" == 1 ]];
     DEBUG_ARGS=(-debug -debugger none)
 fi
 R1C_OUTDIR="$OUT" R1C_SYMBOLS="$SYMBOLS" R1C_ROUTE="$ROUTE" \
+R1C_FINISH_FACING="${R1C_FINISH_FACING:-alternating}" \
 R1C_MAX_FRAMES="${R1C_MAX_FRAMES:-24000}" timeout 600s mame genesis \
     -cart "$ROM" -ctrl1 md6button -video none -sound none -nothrottle -skip_gameinfo \
     "${DEBUG_ARGS[@]}" \

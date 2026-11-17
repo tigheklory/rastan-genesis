@@ -56290,3 +56290,219 @@ changed (counter stays 567).
   0132 mapping, all prior artifacts.
 
 `TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0134`
+
+---
+
+## PROMT-ID-0135 — R2-S1 (all rounds' S1) Aggressive World music selection fix (Andy, 2026-11-13) — Build 0569
+
+Baseline Build 0568 (0134 palette/respawn fix) preserved: SHA
+`d75eb51e4ac52ef2afd53984c98992fa171a686665b0017bcddcf55f7a008530`, counter 568, full family verified. Tighe:
+R2-S1 Aggressive World missing; R2-S2 (Re-In-Carnation) and R2-S3 (boss) correct. Tighe clarified ALL rounds'
+S1 (1-1..6-1) play Aggressive World.
+
+* **Root cause (static, class B — command dropped by the Genesis sound shim):** the retained arcade
+  per-subround music selector (0x050660) emits the shared `$25` appearance cue then the subround song
+  `$1A`(outdoor)/`$1B`(castle)/`$1C`(boss); outdoor S1 has NO following song command, so `$25` IS the outdoor
+  (Aggressive World) start — exactly how R1-S1 already works. `z80_write_command` (sound_comm.s) published
+  `$25`→Aggressive only when `record < 0x11`, which is base-0 = **R1-S1 only**; for R2-S1..R6-S1 (`record≥0x11`)
+  it consumed `$25` → silent. The arcade classifies outdoor at 0x0506C6 as `(record-1-base[round]) < 0x10`,
+  `base[round]=(round-1)*23` (ROM table 0x50722 = 0,0x17,0x2E,0x45,0x5C,0x73). Command identity re-proven:
+  `$19`→descriptor 0x2DF0 (8-ch, Cody VGM match) and `$1A`→0x2E90 (6-ch) are the outdoor Aggressive World
+  arrangements; `$1B`→0x2F70 (Re-In-Carnation), `$1C`→0x2FE0 (boss) match the dispatch and R2-S2/S3 controls.
+* **Fix (sound_comm.s only):** replace `record < 0x11` with the arcade's per-round outdoor test
+  `(record-1-(round-1)*23) < 0x10` (round=`a5@0x118`, bounded 1..6; d1/d2 scratch, reloaded at .Lpublish).
+  Now `$25`→Aggressive publishes for EVERY round's outdoor S1 (entry and respawn), identical to R1-S1; castle/
+  boss `$25` still consumed and defer to `$1B`/`$1C`. Command-driven, no `if round==2`, no scene-song table, no
+  new command, no audio-asset/dispatch/Z80-driver/SFX change. R1-S1 publish decision unchanged (base 0).
+* **Build 0569** (counter 568→569, `[canonical=PASS entry=FAIL epoch=FAIL]`, family verified; entry/epoch MAME
+  gates wedged in WSL and were killed so the ROM numbered+preserved):
+  * Normal: `dist/rastan-direct/rastan_direct_video_test_build_0569.bin`
+    SHA `80aed900691c6e4659370f18dfc7127c472db47e4814edd6e9ae08ab03006082`.
+  * R2-S1 direct-start: `..._0569_R2-S1.bin` SHA
+    `a7f468c30a45709007036adb7a7b5a548bd8c9e8b4db944e660365f1bac989e2` (selector 0xFE; no audio-init patch).
+* **Test first:** `rastan_direct_video_test_build_0569.bin` NATURAL R1→R2 → R2-S1 plays Aggressive World;
+  die/respawn restarts it; R2-S2/R2-S3 unchanged; no R1 regression; SFX intact; 0568 palette/respawn preserved.
+  NOT fixed until Tighe confirms R2-S1 plays Aggressive World.
+* **Preserved:** 0134 palette/respawn (scene_load.s untouched), Plane-A/B, tiles, dispatch table, audio assets,
+  FM6-DAC/Composer, score, R2 boss. Report:
+  `docs/design/Andy_...PROMT-ID-0135_r2s1_aggressive_world_music_selection_fix.md`.
+
+`TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0135`
+
+## PROMT-ID-0136 — R2-S1 record-29 respawn Layer-B palette (INVESTIGATION; diagnostic + STOP, 2026-11-13)
+Baseline Build 0569 (0134 re-arm + 0135 audio, both preserved). **No production file changed.** Tighe:
+0135 music ACCEPTED; 0134 palette only PARTIALLY accepted — early R2-S1 respawn restores, but record-29
+respawn reverts Layer-B to the frontend-base bright cyan/yellow (tiles correct).
+
+Static findings (authoritative arcade program):
+- **Data model proven:** R2 Layer-B = single base palette `0x5DC4E` (dark-green jungle) + fade level
+  `0x5E24E[record]` (0→7 ramp per Subround-1). R2-S1 = records 24-39; **record 29 = level 3**. Source "rows"
+  1-7 are `0xFFFF` filler, so the record index is a brightness level, not a palette row.
+- **Symptom classified by data:** wrong L2 = `genesistan_frontend_base_palette` Line 2 (raw `0000 0000 0008
+  004E 008E 00EE 08EE 0EEE 0A00 0E40 0E80 0EC0 0EEA …`). Every valid R2 level is green ⇒ the loader never
+  restored L2 (bypass, not wrong-row). `a5@0x13e` is monotone (no rewind), ruling out wrong-row.
+- **Leading latent defect:** teardown dispatcher `genesistan_pc090oj_hook_zero_fill_56440` tests `0x13AA==8`,
+  but arcade `0x13aa` is only ever 0/9 (never 8; real substate-8 var is `0x13ac`) ⇒ gameplay-owner branch dead
+  ⇒ teardown falls through to scene-0 frontend L2 clobber. Not alone sufficient to explain early-vs-29.
+
+Decision: cause not fully statically proven; the candidate fix (teardown-owner substate var) is high
+blast-radius across every subround/round/death transition and cannot be runtime-validated here (MAME blocked).
+Per the prompt ("Do NOT simply add another reload call. Find why record 29 differs" / diagnostic-then-STOP) and
+CLAUDE.md anti-regression, STOPPED with a specified GENESIS-NTSC trace diagnostic over the existing 0569 ROM
+(Control A early respawn vs Failure B record-29 respawn; capture owner-branch taken, 0x13aa/0x13ac, 0x13b0 +
+FUN_00059de8 body, 0x238 fade arm, last L2 writer). No numbered build this task; 0569 unchanged.
+Reports: docs/design/Andy_...PROMT-ID-0136_r2s1_record29_respawn_palette_state.md; 0134 report updated.
+
+### MAME Exit Summary (2026-11-14 00:41:30)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+---
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0137 — Andy documentation reconciliation + attract gameplay-demo crash correction (Cody, 2026-11-14)
+
+* Starting state: branch `rastan-direct-proposal`, HEAD `9b3bd39e`, counter 569, dirty concurrent 0134/0135/0136/audio/generated work preserved; no reset/clean/rebase/push.
+* Reconciled all 550 live `docs/**/Andy_*.md` files plus relevant Andy `AGENTS_LOG.md` entries. Full per-document index and correction status are in the 0137 report. 0121's A3/source-trap historical attribution is corrected by 0123's preserved-ROM proof; 0124 throne repair remains current; 0125/0126 remain diagnostic-only; 0134 is partially accepted/record-29 pending; 0135 is Tighe-accepted and preserved; 0136 remains diagnostic/pending.
+* Preserved ROM proof: 0548 SHA `957633318954f3fd690e488685288118d4e307073fdb19db04f5dbc7ebbfded8`; 0549 SHA `3c900760db5f861869cee73c45173b899207c5250ea1215d0cdd36a509c88923`. At ROM `$055FBE`, 0548 executes `bra.w $0560D0`; 0549 executes `jsr $070B38; rts`, newly reaching the scene reseed. Historical 0549 bad-pointer trap is `$070BA2`, range `$00000F08..$0003A00C`; helper code itself was unchanged.
+* Current 0569 first failure evolved: no-input runtime observer hit `.Lscene_scroll_reseed_bad_source_generation` at ROM `$070BCE` with `A5+0x34=0`, `A4=0`, and all sixteen `$FF1000` longwords zero. The later `.Lscene_scroll_reseed_rebuild_bad_ptr` trap at `$070C3A` remains active. Root remains the broad shared-state-8 invocation.
+* Original semantic discriminator: `A5+0x34` is the retained active-human-session latch (set at arcade `$03A984`, cleared at `$03A460`); state 8 alone is shared by paid natural transition and no-human attract/demo.
+* Production fix commit `79d75094`: `$056440` selects gameplay owner only for state 8 plus nonzero human latch; `$055F2A` runs the finite Plane A/B natural reseed only with that latch. Pointer validity is not a discriminator; both traps remain; 0126 flag defaults OFF. Focused verifier and bounded multi-cycle attract harness updated.
+* Build 0570 normal: `dist/rastan-direct/rastan_direct_video_test_build_0570.bin`, 4,443,832 bytes, SHA `b9d1a9a2d98a65e8254184d40f2d9a1027b02058401fdc10e4e214ea03e6c3f3`. Canonical/gameplay-entry/30-second trace and family verification passed; synthetic phase-epoch injection failed with corrupt state/SP and is disclosed, not treated as gameplay evidence.
+* Attract runtime PASS: two complete no-input cycles in one boot, frame 14,455, demo seen, demo exit/death seen, returned to visible second title each cycle, exact title CRAM, zero unsafe display-on writes, no trap.
+* Natural R1-S2→R1-S3/Round-2 runtime PASS: 2,683 frames, one completion convenience request (no destination-record write), exact torch residency, boss scene converged, Stage Clear states 9..13, command `$27`, Round-2 READY and gameplay. R1-S2 convenience: `..._0570_S1-2.bin`, SHA `179484063856518ca3cc1c09684375bf8cffd2b5e202ea1ef29ed860af5406af`.
+* Canonical/R1-S2/R2-S1/R2-S2/R2-S3 functional entry probes PASS with expected stages/records/packages, zero misses and populated planes. Palette family verification PASS. No new acceptance claimed for record-29 palette or 0570 audio regression.
+* Report: `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0137_andy_documentation_reconciliation_and_attract_demo_crash_fix.md`.
+
+`TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0137`
+
+### MAME Exit Summary (2026-11-14 12:51:14)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+---
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0138 — R2-S1 Layer-B checkpoint-respawn palette lifecycle correction (Cody, 2026-11-14)
+
+* Starting state: branch `rastan-direct-proposal`, HEAD `d307c9ac8fb3b0bfd5906fd43d2ac973566773ba`, counter 570; concurrent 0134/0135/0136/audio/generated/log work preserved; no reset/clean/rebase/push.
+* Build-0570 runtime root cause: active-human death enters transient scene 0, where `load_scene_tiles` copied the full frontend palette and replaced correct resident R2 L2 with exact frontend-base L2. The existing 0134 re-arm then ran the retained loader, but R2 source rows 1..7 are all `$FFFF` keep entries. Early respawn worked only because its rewind selected fade row 0, the one full self-contained base row; progressed fade rows retained the Genesis-clobbered values.
+* PROMT-ID-0136 dispatcher hypothesis re-tested and rejected as causal: current `$056440` still tests `13AA==8` plus active-human latch, while observed R2 gameplay/respawn had `13AA=1`, `13AC=0`; the destructive event occurs through generic scene-0 `load_scene_tiles`, not `$056440`. PROMT-ID-0137 owner/attract behavior is preserved.
+* Original semantic contract: arcade keeps the current round's physical Layer-B palette bank resident across death/READY. Genesis collapses all round Layer-B banks onto staged/CRAM L2. Source commit `538fac0c56153425b83ef84a06f71e739acfd147` makes active-human scene 0 preserve resident L2 while restoring frontend Lines 0/1/3; no-human scene 0 still restores all four lines. No round/record/checkpoint/fade/source/colour special case or new buffer.
+* Build 0571: normal 4,443,832 bytes, SHA `ab778a5d84cdbc0f3a9917defa8831063e95b5946cc5f9744047b05e8934cf95`; S2-1 SHA `b2a391438707bade5986b9ff05f8ce414aa3e76d2fe7abd475a9d16441a0e37c`; counter 570→571. Canonical, gameplay-entry, mandatory 30-second NTSC trace, Test-2.0 palette family, full-family generation, and direct R1-S2/R2-S1/R2-S2/R2-S3 probes PASS. Synthetic phase-epoch injection still fails with corrupt injected state/SP and is not acceptance evidence.
+* Runtime: normal no-input attract completed two title→R1 demo→title cycles (frame 14,455), no trap and exact title CRAM. R1 initial/death-respawn exact. R2 initial/early-respawn exact. A real progressed Record-26/checkpoint-25 death/respawn retained exact R2 staged and actual CRAM L2 through fade-1 keep semantics. Record 29 itself was not reached by automation; OPEN-040 remains pending Tighe gameplay verification and continued later progression.
+* Direct-start attract anomaly identified as harness-only: selector requests R2 stage/record while retained no-human lifecycle remains round 1, so exact R1 Layer-B L2 is shown. No production special case added.
+* PROMT-ID-0135 audio source was untouched by 0138 and compiled into 0571; no audible regression listen performed.
+* Report: `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0138_r2s1_layerb_respawn_palette_lifecycle_fix.md`. Trace tool: `tools/mame/scripts/r2s1_palette_lifecycle_trace.lua`.
+
+TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0138
+
+---
+
+## Genesis-Native Performance Optimization: Historical Synthesis, Bottleneck Theories, and Architectural Roadmap (2026-11-14)
+
+* Scope: Architectural synthesis and optimization roadmap for Cody and Andy. Read-only research and design; no ROM produced, no production source modified.
+* Evidence reviewed: All relevant `/docs/design` reports across the project timeline, MAME physical beam measurements (Builds 0354–0356, 0411, 0414, 0425), historical rope-race benchmark ledgers (Builds 0282–0439), and commercial Mega Drive engine disassemblies (Sonic 1, Rainbow Islands, Gunstar Heroes, Shinobi III, Thunder Force IV, Cadash).
+* Findings:
+  - Graphics translation is 80–95% native; metatiles and compact 6-byte sprite pieces are largely closed.
+  - Dominant structural bottleneck: Entire gameplay worker, object simulation, physics, collision, and graphics staging execute inside Level-6 VINT (IRQ6) at IPL7, causing masked continuations, dropped VINT edges, and 40–45 Hz effective crawl during heavy combat/scroll.
+  - Prioritized roadmap:
+    1. Priority 1 (Dominant): Phase D / Phase E scheduling — decouple gameplay worker into mainline at IPL0; IRQ6 handles bounded publication (~6–8 lines) only.
+    2. Priority 2: Multi-enemy composite bounding-box screening and direct burst queue allocation in `pc090oj_hooks.s`.
+    3. Priority 3: Universal `fg_cache_resolve` register hoisting across remaining Plane A (sel 1/2) and Plane B loops (`tilemap_hooks.s`).
+    4. Priority 4: Coalesced dirty column/row VDP DMA in `dma.s`.
+    5. Priority 5: Profile and bound arcade core spikes at `0x05100A`.
+* Report: `docs/design/genesis_native_performance_optimization_theories_and_roadmap.md`.
+
+
+### MAME Exit Summary (2026-11-15 17:46:12)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+---
+
+## Antigravity — Multi-Enemy Sprite Presentation Batching Proposal for Locked 60 FPS (2026-11-15)
+
+* Scope: Architectural design proposal requested by Tighe for review by Andy, Cody, and ChatGPT (Chad). Dedicated to achieving locked 60 FPS across all scenes (zero accepted 30 FPS lag frames) by fully nativizing the Sega Genesis sprite presentation pipeline.
+* Key Interventions Designed:
+  1. Actor-Level Coarse Viewport Screening: Screen composite actor bounding boxes once at the actor level; bypass per-piece clipping (48 reads, additions, and branches per enemy) for 100% on-screen actors.
+  2. Actor-Level Context & Residency Hoisting: Pre-resolve VRAM base tile (`obGfx` model), palette line, priority, and flip once per actor; inner loop emits pieces via direct additions (`~28 cycles/piece` vs current `~146–300 cycles/piece`).
+  3. Direct-to-SAT Single-Pass Pipeline: Eliminate the two-pass WRAM intermediate lane queues (`native_queue_back_enemy`, etc.); stream enemy pieces directly into pre-partitioned `staged_sprite_sat`.
+  4. Genesis Macro-Sprite Aggregation: Upgrade `precompute_pc090oj_frame_table.py` to aggregate adjacent 16×16 pieces into multi-tile Genesis hardware sprites (16×32, 32×16, 32×32), cutting enemy SAT entries and loop iterations by 50–65%.
+* Quantitative Budget: Recovers an estimated **~25,430 CPU cycles** on heavy 4-enemy combat frames, keeping worst-case frame time under the 128,009-cycle NTSC limit and guaranteeing locked 60 FPS.
+* Report: `docs/design/Antigravity_Multi-Enemy_Sprite_Presentation_Batching_Proposal.md`.
+
+---
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0139 — palette ownership lifecycle timing correction (Cody, 2026-11-15)
+
+* Starting state: branch `rastan-direct-proposal`, HEAD `70d20c0a`, counter 571; 0138/0137 commits present; concurrent 0135 audio, generated, report, log, and performance-roadmap work preserved.
+* Root cause: `load_scene_tiles` coupled gameplay graphics residency with Test 2.0 Lines 0/1/3 and PC090OJ map ownership. Scene 1 becomes resident during READY/inter-round preparation, so authored gameplay colors were installed early and scene-ID gates suppressed legitimate retained presentation writers.
+* Source commit `a57a0934`: gameplay preload no longer activates the authored palette. The retained `FUN_00059de8->$059AD4` current-round Layer-B load activates authored Lines 0/1/3 plus their PC090OJ map. Palette-hook protection uses the existing exact active authored asset, not scene ID. Package refresh is deferred until gameplay ownership exists. No new lifecycle state machine/buffer, color edit, round/record/READY special case, tile-route change, or 0138 L2 change.
+* Build 0572 normal: 4,443,832 bytes, SHA `2ff752e7f018e9a78ddde2930bcec84957643e2a625da6a1a5806a91198d3833`; counter 572. Test 2.0 provenance `49f38ea9b8c889eb24dbe232a25c590b79755b642abb8d42743d0d8b6a17c04f`.
+* Canonical, gameplay-entry, mandatory NTSC trace, palette validation, complete family, and 18 direct-subround selector checks PASS. Natural invincible completion reaches End-Round states 9–13, Scene Clear `$27`, Round-2 READY and Round 2; staged palette equals actual CRAM at all captured states. Normal ROM completes two attract/title cycles with identical title palettes, actual CRAM equality, visible title, zero unsafe display enables, and no trap.
+* OPEN-041 added for human acceptance. OPEN-040 remains literal Record-29/later-progression acceptance pending, while preserving Tighe's statement that 0138's checkpoint issue is visually fixed. Audio source untouched by 0139; no audible listen performed. No push.
+* Report: `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0139_palette_ownership_lifecycle_timing_fix.md`.
+
+TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0139
+
+---
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0141 — Build 0572 initialization/presentation regression correction (Cody, 2026-11-15)
+
+* Build 0572 is explicitly REJECTED per Tighe: first-known-bad Plane-A initialization and still-wrong `1UP`/`HIGH SCORE`/`2UP` presentation colors. Build 0571 remains the known-good initialization comparison.
+* First graphics divergence: 0139 delayed `diagnostic_palette_active_visual_index` with authored palette ownership. `MAP_GET_AUTHORED_VISUAL_A0` consumes that pointer during initial Plane-A generation, so the map could be staged without authored contents before later `$059AD4` activation. The underlying graphics-residency versus palette-ownership distinction remains valid; the implementation coupled the wrong side effect.
+* Palette correction: native frontend HUD SAT records select Genesis L2 (`0xCxxx`) and require original PC090OJ sprite bank 48. Gameplay PC080SN Layer-B also occupies Genesis L2. Source commit `579d1b4371dc35c7d4f39fb18f320bef0186579c` selects Plane-A visual context at graphics-preparation time, retains actual Test 2.0 palette/map activation at `$059AD4`, and overlays bank 48 only onto visible CRAM L2 while FRONTEND_FULL owns the HUD. PROMT-ID-0138 staged resident gameplay L2 remains untouched and is republished on gameplay entry.
+* Build 0573 normal: `dist/rastan-direct/rastan_direct_video_test_build_0573.bin`, 4,443,832 bytes, SHA `1b396536f2a3543e42e6cab9b73e2f9bd67e40486ec3b070aa323223bc985b2f`; counter 573. Canonical/gameplay-entry/mandatory NTSC trace, Test-2.0 palette family, full same-number family, all 18 derivative checks, and focused canonical/R1-S2/R1-S3/R2-S1/R2-S2/R2-S3 functional probes pass. Legacy phase-epoch automation reports FAIL/warning because its bounded route remains at record 0; not treated as acceptance.
+* OPEN-041 updated for the 0572 rejection and 0573 L2 presentation candidate. OPEN-042 added for the separate 0572 Plane-A initialization regression. OPEN-040 remains open under its exact Record-29/later-progression condition. No push; audio source untouched; 0573 awaits Tighe visual/gameplay acceptance.
+* Report: `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0141_build0572_initialization_and_palette_lifecycle_regression.md`.
+
+TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0141
+
+### MAME Exit Summary (2026-11-15 18:54:13)
+- Final PC: 0x03B2C8
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+---
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0143 — PROMT-ID-0142 unresolved facing-oracle checkpoint (Cody, 2026-11-16)
+
+* PROMT-ID-0142 stopped at the required human original-arcade oracle boundary. It did not establish the arcade's LEFT-finish versus RIGHT-finish R1-S3→R2-S1 facing lifecycle, so no production correction was made and no ROM/build number was produced.
+* PROMT-ID-0143 created the missing historical 0142 report at `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0142_round_transition_player_facing_reset.md`. Its status is **BLOCKED ON HUMAN ARCADE ORACLE — NO FIX CLAIMED**.
+* The preserved arcade observer was initially audited and corrected to be strictly passive: accidental cheat activation, automated input, and gameplay-memory mutation were removed. After that checkpoint, Tighe explicitly requested an R1-S3 start plus invincibility. The current launcher therefore uses the stock `$F7` `Round 1 Boss` selector and stock MAME invincibility cheat, while leaving all input, the boss's defeat, final facing, and the R1→R2 transition unforced. It reads retained lifecycle fields, transparently observes writes to authoritative facing word `$0010D114`, records executing writer PCs, and detects stable R2-S1 entry. The exact LEFT and RIGHT commands are preserved in the report.
+* OPEN-041 and OPEN-042 now record Tighe's partial positive Build-0573 evidence without premature closure. OPEN-043 tracks the natural left-facing carry and human-oracle blocker. CLOSED_ISSUES.md remains unchanged.
+* Production source changed: NONE. Numbered ROM produced: NONE. Counter remains 573. Concurrent audio, generated, documentation, and performance work was preserved. No push.
+
+TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0143
+
+---
+
+## TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0144 — Round-transition facing oracle resolution (Cody, 2026-11-16)
+
+* Tighe completed both assisted ORIGINAL ARCADE R1-S3 human controls. LEFT reaches stable R2-S1 with retained `A5+$1114=$0002`; RIGHT reaches stable R2-S1 with `$1114=$0003`. The `$F7` R1-S3 selector and stock invincibility were convenience only; input, final blow, facing, boss completion, and transition remained human/original-game controlled.
+* Build 0573 retains the same direction values through its R1-S3→R2-S1 path. The force-right new-round hypothesis is disproven: there is no missing reset, no player-facing regression, and no production correction to make.
+* Historical PROMT-ID-0142 report amended without erasing its original STOP. OPEN-043 moved to CLOSED-043 as **NOT A BUG — arcade-accurate behavior**. KF-097 records the durable retained-facing contract and warning against reset/SAT-HFlip special cases.
+* Trace tooling retained for future comparisons. New tooling: NONE. Production source/player/graphics/palette/audio/scheduling changes: NONE. ROM/build number: NONE; counter remains 573. Concurrent work preserved; no push.
+* Report: `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0144_round_transition_facing_oracle_resolution.md`.
+
+TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0144
+
+## PROMT-ID-0146 — R1-S2 fire-pit palette residency (READ-ONLY forensic proposal, 2026-11-16)
+Independent of Cody/Antigravity (their new proposals not read). No production/Composer/Test_2_0 change, no ROM,
+no build number (counter stays 569). Deliverable: docs/design/Andy_...PROMT-ID-0146_firepit_arcade_palette_residency_proposal.md.
+Key proven findings (built on Andy_r1s2_trap_graphics_sources.md, re-verified vs corpus/ROM):
+- Fire = ONE 4x4 PC080SN Layer-A unit ($093A-$0949, bank 0x014, record 18, rows 28-31, period 4). NO sprite
+  component in R1-S2 (independent re-verification; $0224 pit-flame actor is R2/R4, retired R1-S2). Tighe's
+  "sprite flames on top" = mode-8 top-row flicker, not a sprite.
+- Fire uses 15 source indexes -> collapse to 10 DISTINCT Genesis CRAM colors (merges forced by 9-bit depth, NOT
+  artistic) -> fits LOSSLESS in one line (10 of 15 usable). Reduction ladder: 8=~invisible, 7/6/5=maxErr 1 lvl,
+  4=highlight gradient lost.
+- ROOT CAUSE: 4 Genesis lines all committed (0/1 sprites, 2 Layer-B, 3 Layer-A master); NO route-table entry for
+  bank 0x14 -> fire tiles fall back to Line-3 castle-master palette; mode-8 writes dead Genesis line 0x14 ->
+  animation dropped. Fire has no palette home.
+- Recommendation: Strategy C segment-scoped palette RESIDENCY on Line 3 (fire's own plane), records 0x11-0x13,
+  re-arm on respawn; analogous to R2 graphics-epoch residency. Avoid leasing protected/respawn-managed Line 2.
+- Gaps for Tighe: flicker-vs-static; intentional merges; exact scroll/checkpoint envelope; no palette_decisions
+  entry exists for the fire yet.

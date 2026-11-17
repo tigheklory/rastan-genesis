@@ -1893,3 +1893,18 @@ route remains 817 frames because it does not execute this hook. This closes the
 currently identified material background optimization phase; remaining work is
 dynamic/bounded. See
 `docs/design/Cody_build0425_plane_a_selector12_segment_hoist.md`.
+
+## KF-097 — Player facing is retained across R1-S3→R2-S1; no new-round force-right reset
+
+- **Status:** ACTIVE
+- **Confidence:** CONFIRMED (Tighe human ORIGINAL ARCADE LEFT/RIGHT controls; matching Build-0573 Genesis traces; original/native compositor source)
+- **Applicability:** GLOBAL player-facing lifecycle; Build 0573 comparison explicitly verified
+- **Rediscovery Hazard:** HIGH
+- **Addresses:** authoritative facing `A5+$1114` = original arcade `$0010D114` / Genesis WRAM `$00FF1114`; original compositor readers `$0544AA/$0544E6/$054512`; native `native_player_frame_try` and `native_player_secondary_frame` in `apps/rastan-direct/src/pc090oj_hooks.s`
+- **Source Documents:** `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0142_round_transition_player_facing_reset.md`; `docs/design/Cody_TIGHE-USE-ONLY-INCREMENTAL-NO-REUSED-UNIQUE-PROMT-ID-0144_round_transition_facing_oracle_resolution.md`; `states/traces/promt0142_arcade_left_human/`; `states/traces/promt0142_arcade_right_human/`
+- **Related Issues:** CLOSED-043
+- **Last verified:** 2026-11-16 (ORIGINAL ARCADE assisted R1-S3 human controls; Genesis Build 0573)
+
+**Finding.** Original arcade retains the player's final facing across the R1-S3 boss-to-R2-S1 transition: LEFT finishes and enters R2-S1 with `$1114=$0002`; RIGHT finishes and enters with `$1114=$0003`. Build 0573 exhibits the same value preservation. The native player compositors read retained `$1114` directly and derive the generated orientation/SAT HFlip from it; no independent Genesis facing cache was identified.
+
+**Use as prior.** Treat facing carry-over at new-round entry as arcade-accurate. Do not introduce a force-right write, SAT/HFlip workaround, READY/scene/round special case, or independent facing cache. The stock `$F7` R1-S3 selector and invincibility used by the arcade captures are test conveniences; input, final blow, facing, boss completion, and transition remained human/original-game controlled.

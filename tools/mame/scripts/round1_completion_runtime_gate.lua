@@ -14,6 +14,9 @@ local outdir = assert(os.getenv("R1C_OUTDIR"), "R1C_OUTDIR required")
 local symbols_path = assert(os.getenv("R1C_SYMBOLS"), "R1C_SYMBOLS required")
 local route = os.getenv("R1C_ROUTE") or "direct"
 local max_frames = tonumber(os.getenv("R1C_MAX_FRAMES") or "24000")
+local finish_facing = os.getenv("R1C_FINISH_FACING") or "alternating"
+assert(finish_facing == "alternating" or finish_facing == "left" or finish_facing == "right",
+  "R1C_FINISH_FACING must be alternating, left, or right")
 
 local function parse_symbols(path)
   local result = {}
@@ -99,7 +102,7 @@ local function gameplay() return scene() == 1 and r16(A5) == 2 end
 
 os.execute('mkdir -p "' .. outdir .. '"')
 local events = assert(io.open(outdir .. "/events.tsv", "w"))
-events:write("frame\tevent\tround\tprogression_marker\tstage\trecord\tactive_record\tpackage\tend_owner\tend_state\tend_timer\tplayer_state\n")
+events:write("frame\tevent\tpc\tround\tprogression_marker\tstage\trecord\tactive_record\tpackage\tend_owner\tend_state\tend_timer\tplayer_state\tfacing\n")
 local frame, last_marker, marker_at = 0, -1, 0
 local finish_requests, last_finish_request = 0, -10000
 local torches_seen, torch_changes = false, 0
@@ -117,13 +120,19 @@ local torch_cells = {
   {12,48,45}, {11,16,44}, {13,48,46}, {12,16,45},
 }
 local function log(event)
-  events:write(string.format("%d\t%s\t%02X\t%02X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\n",
-    frame, event, round(), progression_marker(), stage(), r16(A5 + 0x013e),
+  events:write(string.format("%d\t%s\t%06X\t%02X\t%02X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\n",
+    frame, event, cpu.state["PC"].value & 0xffffff, round(), progression_marker(), stage(), r16(A5 + 0x013e),
     r16(s.fg_boundary_active_record), r16(s.fg_boundary_active_package),
-    r16(A5 + 0x13d8), r16(A5 + 0x13da), r16(A5 + 0x13dc), r16(A5 + 0x10e8)))
+    r16(A5 + 0x13d8), r16(A5 + 0x13da), r16(A5 + 0x13dc), r16(A5 + 0x10e8),
+    r16(A5 + 0x1114)))
   events:flush()
 end
 local taps = {}
+taps[#taps + 1] = p:install_write_tap(A5 + 0x1114, A5 + 0x1115, "r1_player_facing",
+  function(_, data, _)
+    log(string.format("FACING_WRITE_%04X", data & 0xffff))
+    return data
+  end)
 if zp then
   taps[#taps + 1] = zp:install_read_tap(0x1fe0, 0x1fef, "r1_scene_clear_command",
     function(_, data, _)
@@ -308,6 +317,7 @@ local function finish(reason)
   f:write("result=" .. (ok and "PASS" or "FAIL") .. "\n")
   f:write("reason=" .. reason .. "\n")
   f:write("route=" .. route .. "\n")
+  f:write("finish_facing=" .. finish_facing .. "\n")
   f:write("frames=" .. frame .. "\n")
   f:write("finish_subround_requests=" .. finish_requests .. "\n")
   f:write("torches_exact_residency=" .. (torches_seen and "YES" or "NO") .. "\n")
@@ -359,7 +369,14 @@ emu.register_frame_done(function()
     key("P1 B", false); key("P1 C", false)
   elseif in_boss then
     local phase = frame % 360
-    key("P1 Right", phase < 180); key("P1 Left", phase >= 180)
+    -- Keep traversing both directions so the automated fighter can reach the
+    -- boss.  The directed modes bias the final orientation without pinning
+    -- Rastan against one wall for the whole encounter.
+    local right = (finish_facing == "alternating" and phase < 180) or
+      (finish_facing == "right" and phase < 240) or
+      (finish_facing == "left" and phase >= 240)
+    local left = not right
+    key("P1 Right", right); key("P1 Left", left)
     key("P1 Up", false)
     key("P1 B", (frame % 24) < 12)
     key("P1 C", (frame % 50) < 8)
